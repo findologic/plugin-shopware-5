@@ -277,10 +277,11 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
      * Loop through all articles to build xml file.
      *
      * @param array $articles
+     * @return mixed|string
      */
     private function buildXml($articles)
     {
-        $xml = "<?xml version='1.0' ?>\n" . '<findologic version="0.9">' . '</findologic>';
+        $xml = "<?xml version='1.0' ?>\n" . '<findologic version="1.0">' . '</findologic>';
 
         $findologic = new SimpleXMLElement($xml);
         $items = $findologic->addChild('items');
@@ -308,6 +309,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
      * @param \Shopware\Models\Article\Article $article
      * @param SimpleXMLElement $items
      * @param array $articleGroups
+     * @return SimpleXMLElement
      */
     private function generateItemNodes($article, $items, $articleGroups)
     {
@@ -877,7 +879,9 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Validates xml against findologic export schema.
+     * Validates xml against findologic export schema. Uses external schema.
+     *
+     * @param string $xml XML string to validate.
      */
     private function validateXml($xml)
     {
@@ -916,10 +920,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Adds CData tags.
+     * Wraps supplied $text with CDATA and appends to $node.
      *
-     * @param SimpleXMLElement $item
-     * @param string $item
+     * @param SimpleXMLElement $node XML node to append text to.
+     * @param string $text Text to wrap and append.
      */
     private function appendCData(SimpleXMLElement $node, $text)
     {
