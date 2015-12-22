@@ -195,6 +195,9 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
             'Enlight_Controller_Action_PostDispatch_Frontend_Detail', 'onPostDispatchDetail'
         );
         $this->subscribeEvent(
+            'Enlight_Controller_Action_PostDispatch_Frontend_Listing', 'onPostDispatchListing'
+        );
+        $this->subscribeEvent(
             'Enlight_Controller_Action_Frontend_Checkout_Finish', 'onCheckoutFinish'
         );
         $this->subscribeEvent(
@@ -219,6 +222,7 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
 
     /**
      * Event used for article detail template extending and passing placeholder values for article detail script
+     * @param Enlight_Event_EventArgs $arguments
      */
     public function onPostDispatchDetail(Enlight_Event_EventArgs $arguments)
     {
@@ -243,6 +247,29 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
             $view->assign('PRODUCT_TITLE', $articleByID['articleName']);
             $view->assign('PRODUCT_CATEGORY', $this->helper->getCategories($articleByID['categoryID']));
             $view->assign('PRODUCT_PRICE', str_replace(',', '.', $articleByID['price']));
+        }
+    }
+
+    /**
+     * Event handler used for category tracking
+     * @param Enlight_Event_EventArgs $arguments
+     */
+    public function onPostDispatchListing(Enlight_Event_EventArgs $arguments)
+    {
+        if (!$this->useFindologic($arguments)) {
+            return;
+        }
+
+        $controller = $arguments->getSubject();
+        $view = $controller->View();
+        $requestUrl = $controller->Request()->getRequestUri();
+        if (strpos($requestUrl, 'findologic=off') === false) {
+            $categorySlug = $controller->Request()->getParam('sCategory');
+            $categoryContent = Shopware()->Modules()->Categories()->sGetCategoryContent($categorySlug);
+            if (isset($categoryContent['id'])) {
+                $this->extendTemplate($view, 'listing');
+                $view->assign('CATEGORY_PATH', $this->helper->getCategories($categoryContent['id']));
+            }
         }
     }
 
