@@ -145,7 +145,7 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
     }
 
     /**
-     * Installing module
+     * This function installs the plugin.
      *
      * @return array
      */
@@ -221,16 +221,20 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
     }
 
     /**
-     * Event used for article detail template extending and passing placeholder values for article detail script
-     * @param Enlight_Event_EventArgs $arguments
+     * Event handler for article detail page extending and passing placeholder values for article detail script.
+     *
+     * @param Enlight_Controller_ActionEventArgs $arguments Contains current controller as subject (method getSubject())
      */
-    public function onPostDispatchDetail(Enlight_Event_EventArgs $arguments)
+    public function onPostDispatchDetail(Enlight_Controller_ActionEventArgs $arguments)
     {
         if (!$this->useFindologic($arguments)) {
             return;
         }
 
-        $params = $arguments->getSubject()->Request()->getParams();
+        /** @var Enlight_Controller_Action $controller */
+        $controller = $arguments->getSubject();
+        $view = $controller->View();
+        $params = $controller->Request()->getParams();
         $id = $params['sArticle'];
         if(!$id){
             $orderNumber = $params['ordernumber'];
@@ -238,23 +242,20 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
         } else {
             $articleByID = Shopware()->Modules()->sArticles()->sGetArticleById($id);
         }
-        $controller = $arguments->getSubject();
-        $view = $controller->View();
-        $requestUrl = $controller->Request()->getRequestUri();
-        if (strpos($requestUrl, 'findologic=off') == false) {
-            $this->extendTemplate($view, 'detail');
-            $view->assign('PRODUCT_ORDERNUMBER', $articleByID['ordernumber']);
-            $view->assign('PRODUCT_TITLE', $articleByID['articleName']);
-            $view->assign('PRODUCT_CATEGORY', $this->helper->getCategories($articleByID['categoryID']));
-            $view->assign('PRODUCT_PRICE', str_replace(',', '.', $articleByID['price']));
-        }
+
+        $this->extendTemplate($view, 'detail');
+        $view->assign('PRODUCT_ORDERNUMBER', $articleByID['ordernumber']);
+        $view->assign('PRODUCT_TITLE', $articleByID['articleName']);
+        $view->assign('PRODUCT_CATEGORY', $this->helper->getCategories($articleByID['categoryID']));
+        $view->assign('PRODUCT_PRICE', str_replace(',', '.', $articleByID['price']));
     }
 
     /**
-     * Event handler used for category tracking
-     * @param Enlight_Event_EventArgs $arguments
+     * Event handler used for category tracking.
+     *
+     * @param Enlight_Controller_ActionEventArgs $arguments Contains current controller as subject (method getSubject())
      */
-    public function onPostDispatchListing(Enlight_Event_EventArgs $arguments)
+    public function onPostDispatchListing(Enlight_Controller_ActionEventArgs $arguments)
     {
         if (!$this->useFindologic($arguments)) {
             return;
@@ -262,22 +263,21 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
 
         $controller = $arguments->getSubject();
         $view = $controller->View();
-        $requestUrl = $controller->Request()->getRequestUri();
-        if (strpos($requestUrl, 'findologic=off') === false) {
-            $categorySlug = $controller->Request()->getParam('sCategory');
-            $categoryContent = Shopware()->Modules()->Categories()->sGetCategoryContent($categorySlug);
-            if (isset($categoryContent['id'])) {
-                $this->extendTemplate($view, 'listing');
-                $view->assign('CATEGORY_PATH', $this->helper->getCategories($categoryContent['id']));
-            }
+        $categorySlug = $controller->Request()->getParam('sCategory');
+        $categoryContent = Shopware()->Modules()->Categories()->sGetCategoryContent($categorySlug);
+        if (isset($categoryContent['id'])) {
+            $this->extendTemplate($view, 'listing');
+            $view->assign('CATEGORY_PATH', $this->helper->getCategories($categoryContent['id']));
         }
     }
 
     /**
-     * Event used for every page template extending and passing placeholder values for every shop page
-     *  additionally passes orderID and cart amount placeholder values
+     * Event handler for extending and passing placeholder values for script on every page.
+     * Additionally passes orderID and cart amount placeholder values.
+     *
+     * @param Enlight_Controller_ActionEventArgs $arguments Contains current controller as subject (method getSubject())
      */
-    public function onPostDispatchFrontend(Enlight_Event_EventArgs $arguments)
+    public function onPostDispatchFrontend(Enlight_Controller_ActionEventArgs $arguments)
     {
         $controller = $arguments->getSubject();
         $view = $controller->View();
@@ -308,9 +308,11 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
     }
 
     /**
-     * Event used for cart template extending and passing placeholder values for cart tracking script
+     * Event handler for cart actions extending and passing placeholder values for cart tracking script.
+     *
+     * @param Enlight_Controller_ActionEventArgs $arguments Contains current controller as subject (method getSubject())
      */
-    public function onCheckoutConfirm(Enlight_Event_EventArgs $arguments)
+    public function onCheckoutConfirm(Enlight_Controller_ActionEventArgs $arguments)
     {
         if (!$this->useFindologic($arguments)) {
             return;
@@ -319,18 +321,20 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
         $controller = $arguments->getSubject();
         $view = $controller->View();
         $order = array();
-        $orderCounter = 0;
 
         $basket = Shopware()->Modules()->Basket()->sGetBasket();
         $cart = $basket['content'];
+
+        // prepare all ordered items for tracking
         foreach ($cart as $cartItem) {
             if (($cartItem['ordernumber'] !== 'SHIPPINGDISCOUNT') && ($cartItem['ordernumber'] !== 'sw-discount')) {
-                $order[$orderCounter]['productordernumber'] = $cartItem['ordernumber'];
-                $order[$orderCounter]['productname'] = $cartItem['articlename'];
-                $order[$orderCounter]['productcategories'] = array_unique($this->helper->getCartCategories($cartItem['articleID']));
-                $order[$orderCounter]['productprice'] = $cartItem['priceNumeric'];
-                $order[$orderCounter]['productquantity'] = $cartItem['quantity'];
-                $orderCounter++;
+                $order[] = array(
+                    'productordernumber' => $cartItem['ordernumber'],
+                    'productname' => $cartItem['articlename'],
+                    'productcategories' => array_unique($this->helper->getCartCategories($cartItem['articleID'])),
+                    'productprice' => $cartItem['priceNumeric'],
+                    'productquantity' => $cartItem['quantity'],
+                );
             }
         }
 
@@ -339,28 +343,21 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
         $view->assign('order', $order);
 
         $cartAmount = 0;
+        // get right total cart amount
         if ($this->sw === 4) {
-            if (($view->sBasket['AmountWithTaxNumeric']) && ($view->sBasket['AmountWithTaxNumeric'] != $cartAmount)) {
+            if ($view->sBasket['AmountWithTaxNumeric'] && $view->sBasket['AmountWithTaxNumeric'] != $cartAmount) {
                 $cartAmount = $view->sBasket['AmountWithTaxNumeric'];
-                $this->extendTemplate($view, 'cart');
-            } else {
-                if (($view->sBasket['sAmount']) && ($view->sBasket['sAmount'] != $cartAmount)) {
-                    $cartAmount = $view->sBasket['sAmount'];
-                    $this->extendTemplate($view, 'cart');
-                }else if(Shopware()->Modules()->Basket()->sGetAmount()['totalAmount']){
-                    $cartAmount = Shopware()->Modules()->Basket()->sGetAmount()['totalAmount'];
-                }
+            } else if ($view->sBasket['sAmount'] && $view->sBasket['sAmount'] != $cartAmount) {
+                $cartAmount = $view->sBasket['sAmount'];
+            } else if (Shopware()->Modules()->Basket()->sGetAmount()['totalAmount']) {
+                $cartAmount = Shopware()->Modules()->Basket()->sGetAmount()['totalAmount'];
             }
         } else {
             $basket = Shopware()->Modules()->Basket()->sGetBasket();
-            if (($view->sBasket['AmountWithTaxNumeric']) && ($view->sBasket['AmountWithTaxNumeric'] != $cartAmount)) {
+            if ($view->sBasket['AmountWithTaxNumeric'] && $view->sBasket['AmountWithTaxNumeric'] != $cartAmount) {
                 $cartAmount = $view->sBasket['AmountWithTaxNumeric'];
-                $this->extendTemplate($view, 'cart');
-            } else {
-                if (($basket['Amount']) && ($basket['Amount'] != $cartAmount)) {
-                    $cartAmount = $basket['Amount'];
-                    $this->extendTemplate($view, 'cart');
-                }
+            } else if ($basket['Amount'] && $basket['Amount'] != $cartAmount) {
+                $cartAmount = $basket['Amount'];
             }
         }
 
@@ -368,9 +365,11 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
     }
 
     /**
-     * Event used for confirmation template extending and passing placeholder values for confirmation tracking script
+     * Event handler for confirmation action extending and passing placeholder values for confirmation tracking script.
+     *
+     * @param Enlight_Controller_ActionEventArgs $arguments Contains current controller as subject (method getSubject())
      */
-    public function onCheckoutFinish(Enlight_Event_EventArgs $arguments)
+    public function onCheckoutFinish(Enlight_Controller_ActionEventArgs $arguments)
     {
         if (!$this->useFindologic($arguments)) {
             return;
@@ -378,30 +377,31 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
 
         $controller = $arguments->getSubject();
         $view = $controller->View();
-        $orderDetails = array();
+
         $order = array();
-        $orderCounter = 0;
         $basket = Shopware()->Session()->sOrderVariables['sBasket'];
         $content = $basket['content'];
-        if ($basket['AmountWithTaxNumeric']) {
-            $totAm = $basket['AmountWithTaxNumeric'];
-        } else {
-            $totAm = $basket['AmountNumeric'];
-        }
+        $totalBasket = $basket['AmountWithTaxNumeric'] ? $basket['AmountWithTaxNumeric'] : $basket['AmountNumeric'];
 
+        // calculate totals for order
+        $orderDetails = array(
+            'subtotal' => $totalBasket - $basket['sShippingcostsWithTax'],
+            'tax' => $basket['sAmountTax'],
+            'total' => $totalBasket,
+            'shipping' => $basket['sShippingcostsWithTax'],
+            'discount' => 0,
+        );
+
+        // get info about each ordered item
         foreach ($content as $orderItem) {
-            if (($orderItem['ordernumber'] !== 'SHIPPINGDISCOUNT') && ($orderItem['ordernumber'] !== 'sw-discount')) {
-                $order[$orderCounter]['productordernumber'] = $orderItem['ordernumber'];
-                $order[$orderCounter]['productname'] = $orderItem['articlename'];
-                $order[$orderCounter]['productcategories'] = array_unique($this->helper->getCartCategories($orderItem['articleID']));
-                $order[$orderCounter]['productprice'] = $orderItem['price'];
-                $order[$orderCounter]['productquantity'] = $orderItem['quantity'];
-
-                $orderCounter++;
-                $orderDetails['subtotal'] = $totAm - Shopware()->Session()->sOrderVariables['sBasket']['sShippingcostsWithTax'];
-                $orderDetails['tax'] = Shopware()->Session()->sOrderVariables['sBasket']['sAmountTax'];
-                $orderDetails['total'] = $totAm;
-                $orderDetails['shipping'] = Shopware()->Session()->sOrderVariables['sBasket']['sShippingcostsWithTax'];
+            if ($orderItem['ordernumber'] !== 'SHIPPINGDISCOUNT' && $orderItem['ordernumber'] !== 'sw-discount') {
+                $order[] = array(
+                    'productordernumber' => $orderItem['ordernumber'],
+                    'productname' => $orderItem['articlename'],
+                    'productcategories' => array_unique($this->helper->getCartCategories($orderItem['articleID'])),
+                    'productprice' => $orderItem['price'],
+                    'productquantity' => $orderItem['quantity'],
+                );
             } else {
                 $orderDetails['discount'] = $orderItem['amountWithTax'];
             }
@@ -423,7 +423,7 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
     }
 
     /**
-     * Register modules controller
+     * Registers module controllers.
      *
      * @throws Exception
      */
@@ -433,7 +433,11 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
     }
 
     /**
-     * Validated that each shop has its own shop key. Trims shop key value.
+     * Validates that each shop has its own shop key. Trims shop key value.
+     *
+     * @param Enlight_Event_EventArgs $arguments Contains current controller as subject (magic method getSubject())
+     * @return mixed
+     * @throws Exception
      */
     public function onConfigSaveForm(Enlight_Event_EventArgs $arguments)
     {
@@ -467,7 +471,7 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
     }
 
     /**
-     * Create plugin configuration fields
+     * Creates plugin configuration fields.
      */
     public function createConfiguration()
     {
@@ -477,7 +481,7 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
                 'value' => '',
                 'scope' => Shopware\Models\Config\Element::SCOPE_SHOP,
                 'description' => 'Enter shopkey from FINDOLOGIC',
-                'required' => true
+                'required' => true,
             )
         );
     }
@@ -485,16 +489,16 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
     /**
      * Extends passed template with modules header.tpl
      *
-     * @param $view
-     * @param $controller
+     * @param Enlight_View_Default $view
+     * @param string $controller
      */
-    private function extendTemplate($view, $controller)
+    private function extendTemplate(Enlight_View_Default $view, $controller)
     {
         $view->extendsTemplate("frontend/findologic_search_sw{$this->sw}/$controller/header.tpl");
     }
 
     /**
-     * Returns shopkey
+     * Returns shop key set for current shop.
      *
      * @return bool|string
      */
@@ -520,12 +524,12 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
     }
 
     /**
-     * Checking for findologic parameter in request
+     * Checks if findologic is enabled for request. Checks current shop key and `findologic` query string parameter.
      *
-     * @param Enlight_Event_EventArgs $arguments
-     * @return bool
+     * @param Enlight_Controller_ActionEventArgs $arguments Contains event arguments
+     * @return bool TRUE if findologic module is enabled; otherwise, FALSE.
      */
-    private function useFindologic(Enlight_Event_EventArgs $arguments)
+    private function useFindologic(Enlight_Controller_ActionEventArgs $arguments)
     {
         if (!$this->getShopKey()) {
             return false;
