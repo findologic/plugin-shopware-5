@@ -9,9 +9,9 @@
          stopOnFailure="false"
          syntaxCheck="true"
          bootstrap="./vendor/autoload.php">
-    <testsuites >
+    <testsuites>
         <testsuite name="Shopware Unit Test">
-            <directory>src</directory>
+            <file>src/ShopwareTests.php</file>
         </testsuite>
     </testsuites>
     <filter>
