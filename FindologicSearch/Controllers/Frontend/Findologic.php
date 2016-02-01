@@ -66,7 +66,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         /* @var $sArticle \sArticles */
         $this->sArticle = Shopware()->Modules()->sArticles();
 
-        $this->shop = $this->shopExists();
+        $this->shop = $this->getShopIfExists();
         $this->validateInput();
         $this->allUserGroups = $this->getAllUserGroups();
         $this->prepareAllActiveCategoryIdsByShop();
@@ -163,7 +163,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
      *
      * @return Shopware\Models\Shop\Shop Shop A Shop object for supplied shop key if exists; otherwise, null.
      */
-    private function shopExists()
+    private function getShopIfExists()
     {
         $conf = $this->em->getRepository('Shopware\Models\Config\Value')->findOneBy(array('value' => $this->shopKey));
 
