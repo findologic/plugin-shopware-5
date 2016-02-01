@@ -39,17 +39,22 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     private $sArticle;
 
     /**
+     * Cached array of categories.
+     *
      * @var array
      */
     private $categories = array();
 
     /**
+     * Cached user groups.
+     *
      * @var array
      */
     private $allUserGroups = array();
 
     /**
-     * Executes main export.
+     * Executes main export. Validates input, gets products for export, creates XML file, validates created file if
+     * query string parameter suggests so and echos generated XML.
      */
     public function indexAction()
     {
@@ -61,22 +66,26 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         /* @var $sArticle \sArticles */
         $this->sArticle = Shopware()->Modules()->sArticles();
 
-        $this->shop = $this->shopExists();
+        $this->shop = $this->getShopIfExists();
         $this->validateInput();
         $this->allUserGroups = $this->getAllUserGroups();
-        $this->getAllActiveCategoryIdsByShop();
+        $this->prepareAllActiveCategoryIdsByShop();
 
         $articles = $this->getAllValidProducts();
         $xml = $this->buildXml($articles);
+
+        if ($this->Request()->getParam('validate', false) === 'true') {
+            $this->validateXml($xml);
+        }
 
         header('Content-Type: application/xml; charset=utf-8');
         die($xml);
     }
 
     /**
-     * Get all valid products, return only ones that satisfy criteria.
+     * Get all valid products, return only ones that satisfy export criteria.
      *
-     * @return array $result
+     * @return array Array of \Shopware\Models\Article\Article objects.
      */
     private function getAllValidProducts()
     {
@@ -95,11 +104,14 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             ->innerJoin('a.categories', 'cat')
             ->andWhere('a.active = 1')
             ->andWhere("a.name != ''")
+            // only items that are on stock
             ->andWhere('(d.inStock > 0 OR a.lastStock = 0)')
-            ->andWhere('d.kind = 1') // meaning: field 'kind' represent variations (value: 1 is for basic article and value: 2 for variant article ).
+            // field 'kind' represents variations (value: 1 is for basic article and value: 2 for variant article).
+            ->andWhere('d.kind = 1')
             ->andWhere('cat.id IN (' . implode(',', array_keys($this->categories)) . ')')
             ->groupBy('a.id')
-            ->having('COUNT(cg.id) < :nr_of_all_groups');  // meaning: if all user group are selected as avoid per article
+            // get articles that have at least one user group that is not avoided
+            ->having('COUNT(cg.id) < :nr_of_all_groups');
 
         $sq = $subQuery->getQuery()->getDQL();
         $queryBuilder
@@ -147,11 +159,11 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Get shop from db if exists.
+     * Gets shop from db if exists.
      *
-     * @return Shopware\Models\Shop\Shop Shop
+     * @return Shopware\Models\Shop\Shop Shop A Shop object for supplied shop key if exists; otherwise, null.
      */
-    private function shopExists()
+    private function getShopIfExists()
     {
         $conf = $this->em->getRepository('Shopware\Models\Config\Value')->findOneBy(array('value' => $this->shopKey));
 
@@ -161,7 +173,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     /**
      * Get all shop user groups.
      *
-     * @return array $userGroups.
+     * @return array User groups for current shop.
      */
     private function getAllUserGroups()
     {
@@ -175,8 +187,8 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     /**
      * Get user groups by article.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @return array $articleGroups
+     * @param \Shopware\Models\Article\Article $article Article to get user groups for.
+     * @return array User groups for supplied article
      */
     private function getUserGroups($article)
     {
@@ -196,11 +208,9 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Get all active categories for selected shop.
-     *
-     * @return array $categories;
+     * Gets all active categories for selected shop from database and puts it to $this->categories.
      */
-    private function getAllActiveCategoryIdsByShop()
+    private function prepareAllActiveCategoryIdsByShop()
     {
         $queryBuilder = $this->em->createQueryBuilder();
         $queryBuilder->select(array(
@@ -233,12 +243,12 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Set category path names and depth count.
+     * Sets category path names and depth count.
      *
-     * @param array $categoriesByIds
-     * @param string $between
-     * @param string $space
-     * @return array $categories
+     * @param array $categoriesByIds Array of categories that should contain 'id', 'name' and 'path' keys.
+     * @param string $between Text or character to be placed between category names in full path for one category
+     * @param string $space Character that should be placed instead of space (' ') in path.
+     * @return array $categories Array of categories with keys 'depth', 'path', 'pathIds', 'name', 'id' and 'url'.
      */
     private function setCategoriesPathName($categoriesByIds, $between = '_', $space = '-')
     {
@@ -274,13 +284,14 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Loop through all articles to build xml file.
+     * Loop through all articles to build XML file.
      *
-     * @param array $articles
+     * @param array $articles Array of \Shopware\Models\Article\Article objects.
+     * @return string Built XML.
      */
     private function buildXml($articles)
     {
-        $xml = "<?xml version='1.0' ?>\n" . '<findologic version="0.9">' . '</findologic>';
+        $xml = "<?xml version='1.0' ?>\n" . '<findologic version="1.0">' . '</findologic>';
 
         $findologic = new SimpleXMLElement($xml);
         $items = $findologic->addChild('items');
@@ -291,25 +302,21 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         /* @var $article \Shopware\Models\Article\Article */
         foreach ($articles as $article) {
             $articleGroups = $this->getUserGroups($article);
-            $this->generateItemNodes($article, $items, $articleGroups);
+            $this->renderItem($article, $items, $articleGroups);
         }
 
-        $xml = $findologic->asXML();
-        if ($this->Request()->getParam('validate', false) === 'true') {
-            $this->validateXml($xml);
-        }
-
-        return $xml;
+        return $findologic->asXML();
     }
 
     /**
-     * Main function for creating xml nodes.
+     * Renders supplied $article as new child node of $items node.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param SimpleXMLElement $items
-     * @param array $articleGroups
+     * @param \Shopware\Models\Article\Article $article Product that should be serialized to XML.
+     * @param SimpleXMLElement $items Base XML node to add new product to.
+     * @param array $articleGroups Customer groups for article. Some XML nodes are dependant of customer groups.
+     * @return SimpleXMLElement Returns updated $items parameter with added node for supplied article (product).
      */
-    private function generateItemNodes($article, $items, $articleGroups)
+    private function renderItem($article, $items, $articleGroups)
     {
         // Create item node
         $item = $items->addChild('item');
@@ -345,10 +352,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Add article order number.
+     * Adds article order number.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param SimpleXMLElement $item
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
+     * @param SimpleXMLElement $item XML node to render to.
      */
     private function addOrderNumbers($article, $item)
     {
@@ -371,10 +378,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Add article name.
+     * Adds article name.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param SimpleXMLElement $item
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
+     * @param SimpleXMLElement $item XML node to render to.
      */
     private function addNames($article, $item)
     {
@@ -385,10 +392,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Add summaries.
+     * Adds summaries.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param SimpleXMLElement $item
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
+     * @param SimpleXMLElement $item XML node to render to.
      */
     private function addSummaries($article, $item)
     {
@@ -399,10 +406,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Add descriptions.
+     * Adds descriptions.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param SimpleXMLElement $item
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
+     * @param SimpleXMLElement $item XML node to render to.
      */
     private function addDescriptions($article, $item)
     {
@@ -414,12 +421,12 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Add article prices. Collect all prices from variations and group by customer group.
-     * Take lowest price for each group and add tax if it is required by customer group.
+     * Adds article prices. Collects all prices from variations and groups them by customer group.
+     * Takes lowest price for each group and adds tax if it is required by customer group.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param array $articleGroups
-     * @param SimpleXMLElement $item
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
+     * @param array $articleGroups Customer groups for supplied $article.
+     * @param SimpleXMLElement $item XML node to render to.
      */
     private function addPrices($article, $articleGroups, $item)
     {
@@ -436,7 +443,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         }
 
         foreach ($article->getMainDetail()->getPrices() as $price) {
-            if($price->getCustomerGroup()) {
+            if ($price->getCustomerGroup()) {
                 $artPrices[$price->getCustomerGroup()->getKey()][] = $price->getPrice();
             }
         }
@@ -474,10 +481,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Add url for article.
+     * Adds url for article.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param SimpleXMLElement $item
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
+     * @param SimpleXMLElement $item XML node to render to.
      */
     private function addUrls($article, $item)
     {
@@ -489,17 +496,18 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Add main images and thumbnails for article and its variants.
+     * Adds main images and thumbnails for article and its variants. If article does not have any images,
+     * renders default image placeholder.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param SimpleXMLElement $item
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
+     * @param SimpleXMLElement $item XML node to render to.
      */
     private function addImages($article, $item)
     {
         $imageLinks = array();
         $baseLink = Shopware()->Modules()->Core()->sRewriteLink();
-        $image = $this->sArticle->sGetArticlePictures($article->getId())['src'];;
-        //fetches Main cover image
+        // fetches Main cover image
+        $image = $this->sArticle->sGetArticlePictures($article->getId())['src'];
         if($image){
             $imageLinks[] = $image;
         }
@@ -531,10 +539,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Add attributes.
+     * Adds all attributes.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param SimpleXMLElement $item
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
+     * @param SimpleXMLElement $item XML node to render to.
      */
     private function addAttributes($article, $item)
     {
@@ -552,6 +560,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         // Add variants
         $this->addVariantAttributes($article, $attributeSet);
 
+        // real rendering is done here if any of previous methods added any attribute
         if (!empty($attributeSet)) {
             $allAttributes = $item->addChild('allAttributes');
             $attributes = $allAttributes->addChild('attributes');
@@ -569,10 +578,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Add categories and categories urls.
+     * Adds categories and categories urls.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param array $attributes
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
+     * @param array $attributes Array to store attributes.
      */
     private function addCatAndCatUrl($article, &$attributes)
     {
@@ -601,13 +610,15 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Add supplier name.
+     * Adds supplier name.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param array $attributes
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
+     * @param array $attributes Array to store attributes.
      */
     private function addSupplierName($article, &$attributes)
     {
+        // this is done through SQL because Shopware can be in state that $supplier->getId() returns proper ID,
+        // but that supplier does not exist in database so $supplier->getName() produces fatal error.
         $supplier = $article->getSupplier();
         $sql = "SELECT name FROM s_articles_supplier where id =?";
         $name = Shopware()->Db()->fetchOne($sql, array($supplier->getId()));
@@ -617,10 +628,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Adds all variant attributes.
+     * Adds all variant attributes (attributes that make variants).
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param array $attributes
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
+     * @param array $attributes Array to store attributes.
      */
     private function addVariantAttributes($article, &$attributes)
     {
@@ -651,10 +662,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Add filter attributes.
+     * Adds filter attributes.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param array $attributes
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
+     * @param array $attributes Array to store attributes.
      */
     private function addFilterAttributes($article, &$attributes)
     {
@@ -668,10 +679,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Add keywords, separated by comma.
+     * Adds keywords, separated by comma.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param SimpleXMLElement $item
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
+     * @param SimpleXMLElement $item XML node to render to.
      */
     private function addKeywords($article, $item)
     {
@@ -688,8 +699,8 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     /**
      * Add usergroups to whom this article is visible.
      *
-     * @param array $articleGroups
-     * @param SimpleXMLElement $item
+     * @param array $articleGroups User groups array with 'key' key.
+     * @param SimpleXMLElement $item XML node to render to.
      */
     private function addUserGroups($articleGroups, $item)
     {
@@ -703,11 +714,11 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Add sales frequencies per user group.
+     * Adds sales frequencies per user group. Executes complex query against database to calculate sales frequency.
      *
-     * @param \Shopware\Models\Article\Article $article
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param array $articleGroups
-     * @param SimpleXMLElement $item
+     * @param SimpleXMLElement $item XML node to render to.
      */
     private function addSalesFrequency($article, $articleGroups, $item)
     {
@@ -724,10 +735,8 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $salesFrequencies = $item->addChild('salesFrequencies');
         if (count($order) > 0) {
             $groupKeys = $this->getCustomerGroupKeys($articleGroups);
-            //  $groupNames = $this->
             $total = 0;
             foreach ($order as $ord) {
-
                 if (in_array($ord['customergroup'], $groupKeys)) {
                     $salesFreq[$ord['customergroup']][] = $ord['ordernumber'];
                     $total++;
@@ -743,6 +752,12 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         }
     }
 
+    /**
+     * Gets keys from customer groups.
+     *
+     * @param array $groups Customer groups to get keys from.
+     * @return array Array of customer group keys
+     */
     private function getCustomerGroupKeys($groups)
     {
         $result = array();
@@ -754,10 +769,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Add date added.
+     * Adds date added.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param SimpleXMLElement $item
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
+     * @param SimpleXMLElement $item XML node to render to.
      */
     private function addDateAdded($article, $item)
     {
@@ -768,10 +783,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Add properties.
+     * Adds different properties.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param SimpleXMLElement $item
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
+     * @param SimpleXMLElement $item XML node to render to.
      */
     private function addProperties($article, $item)
     {
@@ -794,7 +809,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                 $this->addProperty($properties, 'old_price', $price ? sprintf('%.2f', $price): null);
             }
 
-            // SKIP AVOIDED GROUPS!!!
+            // TODO: SKIP AVOIDED GROUPS!!!
             $articlePrices = $this->em->getRepository('Shopware\Models\Article\Article')->getPricesQuery($detail->getId())->getArrayResult();
             foreach ($articlePrices as $articlePrice) {
                 if ($articlePrice['customerGroup']['discount'] > 0) {
@@ -810,14 +825,15 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $this->addVotes($article, $allProperties);
     }
 
-    /** Add votes node.
+    /**
+     * Adds votes node.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param SimpleXMLElement $allProperties
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
+     * @param SimpleXMLElement $allProperties XML node to render to.
      */
     private function addVotes($article, $allProperties)
     {
-        // add votes for an article depending on usergroups that voted, if none add to no-group
+        // add votes for an article depending on user groups that vote. If none, add to no-group
         // get votes average
         $sqlVote = "SELECT email, points FROM s_articles_vote where articleID =?";
         $voteData = Shopware()->Db()->fetchAll($sqlVote, array($article->getId()));
@@ -830,11 +846,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                         ' WHERE s_user.email=?';
                     $groupKey = Shopware()->Db()->fetchOne($sqlGroup, array($vote['email']));
 
-                    // SKIP AVOIDED GROUPS!!!
+                    // TODO: SKIP AVOIDED GROUPS!!!
                     $votes[$groupKey]['sum'] += $vote['points'];
                     $votes[$groupKey]['count'] += 1;
                 } else {
-
                     $votes['no-group']['sum'] += $vote['points'];
                     $votes['no-group']['count'] += 1;
                 }
@@ -849,11 +864,11 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Adds property node if value is valid.
+     * Adds property node if value is valid. Each node has 2 children: 'key' and 'value'.
      *
-     * @param SimpleXMLElement $properties
-     * @param string $key
-     * @param mixed $value
+     * @param SimpleXMLElement $properties XML node to render to.
+     * @param string $key Key part of property.
+     * @param mixed $value Value part of property.
      */
     private function addProperty($properties, $key, $value)
     {
@@ -867,9 +882,9 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     /**
      * Returns hash key merged from shop key and user group.
      *
-     * @param string $shopKey
-     * @param string $userGroup
-     * @return string $hash
+     * @param string $shopKey Shop key
+     * @param string $userGroup User group key
+     * @return string Hashed key.
      */
     private function userGroupToHash($shopKey, $userGroup)
     {
@@ -877,7 +892,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Validates xml against findologic export schema.
+     * Validates xml against findologic export schema. Uses external schema.
+     * If schema is not valid, echoes errors and terminates request.
+     *
+     * @param string $xml XML string to validate.
      */
     private function validateXml($xml)
     {
@@ -916,10 +934,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Adds CData tags.
+     * Wraps supplied $text with CDATA and appends to $node.
      *
-     * @param SimpleXMLElement $item
-     * @param string $item
+     * @param SimpleXMLElement $node XML node to append text to.
+     * @param string $text Text to wrap and append.
      */
     private function appendCData(SimpleXMLElement $node, $text)
     {
@@ -927,6 +945,12 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $domNode->appendChild($domNode->ownerDocument->createCDATASection($this->utf8Replace($text)));
     }
 
+    /**
+     * Trims non readable utf8 empty characters from supplied string.
+     *
+     * @param string $text Text to check for characters.
+     * @return string Trimmed string.
+     */
     private function utf8Replace($text)
     {
         return preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x80-\x9F]/u', '', trim($text));
