@@ -12,12 +12,12 @@
     })();
 </script>
 <script type="text/javascript">
-    var _paq = _paq || [];
+    var fl_paq = fl_paq || [];
     (function(){ var u=(("https:" == document.location.protocol) ? "https://tracking.findologic.com/" : "http://tracking.findologic.com/");
-    _paq.push(['setSiteId', '{$placeholder1}']);
-    _paq.push(['setTrackerUrl', u+'tracking.php']);
-    _paq.push(['trackPageView']);
-    _paq.push(['enableLinkTracking']);
+    fl_paq.push(['setSiteId', '{$placeholder1}']);
+    fl_paq.push(['setTrackerUrl', u+'tracking.php']);
+    fl_paq.push(['trackPageView']);
+    fl_paq.push(['enableLinkTracking']);
     var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0]; g.type='text/javascript'; g.defer=true; g.async=true; g.src=u+'tracking.js';
     s.parentNode.insertBefore(g,s); })();
 </script>
