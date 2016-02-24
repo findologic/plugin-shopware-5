@@ -787,17 +787,12 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             $this->addProperty($properties, 'referenceunit', $detail->getReferenceUnit());
             $this->addProperty($properties, 'packunit', $detail->getPackUnit());
             $this->addProperty($properties, 'highlight', $article->getHighlight());
+
+            $this->addProperty($properties, 'wishlistUrl', Shopware()->Modules()->Core()->sRewriteLink() . 'note/add/ordernumber/' . $article->getMainDetail()->getNumber());
+            $this->addProperty($properties, 'compareUrl', Shopware()->Modules()->Core()->sRewriteLink() . 'compare/add_article/articleID/' . $article->getId());
+            $this->addProperty($properties, 'addToCartUrl', Shopware()->Modules()->Core()->sRewriteLink() . 'checkout/addArticle/sAdd/' . $article->getMainDetail()->getNumber());
+
             $this->addProperty($properties, 'unit', $detail->getUnit() && $detail->getUnit()->getId() ? $detail->getUnit()->getName() : null);
-            $baseFile = Shopware()->Config()->get('baseFile');
-            $linkDetails = $baseFile . "?controller=checkout&action=addArticle&sAdd=" . $detail->getNumber();
-            $this->addProperty($properties, 'basket-url', Shopware()->Modules()->Core()->sRewriteLink($linkDetails));
-
-            $linkDetails = $baseFile . "?controller=compare&action=add_article&articleID=" . $article->getId();
-            $this->addProperty($properties, 'compare-url', Shopware()->Modules()->Core()->sRewriteLink($linkDetails));
-
-            $linkDetails = $baseFile . "?controller=note&action=add&ordernumber=" . $detail->getNumber();
-            $this->addProperty($properties, 'wishlist-url', Shopware()->Modules()->Core()->sRewriteLink($linkDetails));
-
             $prices = $detail->getPrices();
             if ($prices[0]->getPseudoPrice()) {
                 $price = $prices[0]->getPseudoPrice() * (1 + (float) $article->getTax()->getTax() / 100);
