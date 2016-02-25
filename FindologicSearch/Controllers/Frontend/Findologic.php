@@ -435,7 +435,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         foreach ($article->getDetails() as $detail) {
             if ($detail->getActive()) {
                 foreach ($detail->getPrices() as $price) {
-                    if($price->getCustomerGroup()) {
+                    if ($price->getCustomerGroup()) {
                         $artPrices[$price->getCustomerGroup()->getKey()][] = $price->getPrice();
                     }
                 }
@@ -462,7 +462,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             }
 
             if ($group['tax']) {
-                $price = $price * (1 + (float) $tax->getTax() / 100);
+                $price = $price * (1 + (float)$tax->getTax() / 100);
             }
 
             if ($group['key'] === 'EK') {
@@ -508,10 +508,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $baseLink = Shopware()->Modules()->Core()->sRewriteLink();
         // fetches Main cover image
         $image = $this->sArticle->sGetArticlePictures($article->getId())['src'];
-        if($image){
+        if ($image) {
             $imageLinks[] = $image;
         }
-        
+
         //fetches variants images
         foreach ($article->getDetails() as $var) {
             if ($var->getActive()) {
@@ -534,7 +534,8 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         } else {
             $allImages = $item->addChild('allImages');
             $images = $allImages->addChild('images');
-            $this->appendCData($images->addChild('image'), $baseLink . 'templates/_default/frontend/_resources/images/no_picture.jpg');
+            $this->appendCData($images->addChild('image'),
+                $baseLink . 'templates/_default/frontend/_resources/images/no_picture.jpg');
         }
     }
 
@@ -797,16 +798,49 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             // add properties
             $properties = $allProperties->addChild('properties');
             $this->addProperty($properties, 'shippingfree', $detail->getShippingFree() ? 'yes' : null);
-            $this->addProperty($properties, 'shippingtime', $detail->getShippingTime() ? $detail->getShippingTime() . ' days' : null);
+            $this->addProperty($properties, 'shippingtime',
+                $detail->getShippingTime() ? $detail->getShippingTime() . ' days' : null);
             $this->addProperty($properties, 'purchaseunit', $detail->getPurchaseUnit());
             $this->addProperty($properties, 'referenceunit', $detail->getReferenceUnit());
             $this->addProperty($properties, 'packunit', $detail->getPackUnit());
             $this->addProperty($properties, 'highlight', $article->getHighlight());
-            $this->addProperty($properties, 'unit', $detail->getUnit() && $detail->getUnit()->getId() ? $detail->getUnit()->getName() : null);
+            $this->addProperty($properties, 'quantity',
+                $article->getMainDetail()->getInStock() ? $article->getMainDetail()->getInStock() : 'undefined');
+            $this->addProperty($properties, 'tax',
+                $article->getTax()->getTax() ? $article->getTax()->getTax() : 'undefined');
+            $this->addProperty($properties, 'release_date',
+                $article->getMainDetail()->getReleaseDate() ? $article->getMainDetail()->getReleaseDate() : 'undefined');
+            $this->addProperty($properties, 'weight',
+                $article->getMainDetail()->getWeight() ? $article->getMainDetail()->getWeight() : 'undefined');
+            $this->addProperty($properties, 'width',
+                $article->getMainDetail()->getWidth() ? $article->getMainDetail()->getWidth() : 'undefined');
+            $this->addProperty($properties, 'height',
+                $article->getMainDetail()->getHeight() ? $article->getMainDetail()->getHeight() : 'undefined');
+            $this->addProperty($properties, 'length',
+                $article->getMainDetail()->getLen() ? $article->getMainDetail()->getLen() : 'undefined');
+            $this->addProperty($properties, 'attr1',
+                $article->getAttribute()->getAttr1() ? $article->getAttribute()->getAttr1() : 'undefined');
+            $this->addProperty($properties, 'attr2',
+                $article->getAttribute()->getAttr2() ? $article->getAttribute()->getAttr2() : 'undefined');
+            $this->addProperty($properties, 'attr3',
+                $article->getAttribute()->getAttr3() ? $article->getAttribute()->getAttr3() : 'undefined');
+
+            $this->addVariantsAdditionalInfo($article, $properties);
+            $this->addNew($article, $properties);
+
+            $brandImage = $article->getSupplier()->getImage();
+
+            if ($brandImage) {
+                $this->addProperty($properties, 'brand_image',
+                    Shopware()->Modules()->Core()->sRewriteLink() . $brandImage);
+            }
+
+            $this->addProperty($properties, 'unit',
+                $detail->getUnit() && $detail->getUnit()->getId() ? $detail->getUnit()->getName() : null);
             $prices = $detail->getPrices();
             if ($prices[0]->getPseudoPrice()) {
-                $price = $prices[0]->getPseudoPrice() * (1 + (float) $article->getTax()->getTax() / 100);
-                $this->addProperty($properties, 'old_price', $price ? sprintf('%.2f', $price): null);
+                $price = $prices[0]->getPseudoPrice() * (1 + (float)$article->getTax()->getTax() / 100);
+                $this->addProperty($properties, 'old_price', $price ? sprintf('%.2f', $price) : null);
             }
 
             // TODO: SKIP AVOIDED GROUPS!!!
@@ -816,13 +850,83 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                     $allProperties = $item->addChild('allProperties');
                     $properties = $allProperties->addChild('properties');
 
-                    $properties->addAttribute('usergroup', $this->userGroupToHash($this->shopKey, $articlePrice['customerGroup']['key']));
+                    $properties->addAttribute('usergroup',
+                        $this->userGroupToHash($this->shopKey, $articlePrice['customerGroup']['key']));
                     $this->addProperty($properties, 'discount', $articlePrice['customerGroup']['discount']);
                 }
             }
         }
 
         $this->addVotes($article, $allProperties);
+    }
+
+
+    /**
+     * add New
+     * @param \Shopware\Models\Article\Article $article
+     * @param SimpleXMLElement $properties XML node to render to.
+     */
+    private function addNew($article, $properties)
+    {
+        $form = Shopware()->Models()->getRepository('\Shopware\Models\Config\Form')
+            ->findOneBy(array(
+                'name' => 'Frontend76'
+            ));
+        $defaultNew = Shopware()->Models()->getRepository('\Shopware\Models\Config\Element')
+            ->findOneBy(array(
+                'form' => $form,
+                'name' => 'markasnew'
+            ));
+        $specificValueNew = Shopware()->Models()->getRepository('\Shopware\Models\Config\Value')
+            ->findOneBy(array(
+                'element' => $defaultNew
+            ));
+
+        $articleAdded = $article->getAdded()->getTimestamp();
+
+        if ($specificValueNew) {
+            $articleTime = $specificValueNew->getValue() * 86400 + $articleAdded;
+        } else {
+            $articleTime = $defaultNew->getValue() * 86400 + $articleAdded;
+        }
+
+        $now = time();
+
+        if ($now >= $articleTime) {
+            $this->addProperty($properties, 'new', '0');
+        } else {
+            $this->addProperty($properties, 'new', '1');
+        }
+    }
+
+    /**
+     * add Variants Additional Info
+     * @param \Shopware\Models\Article\Article $article
+     * @param SimpleXMLElement $properties XML node to render to.
+     */
+    private function addVariantsAdditionalInfo($article, $properties)
+    {
+        $sqlVariants = "SELECT * FROM s_articles_details WHERE kind=2 AND articleID =?";
+        $variantsData = Shopware()->Db()->fetchAll($sqlVariants, array($article->getId()));
+        // 0 or 1
+        if (empty($variantsData)) {
+            $this->addProperty($properties, 'has_variants', 0);
+        } else {
+            $this->addProperty($properties, 'has_variants', 1);
+            $mainArticle = Shopware()->Modules()->Articles()->sGetArticleById($article->getId());
+            $show = 0;
+            //This shows if an article has variants and the variants has different prices
+            foreach ($variantsData as $item) {
+                $sArticle = Shopware()->Modules()->Articles()->sGetArticleById($item['id']);
+
+                if ((int)str_replace(',', '.', $sArticle['price']) != (int)str_replace(',', '.',
+                        $mainArticle['price'])
+                ) {
+                    $show = 1;
+                }
+            }
+            $this->addProperty($properties, 'show_from_price', $show);
+        }
     }
 
     /**
@@ -857,7 +961,8 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
 
             $properties = $allProperties->addChild('properties');
             foreach ($votes as $key => $value) {
-                $properties->addAttribute('usergroup', $this->userGroupToHash($this->shopKey, $key !== 'no-group' ? $key : 'EK'));
+                $properties->addAttribute('usergroup',
+                    $this->userGroupToHash($this->shopKey, $key !== 'no-group' ? $key : 'EK'));
                 $this->addProperty($properties, 'votes', $value['sum'] / $value['count']);
             }
         }
