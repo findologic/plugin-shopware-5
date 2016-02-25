@@ -859,6 +859,75 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $this->addVotes($article, $allProperties);
     }
 
+
+    /**
+     * add New
+     * @param \Shopware\Models\Article\Article $article
+     * @param SimpleXMLElement $properties XML node to render to.
+     */
+    private function addNew($article, $properties)
+    {
+        $form = Shopware()->Models()->getRepository('\Shopware\Models\Config\Form')
+            ->findOneBy(array(
+                'name' => 'Frontend76'
+            ));
+        $defaultNew = Shopware()->Models()->getRepository('\Shopware\Models\Config\Element')
+            ->findOneBy(array(
+                'form' => $form,
+                'name' => 'markasnew'
+            ));
+        $specificValueNew = Shopware()->Models()->getRepository('\Shopware\Models\Config\Value')
+            ->findOneBy(array(
+                'element' => $defaultNew
+            ));
+
+        $articleAdded = $article->getAdded()->getTimestamp();
+
+        if ($specificValueNew) {
+            $articleTime = $specificValueNew->getValue() * 86400 + $articleAdded;
+        } else {
+            $articleTime = $defaultNew->getValue() * 86400 + $articleAdded;
+        }
+
+        $now = time();
+
+        if ($now >= $articleTime) {
+            $this->addProperty($properties, 'new', '0');
+        } else {
+            $this->addProperty($properties, 'new', '1');
+        }
+    }
+
+    /**
+     * add Variants Additional Info
+     * @param \Shopware\Models\Article\Article $article
+     * @param SimpleXMLElement $properties XML node to render to.
+     */
+    private function addVariantsAdditionalInfo($article, $properties)
+    {
+        $sqlVariants = "SELECT * FROM s_articles_details WHERE kind=2 AND articleID =?";
+        $variantsData = Shopware()->Db()->fetchAll($sqlVariants, array($article->getId()));
+        // 0 or 1
+        if (empty($variantsData)) {
+            $this->addProperty($properties, 'has_variants', 0);
+        } else {
+            $this->addProperty($properties, 'has_variants', 1);
+            $mainArticle = Shopware()->Modules()->Articles()->sGetArticleById($article->getId());
+            $show = 0;
+            //This shows if an article has variants and the variants has different prices
+            foreach ($variantsData as $item) {
+                $sArticle = Shopware()->Modules()->Articles()->sGetArticleById($item['id']);
+
+                if ((int)str_replace(',', '.', $sArticle['price']) != (int)str_replace(',', '.',
+                        $mainArticle['price'])
+                ) {
+                    $show = 1;
+                }
+            }
+            $this->addProperty($properties, 'show_from_price', $show);
+        }
+    }
+
     /**
      * Adds votes node.
      *
@@ -875,13 +944,25 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $votes = array();
         if (count($voteData) > 0) {
             foreach ($voteData as $vote) {
-                $votes['general']['sum'] += $vote['points'];
-                $votes['general']['count'] += 1;
+                if ($vote['email'] !== '') {
+                    $sqlGroup = 'SELECT customergroup FROM s_user' .
+                        ' WHERE s_user.email=?';
+                    $groupKey = Shopware()->Db()->fetchOne($sqlGroup, array($vote['email']));
+
+                    // TODO: SKIP AVOIDED GROUPS!!!
+                    $votes[$groupKey]['sum'] += $vote['points'];
+                    $votes[$groupKey]['count'] += 1;
+                } else {
+                    $votes['no-group']['sum'] += $vote['points'];
+                    $votes['no-group']['count'] += 1;
+                }
             }
+
             $properties = $allProperties->addChild('properties');
             foreach ($votes as $key => $value) {
-                $this->addProperty($properties, 'votes_rating', round($value['sum'] / $value['count']));
-                $this->addProperty($properties, 'votes_count', $value['count']);
+                $properties->addAttribute('usergroup',
+                    $this->userGroupToHash($this->shopKey, $key !== 'no-group' ? $key : 'EK'));
+                $this->addProperty($properties, 'votes', $value['sum'] / $value['count']);
             }
         }
     }
