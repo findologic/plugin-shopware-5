@@ -433,6 +433,10 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
                 throw new \Exception('Each shop must have its own shop key!');
             }
 
+            if(preg_match('/^[A-Z0-9]{32}$/', $val) != 1){
+                throw new \Exception('Shop key must consist of 32 characters,digits and only capital letters');
+            }
+
             $keys[$val] = 1;
         }
 
