@@ -821,16 +821,15 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                 }
             }
         }
-        $this->checkCustomExport($properties, $article, $this);
+        $this->checkCustomExport($properties, $article);
         $this->addVotes($article, $allProperties);
     }
 
     /**
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param SimpleXMLElement $properties XML node to render to.
-     * @param $this
      */
-    private function checkCustomExport($properties, $article, $this)
+    private function checkCustomExport($properties, $article)
     {
         $customExportFilePath = Shopware()->DocPath() . 'CustomExport.php';
         if (file_exists($customExportFilePath)) {
