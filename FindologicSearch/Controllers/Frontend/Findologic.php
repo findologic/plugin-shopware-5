@@ -821,8 +821,25 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                 }
             }
         }
-
+        $this->checkCustomExport($properties, $article, $this);
         $this->addVotes($article, $allProperties);
+    }
+
+    /**
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
+     * @param SimpleXMLElement $properties XML node to render to.
+     * @param $this
+     */
+    private function checkCustomExport($properties, $article, $this)
+    {
+        $customExportFilePath = Shopware()->DocPath() . 'CustomExport.php';
+        if (file_exists($customExportFilePath)) {
+            require_once $customExportFilePath;
+
+            is_null($this->customExport) ? $this->customExport = new CustomExport() : $this->customExport;
+            $this->customExport->addCustomProperty($properties, $article, $this);
+        }
+
     }
 
     /**
@@ -870,7 +887,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
      * @param string $key Key part of property.
      * @param mixed $value Value part of property.
      */
-    private function addProperty($properties, $key, $value)
+    public function addProperty($properties, $key, $value)
     {
         if ($value) {
             $property = $properties->addChild('property');
