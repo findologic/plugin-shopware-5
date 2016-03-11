@@ -58,9 +58,6 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
      */
     public function indexAction()
     {
-        set_time_limit(3000);
-        ini_set('memory_limit', '1024M');
-
         $this->em = Shopware()->Models();
         $this->shopKey = $this->Request()->getParam('shopkey', false);
         $this->start = $this->Request()->getParam('start', false);
@@ -799,6 +796,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $allProperties = $item->addChild('allProperties');
         if ($detail) {
             // add properties
+            $detailUnit = $detail->getUnit();
             $properties = $allProperties->addChild('properties');
             $this->addProperty($properties, 'shippingfree', $detail->getShippingFree() ? 'yes' : null);
             $this->addProperty($properties, 'shippingtime',
@@ -809,9 +807,9 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             $this->addProperty($properties, 'highlight', $article->getHighlight());
 
             try {
-                $name = $detail->getUnit()->getName();
                 $this->addProperty($properties, 'unit',
-                    $detail->getUnit() && $detail->getUnit()->getId() ? $name : null);
+                    $detailUnit && $detailUnit->getId() ? $detailUnit->getName() : null
+                );
             } catch (\Exception $e) {
                 $this->addProperty($properties, 'unit', null);
             }
@@ -823,7 +821,8 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             }
 
             // TODO: SKIP AVOIDED GROUPS!!!
-            $articlePrices = $this->em->getRepository('Shopware\Models\Article\Article')->getPricesQuery($detail->getId())->getArrayResult();
+            $articlePrices = $this->em->getRepository('Shopware\Models\Article\Article')
+                ->getPricesQuery($detail->getId())->getArrayResult();
             foreach ($articlePrices as $articlePrice) {
                 if ($articlePrice['customerGroup']['discount'] > 0) {
                     $allProperties = $item->addChild('allProperties');
