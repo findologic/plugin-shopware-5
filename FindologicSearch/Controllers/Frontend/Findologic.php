@@ -96,10 +96,12 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             ->andWhere('a.active = 1')
             ->andWhere("a.name != ''")
             ->andWhere('(d.inStock > 0 OR a.lastStock = 0)')
-            ->andWhere('d.kind = 1') // meaning: field 'kind' represent variations (value: 1 is for basic article and value: 2 for variant article ).
+            ->andWhere('d.kind = 1') // meaning: field 'kind' represent variations
+                                     // (value: 1 is for basic article and value: 2 for variant article ).
             ->andWhere('cat.id IN (' . implode(',', array_keys($this->categories)) . ')')
             ->groupBy('a.id')
-            ->having('COUNT(cg.id) < :nr_of_all_groups');  // meaning: if all user group are selected as avoid per article
+            ->having('COUNT(cg.id) < :nr_of_all_groups'); // meaning: if all user group are selected
+                                                          // as avoid per article
 
         $sq = $subQuery->getQuery()->getDQL();
         $queryBuilder
@@ -276,7 +278,8 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     /**
      * Loop through all articles to build xml file.
      *
-     * @param array $articles
+     * @param $articles
+     * @return mixed|string
      */
     private function buildXml($articles)
     {
@@ -305,9 +308,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     /**
      * Main function for creating xml nodes.
      *
-     * @param \Shopware\Models\Article\Article $article
-     * @param SimpleXMLElement $items
-     * @param array $articleGroups
+     * @param $article
+     * @param $items
+     * @param $articleGroups
+     * @return mixed
      */
     private function generateItemNodes($article, $items, $articleGroups)
     {
@@ -526,7 +530,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         } else {
             $allImages = $item->addChild('allImages');
             $images = $allImages->addChild('images');
-            $this->appendCData($images->addChild('image'), $baseLink . 'templates/_default/frontend/_resources/images/no_picture.jpg');
+            $this->appendCData(
+                $images->addChild('image'),
+                $baseLink . 'templates/_default/frontend/_resources/images/no_picture.jpg'
+            );
         }
     }
 
@@ -780,19 +787,40 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $allProperties = $item->addChild('allProperties');
         if ($detail) {
             // add properties
+            $rewriteLink = Shopware()->Modules()->Core()->sRewriteLink();
             $properties = $allProperties->addChild('properties');
             $this->addProperty($properties, 'shippingfree', $detail->getShippingFree() ? 'yes' : null);
-            $this->addProperty($properties, 'shippingtime', $detail->getShippingTime() ? $detail->getShippingTime() . ' days' : null);
+            $this->addProperty(
+                $properties,
+                'shippingtime',
+                $detail->getShippingTime() ? $detail->getShippingTime() . ' days' : null
+            );
             $this->addProperty($properties, 'purchaseunit', $detail->getPurchaseUnit());
             $this->addProperty($properties, 'referenceunit', $detail->getReferenceUnit());
             $this->addProperty($properties, 'packunit', $detail->getPackUnit());
             $this->addProperty($properties, 'highlight', $article->getHighlight());
 
-            $this->addProperty($properties, 'wishlistUrl', Shopware()->Modules()->Core()->sRewriteLink() . 'note/add/ordernumber/' . $article->getMainDetail()->getNumber());
-            $this->addProperty($properties, 'compareUrl', Shopware()->Modules()->Core()->sRewriteLink() . 'compare/add_article/articleID/' . $article->getId());
-            $this->addProperty($properties, 'addToCartUrl', Shopware()->Modules()->Core()->sRewriteLink() . 'checkout/addArticle/sAdd/' . $article->getMainDetail()->getNumber());
+            $this->addProperty(
+                $properties,
+                'wishlistUrl',
+                $rewriteLink . 'note/add/ordernumber/' . $article->getMainDetail()->getNumber()
+            );
+            $this->addProperty(
+                $properties,
+                'compareUrl',
+                $rewriteLink . 'compare/add_article/articleID/' . $article->getId()
+            );
+            $this->addProperty(
+                $properties,
+                'addToCartUrl',
+                $rewriteLink . 'checkout/addArticle/sAdd/' . $article->getMainDetail()->getNumber()
+            );
 
-            $this->addProperty($properties, 'unit', $detail->getUnit() && $detail->getUnit()->getId() ? $detail->getUnit()->getName() : null);
+            $this->addProperty(
+                $properties,
+                'unit',
+                $detail->getUnit() && $detail->getUnit()->getId() ? $detail->getUnit()->getName() : null
+            );
             $prices = $detail->getPrices();
             if ($prices[0]->getPseudoPrice()) {
                 $price = $prices[0]->getPseudoPrice() * (1 + (float) $article->getTax()->getTax() / 100);
@@ -800,13 +828,18 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             }
 
             // SKIP AVOIDED GROUPS!!!
-            $articlePrices = $this->em->getRepository('Shopware\Models\Article\Article')->getPricesQuery($detail->getId())->getArrayResult();
+            $articlePrices = $this->em->getRepository('Shopware\Models\Article\Article')
+                ->getPricesQuery($detail->getId())
+                ->getArrayResult();
             foreach ($articlePrices as $articlePrice) {
                 if ($articlePrice['customerGroup']['discount'] > 0) {
                     $allProperties = $item->addChild('allProperties');
                     $properties = $allProperties->addChild('properties');
 
-                    $properties->addAttribute('usergroup', $this->userGroupToHash($this->shopKey, $articlePrice['customerGroup']['key']));
+                    $properties->addAttribute(
+                        'usergroup',
+                        $this->userGroupToHash($this->shopKey, $articlePrice['customerGroup']['key'])
+                    );
                     $this->addProperty($properties, 'discount', $articlePrice['customerGroup']['discount']);
                 }
             }
@@ -847,7 +880,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
 
             $properties = $allProperties->addChild('properties');
             foreach ($votes as $key => $value) {
-                $properties->addAttribute('usergroup', $this->userGroupToHash($this->shopKey, $key !== 'no-group' ? $key : 'EK'));
+                $properties->addAttribute(
+                    'usergroup',
+                    $this->userGroupToHash($this->shopKey, $key !== 'no-group' ? $key : 'EK')
+                );
                 $this->addProperty($properties, 'votes', $value['sum'] / $value['count']);
             }
         }
@@ -923,8 +959,8 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     /**
      * Adds CData tags.
      *
-     * @param SimpleXMLElement $item
-     * @param string $item
+     * @param SimpleXMLElement $node
+     * @param $text
      */
     private function appendCData(SimpleXMLElement $node, $text)
     {
