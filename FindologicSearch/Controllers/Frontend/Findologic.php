@@ -106,12 +106,12 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             ->andWhere("a.name != ''")
             // only items that are on stock
             ->andWhere('(d.inStock > 0 OR a.lastStock = 0)')
-            // field 'kind' represents variations (value: 1 is for basic article and value: 2 for variant article).
-            ->andWhere('d.kind = 1')
+            ->andWhere('d.kind = 1') // meaning: field 'kind' represent variations
+                                     // (value: 1 is for basic article and value: 2 for variant article ).
             ->andWhere('cat.id IN (' . implode(',', array_keys($this->categories)) . ')')
             ->groupBy('a.id')
-            // get articles that have at least one user group that is not avoided
-            ->having('COUNT(cg.id) < :nr_of_all_groups');
+            ->having('COUNT(cg.id) < :nr_of_all_groups'); // meaning: if all user group are selected
+                                                          // as avoid per article
 
         $sq = $subQuery->getQuery()->getDQL();
         $queryBuilder
@@ -534,8 +534,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         } else {
             $allImages = $item->addChild('allImages');
             $images = $allImages->addChild('images');
-            $this->appendCData($images->addChild('image'),
-                $baseLink . 'templates/_default/frontend/_resources/images/no_picture.jpg');
+            $this->appendCData(
+                $images->addChild('image'),
+                $baseLink . 'templates/_default/frontend/_resources/images/no_picture.jpg'
+            );
         }
     }
 
@@ -796,16 +798,40 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $allProperties = $item->addChild('allProperties');
         if ($detail) {
             // add properties
+            $rewriteLink = Shopware()->Modules()->Core()->sRewriteLink();
             $properties = $allProperties->addChild('properties');
             $this->addProperty($properties, 'shippingfree', $detail->getShippingFree() ? 'yes' : null);
-            $this->addProperty($properties, 'shippingtime',
-                $detail->getShippingTime() ? $detail->getShippingTime() : null);
+            $this->addProperty(
+                $properties,
+                'shippingtime',
+                $detail->getShippingTime() ? $detail->getShippingTime() . ' days' : null
+            );
             $this->addProperty($properties, 'purchaseunit', $detail->getPurchaseUnit());
             $this->addProperty($properties, 'referenceunit', $detail->getReferenceUnit());
             $this->addProperty($properties, 'packunit', $detail->getPackUnit());
             $this->addProperty($properties, 'highlight', $article->getHighlight());
-            $this->addProperty($properties, 'unit',
-                $detail->getUnit() && $detail->getUnit()->getId() ? $detail->getUnit()->getName() : null);
+
+            $this->addProperty(
+                $properties,
+                'wishlistUrl',
+                $rewriteLink . 'note/add/ordernumber/' . $article->getMainDetail()->getNumber()
+            );
+            $this->addProperty(
+                $properties,
+                'compareUrl',
+                $rewriteLink . 'compare/add_article/articleID/' . $article->getId()
+            );
+            $this->addProperty(
+                $properties,
+                'addToCartUrl',
+                $rewriteLink . 'checkout/addArticle/sAdd/' . $article->getMainDetail()->getNumber()
+            );
+
+            $this->addProperty(
+                $properties,
+                'unit',
+                $detail->getUnit() && $detail->getUnit()->getId() ? $detail->getUnit()->getName() : null
+            );
             $prices = $detail->getPrices();
             if ($prices[0]->getPseudoPrice()) {
                 $price = $prices[0]->getPseudoPrice() * (1 + (float)$article->getTax()->getTax() / 100);
@@ -813,14 +839,18 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             }
 
             // TODO: SKIP AVOIDED GROUPS!!!
-            $articlePrices = $this->em->getRepository('Shopware\Models\Article\Article')->getPricesQuery($detail->getId())->getArrayResult();
+            $articlePrices = $this->em->getRepository('Shopware\Models\Article\Article')
+                ->getPricesQuery($detail->getId())
+                ->getArrayResult();
             foreach ($articlePrices as $articlePrice) {
                 if ($articlePrice['customerGroup']['discount'] > 0) {
                     $allProperties = $item->addChild('allProperties');
                     $properties = $allProperties->addChild('properties');
 
-                    $properties->addAttribute('usergroup',
-                        $this->userGroupToHash($this->shopKey, $articlePrice['customerGroup']['key']));
+                    $properties->addAttribute(
+                        'usergroup',
+                        $this->userGroupToHash($this->shopKey, $articlePrice['customerGroup']['key'])
+                    );
                     $this->addProperty($properties, 'discount', $articlePrice['customerGroup']['discount']);
                 }
             }
@@ -848,10 +878,14 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                 $votes['general']['sum'] += $vote['points'];
                 $votes['general']['count'] += 1;
             }
+
             $properties = $allProperties->addChild('properties');
             foreach ($votes as $key => $value) {
-                $this->addProperty($properties, 'votes_rating', $value['sum']);
-                $this->addProperty($properties, 'votes_count', $value['count']);
+                $properties->addAttribute(
+                    'usergroup',
+                    $this->userGroupToHash($this->shopKey, $key !== 'no-group' ? $key : 'EK')
+                );
+                $this->addProperty($properties, 'votes', $value['sum'] / $value['count']);
             }
         }
     }
