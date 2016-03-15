@@ -1,12 +1,10 @@
 <?php
 
-
 /**
  * Class CustomExport
  */
-class CustomExport
+class FindologicCustomExport
 {
-
     /**
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param SimpleXMLElement $properties XML node to render to.

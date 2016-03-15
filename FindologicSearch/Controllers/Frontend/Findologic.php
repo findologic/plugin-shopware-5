@@ -53,6 +53,13 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     private $allUserGroups = array();
 
     /**
+     * Custom properties added by user
+     *
+     * @var array
+     */
+    private $customExport;
+
+    /**
      * Executes main export. Validates input, gets products for export, creates XML file, validates created file if
      * query string parameter suggests so and echos generated XML.
      */
@@ -820,9 +827,30 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                     $this->addProperty($properties, 'discount', $articlePrice['customerGroup']['discount']);
                 }
             }
+            $this->addCustomProperties($properties, $article);
         }
-        $this->checkCustomExport($properties, $article);
         $this->addVotes($article, $allProperties);
+    }
+
+    /**
+     * @param $properties SimpleXMLElement $properties XML node to render to.
+     * @param $article \Shopware\Models\Article\Article.
+     * @return mixed
+     */
+    protected function addCustomProperties($properties, $article) {
+        $customExportFilePath = Shopware()->DocPath() . 'customExport.php';
+
+        if (file_exists($customExportFilePath)) {
+            require_once $customExportFilePath;
+
+            if (class_exists('FindologicCustomExport', false)) {
+                $this->customExport = $this->customExport ? : new FindologicCustomExport();
+
+                if (method_exists($this->customExport, 'addCustomProperty')) {
+                    $this->customExport->addCustomProperty($properties, $article, $this);
+                }
+            }
+        }
     }
 
     /**
