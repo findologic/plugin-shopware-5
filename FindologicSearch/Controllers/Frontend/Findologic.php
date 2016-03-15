@@ -827,17 +827,16 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                     $this->addProperty($properties, 'discount', $articlePrice['customerGroup']['discount']);
                 }
             }
-            $this->addCustomProperties($properties, $article);
+            $this->addCustomProperties($properties);
         }
         $this->addVotes($article, $allProperties);
     }
 
     /**
      * @param $properties SimpleXMLElement $properties XML node to render to.
-     * @param $article \Shopware\Models\Article\Article.
      * @return mixed
      */
-    protected function addCustomProperties($properties, $article) {
+    protected function addCustomProperties($properties) {
         $customExportFilePath = Shopware()->DocPath() . 'customExport.php';
 
         if (file_exists($customExportFilePath)) {
@@ -847,26 +846,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                 $this->customExport = $this->customExport ? : new FindologicCustomExport();
 
                 if (method_exists($this->customExport, 'addCustomProperty')) {
-                    $this->customExport->addCustomProperty($properties, $article, $this);
+                    $this->customExport->addCustomProperty($properties, $this);
                 }
             }
         }
-    }
-
-    /**
-     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
-     * @param SimpleXMLElement $properties XML node to render to.
-     */
-    private function checkCustomExport($properties, $article)
-    {
-        $customExportFilePath = Shopware()->DocPath() . 'CustomExport.php';
-        if (file_exists($customExportFilePath)) {
-            require_once $customExportFilePath;
-
-            is_null($this->customExport) ? $this->customExport = new CustomExport() : $this->customExport;
-            $this->customExport->addCustomProperty($properties, $article, $this);
-        }
-
     }
 
     /**
