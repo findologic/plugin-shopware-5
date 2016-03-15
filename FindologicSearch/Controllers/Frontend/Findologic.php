@@ -855,8 +855,20 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                     Shopware()->Modules()->Core()->sRewriteLink() . $brandImage);
             }
 
-            $this->addProperty($properties, 'unit',
-                $detail->getUnit() && $detail->getUnit()->getId() ? $detail->getUnit()->getName() : null);
+            $sql = "SELECT  s.articleID,
+		                    s.unitID,
+		                    m.description
+                    FROM s_articles_details as s
+	                LEFT JOIN s_core_units as m ON m.id=s.unitID
+                    WHERE s.articleID=?";
+            $unit = Shopware()->Db()->fetchRow($sql, array($article->getId()));
+
+            if ($unit) {
+                $this->addProperty($properties, 'unit',
+                    $unit['description'] ? $unit['description'] : null
+                );
+            }
+
             $prices = $detail->getPrices();
             if ($prices[0]->getPseudoPrice()) {
                 $price = $prices[0]->getPseudoPrice() * (1 + (float)$article->getTax()->getTax() / 100);
