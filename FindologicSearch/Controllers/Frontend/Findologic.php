@@ -880,7 +880,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             }
             $properties = $allProperties->addChild('properties');
             foreach ($votes as $key => $value) {
-                $this->addProperty($properties, 'votes_rating', $value['sum']);
+                $this->addProperty($properties, 'votes_rating', round($value['sum'] / $value['count']));
                 $this->addProperty($properties, 'votes_count', $value['count']);
             }
         }
