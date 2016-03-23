@@ -804,7 +804,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             $this->addProperty(
                 $properties,
                 'shippingtime',
-                $detail->getShippingTime() ? $detail->getShippingTime() . ' days' : null
+                $detail->getShippingTime() ? $detail->getShippingTime() : null
             );
             $this->addProperty($properties, 'purchaseunit', $detail->getPurchaseUnit());
             $this->addProperty($properties, 'referenceunit', $detail->getReferenceUnit());
