@@ -878,14 +878,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                 $votes['general']['sum'] += $vote['points'];
                 $votes['general']['count'] += 1;
             }
-
             $properties = $allProperties->addChild('properties');
             foreach ($votes as $key => $value) {
-                $properties->addAttribute(
-                    'usergroup',
-                    $this->userGroupToHash($this->shopKey, $key !== 'no-group' ? $key : 'EK')
-                );
-                $this->addProperty($properties, 'votes', $value['sum'] / $value['count']);
+                $this->addProperty($properties, 'votes_rating', round($value['sum'] / $value['count']));
+                $this->addProperty($properties, 'votes_count', $value['count']);
             }
         }
     }
