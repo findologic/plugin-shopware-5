@@ -875,13 +875,25 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $votes = array();
         if (count($voteData) > 0) {
             foreach ($voteData as $vote) {
-                $votes['general']['sum'] += $vote['points'];
-                $votes['general']['count'] += 1;
+                if ($vote['email'] !== '') {
+                    $sqlGroup = 'SELECT customergroup FROM s_user' .
+                        ' WHERE s_user.email=?';
+                    $groupKey = Shopware()->Db()->fetchOne($sqlGroup, array($vote['email']));
+
+                    // TODO: SKIP AVOIDED GROUPS!!!
+                    $votes[$groupKey]['sum'] += $vote['points'];
+                    $votes[$groupKey]['count'] += 1;
+                } else {
+                    $votes['no-group']['sum'] += $vote['points'];
+                    $votes['no-group']['count'] += 1;
+                }
             }
+
             $properties = $allProperties->addChild('properties');
             foreach ($votes as $key => $value) {
-                $this->addProperty($properties, 'votes_rating', round($value['sum'] / $value['count']));
-                $this->addProperty($properties, 'votes_count', $value['count']);
+                $properties->addAttribute('usergroup',
+                    $this->userGroupToHash($this->shopKey, $key !== 'no-group' ? $key : 'EK'));
+                $this->addProperty($properties, 'votes', $value['sum'] / $value['count']);
             }
         }
     }
