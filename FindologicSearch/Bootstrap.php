@@ -62,7 +62,7 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
      */
     public function getVersion()
     {
-        return '1.0.2';
+        return '1.0.3';
     }
 
     /**
@@ -142,6 +142,28 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
             'support' => $this->getSupport(),
             'link' => $this->getLink()
         );
+    }
+
+    /**
+     * This function updates the plugin.
+     *
+     * @param string $oldVersion
+     * @return bool
+     */
+    public function update($oldVersion)
+    {
+        switch($oldVersion) {
+            case '1.0.1':
+            case '1.0.2':
+                $this->subscribeEvent(
+                    'Enlight_Controller_Action_PostDispatch_Frontend_Listing', 'onPostDispatchListing'
+                );
+                break;
+            default:
+                return false;
+        }
+
+        return true;
     }
 
     /**
