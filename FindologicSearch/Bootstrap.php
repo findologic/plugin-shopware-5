@@ -102,7 +102,62 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
      */
     public function getDescription()
     {
-        return '_FILL_IN_.';
+        return '<p><b>FINDOLOGIC – weit mehr als nur eine Suche!</b></p>
+                <br>
+                <p><b>Die innovative Suchlösung für eine höhere Conversion-Rate in Ihrem Online-Shop!</b></p>
+                <br>
+                <p>FFINDOLOGIC ist die ultimative Suchlösung für Ihren Online-Shop! Lassen Sie Ihre Kunden blitzschnell
+                das finden, was sie suchen! Denn nur was Kunden finden, das kaufen sie auch. Mit FINDOLOGIC sind
+                Umsatzsteigerungen von weit über 25% belegt.</p>
+                <br>
+                <p>Wie hoch ist Ihre CR?! Mit uns sind Conversion-Rates bis 21% über die interne Suche nachweislich
+                möglich!</p>
+                <br>
+                <p>Ein Auszug der wichtigsten Funktionen der FINDOLOGIC-Suche:</p>
+                <br>
+                <ul>
+                    <li><b>Intelligentes Ranking</b> - relevante Artikel an erster Stelle reihen</li>
+                    <li><b>Sinnverwandte Zusammenhänge</b> – verstehen, was der Kunde wünscht</li>
+                    <li><b>Automatische Fehlertoleranz</b> - Ergebnisse trotz Schreibfehlern</li>
+                    <li><b>Intuitive Filternavigation</b> - verfeinern der Suchergebnisse</li>
+                    <li><b>Smart Suggest</b> - Eingabehilfe zu Such-, Kategorie- & Produktvorschlägen</li>
+                    <li><b>Promotions für Top-Seller </b> - die Suche als Marketinginstrument</li>
+                    <li><b>Pushen von Produkten</b> - Artikel an oberster Stellen reihen</li>
+                    <li><b>Product Placement</b> - gezielte Abverkaufsteuerung</li>
+                    <li><b>Search-Concepts</b> - eine Vorauswahl für Kategorien treffen</li>
+                    <li><b>Landingpages</b> - Einrichtung von Seiten zu Keywords und Suchbegriffen</li>
+                    <li><b>Guided Shopping</b> - Produktberater zur individuellen Shopping-Beratung</li>
+                    <li><b>Selbstlernende Suche</b> - vom Suchverhalten der User lernen</li>
+                    <li><b>Tracking & Reports</b> - prägnante Analysedaten zur CR-Optimierung und Potentialanalyse</li>
+                    <li><b>Responsive Design</b> - Seien Sie jetzt „on any device“ optimiert verfügbar</li>
+                </ul>
+                <br><br>
+                <p><b>FINDOLOGIC – increase sales! – with a better search function in your online store!</b></p>
+                <br>
+                <p>FINDOLOGIC is the ultimate search solution for your online store! Allow your customers to find what
+                    they are looking for at lightning speed! Since customers can only purchase what they are able to
+                    find. With FINDOLOGIC your profits will increase well over 25% - guaranteed!</p>
+                <br>
+                <p>What’s your CR? With our technology conversion rates up to 21% in search are possible!</p>
+                <br>
+                <p>Summary of the most important features:</p>
+                <br>
+                <ul>
+                    <li><b>Intelligent Ranking</b> - relevant results first</li>
+                    <li><b>Synonymous Associations</b> – understanding what the customer wants</li>
+                    <li><b>Automatic Error Tolerance</b> - results despite misspelling</li>
+                    <li><b>Intuitive navigation</b> - refine the search results or categories</li>
+                    <li><b>Auto-Complete</b> - input assistance including search-, category- & product suggestions</li>
+                    <li><b>Promotions for Top Sellers</b> - use search as a marketing tool</li>
+                    <li><b>Product Pushing</b> - promote any product groups you want</li>
+                    <li><b>Product Placement</b> - targeted sales control</li>
+                    <li><b>Search-Concepts</b> - make a preselection of</li>
+                    <li><b>Landingpages</b> - set up targeted pages for keywords or manufacturers</li>
+                    <li><b>Guided Shopping</b> - creates shopping experiences guiding to the desired product</li>
+                    <li><b>Selflearning Vocabulary</b> - learning from your user’s behaviour</li>
+                    <li><b>Tracking & Reports</b> - consise data refering to your CR and potentials</li>
+                    <li><b>Responsive Design</b> - optimized on any device</li>
+                </ul>';
     }
 
     /**
