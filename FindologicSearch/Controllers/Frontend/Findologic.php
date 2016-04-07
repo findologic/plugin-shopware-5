@@ -746,14 +746,11 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                 }
             }
 
-            $this->appendCData($salesFrequencies->addChild('salesFrequency'), $total);
+            $this->appendCData($salesFrequencies->addChild('salesFrequency'), $total + $article->getPseudoSales());
             foreach ($salesFreq as $key => $value) {
                 $salesFrequency = $salesFrequencies->addChild('salesFrequency');
                 $salesFrequency->addAttribute('usergroup', $this->userGroupToHash($this->shopKey, $key));
                 $this->appendCData($salesFrequency, count($value));
-
-                $pseudoSales = $item->addChild('pseudoSales');
-                $this->appendCData($pseudoSales, $article->getPseudoSales());
             }
         }
     }
