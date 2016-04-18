@@ -563,6 +563,60 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         // Add variants
         $this->addVariantAttributes($article, $attributeSet);
 
+        // Add is new
+        $form = Shopware()->Models()->getRepository('\Shopware\Models\Config\Form')
+            ->findOneBy(array(
+                'name' => 'Frontend76'
+            ));
+        $defaultNew = Shopware()->Models()->getRepository('\Shopware\Models\Config\Element')
+            ->findOneBy(array(
+                'form' => $form,
+                'name' => 'markasnew'
+            ));
+        $specificValueNew = Shopware()->Models()->getRepository('\Shopware\Models\Config\Value')
+            ->findOneBy(array(
+                'element' => $defaultNew
+            ));
+
+        $articleAdded = $article->getAdded()->getTimestamp();
+
+        if ($specificValueNew) {
+            $articleTime = $specificValueNew->getValue() * 86400 + $articleAdded;
+        } else {
+            $articleTime = $defaultNew->getValue() * 86400 + $articleAdded;
+        }
+
+        $now = time();
+
+        if ($now >= $articleTime) {
+            $attributeSet['new'][] = '0';
+        } else {
+            $attributeSet['new'][] = '1';
+        }
+
+        // Add votes_rating
+        try {
+            $sArticle = Shopware()->Modules()->Articles()->sGetArticleById($article->getId());
+            $votesAverage = (float)$sArticle['sVoteAverange']['averange'];
+            $attributeSet['votes_rating'][] = round($votesAverage / 2);
+        } catch (Exception $e) {
+
+        }
+
+        // Add free_shipping
+        if ($article->getMainDetail()->getShippingFree()) {
+            $attributeSet['free_shipping'][] = '1';
+        } else {
+            $attributeSet['free_shipping'][] = '0';
+        }
+
+        // Add sale
+        if ($article->getLastStock()) {
+            $attributeSet['sale'][] = '1';
+        } else {
+            $attributeSet['sale'][] = '0';
+        }
+
         // real rendering is done here if any of previous methods added any attribute
         if (!empty($attributeSet)) {
             $allAttributes = $item->addChild('allAttributes');
