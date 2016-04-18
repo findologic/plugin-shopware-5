@@ -736,7 +736,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $salesFreq = array();
 
         $salesFrequencies = $item->addChild('salesFrequencies');
-        if (count($order) > 0) {
+        if (count($order) > 0 || (int)$article->getPseudoSales() > (int)0) {
             $groupKeys = $this->getCustomerGroupKeys($articleGroups);
             $total = 0;
             foreach ($order as $ord) {
