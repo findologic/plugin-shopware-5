@@ -647,6 +647,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                 $temp[] = $value;
             }
         }
+
         /* @var $configurator \Shopware\Models\Article\Configurator */
         $configurator = $article->getConfiguratorSet();
 
@@ -801,7 +802,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             $attribute = $article->getAttribute();
             $allProperties = $item->addChild('allProperties');
             $properties = $allProperties->addChild('properties');
-            $this->addProperty($properties, 'shippingfree', $detail->getShippingFree() ? 'yes' : null);
+            $this->addProperty($properties, 'shippingfree', $detail->getShippingFree() ? 1 : null);
             $this->addProperty(
                 $properties,
                 'shippingtime',
@@ -816,13 +817,14 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             $this->addProperty($properties, 'tax',
                 $article->getTax()->getTax() ? $article->getTax()->getTax() : '');
             $this->addProperty($properties, 'release_date',
-                $detail->getReleaseDate() ? $detail->getReleaseDate() : '');
+                $detail->getReleaseDate() ? $detail->getReleaseDate()->format(DATE_ATOM) : '');
             $this->addProperty($properties, 'weight',
                 $detail->getWeight() ? $detail->getWeight() : '');
             $this->addProperty($properties, 'width',
                 $detail->getWidth() ? $detail->getWidth() : '');
             $this->addProperty($properties, 'height',
                 $detail->getHeight() ? $detail->getHeight() : '');
+
             $this->addProperty($properties, 'length',
                 $detail->getLen() ?$detail->getLen() : '');
             $this->addProperty($properties, 'attr1',
@@ -831,6 +833,40 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                 $attribute->getAttr2() ? $attribute->getAttr2() : '');
             $this->addProperty($properties, 'attr3',
                 $attribute->getAttr3() ? $attribute->getAttr3() : '');
+            $this->addProperty($properties, 'attr4',
+                $attribute->getAttr4() ? $attribute->getAttr4() : '');
+            $this->addProperty($properties, 'attr5',
+                $attribute->getAttr5() ? $attribute->getAttr5() : '');
+            $this->addProperty($properties, 'attr6',
+                $attribute->getAttr6() ? $attribute->getAttr6() : '');
+            $this->addProperty($properties, 'attr4',
+                $attribute->getAttr7() ? $attribute->getAttr7() : '');
+            $this->addProperty($properties, 'attr8',
+                $attribute->getAttr8() ? $attribute->getAttr8() : '');
+            $this->addProperty($properties, 'attr9',
+                $attribute->getAttr9() ? $attribute->getAttr9() : '');
+            $this->addProperty($properties, 'attr10',
+                $attribute->getAttr10() ? $attribute->getAttr10() : '');
+            $this->addProperty($properties, 'attr11',
+                $attribute->getAttr11() ? $attribute->getAttr11() : '');
+            $this->addProperty($properties, 'attr12',
+                $attribute->getAttr12() ? $attribute->getAttr12() : '');
+            $this->addProperty($properties, 'attr13',
+                $attribute->getAttr13() ? $attribute->getAttr13() : '');
+            $this->addProperty($properties, 'attr14',
+                $attribute->getAttr14() ? $attribute->getAttr14() : '');
+            $this->addProperty($properties, 'attr15',
+                $attribute->getAttr15() ? $attribute->getAttr15() : '');
+            $this->addProperty($properties, 'attr16',
+                $attribute->getAttr16() ? $attribute->getAttr16() : '');
+            $this->addProperty($properties, 'attr17',
+                $attribute->getAttr17() ? $attribute->getAttr17() : '');
+            $this->addProperty($properties, 'attr18',
+                $attribute->getAttr18() ? $attribute->getAttr18() : '');
+            $this->addProperty($properties, 'attr19',
+                $attribute->getAttr19() ? $attribute->getAttr19() : '');
+            $this->addProperty($properties, 'attr20',
+                $attribute->getAttr20() ? $attribute->getAttr20() : '');
 
             $this->addProperty(
                 $properties,
@@ -856,10 +892,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             }
 
             $sql = "SELECT  s.articleID,
-		                    s.unitID,
-		                    m.description
+                            s.unitID,
+                            m.description
                     FROM s_articles_details as s
-	                LEFT JOIN s_core_units as m ON m.id=s.unitID
+                    LEFT JOIN s_core_units as m ON m.id=s.unitID
                     WHERE s.articleID=?";
             $unit = Shopware()->Db()->fetchRow($sql, array($article->getId()));
 
@@ -894,6 +930,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         }
 
         $this->addVotes($article, $allProperties);
+        $this->addNew($article, $allProperties);
     }
 
 
@@ -987,34 +1024,14 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
      */
     private function addVotes($article, $allProperties)
     {
-        // add votes for an article depending on user groups that vote. If none, add to no-group
-        // get votes average
-        $sqlVote = "SELECT email, points FROM s_articles_vote where articleID =?";
-        $voteData = Shopware()->Db()->fetchAll($sqlVote, array($article->getId()));
+        $sArticle = Shopware()->Modules()->Articles()->sGetArticleById($article->getId());
 
-        $votes = array();
-        if (count($voteData) > 0) {
-            foreach ($voteData as $vote) {
-                if ($vote['email'] !== '') {
-                    $sqlGroup = 'SELECT customergroup FROM s_user' .
-                        ' WHERE s_user.email=?';
-                    $groupKey = Shopware()->Db()->fetchOne($sqlGroup, array($vote['email']));
-
-                    // TODO: SKIP AVOIDED GROUPS!!!
-                    $votes[$groupKey]['sum'] += $vote['points'];
-                    $votes[$groupKey]['count'] += 1;
-                } else {
-                    $votes['no-group']['sum'] += $vote['points'];
-                    $votes['no-group']['count'] += 1;
-                }
-            }
-
+        try {
             $properties = $allProperties->addChild('properties');
-            foreach ($votes as $key => $value) {
-                $properties->addAttribute('usergroup',
-                    $this->userGroupToHash($this->shopKey, $key !== 'no-group' ? $key : 'EK'));
-                $this->addProperty($properties, 'votes', $value['sum'] / $value['count']);
-            }
+            $this->addProperty($properties, 'votes_rating', round($sArticle['sVoteAverange']['average']));
+            $this->addProperty($properties, 'votes_count', $sArticle['sVoteAverange']['count']);
+         } catch (Exception $e) {
+
         }
     }
 
