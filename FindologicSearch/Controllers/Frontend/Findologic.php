@@ -591,13 +591,11 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             $attributeSet['new'][] = '1';
         }
 
-
         // Add votes_rating
         try {
             $sArticle = Shopware()->Modules()->Articles()->sGetArticleById($article->getId());
             $votesAverage = (float)$sArticle['sVoteAverange']['averange'];
-            $attributeSet['votes_rating'][] = round($votesAverage, 2);
-
+            $attributeSet['votes_rating'][] = round($votesAverage / 2);
         } catch (Exception $e) {
 
         }
