@@ -701,6 +701,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                 $temp[] = $value;
             }
         }
+
         /* @var $configurator \Shopware\Models\Article\Configurator */
         $configurator = $article->getConfiguratorSet();
 
@@ -849,12 +850,13 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     {
         /* @var $detail \Shopware\Models\Article\Detail */
         $detail = $article->getMainDetail();
-        $allProperties = $item->addChild('allProperties');
         if ($detail) {
             // add properties
             $rewriteLink = Shopware()->Modules()->Core()->sRewriteLink();
+            $attribute = $article->getAttribute();
+            $allProperties = $item->addChild('allProperties');
             $properties = $allProperties->addChild('properties');
-            $this->addProperty($properties, 'shippingfree', $detail->getShippingFree() ? 'yes' : null);
+            $this->addProperty($properties, 'shippingfree', $detail->getShippingFree() ? 1 : null);
             $this->addProperty(
                 $properties,
                 'shippingtime',
@@ -864,6 +866,61 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             $this->addProperty($properties, 'referenceunit', $detail->getReferenceUnit());
             $this->addProperty($properties, 'packunit', $detail->getPackUnit());
             $this->addProperty($properties, 'highlight', $article->getHighlight());
+            $this->addProperty($properties, 'quantity',
+                $detail->getInStock() ? $detail->getInStock() : '');
+            $this->addProperty($properties, 'tax',
+                $article->getTax()->getTax() ? $article->getTax()->getTax() : '');
+            $this->addProperty($properties, 'release_date',
+                $detail->getReleaseDate() ? $detail->getReleaseDate()->format(DATE_ATOM) : '');
+            $this->addProperty($properties, 'weight',
+                $detail->getWeight() ? $detail->getWeight() : '');
+            $this->addProperty($properties, 'width',
+                $detail->getWidth() ? $detail->getWidth() : '');
+            $this->addProperty($properties, 'height',
+                $detail->getHeight() ? $detail->getHeight() : '');
+
+            $this->addProperty($properties, 'length',
+                $detail->getLen() ?$detail->getLen() : '');
+            $this->addProperty($properties, 'attr1',
+                $attribute->getAttr1() ? $attribute->getAttr1() : '');
+            $this->addProperty($properties, 'attr2',
+                $attribute->getAttr2() ? $attribute->getAttr2() : '');
+            $this->addProperty($properties, 'attr3',
+                $attribute->getAttr3() ? $attribute->getAttr3() : '');
+            $this->addProperty($properties, 'attr4',
+                $attribute->getAttr4() ? $attribute->getAttr4() : '');
+            $this->addProperty($properties, 'attr5',
+                $attribute->getAttr5() ? $attribute->getAttr5() : '');
+            $this->addProperty($properties, 'attr6',
+                $attribute->getAttr6() ? $attribute->getAttr6() : '');
+            $this->addProperty($properties, 'attr4',
+                $attribute->getAttr7() ? $attribute->getAttr7() : '');
+            $this->addProperty($properties, 'attr8',
+                $attribute->getAttr8() ? $attribute->getAttr8() : '');
+            $this->addProperty($properties, 'attr9',
+                $attribute->getAttr9() ? $attribute->getAttr9() : '');
+            $this->addProperty($properties, 'attr10',
+                $attribute->getAttr10() ? $attribute->getAttr10() : '');
+            $this->addProperty($properties, 'attr11',
+                $attribute->getAttr11() ? $attribute->getAttr11() : '');
+            $this->addProperty($properties, 'attr12',
+                $attribute->getAttr12() ? $attribute->getAttr12() : '');
+            $this->addProperty($properties, 'attr13',
+                $attribute->getAttr13() ? $attribute->getAttr13() : '');
+            $this->addProperty($properties, 'attr14',
+                $attribute->getAttr14() ? $attribute->getAttr14() : '');
+            $this->addProperty($properties, 'attr15',
+                $attribute->getAttr15() ? $attribute->getAttr15() : '');
+            $this->addProperty($properties, 'attr16',
+                $attribute->getAttr16() ? $attribute->getAttr16() : '');
+            $this->addProperty($properties, 'attr17',
+                $attribute->getAttr17() ? $attribute->getAttr17() : '');
+            $this->addProperty($properties, 'attr18',
+                $attribute->getAttr18() ? $attribute->getAttr18() : '');
+            $this->addProperty($properties, 'attr19',
+                $attribute->getAttr19() ? $attribute->getAttr19() : '');
+            $this->addProperty($properties, 'attr20',
+                $attribute->getAttr20() ? $attribute->getAttr20() : '');
 
             $this->addProperty(
                 $properties,
@@ -881,11 +938,27 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                 $rewriteLink . 'checkout/addArticle/sAdd/' . $article->getMainDetail()->getNumber()
             );
 
-            $this->addProperty(
-                $properties,
-                'unit',
-                $detail->getUnit() && $detail->getUnit()->getId() ? $detail->getUnit()->getName() : null
-            );
+            $brandImage = $article->getSupplier()->getImage();
+
+            if ($brandImage) {
+                $this->addProperty($properties, 'brand_image',
+                    Shopware()->Modules()->Core()->sRewriteLink() . $brandImage);
+            }
+
+            $sql = "SELECT  s.articleID,
+                            s.unitID,
+                            m.description
+                    FROM s_articles_details as s
+                    LEFT JOIN s_core_units as m ON m.id=s.unitID
+                    WHERE s.articleID=?";
+            $unit = Shopware()->Db()->fetchRow($sql, array($article->getId()));
+
+            if ($unit) {
+                $this->addProperty($properties, 'unit',
+                    $unit['description'] ? $unit['description'] : null
+                );
+            }
+
             $prices = $detail->getPrices();
             if ($prices[0]->getPseudoPrice()) {
                 $price = $prices[0]->getPseudoPrice() * (1 + (float)$article->getTax()->getTax() / 100);
@@ -911,6 +984,91 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         }
 
         $this->addVotes($article, $allProperties);
+        $this->addNew($article, $allProperties);
+        $this->addVariantsAdditionalInfo($article, $allProperties);
+    }
+
+
+    /**
+     * add New
+     * @param \Shopware\Models\Article\Article $article
+     * @param SimpleXMLElement $properties XML node to render to.
+     */
+    private function addNew($article, $properties)
+    {
+        $form = Shopware()->Models()->getRepository('\Shopware\Models\Config\Form')
+            ->findOneBy(array(
+                'name' => 'Frontend76'
+            ));
+        $defaultNew = Shopware()->Models()->getRepository('\Shopware\Models\Config\Element')
+            ->findOneBy(array(
+                'form' => $form,
+                'name' => 'markasnew'
+            ));
+        $specificValueNew = Shopware()->Models()->getRepository('\Shopware\Models\Config\Value')
+            ->findOneBy(array(
+                'element' => $defaultNew
+            ));
+
+        $articleAdded = $article->getAdded()->getTimestamp();
+
+        if ($specificValueNew) {
+            $articleTime = $specificValueNew->getValue() * 86400 + $articleAdded;
+        } else {
+            $articleTime = $defaultNew->getValue() * 86400 + $articleAdded;
+        }
+
+        $now = time();
+
+        if ($now >= $articleTime) {
+            $this->addProperty($properties, 'new', '0');
+        } else {
+            $this->addProperty($properties, 'new', '1');
+        }
+    }
+
+    /**
+     * add Variants Additional Info
+     * @param \Shopware\Models\Article\Article $article
+     * @param SimpleXMLElement $properties XML node to render to.
+     */
+    private function addVariantsAdditionalInfo($article, $properties)
+    {
+        $sqlVariants = "SELECT * FROM s_articles_details WHERE kind=2 AND articleID =?";
+        $variantsData = Shopware()->Db()->fetchAll($sqlVariants, array($article->getId()));
+        // 0 or 1
+        if (empty($variantsData)) {
+            $this->addProperty($properties, 'has_variants', 0);
+        } else {
+            $this->addProperty($properties, 'has_variants', 1);
+            $mainPrice = $article->getMainDetail()->getPrices();
+            $mainPrices = array();
+            /** @var \Shopware\Models\Article\Price $price */
+            foreach ($mainPrice as $price) {
+                $mainPrices[$price->getCustomerGroup()->getKey()] = $price->getPrice();
+            }
+
+            /** @var \Shopware\Models\Article\Detail $variant */
+            $show = 0;
+            foreach ($article->getDetails() as $variant) {
+                if ($variant->getId() != $article->getMainDetail()->getId()) {
+                    /** @var \Shopware\Models\Article\Price $variantPrice */
+                    foreach ($variant->getPrices() as $variantPrice) {
+                        $group = $variantPrice->getCustomerGroup()->getKey();
+                        if (!empty($mainPrices[$group]) && $mainPrices[$group] !== $variantPrice->getPrice()) {
+                            $show = 1;
+                            break;
+                        }
+                    }
+                }
+
+                if ($show === 1) {
+                    break;
+                }
+            }
+
+            $this->addProperty($properties, 'show_from_price', $show);
+        }
     }
 
     /**
@@ -921,22 +1079,14 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
      */
     private function addVotes($article, $allProperties)
     {
-        // add votes for an article depending on user groups that vote. If none, add to no-group
-        // get votes average
-        $sqlVote = "SELECT email, points FROM s_articles_vote where articleID =?";
-        $voteData = Shopware()->Db()->fetchAll($sqlVote, array($article->getId()));
+        $sArticle = Shopware()->Modules()->Articles()->sGetArticleById($article->getId());
 
-        $votes = array();
-        if (count($voteData) > 0) {
-            foreach ($voteData as $vote) {
-                $votes['general']['sum'] += $vote['points'];
-                $votes['general']['count'] += 1;
-            }
+        try {
             $properties = $allProperties->addChild('properties');
-            foreach ($votes as $key => $value) {
-                $this->addProperty($properties, 'votes_rating', round($value['sum'] / $value['count']));
-                $this->addProperty($properties, 'votes_count', $value['count']);
-            }
+            $this->addProperty($properties, 'votes_rating', round($sArticle['sVoteAverange']['average']));
+            $this->addProperty($properties, 'votes_count', $sArticle['sVoteAverange']['count']);
+         } catch (Exception $e) {
+
         }
     }
 
