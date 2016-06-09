@@ -23,8 +23,8 @@ class ShopwareTests extends \Soprex\Findologic\Modules\Tests\Base\AbstractTestBa
 
     public function setUp()
     {
-        $this->em = Shopware()->Models();
-        $this->version = (int)Shopware()->Config()->version;
+//        $this->em = Shopware()->Models();
+//        $this->version = (int)Shopware()->Config()->version;
     }
 
     /**
@@ -41,11 +41,17 @@ class ShopwareTests extends \Soprex\Findologic\Modules\Tests\Base\AbstractTestBa
     /**
      * Returns shop export api key
      *
-     * @return mixed
+     * @param string $languageName
+     * @return string
      */
-    public function getShopApiKey()
+    public function getShopApiKey($languageName = 'english')
     {
-        return 'englishShopiKey';
+        $languages = [
+            'english' => 'EN123456EN123456EN123456EN123456',
+            'german' => 'EN123456EN123456EN123456EN123456',
+        ];
+
+        return $languages[$languageName];
     }
 
     /**
@@ -66,12 +72,12 @@ class ShopwareTests extends \Soprex\Findologic\Modules\Tests\Base\AbstractTestBa
      */
     protected function changeItemActiveStatus($itemId, $status)
     {
-        /** @var Shopware\Models\Article\Article $article */
-        $article = $this->em->getRepository('Shopware\Models\Article\Article')->find($itemId);
-
-        $article->setActive($status == 1);
-        $this->em->persist($article);
-        $this->em->flush();
+//        /** @var Shopware\Models\Article\Article $article */
+//        $article = $this->em->getRepository('Shopware\Models\Article\Article')->find($itemId);
+//
+//        $article->setActive($status == 1);
+//        $this->em->persist($article);
+//        $this->em->flush();
     }
 
     /**
@@ -82,13 +88,227 @@ class ShopwareTests extends \Soprex\Findologic\Modules\Tests\Base\AbstractTestBa
      */
     protected function changeItemStockStatus($itemId, $status)
     {
-        /** @var Shopware\Models\Article\Article $article */
-        $article = $this->em->getRepository('Shopware\Models\Article\Article')->find($itemId);
-        $detail = $article->getMainDetail();
+//        /** @var Shopware\Models\Article\Article $article */
+//        $article = $this->em->getRepository('Shopware\Models\Article\Article')->find($itemId);
+//        $detail = $article->getMainDetail();
+//
+//        $article->setLastStock($status ? 0 : 1);
+//        $detail->setInStock($status ? 15 : 0);
+//
+//        $this->em->flush();
+    }
 
-        $article->setLastStock($status ? 0 : 1);
-        $detail->setInStock($status ? 15 : 0);
+    /**
+     * Returns index of thumbnail image url in export
+     *
+     * @return int
+     */
+    protected function getThumbnailIndex()
+    {
+//        return 0;
+    }
 
-        $this->em->flush();
+    /**
+     * Starts mysql transaction
+     *
+     * @return bool
+     */
+    protected function startTransaction()
+    {
+
+    }
+
+    /**
+     * Commits mysql transaction
+     *
+     * @return bool
+     */
+    protected function commitTransaction()
+    {
+
+    }
+
+    /**
+     * RollBacks mysql transaction
+     *
+     * @return bool
+     */
+    protected function rollbackTransaction()
+    {
+
+    }
+
+    /**
+     * Returns position of the product in export that has sales frequency
+     *
+     * @return int
+     */
+    protected function getExportPositionOfTheProductWithSalesFrequency()
+    {
+
+    }
+
+    /**
+     * Returns properties of the product by product id
+     *
+     * @param $productId
+     * @return array
+     */
+    protected function getProductProperties($productId)
+    {
+
+    }
+
+    /**
+     * Returns product date added by product id
+     *
+     * @param $productId
+     * @return string
+     */
+    protected function getProductDateAdded($productId)
+    {
+
+    }
+
+    /**
+     * Returns sales frequency by product id
+     *
+     * @param $productId
+     * @return int
+     */
+    protected function getProductSalesFrequency($productId)
+    {
+
+    }
+
+    /**
+     * Returns all product user groups
+     *
+     * @return array
+     */
+    protected function getUserGroups()
+    {
+
+    }
+
+    /**
+     * Returns all product keywords by product id
+     *
+     * @param $productId
+     * @return array
+     */
+    protected function getProductKeywords($productId)
+    {
+
+    }
+
+    /**
+     * Returns all product attributes by product id
+     *
+     * @param $productId
+     * @return array
+     */
+    protected function getProductAttributes($productId)
+    {
+
+    }
+
+    /**
+     * Returns all product images by product id
+     *
+     * @param $productId
+     * @return array
+     */
+    protected function getProductImages($productId)
+    {
+
+    }
+
+    /**
+     * Returns product thumbnail image by product id
+     *
+     * @param $productId
+     * @return string
+     */
+    protected function getProductThumbnailUrl($productId)
+    {
+
+    }
+
+    /**
+     * Returns product url by product id
+     *
+     * @param $productId
+     * @return string
+     */
+    protected function getProductUrl($productId)
+    {
+
+    }
+
+    /**
+     * Returns product price by product id
+     *
+     * @param $productId
+     * @return string
+     */
+    protected function getProductPrice($productId)
+    {
+
+    }
+
+    /**
+     * Returns product description by product id
+     *
+     * @param $productId
+     * @return string
+     */
+    protected function getProductDescription($productId)
+    {
+
+    }
+
+    /**
+     * Return product summary by product id
+     *
+     * @param $productId
+     * @return string
+     */
+    protected function getProductSummary($productId)
+    {
+
+    }
+
+    /**
+     * Returns product title by product id
+     *
+     * @param $productId
+     * @return string
+     */
+    protected function getProductTitle($productId)
+    {
+
+    }
+
+    /**
+     * Returns product order number by product id
+     *
+     * @param $productId
+     * @return string
+     */
+    protected function getProductOrderNumber($productId)
+    {
+
+    }
+
+    /**
+     * Returns short description of the product by product id in english and german language
+     *
+     * @param $productId
+     * @return array
+     */
+    protected function getProductShortDescription($productId)
+    {
+
     }
 }
