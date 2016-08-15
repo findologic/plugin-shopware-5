@@ -20,9 +20,9 @@
   * Plug-in should be listed in the uninstalled plug-ins
   * Click on the plug-in green circle to install it
   * Then you will be promted to clear cache, click “Yes” “Configuration” tab enter Shopkey provided by “FINDOLOGIC”
-  * After you fill this this form, click “Save” 
+  * After you fill this this form, click **“Save”** 
   
-  Note: Shop key must be entered in valid format or error will be shown
+  **Note**: Shop key must be entered in valid format or error will be shown
   * Finally, shop's cache must be cleared
   
 ## RUNNING EXPORT
