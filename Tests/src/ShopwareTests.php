@@ -23,8 +23,9 @@ class ShopwareTests extends \Soprex\Findologic\Modules\Tests\Base\AbstractTestBa
 
     public function setUp()
     {
-//        $this->em = Shopware()->Models();
-//        $this->version = (int)Shopware()->Config()->version;
+        parent::setUp();
+        $this->em = Shopware()->Models();
+        $this->version = (int)Shopware()->Config()->version;
     }
 
     /**
