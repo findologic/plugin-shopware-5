@@ -253,7 +253,8 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
         $ds = DIRECTORY_SEPARATOR;
         $this->registerCustomModels();
         $this->Application()->Loader()->registerNamespace('FindologicSearch', $this->Path());
-        $this->Application()->Loader()->registerNamespace('FindologicSearch\Components\Findologic', $this->Path() . $ds . 'Components' . $ds . 'Findologic');
+        $this->Application()->Loader()->registerNamespace('FindologicSearch\Components\Findologic',
+            $this->Path() . $ds . 'Components' . $ds . 'Findologic');
         $this->helper = new Helper($this);
     }
 
@@ -313,7 +314,7 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
         $view = $controller->View();
         $params = $controller->Request()->getParams();
         $id = $params['sArticle'];
-        if(!$id){
+        if (!$id) {
             $orderNumber = $params['ordernumber'];
             $articleByID = Shopware()->Modules()->Articles()->sGetArticleIdByOrderNumber($orderNumber);
         } else {
@@ -424,10 +425,16 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
         if ($this->sw === 4) {
             if ($view->sBasket['AmountWithTaxNumeric'] && $view->sBasket['AmountWithTaxNumeric'] != $cartAmount) {
                 $cartAmount = $view->sBasket['AmountWithTaxNumeric'];
-            } else if ($view->sBasket['sAmount'] && $view->sBasket['sAmount'] != $cartAmount) {
-                $cartAmount = $view->sBasket['sAmount'];
-            } else if (Shopware()->Modules()->Basket()->sGetAmount()['totalAmount']) {
-                $cartAmount = Shopware()->Modules()->Basket()->sGetAmount()['totalAmount'];
+                $this->extendTemplate($view, 'cart');
+            } else {
+                if (($view->sBasket['sAmount']) && ($view->sBasket['sAmount'] != $cartAmount)) {
+                    $cartAmount = $view->sBasket['sAmount'];
+                    $this->extendTemplate($view, 'cart');
+                } else {
+                    if (Shopware()->Modules()->Basket()->sGetAmount()['totalAmount']) {
+                        $cartAmount = Shopware()->Modules()->Basket()->sGetAmount()['totalAmount'];
+                    }
+                }
             }
         } else {
             $basket = Shopware()->Modules()->Basket()->sGetBasket();
@@ -530,7 +537,7 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
          * @var int $shopId
          * @var Shopware\Models\Config\Value $value
          */
-        foreach($values as $shopId => &$value) {
+        foreach ($values as $shopId => &$value) {
             $value->setValue(trim($value->getValue()));
             $val = $value->getValue();
             if (!$val) {
@@ -539,6 +546,10 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
 
             if (isset($keys[$val])) {
                 throw new \Exception('Each shop must have its own shop key!');
+            }
+
+            if (preg_match('/^[A-Z0-9]{32}$/', $val) != 1) {
+                throw new \Exception('Shop key must consist of 32 characters,digits and only capital letters');
             }
 
             $keys[$val] = 1;
