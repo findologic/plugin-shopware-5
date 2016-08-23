@@ -1079,14 +1079,31 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
      */
     private function addVotes($article, $allProperties)
     {
-        $sArticle = Shopware()->Modules()->Articles()->sGetArticleById($article->getId());
-
-        try {
+        // add votes for an article depending on user groups that vote. If none, add to no-group
+        // get votes average
+        $sqlVote = "SELECT email, points FROM s_articles_vote where articleID =?";
+        $voteData = Shopware()->Db()->fetchAll($sqlVote, array($article->getId()));
+        $votes = array();
+        if (count($voteData) > 0) {
+            foreach ($voteData as $vote) {
+                if ($vote['email'] !== '') {
+                    $sqlGroup = 'SELECT customergroup FROM s_user' .
+                        ' WHERE s_user.email=?';
+                    $groupKey = Shopware()->Db()->fetchOne($sqlGroup, array($vote['email']));
+                    // TODO: SKIP AVOIDED GROUPS!!!
+                    $votes[$groupKey]['sum'] += $vote['points'];
+                    $votes[$groupKey]['count'] += 1;
+                } else {
+                    $votes['no-group']['sum'] += $vote['points'];
+                    $votes['no-group']['count'] += 1;
+                }
+            }
             $properties = $allProperties->addChild('properties');
-            $this->addProperty($properties, 'votes_rating', round($sArticle['sVoteAverange']['average']));
-            $this->addProperty($properties, 'votes_count', $sArticle['sVoteAverange']['count']);
-         } catch (Exception $e) {
-
+            foreach ($votes as $key => $value) {
+                $properties->addAttribute('usergroup',
+                    $this->userGroupToHash($this->shopKey, $key !== 'no-group' ? $key : 'EK'));
+                $this->addProperty($properties, 'votes', $value['sum'] / $value['count']);
+            }
         }
     }
 
