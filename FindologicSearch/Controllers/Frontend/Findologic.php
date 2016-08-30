@@ -642,6 +642,9 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
      */
     private function addCatAndCatUrl($article, &$attributes)
     {
+        $baseUrl = $this->shop->getBaseUrl();
+        $baseUrl = !empty($baseUrl) ? $baseUrl : '';
+
         /* @var $category \Shopware\Models\Category\Category */
         foreach ($article->getCategories() as $category) {
             $cat = $this->categories[$category->getId()];
@@ -659,7 +662,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                 foreach ($catUrls as $catUrl) {
                     if ($catUrl) {
                         $url .= '/' . $catUrl;
-                        $attributes['cat_url'][] = $url . '/';
+                        $attributes['cat_url'][] = $baseUrl . $url . '/';
                     }
                 }
             }
