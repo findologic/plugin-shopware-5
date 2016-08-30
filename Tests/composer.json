@@ -1,0 +1,15 @@
+{
+    "name": "soprex/findologic-tests-shopware",
+    "require-dev": {
+        "soprex/findologic-test-lib": ">=0.0.1"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Soprex",
+            "email": "support@soprex.com"
+        }
+    ],
+    "minimum-stability": "alpha",
+    "require": {}
+}
