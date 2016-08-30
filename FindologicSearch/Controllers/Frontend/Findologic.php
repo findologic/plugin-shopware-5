@@ -697,8 +697,10 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $sqlVariants = Shopware()->Db()->fetchAll($sqlVariants, array($article->getId()));
         $temp = [];
         foreach ($sqlVariants as $res) {
-            foreach (explode(' / ', $res['additionalText']) as $value) {
-                $temp[] = $value;
+            if (!empty($res['additionalText'])) {
+                foreach (explode(' / ', $res['additionalText']) as $value) {
+                    $temp[] = $value;
+                }
             }
         }
 
@@ -714,7 +716,11 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
             }
             //add only options from active variants
             foreach ($optValues as $key => $val) {
-                $attributes[$key] = array_intersect($val, $temp);
+                if (!empty($temp)) {
+                    $attributes[$key] = array_intersect($val, $temp);
+                } else {
+                    $attributes[$key] = $val;
+                }
             }
         }
     }
