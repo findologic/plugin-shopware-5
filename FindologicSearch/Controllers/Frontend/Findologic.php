@@ -53,6 +53,13 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     private $allUserGroups = array();
 
     /**
+     * Custom properties added by user
+     *
+     * @var array
+     */
+    private $customExport;
+
+    /**
      * Executes main export. Validates input, gets products for export, creates XML file, validates created file if
      * query string parameter suggests so and echos generated XML.
      */
@@ -981,8 +988,8 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                     $this->addProperty($properties, 'discount', $articlePrice['customerGroup']['discount']);
                 }
             }
+            $this->addCustomProperties($properties);
         }
-
         $this->addVotes($article, $allProperties);
         $this->addNew($article, $allProperties);
         $this->addVariantsAdditionalInfo($article, $allProperties);
@@ -1072,6 +1079,26 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
+     * @param $properties SimpleXMLElement $properties XML node to render to.
+     * @return mixed
+     */
+    protected function addCustomProperties($properties) {
+        $customExportFilePath = Shopware()->DocPath() . 'customExport.php';
+
+        if (file_exists($customExportFilePath)) {
+            require_once $customExportFilePath;
+
+            if (class_exists('FindologicCustomExport', false)) {
+                $this->customExport = $this->customExport ? : new FindologicCustomExport();
+
+                if (method_exists($this->customExport, 'addCustomProperty')) {
+                    $this->customExport->addCustomProperty($properties, $this);
+                }
+            }
+        }
+    }
+
+    /**
      * Adds votes node.
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
@@ -1114,7 +1141,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
      * @param string $key Key part of property.
      * @param mixed $value Value part of property.
      */
-    private function addProperty($properties, $key, $value)
+    public function addProperty($properties, $key, $value)
     {
         if ($value) {
             $property = $properties->addChild('property');
