@@ -62,7 +62,7 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
      */
     public function getVersion()
     {
-        return '1.0.4';
+        return '1.0.5';
     }
 
     /**
