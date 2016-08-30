@@ -349,7 +349,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
 
         $this->addUserGroups($articleGroups, $item);
 
-        $this->addSalesFrequency($article, $articleGroups, $item);
+        $this->addSalesFrequency($article, $item);
 
         $this->addDateAdded($article, $item);
 
@@ -785,41 +785,25 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
     }
 
     /**
-     * Adds sales frequencies per user group. Executes complex query against database to calculate sales frequency.
+     * Adds sales frequencies for specific product.
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
-     * @param array $articleGroups
      * @param SimpleXMLElement $item XML node to render to.
      */
-    private function addSalesFrequency($article, $articleGroups, $item)
+    private function addSalesFrequency($article, $item)
     {
         // get orders order number (not articles)
-        $sqlOrder = "SELECT s_order_details.ordernumber, s_user.customergroup"
-            . " FROM s_order_details"
-            . "     INNER JOIN s_order on s_order_details.ordernumber=s_order.ordernumber"
-            . "     INNER JOIN s_user on s_order.userID=s_user.id"
-            . " WHERE s_order_details.articleID =?"
-            . " GROUP BY s_order_details.ordernumber, s_user.customergroup";
+        $sqlOrder = "SELECT s_order_details.ordernumber"
+                . " FROM s_order_details"
+                . " WHERE s_order_details.articleID =?"
+                . " GROUP BY s_order_details.ordernumber";
         $order = Shopware()->Db()->fetchAll($sqlOrder, array($article->getId()));
-        $salesFreq = array();
 
         $salesFrequencies = $item->addChild('salesFrequencies');
-        if (count($order) > 0 || (int)$article->getPseudoSales() > (int)0) {
-            $groupKeys = $this->getCustomerGroupKeys($articleGroups);
-            $total = 0;
-            foreach ($order as $ord) {
-                if (in_array($ord['customergroup'], $groupKeys)) {
-                    $salesFreq[$ord['customergroup']][] = $ord['ordernumber'];
-                    $total++;
-                }
-            }
+        $orderCount = count($order);
 
-            $this->appendCData($salesFrequencies->addChild('salesFrequency'), $total + $article->getPseudoSales());
-            foreach ($salesFreq as $key => $value) {
-                $salesFrequency = $salesFrequencies->addChild('salesFrequency');
-                $salesFrequency->addAttribute('usergroup', $this->userGroupToHash($this->shopKey, $key));
-                $this->appendCData($salesFrequency, count($value));
-            }
+        if ($orderCount > 0 || (int)$article->getPseudoSales() > (int)0) {
+            $this->appendCData($salesFrequencies->addChild('salesFrequency'), $orderCount + $article->getPseudoSales());
         }
     }
 
