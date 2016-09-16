@@ -314,8 +314,18 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
         $view = $controller->View();
         $params = $controller->Request()->getParams();
         $id = $params['sArticle'];
+
+        if (is_null($id)) {
+            return;
+        }
+
         if (!$id) {
             $orderNumber = $params['ordernumber'];
+
+            if (is_null($orderNumber)) {
+                return;
+            }
+
             $articleByID = Shopware()->Modules()->Articles()->sGetArticleIdByOrderNumber($orderNumber);
         } else {
             $articleByID = Shopware()->Modules()->sArticles()->sGetArticleById($id);
