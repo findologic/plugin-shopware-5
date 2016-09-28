@@ -1,6 +1,6 @@
-# FINDOLOGIC SHOPWARE 5 DI PLUGIN
+# FINDOLOGIC SHOPWARE 4/5 DI PLUGIN
 
-  FINDOLOGIC SHOPWARE 5 DI PLUGIN 1 plug-in needs to be implemented in SHOPWARE 5 eShop to export products and its data for successful implementation of FINDOLOGIC Search into SHOPWARE 5 eShop. Beside product export, this plug-in also injects tracking scripts, in order to improve user experience of using shop itself.
+  FINDOLOGIC SHOPWARE 4/5 DI PLUGIN 1 plug-in needs to be implemented in SHOPWARE 4/5 eShop to export products and its data for successful implementation of FINDOLOGIC Search into SHOPWARE 4/5 eShop. Beside product export, this plug-in also injects tracking scripts, in order to improve user experience of using shop itself.
   
   This plug-in is going through all the shop's data and finding valid products for export. In order to be exported, following conditions must be met:
   
@@ -12,7 +12,7 @@
   
 ## INSTALLATION
 
-  FINDOLOGIC SHOPWARE 5 API plug-in installation procedure is basically the same as for any other SHOPWARE 5 plug-in. It can be summed up in a few simple steps:
+  FINDOLOGIC SHOPWARE 4/5 API plug-in installation procedure is basically the same as for any other SHOPWARE 4/5 plug-in. It can be summed up in a few simple steps:
   
   * Plug-in content needs to copied into *“engine/Shopware/Plugins/Community/Frontend”* folder
   * After this, in Admin panel click on Configuration → Plugin Manager
