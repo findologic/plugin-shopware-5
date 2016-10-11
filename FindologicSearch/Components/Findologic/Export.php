@@ -832,9 +832,9 @@ class Export
      * Adds different properties.
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
-     * @param \SimpleXMLElement $item XML node to render to.
+     * @param SimpleXMLElement $item XML node to render to.
      */
-    protected function addProperties($article, $item)
+    private function addProperties($article, $item)
     {
         /* @var $detail \Shopware\Models\Article\Detail */
         $detail = $article->getMainDetail();
@@ -969,11 +969,12 @@ class Export
                     $this->addProperty($properties, 'discount', $articlePrice['customerGroup']['discount']);
                 }
             }
+
             $this->addCustomProperties($properties);
+            $this->addVotes($article, $properties);
+            $this->addNew($article, $properties);
+            $this->addVariantsAdditionalInfo($article, $properties);
         }
-        $this->addVotes($article, $allProperties);
-        $this->addNew($article, $allProperties);
-        $this->addVariantsAdditionalInfo($article, $allProperties);
     }
 
 
