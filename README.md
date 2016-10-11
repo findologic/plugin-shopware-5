@@ -46,6 +46,10 @@
   If standard export does not export all data that is needed, there is a simple way to customize export. In plug-in root folder there is a file called *“findologicCustomExport_org.php”* that should be renamed to *“findologicCustomExport.php”*. That file contains class *“FindologicCustomExport”* that extends class *“Shopware_Controllers_Frontend_XmlBuilder”* that is responsible  for export. In order to change export, simply override already existing methods in  *“FindologicItemXml”* by writing new methods in “FindologicCustomExport” class. Example code is already placed in *“findologicCustomExport_org.php”*.
 
 # Versions
+## 1.0.9
+* Custom export implemented
+* Solved issue when product ID is null
+
 ## 1.0.8
 * XML export fix (property out of the group)
 
