@@ -981,11 +981,12 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
                     $this->addProperty($properties, 'discount', $articlePrice['customerGroup']['discount']);
                 }
             }
+
             $this->addCustomProperties($properties);
+            $this->addVotes($article, $properties);
+            $this->addNew($article, $properties);
+            $this->addVariantsAdditionalInfo($article, $properties);
         }
-        $this->addVotes($article, $allProperties);
-        $this->addNew($article, $allProperties);
-        $this->addVariantsAdditionalInfo($article, $allProperties);
     }
 
 
