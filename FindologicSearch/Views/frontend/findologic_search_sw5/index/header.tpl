@@ -1,17 +1,22 @@
 {block name="frontend_index_header_javascript_modernizr_lib" prepend}
-   <script type="text/javascript">
-    (function() {
-        var flDataMain = "https://cdn.findologic.com/autocomplete/{$placeholder1}/autocomplete.js{if $placeholder2 != ''}?usergrouphash={$placeholder2}{/if}";
-        var flAutocomplete = document.createElement('script'); 
-        flAutocomplete.type = 'text/javascript'; 
-        flAutocomplete.async = true;
-        flAutocomplete.src = "https://cdn.findologic.com/autocomplete/require.js";
-        var s = document.getElementsByTagName('script')[0];
-        flAutocomplete.setAttribute('data-main', flDataMain);
-        s.parentNode.insertBefore(flAutocomplete, s);
-    })();
-    </script>
-    <script type="text/javascript">
+<script type="text/javascript">
+(function() {
+    var placeHolder1 = "{$placeholder1}";
+    var placeHolder2 = "{if $placeholder2 != ''}?usergrouphash=P{$placeholder2}{/if}";
+
+    var mainUrl = "https://cdn.findologic.com/static/"+ placeHolder1 +"/main.js" + placeHolder2;
+
+    var loader = document.createElement('script');
+    loader.type = 'text/javascript';
+    loader.async = true;
+    loader.src = "https://cdn.findologic.com/static/loader.min.js";
+    var s = document.getElementsByTagName('script')[0];
+    loader.setAttribute('data-fl-main', mainUrl);
+    s.parentNode.insertBefore(loader, s);
+})();
+</script>
+
+<script type="text/javascript">
     var fl_paq = fl_paq || [];
     (function(){ var u=(("https:" == document.location.protocol) ? "https://tracking.findologic.com/" : "http://tracking.findologic.com/");
     fl_paq.push(['setSiteId', '{$placeholder1}']);
