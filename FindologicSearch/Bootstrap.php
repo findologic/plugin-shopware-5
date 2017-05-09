@@ -422,8 +422,6 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
             }
         }
 
-        $this->extendTemplate($view, 'cart');
-        $this->extendTemplate($view, 'ajax_cart');
         $view->assign('order', $order);
 
         $cartAmount = 0;
@@ -431,11 +429,9 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
         if ($this->sw === 4) {
             if ($view->sBasket['AmountWithTaxNumeric'] && $view->sBasket['AmountWithTaxNumeric'] != $cartAmount) {
                 $cartAmount = $view->sBasket['AmountWithTaxNumeric'];
-                $this->extendTemplate($view, 'cart');
             } else {
                 if (($view->sBasket['sAmount']) && ($view->sBasket['sAmount'] != $cartAmount)) {
                     $cartAmount = $view->sBasket['sAmount'];
-                    $this->extendTemplate($view, 'cart');
                 } else {
                     if (Shopware()->Modules()->Basket()->sGetAmount()['totalAmount']) {
                         $cartAmount = Shopware()->Modules()->Basket()->sGetAmount()['totalAmount'];
