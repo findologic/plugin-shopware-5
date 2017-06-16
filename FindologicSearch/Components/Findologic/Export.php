@@ -2,6 +2,8 @@
 
 namespace FindologicSearch\Components\Findologic;
 
+use Cocur\Slugify\RuleProvider\DefaultRuleProvider;
+
 class Export
 {
     /**
@@ -214,6 +216,104 @@ class Export
     }
 
     /**
+     * Method for SEO optimized URL cleaning in legacy Shopware versions 5.0.x & 5.1.x
+     *
+     * @param string $path Category path
+     * @return string $urlSEO
+     */
+    public function urlSEOOptimizationLegacy($path)
+    {
+        $rewriteTable = new \sRewriteTable();
+        $reflection = new \ReflectionClass($rewriteTable);
+        $replaceRulesProperty = $reflection->getProperty('replaceRules');
+        $replaceRulesProperty->setAccessible(true);
+        $rules = $replaceRulesProperty->getValue($rewriteTable);
+
+        $urlSEO = $this->extraRules($path);
+
+        foreach ($rules as $key=>$value) {
+            if (strpos($urlSEO, $key)) {
+                $urlSEO = str_replace($key, $value, $urlSEO);
+            }
+        }
+
+        return $urlSEO . '/';
+    }
+
+    /**
+     * Method for SEO optimized URL cleaning in Shopware 5.2 system versions
+     *
+     * @param string $path Category path
+     * @return string $urlSEO
+     */
+    public function urlSEOOptimization($path)
+    {
+        $rewrite = new DefaultRuleProvider();
+        $reflection = new \ReflectionClass($rewrite);
+        $replaceRulesProperty = $reflection->getProperty('rules');
+        $replaceRulesProperty->setAccessible(true);
+        $rules = $replaceRulesProperty->getValue($rewrite);
+
+        $urlSEO = $this->extraRules($path);
+
+        foreach ($rules as $ruleKey=>$ruleValue) {
+
+            foreach ($ruleValue as $key=>$value) {
+                if (strpos($urlSEO, $key)) {
+                    $urlSEO = str_replace($key, $value, $urlSEO);
+                }
+            }
+        }
+
+        return $urlSEO . '/';
+    }
+
+    /**
+     * Shopware additional rules which are not checked in legacy or 5.2. Shopware version
+     *
+     * @param string $path
+     * @return string
+     */
+    private function extraRules($path)
+    {
+        // shopware rules
+        $extraRules = array(
+            "_" => "/",
+            "!" => "",
+            " - " => "-",
+            "---" => "-",
+            '&' => 'und',
+            ' & ' => '-und-',
+            ':' => '-',
+            ',' => '-',
+            "'" => '-',
+            '"' => '-',
+            ' ' => '-',
+            '+' => '-',
+            '&#351;' => 's',
+            '&#350;' => 'S',
+            '&#287;' => 'g',
+            '&#286;' => 'G',
+            '&#304;' => 'i',
+            "-%" => "",
+        );
+
+        $path = strtolower($path);
+
+        foreach ($extraRules as $key => $value) {
+            if (strpos($path, $key)) {
+                $path = str_replace($key, $value, $path);
+            }
+        }
+
+        // Strip shop language from path
+        $path = str_replace("deutsch", "", $path);
+        $path = str_replace("english", "", $path);
+
+        return $path;
+    }
+
+    /**
      * Sets category path names and depth count.
      *
      * @param array $categoriesByIds Array of categories that should contain 'id', 'name' and 'path' keys.
@@ -241,13 +341,21 @@ class Export
             $sql = 'SELECT path FROM s_core_rewrite_urls WHERE org_path =? AND main = 1';
             $url = $db->fetchOne($sql, array('sViewport=cat&sCategory=' . $category['id']));
 
+            $versionInt = (int) str_replace('.', '', Shopware()->Config()->version);
+
+            if ($versionInt >= 520) {
+                $urlSEO =  $this->urlSEOOptimization($path);
+            } else {
+                $urlSEO =  $this->urlSEOOptimizationLegacy($path);
+            }
+
             $categories[$category['id']] = array(
                 'depth' => count($categoryPath),
                 'path' => $path,
                 'pathIds' => $category['path'],
                 'name' => $category['name'],
                 'id' => $category['id'],
-                'url' => '/' . strtolower($url),
+                'url' => $urlSEO,
             );
         }
 
