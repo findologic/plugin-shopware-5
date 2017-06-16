@@ -231,7 +231,7 @@ class Export
 
         $urlSEO = $this->extraRules($path);
 
-        foreach ($rules as $key=>$value) {
+        foreach ($rules as $key => $value) {
             if (strpos($urlSEO, $key)) {
                 $urlSEO = str_replace($key, $value, $urlSEO);
             }
@@ -256,9 +256,9 @@ class Export
 
         $urlSEO = $this->extraRules($path);
 
-        foreach ($rules as $ruleKey=>$ruleValue) {
+        foreach ($rules as $ruleKey => $ruleValue) {
 
-            foreach ($ruleValue as $key=>$value) {
+            foreach ($ruleValue as $key => $value) {
                 if (strpos($urlSEO, $key)) {
                     $urlSEO = str_replace($key, $value, $urlSEO);
                 }
