@@ -338,9 +338,6 @@ class Export
 
             $path .= $category['name'];
 
-            $sql = 'SELECT path FROM s_core_rewrite_urls WHERE org_path =? AND main = 1';
-            $url = $db->fetchOne($sql, array('sViewport=cat&sCategory=' . $category['id']));
-
             $versionInt = (int) str_replace('.', '', Shopware()->Config()->version);
 
             if ($versionInt >= 520) {
