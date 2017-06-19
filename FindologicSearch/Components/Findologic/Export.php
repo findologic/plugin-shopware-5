@@ -197,6 +197,7 @@ class Export
         // Set categories by ids for keys and only pass categories for selected shop.
         $categoriesByIds = array();
         $shopCategoryId = $this->shop->getCategory()->getId();
+
         foreach ($categories as $category) {
             if ($category['id'] == $shopCategoryId) {
                 $categoriesByIds[$category['id']] = $category;
@@ -228,12 +229,9 @@ class Export
         $replaceRulesProperty = $reflection->getProperty('replaceRules');
         $replaceRulesProperty->setAccessible(true);
         $rules = $replaceRulesProperty->getValue($rewriteTable);
-
         $urlSEO = $this->extraRules($path, $catLanguage);
 
-        foreach ($rules as $key=>$value) {
-            $urlSEO = str_replace($key, $value, $urlSEO);
-        }
+        $urlSEO = str_replace(array_keys($rules), array_values($rules), $urlSEO);
 
         return $urlSEO . '/';
     }
@@ -252,15 +250,9 @@ class Export
         $replaceRulesProperty = $reflection->getProperty('rules');
         $replaceRulesProperty->setAccessible(true);
         $rules = $replaceRulesProperty->getValue($rewrite);
-
         $urlSEO = $this->extraRules($path, $catLanguage);
 
-        foreach ($rules as $ruleKey => $ruleValue) {
-
-            foreach ($ruleValue as $key => $value) {
-                $urlSEO = str_replace($key, $value, $urlSEO);
-            }
-        }
+        $urlSEO = str_replace(array_keys($rules), array_values($rules), $urlSEO);
 
         return $urlSEO . '/';
     }
@@ -268,8 +260,8 @@ class Export
     /**
      * Shopware additional rules which are not checked in legacy or 5.2. Shopware version
      *
-     * @param string $catLanguage
      * @param string $path
+     * @param string $catLanguage
      * @return string
      */
     private function extraRules($path, $catLanguage)
@@ -304,22 +296,8 @@ class Export
         }
 
         $path = strtolower($path);
-
         foreach ($extraRules as $key => $value) {
             $path = str_replace($key, $value, $path);
-        }
-
-        // Strip shop language from path
-        switch ($catLanguage) {
-            case 'english':
-                $path = str_replace($catLanguage, "", $path);
-                break;
-            case 'deutsch':
-                $path = str_replace($catLanguage, "", $path);
-                break;
-            default:
-                echo "For category language <b>$catLanguage</b> value is not provided";
-                die;
         }
 
         return $path;
@@ -337,14 +315,13 @@ class Export
     {
         $categories = array();
         $db = Shopware()->Db();
-
         $catId = $this->shop->getCategory()->getId();
         $catLanguage = strtolower($categoriesByIds[$catId]['name']);
 
         foreach ($categoriesByIds as $category) {
             $categoryPath = array_reverse(array_filter(explode('|', $category['path'])));
-
             $path = '';
+
             if ($category['path'] !== null) {
                 foreach ($categoryPath as $p) {
                     $categoryName = str_replace(' ', $space, $categoriesByIds[$p]['name']);
@@ -353,8 +330,9 @@ class Export
             }
 
             $path .= $category['name'];
-
             $versionInt = (int) str_replace('.', '', Shopware()->Config()->version);
+
+            $path = str_replace($catLanguage, '', strtolower($path));
 
             if ($versionInt >= 520) {
                 $urlSEO =  $this->urlSEOOptimization($path, $catLanguage);
