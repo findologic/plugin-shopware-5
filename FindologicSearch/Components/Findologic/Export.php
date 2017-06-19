@@ -261,6 +261,7 @@ class Export
             foreach ($ruleValue as $key=>$value) {
                 $urlSEO = str_replace($key, $value, $urlSEO);
             }
+
         }
 
         return $urlSEO . '/';
