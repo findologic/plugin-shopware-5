@@ -197,7 +197,6 @@ class Export
         // Set categories by ids for keys and only pass categories for selected shop.
         $categoriesByIds = array();
         $shopCategoryId = $this->shop->getCategory()->getId();
-
         foreach ($categories as $category) {
             if ($category['id'] == $shopCategoryId) {
                 $categoriesByIds[$category['id']] = $category;
@@ -256,12 +255,11 @@ class Export
 
         $urlSEO = $this->extraRules($path, $catLanguage);
 
-        foreach ($rules as $ruleKey=>$ruleValue) {
+        foreach ($rules as $ruleKey => $ruleValue) {
 
-            foreach ($ruleValue as $key=>$value) {
+            foreach ($ruleValue as $key => $value) {
                 $urlSEO = str_replace($key, $value, $urlSEO);
             }
-
         }
 
         return $urlSEO . '/';
@@ -344,7 +342,6 @@ class Export
         $catLanguage = strtolower($categoriesByIds[$catId]['name']);
 
         foreach ($categoriesByIds as $category) {
-
             $categoryPath = array_reverse(array_filter(explode('|', $category['path'])));
 
             $path = '';
