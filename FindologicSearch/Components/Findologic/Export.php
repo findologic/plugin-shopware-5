@@ -618,14 +618,28 @@ class Export
             $attributes = $allAttributes->addChild('attributes');
 
             foreach ($attributeSet as $key => $attributeSetVal) {
-                $attribute = $attributes->addChild('attribute');
+                if(!empty($attributeSetVal)) {
+                    $counter = 0;
+                    foreach ($attributeSetVal as $value) {
+                        if($value !== '' && $value !== null) {
+                            $counter++;
+                            continue;
+                        }
+                    }
 
-                $this->appendCData($attribute->addChild('key'), $key);
-                $values = $attribute->addChild('values');
-                foreach ($attributeSetVal as $value) {
-                    $this->appendCData($values->addChild('value'), $value);
+                    if ($counter) {
+                        $attribute = $attributes->addChild('attribute');
+                        $this->appendCData($attribute->addChild('key'), $key);
+                        $values = $attribute->addChild('values');
+                        foreach ($attributeSetVal as $value) {
+                            if($value !== '' && $value !== null) {
+                                $this->appendCData($values->addChild('value'), $value);
+                            }
+                        }
+                    }
                 }
             }
+
         }
     }
 
