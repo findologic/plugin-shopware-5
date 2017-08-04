@@ -1,6 +1,7 @@
 <?php
 
 use FindologicSearch\Components\Findologic\Helper;
+require_once (realpath(__DIR__) . '/sentry-php-master/lib/Raven/Autoloader.php');
 
 class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
@@ -256,6 +257,8 @@ class Shopware_Plugins_Frontend_FindologicSearch_Bootstrap extends Shopware_Comp
         $this->Application()->Loader()->registerNamespace('FindologicSearch\Components\Findologic',
             $this->Path() . $ds . 'Components' . $ds . 'Findologic');
         $this->helper = new Helper($this);
+
+        Raven_Autoloader::register();
     }
 
     /**
