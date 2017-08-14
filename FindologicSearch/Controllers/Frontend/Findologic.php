@@ -10,10 +10,16 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
      */
     public function indexAction()
     {
+        $sentryClient = new Raven_Client('https://32e6f71453264b9e91a152d200b0b005:782b1c51ca2c436386c47e72dd23a848@sentry.io/198285');
+        $error_handler = new Raven_ErrorHandler($sentryClient);
+        $error_handler->registerExceptionHandler();
+        $error_handler->registerErrorHandler();
+        $error_handler->registerShutdownFunction();
+
+
         $shopKey = $this->Request()->getParam('shopkey', false);
         $start = $this->Request()->getParam('start', false);
         $count = $this->Request()->getParam('count', false);
-
         $customExportPath = realpath(__DIR__ . '/../../') . '/findologicCustomExport.php';
 
         if (file_exists($customExportPath)) {
