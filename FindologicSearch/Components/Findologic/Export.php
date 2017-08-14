@@ -101,6 +101,7 @@ class Export
             // only items that are on stock
             ->andWhere('(d.inStock > 0 OR a.lastStock = 0)')
             ->andWhere('d.kind = 1') // meaning: field 'kind' represent variations
+            ->andWhere('d.active = 1') // meaning: include only active variations
             // (value: 1 is for basic article and value: 2 for variant article ).
             ->andWhere('cat.id IN (' . implode(',', array_keys($this->categories)) . ')')
             ->groupBy('a.id')
