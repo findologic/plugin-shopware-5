@@ -619,12 +619,25 @@ class Export
             $attributes = $allAttributes->addChild('attributes');
 
             foreach ($attributeSet as $key => $attributeSetVal) {
-                $attribute = $attributes->addChild('attribute');
+                if (!empty($attributeSetVal)) {
+                    $counter = 0;
+                    foreach ($attributeSetVal as $value) {
+                        if ($value !== '' && $value !== null) {
+                            $counter++;
+                            continue;
+                        }
+                    }
 
-                $this->appendCData($attribute->addChild('key'), $key);
-                $values = $attribute->addChild('values');
-                foreach ($attributeSetVal as $value) {
-                    $this->appendCData($values->addChild('value'), $value);
+                    if ($counter) {
+                        $attribute = $attributes->addChild('attribute');
+                        $this->appendCData($attribute->addChild('key'), $key);
+                        $values = $attribute->addChild('values');
+                        foreach ($attributeSetVal as $value) {
+                            if ($value !== '' && $value !== null) {
+                                $this->appendCData($values->addChild('value'), $value);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -971,7 +984,7 @@ class Export
                 }
             }
 
-            $this->addCustomProperties($properties);
+            $this->addCustomProperties($article, $properties);
             $this->addVotes($article, $properties);
             $this->addNew($article, $properties);
             $this->addVariantsAdditionalInfo($article, $properties);
@@ -1062,11 +1075,13 @@ class Export
     }
 
     /**
+     * Calls method that adds custom properties
+     *
+     * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param $properties \SimpleXMLElement $properties XML node to render to.
-     * @return mixed
      */
-    protected function addCustomProperties($properties) {
-        $customExportFilePath = Shopware()->DocPath() . 'customExport.php';
+    protected function addCustomProperties($article, $properties) {
+        $customExportFilePath = realpath(__DIR__ . '/../../') . '/customExport.php';
 
         if (file_exists($customExportFilePath)) {
             require_once $customExportFilePath;
@@ -1075,7 +1090,7 @@ class Export
                 $this->customExport = $this->customExport ? : new FindologicCustomExport();
 
                 if (method_exists($this->customExport, 'addCustomProperty')) {
-                    $this->customExport->addCustomProperty($properties, $this);
+                    $this->customExport->addCustomProperty($article, $properties, $this);
                 }
             }
         }
