@@ -618,10 +618,10 @@ class Export
             $attributes = $allAttributes->addChild('attributes');
 
             foreach ($attributeSet as $key => $attributeSetVal) {
-                if(!empty($attributeSetVal)) {
+                if (!empty($attributeSetVal)) {
                     $counter = 0;
                     foreach ($attributeSetVal as $value) {
-                        if($value !== '' && $value !== null) {
+                        if ($value !== '' && $value !== null) {
                             $counter++;
                             continue;
                         }
@@ -632,14 +632,13 @@ class Export
                         $this->appendCData($attribute->addChild('key'), $key);
                         $values = $attribute->addChild('values');
                         foreach ($attributeSetVal as $value) {
-                            if($value !== '' && $value !== null) {
+                            if ($value !== '' && $value !== null) {
                                 $this->appendCData($values->addChild('value'), $value);
                             }
                         }
                     }
                 }
             }
-
         }
     }
 
