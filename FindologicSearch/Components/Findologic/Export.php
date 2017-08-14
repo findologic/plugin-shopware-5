@@ -2,6 +2,8 @@
 
 namespace FindologicSearch\Components\Findologic;
 
+use Cocur\Slugify\RuleProvider\DefaultRuleProvider;
+
 class Export
 {
     /**
@@ -193,10 +195,10 @@ class Export
         $queryBuilder->from('Shopware\Models\Category\Category', 'o');
         $queryBuilder->where('o.active = 1');
         $categories = $queryBuilder->getQuery()->getResult();
-
         // Set categories by ids for keys and only pass categories for selected shop.
         $categoriesByIds = array();
         $shopCategoryId = $this->shop->getCategory()->getId();
+
         foreach ($categories as $category) {
             if ($category['id'] == $shopCategoryId) {
                 $categoriesByIds[$category['id']] = $category;
@@ -215,6 +217,94 @@ class Export
     }
 
     /**
+     * Method for SEO optimized URL cleaning in legacy Shopware versions 5.0.x & 5.1.x
+     *
+     * @param string $path Category path
+     * @param string $catLanguage Category language
+     * @return string $urlSEO
+     */
+    public function urlSEOOptimizationLegacy($path, $catLanguage)
+    {
+        $rewriteTable = new \sRewriteTable();
+        $reflection = new \ReflectionClass($rewriteTable);
+        $replaceRulesProperty = $reflection->getProperty('replaceRules');
+        $replaceRulesProperty->setAccessible(true);
+        $rules = $replaceRulesProperty->getValue($rewriteTable);
+        $urlSEO = $this->extraRules($path, $catLanguage);
+
+        $urlSEO = str_replace(array_keys($rules), array_values($rules), $urlSEO);
+
+        return $urlSEO . '/';
+    }
+
+    /**
+     * Method for SEO optimized URL cleaning in Shopware 5.2 system versions
+     *
+     * @param string $path Category path
+     * @param string $catLanguage Category language
+     * @return string $urlSEO
+     */
+    public function urlSEOOptimization($path, $catLanguage)
+    {
+        $rewrite = new DefaultRuleProvider();
+        $reflection = new \ReflectionClass($rewrite);
+        $replaceRulesProperty = $reflection->getProperty('rules');
+        $replaceRulesProperty->setAccessible(true);
+        $rules = $replaceRulesProperty->getValue($rewrite);
+        $urlSEO = $this->extraRules($path, $catLanguage);
+
+        $urlSEO = str_replace(array_keys($rules), array_values($rules), $urlSEO);
+
+        return $urlSEO . '/';
+    }
+
+    /**
+     * Shopware additional rules which are not checked in legacy or 5.2. Shopware version
+     *
+     * @param string $path
+     * @param string $catLanguage
+     * @return string
+     */
+    private function extraRules($path, $catLanguage)
+    {
+        // shopware rules
+        $extraRules = array(
+            "_" => "/",
+            "!" => "",
+            " - " => "-",
+            "---" => "-",
+            ':' => '-',
+            ',' => '-',
+            "'" => '-',
+            '"' => '-',
+            ' ' => '-',
+            '+' => '-',
+            '&#351;' => 's',
+            '&#350;' => 'S',
+            '&#287;' => 'g',
+            '&#286;' => 'G',
+            '&#304;' => 'i',
+            "-%" => "",
+        );
+
+        if ($catLanguage == 'deutsch') {
+            $extraRules['&'] = 'und';
+            $extraRules[' & '] = '-und-';
+        }
+
+        if ($catLanguage == 'english') {
+            $extraRules['-&-'] = '-';
+        }
+
+        $path = strtolower($path);
+        foreach ($extraRules as $key => $value) {
+            $path = str_replace($key, $value, $path);
+        }
+
+        return $path;
+    }
+
+    /**
      * Sets category path names and depth count.
      *
      * @param array $categoriesByIds Array of categories that should contain 'id', 'name' and 'path' keys.
@@ -226,10 +316,13 @@ class Export
     {
         $categories = array();
         $db = Shopware()->Db();
+        $catId = $this->shop->getCategory()->getId();
+        $catLanguage = strtolower($categoriesByIds[$catId]['name']);
+
         foreach ($categoriesByIds as $category) {
             $categoryPath = array_reverse(array_filter(explode('|', $category['path'])));
-
             $path = '';
+
             if ($category['path'] !== null) {
                 foreach ($categoryPath as $p) {
                     $categoryName = str_replace(' ', $space, $categoriesByIds[$p]['name']);
@@ -238,9 +331,15 @@ class Export
             }
 
             $path .= $category['name'];
+            $versionInt = (int) str_replace('.', '', Shopware()->Config()->version);
 
-            $sql = 'SELECT path FROM s_core_rewrite_urls WHERE org_path =? AND main = 1';
-            $url = $db->fetchOne($sql, array('sViewport=cat&sCategory=' . $category['id']));
+            $path = str_replace($catLanguage, '', strtolower($path));
+
+            if ($versionInt >= 520) {
+                $urlSEO =  $this->urlSEOOptimization($path, $catLanguage);
+            } else {
+                $urlSEO =  $this->urlSEOOptimizationLegacy($path, $catLanguage);
+            }
 
             $categories[$category['id']] = array(
                 'depth' => count($categoryPath),
@@ -248,7 +347,7 @@ class Export
                 'pathIds' => $category['path'],
                 'name' => $category['name'],
                 'id' => $category['id'],
-                'url' => '/' . strtolower($url),
+                'url' => $urlSEO,
             );
         }
 
