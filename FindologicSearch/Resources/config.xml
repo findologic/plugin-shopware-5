@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../engine/Shopware/Components/Plugin/schema/config.xsd">
+    <elements>
+        <element required="true" type="text" scope="shop">
+            <name>findologic.shopKey</name>
+            <label lang="de">Shopkey</label>
+            <label lang="en">Shopkey</label>
+            <value></value>
+        </element>
+    </elements>
+</config>
