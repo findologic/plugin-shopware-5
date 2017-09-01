@@ -9,6 +9,7 @@ use Shopware\Bundle\StoreFrontBundle\Service\Core\ContextService;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContext;
 use Shopware\Components\ProductStream\Repository;
 use Shopware\Models\Article\Article;
+use Cocur\Slugify\RuleProvider\DefaultRuleProvider;
 
 class Export
 {
@@ -254,11 +255,13 @@ class Export
     protected function setCategoriesPathName($categoriesByIds, $between = '_', $space = '-')
     {
         $categories = [];
-        $db = Shopware()->Db();
+        $catId = $this->shop->getCategory()->getId();
+        $catLanguage = strtolower($categoriesByIds[$catId]['name']);
+
         foreach ($categoriesByIds as $category) {
             $categoryPath = array_reverse(array_filter(explode('|', $category['path'])));
-
             $path = '';
+
             if ($category['path'] !== null) {
                 foreach ($categoryPath as $p) {
                     $categoryName = str_replace(' ', $space, $categoriesByIds[$p]['name']);
@@ -267,10 +270,8 @@ class Export
             }
 
             $path .= $category['name'];
-
-            $sql = /** @lang mysql */
-                'SELECT path FROM s_core_rewrite_urls WHERE org_path =? AND main = 1';
-            $url = $db->fetchOne($sql, ['sViewport=cat&sCategory=' . $category['id']]);
+            $path = str_replace($catLanguage, '', strtolower($path));
+            $urlSEO = $this->urlSEOOptimization($path, $catLanguage);
 
             $categories[$category['id']] = [
                 'depth' => count($categoryPath),
@@ -278,11 +279,78 @@ class Export
                 'pathIds' => $category['path'],
                 'name' => $category['name'],
                 'id' => $category['id'],
-                'url' => '/' . strtolower($url),
+                'url' => $urlSEO,
             ];
         }
 
         return $categories;
+    }
+
+    /**
+     * Method for SEO optimized URL cleaning in Shopware 5.2 system versions
+     *
+     * @param string $path Category path
+     * @param string $catLanguage Category language
+     * @return string $urlSEO
+     */
+    public function urlSEOOptimization($path, $catLanguage)
+    {
+        if ($catLanguage == 'deutsch') {
+            $catLanguage = 'german';
+        }
+
+        if ($catLanguage == 'englisch') {
+            $catLanguage = 'english';
+        }
+
+        $rewrite = new DefaultRuleProvider();
+        $reflection = new \ReflectionClass($rewrite);
+        $replaceRulesProperty = $reflection->getProperty('rules');
+        $replaceRulesProperty->setAccessible(true);
+        $rules = $replaceRulesProperty->getValue($rewrite);
+        $rules = $rules[$catLanguage];
+        $urlSEO = $this->extraRules($path);
+        $urlSEO = str_replace(array_keys($rules), array_values($rules), $urlSEO);
+
+        return $urlSEO . '/';
+    }
+
+    /**
+     * Shopware additional rules
+     *
+     * @param string $path
+     * @return string
+     */
+    private function extraRules($path)
+    {
+        // shopware rules
+        $extraRules = [
+            '_' => '/',
+            '!' => '',
+            ' - ' => '-',
+            '---' => '-',
+            ':' => '-',
+            ',' => '-',
+            "'" => '-',
+            '"' => '-',
+            ' ' => '-',
+            '+' => '-',
+            '&#351;' => 's',
+            '&#350;' => 'S',
+            '&#287;' => 'g',
+            '&#286;' => 'G',
+            '&#304;' => 'i',
+            '-%' => '',
+            ' & ' => '-',
+            '-&-' => '-',
+        ];
+
+        $path = strtolower($path);
+        foreach ($extraRules as $key => $value) {
+            $path = str_replace($key, $value, $path);
+        }
+
+        return $path;
     }
 
     /**
