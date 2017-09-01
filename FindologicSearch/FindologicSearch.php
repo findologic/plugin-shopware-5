@@ -144,14 +144,15 @@ class FindologicSearch extends Plugin
         ]);
 
         $shopKey = $this->getShopKey();
+        $hash = '?usergrouphash=';
         if (!empty($groupKey)) {
-            $hash = base64_encode($shopKey ^ $groupKey);
+            $hash .= base64_encode($shopKey ^ $groupKey);
         } else {
-            $hash = base64_encode($shopKey ^ 'EK');
+            $hash .= base64_encode($shopKey ^ 'EK');
         }
 
-        $hash = '?usergrouphash=P' . $hash;
-        $mainUrl = 'https://cdn.findologic.com/static/' . strtoupper(md5($shopKey)) .  '/main.js' . $hash;
+        $format = 'https://cdn.findologic.com/static/%s/main.js%s';
+        $mainUrl = sprintf($format, strtoupper(md5($shopKey)), $hash);
 
         $view = $arguments->getSubject()->View();
         $view->addTemplateDir(
@@ -171,7 +172,8 @@ class FindologicSearch extends Plugin
     public function onConfigSaveForm(\Enlight_Event_EventArgs $arguments)
     {
         $params = $arguments->getSubject()->Request()->getParams();
-        if ($params['name'] !== 'FindologicSearch') {
+        $reflection = new \ReflectionClass($this);
+        if ($params['name'] !== $reflection->getShortName()) {
             return null;
         }
 
