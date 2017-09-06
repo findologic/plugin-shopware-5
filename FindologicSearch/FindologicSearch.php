@@ -47,7 +47,7 @@ class FindologicSearch extends Plugin
     public function install(InstallContext $context)
     {
         $shopsIds = Shopware()->Db()->fetchCol(
-            /** @lang mysql */
+        /** @lang mysql */
             'SELECT id FROM s_core_shops'
         );
 
@@ -73,7 +73,7 @@ class FindologicSearch extends Plugin
     public function uninstall(UninstallContext $context)
     {
         $shopsIds = Shopware()->Db()->fetchCol(
-            /** @lang mysql */
+        /** @lang mysql */
             'SELECT id FROM s_core_shops'
         );
 
@@ -185,6 +185,7 @@ class FindologicSearch extends Plugin
          * @var \Shopware\Models\Config\Value $value
          */
         foreach ($values as $shopId => &$value) {
+            $elementName = $value->getElement()->getName();
             $value->setValue(trim($value->getValue()));
             $val = $value->getValue();
             if (!$val) {
@@ -195,8 +196,10 @@ class FindologicSearch extends Plugin
                 throw new \Exception('Each shop must have its own shop key!');
             }
 
-            if (preg_match('/^[A-Z0-9]{32}$/', $val) != 1) {
-                throw new \Exception('Shop key must consist of 32 characters,digits and only capital letters');
+            if ($elementName === 'findologic.shopKey') {
+                if (preg_match('/^[A-Z0-9]{32}$/', $val) != 1) {
+                    throw new \Exception('Shop key must consist of 32 characters,digits and only capital letters');
+                }
             }
 
             $keys[$val] = 1;

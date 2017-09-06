@@ -106,6 +106,9 @@ class Export
      */
     public function getAllValidProducts()
     {
+        $exportOutOfStock = (bool)Shopware()->Config()->get('findologic.exportOutOfStock');
+        $query = $exportOutOfStock ? '(d.inStock <= 0 AND a.lastStock = 0) OR (d.inStock > 0)' : 'd.inStock > 0';
+
         $queryBuilder = $this->em->createQueryBuilder();
         $queryBuilder
             ->select('article')
@@ -122,7 +125,7 @@ class Export
             ->andWhere('a.active = 1')
             ->andWhere("a.name != ''")
             // only items that are on stock
-            ->andWhere('(d.inStock > 0 OR a.lastStock = 0)')
+            ->andWhere($query)
             ->andWhere('d.kind = 1') // meaning: field 'kind' represent variations
             // (value: 1 is for basic article and value: 2 for variant article ).
             ->andWhere('cat.id IN (' . implode(',', array_keys($this->categories)) . ')')

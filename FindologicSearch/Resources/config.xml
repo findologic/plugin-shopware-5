@@ -7,5 +7,11 @@
             <label lang="en">Shopkey</label>
             <value></value>
         </element>
+        <element required="true" type="boolean" scope="shop">
+            <name>findologic.exportOutOfStock</name>
+            <label lang="de">Ausverkaufte Artikel exportieren</label>
+            <label lang="en">Export out-of-stock articles</label>
+            <value>false</value>
+        </element>
     </elements>
 </config>
