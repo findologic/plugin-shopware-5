@@ -77,6 +77,37 @@ class Export
     protected $streamsTable = 'findologic_search_di_product_streams_';
 
     /**
+     * Extra rules used for SEO category URL build
+     *
+     * @var array
+     */
+    protected $rewriteRules = [
+        '_' => '/',
+        '!' => '',
+        ' - ' => '-',
+        '---' => '-',
+        ':' => '-',
+        ',' => '-',
+        "'" => '-',
+        '"' => '-',
+        ' ' => '-',
+        '+' => '-',
+        '&#351;' => 's',
+        '&#350;' => 'S',
+        '&#287;' => 'g',
+        '&#286;' => 'G',
+        '&#304;' => 'i',
+        '-%' => '',
+    ];
+
+    /**
+     * Shopware version
+     *
+     * @var int
+     */
+    protected $shopwareVersion;
+
+    /**
      * Export constructor.
      *
      * @param $shopKey
@@ -89,6 +120,7 @@ class Export
         $this->shopKey = $shopKey;
         $this->start = $start;
         $this->count = $count;
+        $this->shopwareVersion = (int) str_replace('.', '', Shopware()->Config()->version);
 
         /* @var $sArticle \sArticles */
         $this->sArticle = Shopware()->Modules()->sArticles();
@@ -274,7 +306,12 @@ class Export
 
             $path .= $category['name'];
             $path = str_replace($catLanguage, '', strtolower($path));
-            $urlSEO = $this->urlSEOOptimization($path, $catLanguage);
+
+            if ($this->shopwareVersion >= 524) {
+                $urlSEO =  $this->urlSEOOptimization($path, $catLanguage);
+            } else {
+                $urlSEO =  $this->urlSEOOptimizationOld($path, $catLanguage);
+            }
 
             $categories[$category['id']] = [
                 'depth' => count($categoryPath),
@@ -312,43 +349,68 @@ class Export
         $replaceRulesProperty->setAccessible(true);
         $rules = $replaceRulesProperty->getValue($rewrite);
         $rules = $rules[$catLanguage];
-        $urlSEO = $this->extraRules($path);
+        $urlSEO = $this->extraRules($path, $catLanguage);
         $urlSEO = str_replace(array_keys($rules), array_values($rules), $urlSEO);
 
         return $urlSEO . '/';
     }
 
     /**
+     * Method for SEO optimized URL cleaning in Shopware versions 5.0.x & 5.1.x
+     *
+     * @param string $path Category path
+     * @param string $catLanguage Category language
+     * @return string $urlSEO
+     */
+    public function urlSEOOptimizationOld($path, $catLanguage)
+    {
+        $rewriteTable = new \sRewriteTable();
+        $reflection = new \ReflectionClass($rewriteTable);
+        $replaceRulesProperty = $reflection->getProperty('replaceRules');
+        $replaceRulesProperty->setAccessible(true);
+        $rules = $replaceRulesProperty->getValue($rewriteTable);
+        $urlSEO = $this->extraRules($path, $catLanguage);
+
+        $urlSEO = str_replace(array_keys($rules), array_values($rules), $urlSEO);
+
+        return $urlSEO . '/';
+    }
+
+
+    /**
      * Shopware additional rules
      *
      * @param string $path
+     * @param $catLanguage
      * @return string
      */
-    private function extraRules($path)
+    private function extraRules($path, $catLanguage)
     {
-        // shopware rules
-        $extraRules = [
-            '_' => '/',
-            '!' => '',
-            ' - ' => '-',
-            '---' => '-',
-            ':' => '-',
-            ',' => '-',
-            "'" => '-',
-            '"' => '-',
-            ' ' => '-',
-            '+' => '-',
-            '&#351;' => 's',
-            '&#350;' => 'S',
-            '&#287;' => 'g',
-            '&#286;' => 'G',
-            '&#304;' => 'i',
-            '-%' => '',
-            ' & ' => '-',
-            '-&-' => '-',
-        ];
-
         $path = strtolower($path);
+
+        if ($this->shopwareVersion >= 524) {
+            // shopware rules
+            $extraRules = [
+                ' & ' => '-',
+                '-&-' => '-',
+            ];
+
+            $extraRules = array_merge($this->rewriteRules, $extraRules);
+
+        } else {
+
+            $extraRules = $this->rewriteRules;
+
+            if ($catLanguage == 'deutsch') {
+                $extraRules['&'] = 'und';
+                $extraRules[' & '] = '-und-';
+            }
+
+            if ($catLanguage == 'english') {
+                $extraRules['-&-'] = '-';
+            }
+        }
+
         foreach ($extraRules as $key => $value) {
             $path = str_replace($key, $value, $path);
         }
@@ -1410,7 +1472,7 @@ class Export
         foreach($importData as $streamId => $productIds) {
             foreach ($productIds as $productId) {
                 Shopware()->Db()->exec(
-                    /** @lang mysql */
+                /** @lang mysql */
                     "INSERT INTO {$this->streamsTable}{$shopId} (stream_id, article_id)
                     VALUES ({$streamId}, {$productId})"
                 );
@@ -1428,7 +1490,7 @@ class Export
     public function checkIfProductStreamsTableIsEmpty($shopId)
     {
         return !(bool)Shopware()->Db()->fetchOne(
-            /** @lang mysql */
+        /** @lang mysql */
             "SELECT count(*) FROM {$this->streamsTable}{$shopId}"
         );
     }
@@ -1443,7 +1505,7 @@ class Export
     public function createTableIfProductStreamTableNotExists($shopId)
     {
         Shopware()->Db()->exec(
-            /** @lang mysql */
+        /** @lang mysql */
             "CREATE TABLE IF NOT EXISTS {$this->streamsTable}{$shopId}
               (id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
                stream_id int NOT NULL,
@@ -1579,7 +1641,7 @@ class Export
         }
 
         return $container->get('shopware_storefront.context_service')
-                ->createProductContext($shopId, $currencyId, $customerGroupKey);
+            ->createProductContext($shopId, $currencyId, $customerGroupKey);
     }
 
     /**
