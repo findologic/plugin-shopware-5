@@ -7,6 +7,7 @@ use Shopware\Components\Plugin\Context\DeactivateContext;
 use Shopware\Components\Plugin\Context\InstallContext;
 use Shopware\Components\Plugin\Context\UninstallContext;
 use Shopware\Components\Plugin\Context\UpdateContext;
+use Enlight_Event_EventArgs;
 
 class FindologicSearch extends Plugin
 {
@@ -14,6 +15,17 @@ class FindologicSearch extends Plugin
      * @var string
      */
     private $shopKey;
+
+    /**
+     * Registers controller
+     *
+     * @param Enlight_Event_EventArgs $args
+     * @return string
+     */
+    public function registerFrontendController(Enlight_Event_EventArgs $args)
+    {
+        return $this->getPath() . '/Controllers/Frontend/Findologic.php';
+    }
 
     /**
      * @return array
@@ -122,6 +134,7 @@ class FindologicSearch extends Plugin
         return [
             'Enlight_Controller_Action_PostDispatch_Frontend' => 'onPostDispatchFrontend',
             'Shopware_Controllers_Backend_Config_Before_Save_Config_Element' => 'onConfigSaveForm',
+            'Enlight_Controller_Dispatcher_ControllerPath_Frontend_Findologic' => 'registerFrontendController',
         ];
     }
 
