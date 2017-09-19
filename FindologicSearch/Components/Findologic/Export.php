@@ -81,7 +81,7 @@ class Export
      *
      * @var array
      */
-    protected $rewriteRules = [
+    protected static $rewriteRules = [
         '_' => '/',
         '!' => '',
         ' - ' => '-',
@@ -388,30 +388,22 @@ class Export
     {
         $path = strtolower($path);
 
+        $rewriteRules = static::$rewriteRules;
         if ($this->shopwareVersion >= 524) {
-            // shopware rules
-            $extraRules = [
-                ' & ' => '-',
-                '-&-' => '-',
-            ];
-
-            $extraRules = array_merge($this->rewriteRules, $extraRules);
-
+            $rewriteRules[' & '] = '-';
+            $rewriteRules['-&-'] = '-';
         } else {
-
-            $extraRules = $this->rewriteRules;
-
             if ($catLanguage == 'deutsch') {
-                $extraRules['&'] = 'und';
-                $extraRules[' & '] = '-und-';
+                $rewriteRules['&'] = 'und';
+                $rewriteRules[' & '] = '-und-';
             }
 
             if ($catLanguage == 'english') {
-                $extraRules['-&-'] = '-';
+                $rewriteRules['-&-'] = '-';
             }
         }
 
-        foreach ($extraRules as $key => $value) {
+        foreach ($rewriteRules as $key => $value) {
             $path = str_replace($key, $value, $path);
         }
 

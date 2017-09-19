@@ -158,11 +158,12 @@ class FindologicSearch extends Plugin
 
         $shopKey = $this->getShopKey();
         $hash = '?usergrouphash=';
-        if (!empty($groupKey)) {
-            $hash .= base64_encode($shopKey ^ $groupKey);
-        } else {
-            $hash .= base64_encode($shopKey ^ 'EK');
+
+        if (empty($groupKey)) {
+            $groupKey = 'EK';
         }
+
+        $hash .= base64_encode($shopKey ^ $groupKey);
 
         $format = 'https://cdn.findologic.com/static/%s/main.js%s';
         $mainUrl = sprintf($format, strtoupper(md5($shopKey)), $hash);
@@ -251,8 +252,8 @@ class FindologicSearch extends Plugin
             return false;
         }
 
-        $requestUrl = $arguments->getSubject()->Request()->getRequestUri();
+        $findologicActive = $arguments->getSubject()->Request()->getParam('findologic');
 
-        return strpos($requestUrl, 'findologic=off') === false;
+        return (!empty($findologicActive) || $findologicActive !== 'on');
     }
 }
