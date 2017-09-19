@@ -984,46 +984,17 @@ class Export
                 $detail->getLen() ? $detail->getLen() : '');
 
             if ($attribute) {
-                $this->addProperty($properties, 'attr1',
-                    $attribute->getAttr1() ? $attribute->getAttr1() : '');
-                $this->addProperty($properties, 'attr2',
-                    $attribute->getAttr2() ? $attribute->getAttr2() : '');
-                $this->addProperty($properties, 'attr3',
-                    $attribute->getAttr3() ? $attribute->getAttr3() : '');
-                $this->addProperty($properties, 'attr4',
-                    $attribute->getAttr4() ? $attribute->getAttr4() : '');
-                $this->addProperty($properties, 'attr5',
-                    $attribute->getAttr5() ? $attribute->getAttr5() : '');
-                $this->addProperty($properties, 'attr6',
-                    $attribute->getAttr6() ? $attribute->getAttr6() : '');
-                $this->addProperty($properties, 'attr4',
-                    $attribute->getAttr7() ? $attribute->getAttr7() : '');
-                $this->addProperty($properties, 'attr8',
-                    $attribute->getAttr8() ? $attribute->getAttr8() : '');
-                $this->addProperty($properties, 'attr9',
-                    $attribute->getAttr9() ? $attribute->getAttr9() : '');
-                $this->addProperty($properties, 'attr10',
-                    $attribute->getAttr10() ? $attribute->getAttr10() : '');
-                $this->addProperty($properties, 'attr11',
-                    $attribute->getAttr11() ? $attribute->getAttr11() : '');
-                $this->addProperty($properties, 'attr12',
-                    $attribute->getAttr12() ? $attribute->getAttr12() : '');
-                $this->addProperty($properties, 'attr13',
-                    $attribute->getAttr13() ? $attribute->getAttr13() : '');
-                $this->addProperty($properties, 'attr14',
-                    $attribute->getAttr14() ? $attribute->getAttr14() : '');
-                $this->addProperty($properties, 'attr15',
-                    $attribute->getAttr15() ? $attribute->getAttr15() : '');
-                $this->addProperty($properties, 'attr16',
-                    $attribute->getAttr16() ? $attribute->getAttr16() : '');
-                $this->addProperty($properties, 'attr17',
-                    $attribute->getAttr17() ? $attribute->getAttr17() : '');
-                $this->addProperty($properties, 'attr18',
-                    $attribute->getAttr18() ? $attribute->getAttr18() : '');
-                $this->addProperty($properties, 'attr19',
-                    $attribute->getAttr19() ? $attribute->getAttr19() : '');
-                $this->addProperty($properties, 'attr20',
-                    $attribute->getAttr20() ? $attribute->getAttr20() : '');
+                // Go through all the free text fields in the database
+                for ($i = 1; $i < 21; $i++) {
+                    $value = "";
+                    $methodName = "getAttr$i";
+
+                    if (method_exists($attribute, $methodName)) {
+                        $value = $attribute->$methodName();
+                    }
+
+                    $this->addProperty($properties, "attr$i",$value);
+                }
             }
 
             $this->addProperty(
