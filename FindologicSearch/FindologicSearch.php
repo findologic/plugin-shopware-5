@@ -252,8 +252,8 @@ class FindologicSearch extends Plugin
             return false;
         }
 
-        $findologicActive = $arguments->getSubject()->Request()->getParam('findologic');
+        $findologicActive = $arguments->getSubject()->Request()->getParam('findologic', 'on');
 
-        return (!empty($findologicActive) || $findologicActive !== 'on');
+        return $findologicActive === 'on';
     }
 }
