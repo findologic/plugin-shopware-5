@@ -335,14 +335,6 @@ class Export
      */
     public function urlSEOOptimization($path, $catLanguage)
     {
-        if ($catLanguage == 'deutsch') {
-            $catLanguage = 'german';
-        }
-
-        if ($catLanguage == 'englisch') {
-            $catLanguage = 'english';
-        }
-
         $rewrite = new DefaultRuleProvider();
         $reflection = new \ReflectionClass($rewrite);
         $replaceRulesProperty = $reflection->getProperty('rules');
@@ -393,12 +385,12 @@ class Export
             $rewriteRules[' & '] = '-';
             $rewriteRules['-&-'] = '-';
         } else {
-            if ($catLanguage == 'deutsch') {
+            if ($catLanguage == 'deutsch' || $catLanguage == 'german') {
                 $rewriteRules['&'] = 'und';
                 $rewriteRules[' & '] = '-und-';
             }
 
-            if ($catLanguage == 'english') {
+            if ($catLanguage == 'englisch' || $catLanguage == 'english') {
                 $rewriteRules['-&-'] = '-';
             }
         }
