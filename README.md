@@ -1,6 +1,6 @@
-# FINDOLOGIC SHOPWARE 4/5 DI PLUGIN
+# FINDOLOGIC SHOPWARE 5 DI PLUGIN
 
-  FINDOLOGIC SHOPWARE 4/5 DI PLUGIN 1 plug-in needs to be implemented in SHOPWARE 4/5 eShop to export products and its data for successful implementation of FINDOLOGIC Search into SHOPWARE 4/5 eShop.
+  FINDOLOGIC SHOPWARE 5 DI PLUGIN needs to be implemented in SHOPWARE 5 eShop to export products and its data for successful implementation of FINDOLOGIC Search into SHOPWARE 5 eShop.
   
   This plug-in is going through all the shop's data and finding valid products for export. In order to be exported, following conditions must be met:
   
@@ -12,7 +12,7 @@
   
 ## INSTALLATION
 
-  FINDOLOGIC SHOPWARE 4/5 API plug-in installation procedure is basically the same as for any other SHOPWARE 4/5 plug-in. It can be summed up in a few simple steps:
+  FINDOLOGIC SHOPWARE 5 API plug-in installation procedure is basically the same as for any other SHOPWARE 5 plug-in. It can be summed up in a few simple steps:
   
   * Plug-in content needs to copied into *“engine/Shopware/Plugins/Community/Frontend”* folder
   * After this, in Admin panel click on Configuration → Plugin Manager
@@ -44,37 +44,3 @@
 ## EXPORT CUSTOMIZATION
 
   If standard export does not export all data that is needed, there is a simple way to customize export. In plug-in root folder there is a file called *“findologicCustomExport_org.php”* that should be renamed to *“findologicCustomExport.php”*. That file contains class *“FindologicCustomExport”* that extends class *“Shopware_Controllers_Frontend_XmlBuilder”* that is responsible  for export. In order to change export, simply override already existing methods in  *“FindologicItemXml”* by writing new methods in “FindologicCustomExport” class. Example code is already placed in *“findologicCustomExport_org.php”*.
-
-# Versions
-## 1.0.9
-* Custom export implemented
-* Solved issue when product ID is null
-
-## 1.0.8
-* XML export fix (property out of the group)
-
-## 1.0.7
-* Tests added
-
-
-## 1.0.6
-* Fix export cat_url with virtual path
-
-
-## 1.0.5
-* Fix performance issue in export with salesFrequency
-
-
-## 1.0.4
-* Variant attributes exported
-
-
-## 1.0.3
-* Fix custom property export, and add customExport_org.php as example file
-
-
-## 1.0.2
-* Initial version
-
-
-
