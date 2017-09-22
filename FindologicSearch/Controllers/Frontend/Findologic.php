@@ -1,12 +1,14 @@
 <?php
 
-use \FindologicSearch\Components\Findologic\Export;
+use FindologicSearch\Components\Findologic\Export;
 
 class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
 {
     /**
      * Executes main export. Validates input, gets products for export, creates XML file, validates created file if
      * query string parameter suggests so and echos generated XML.
+     *
+     * @return void
      */
     public function indexAction()
     {
@@ -19,12 +21,14 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         if (file_exists($customExportPath)) {
             require_once $customExportPath;
 
-            $customExport = new FindologicCustomExport($shopKey, $start, $count);
-            $xml = $customExport->buildXml();
+            $export = new FindologicCustomExport($shopKey, $start, $count);
         } else {
             $export = new Export($shopKey, $start, $count);
-            $xml = $export->buildXml();
         }
+
+        $shopId = $export->getShop()->getId();
+
+        $xml = $this->getXmlFromExport($export, $start, $count, $shopId);
 
         if ($this->Request()->getParam('validate', false) === 'true') {
             $this->validateXml($xml);
@@ -39,6 +43,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
      * If schema is not valid, echoes errors and terminates request.
      *
      * @param string $xml XML string to validate.
+     * @return void
      */
     private function validateXml($xml)
     {
@@ -74,5 +79,30 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
 
             die;
         }
+    }
+
+    /**
+     * Builds XML from export class
+     * Deals with helper product streams tables
+     *
+     * @param Export|FindologicCustomExport $export
+     * @param int $start
+     * @param int $count
+     * @param int $shopId
+     * @return string
+     */
+    private function getXmlFromExport($export, $start, $count, $shopId)
+    {
+        if ($start == 0 || $export->checkIfProductStreamsTableIsEmpty($shopId)) {
+            $export->createTableIfProductStreamTableNotExists($shopId);
+            $export->importProductStreamsDataToDb($shopId);
+        }
+
+        $xml = $export->buildXml();
+        if (($start + $count) > $export->getTotal()) {
+            $export->truncateProductStreamsDataTable($shopId);
+        }
+
+        return $xml;
     }
 }

@@ -2,6 +2,13 @@
 
 namespace FindologicSearch\Components\Findologic;
 
+use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
+use Shopware\Bundle\SearchBundle\Condition\CustomerGroupCondition;
+use Shopware\Bundle\SearchBundle\Criteria;
+use Shopware\Bundle\StoreFrontBundle\Service\Core\ContextService;
+use Shopware\Bundle\StoreFrontBundle\Struct\ProductContext;
+use Shopware\Components\ProductStream\Repository;
+use Shopware\Models\Article\Article;
 use Cocur\Slugify\RuleProvider\DefaultRuleProvider;
 
 class Export
@@ -46,14 +53,59 @@ class Export
      *
      * @var array
      */
-    protected $categories = array();
+    protected $categories = [];
 
     /**
      * Cached user groups.
      *
      * @var array
      */
-    protected $allUserGroups = array();
+    protected $allUserGroups = [];
+
+    /**
+     * Custom export class
+     *
+     * @var \FindologicCustomExport
+     */
+    protected $customExport;
+
+    /**
+     * Part of the streams table name without shop_id
+     *
+     * @var string
+     */
+    protected $streamsTable = 'findologic_search_di_product_streams_';
+
+    /**
+     * Extra rules used for SEO category URL build
+     *
+     * @var array
+     */
+    protected static $rewriteRules = [
+        '_' => '/',
+        '!' => '',
+        ' - ' => '-',
+        '---' => '-',
+        ':' => '-',
+        ',' => '-',
+        "'" => '-',
+        '"' => '-',
+        ' ' => '-',
+        '+' => '-',
+        '&#351;' => 's',
+        '&#350;' => 'S',
+        '&#287;' => 'g',
+        '&#286;' => 'G',
+        '&#304;' => 'i',
+        '-%' => '',
+    ];
+
+    /**
+     * Shopware version
+     *
+     * @var int
+     */
+    protected $shopwareVersion;
 
     /**
      * Export constructor.
@@ -68,6 +120,7 @@ class Export
         $this->shopKey = $shopKey;
         $this->start = $start;
         $this->count = $count;
+        $this->shopwareVersion = (int) str_replace('.', '', Shopware()->Config()->version);
 
         /* @var $sArticle \sArticles */
         $this->sArticle = Shopware()->Modules()->sArticles();
@@ -85,6 +138,9 @@ class Export
      */
     public function getAllValidProducts()
     {
+        $exportOutOfStock = (bool)Shopware()->Config()->get('findologic.exportOutOfStock');
+        $query = $exportOutOfStock ? '(d.inStock <= 0 AND a.lastStock = 0) OR (d.inStock > 0)' : 'd.inStock > 0';
+
         $queryBuilder = $this->em->createQueryBuilder();
         $queryBuilder
             ->select('article')
@@ -101,7 +157,7 @@ class Export
             ->andWhere('a.active = 1')
             ->andWhere("a.name != ''")
             // only items that are on stock
-            ->andWhere('(d.inStock > 0 OR a.lastStock = 0)')
+            ->andWhere($query)
             ->andWhere('d.kind = 1') // meaning: field 'kind' represent variations
             ->andWhere('d.active = 1') // meaning: include only active variations
             // (value: 1 is for basic article and value: 2 for variant article ).
@@ -130,6 +186,8 @@ class Export
 
     /**
      * Validates whether all input parameters are supplied.
+     *
+     * @return void
      */
     protected function validateInput()
     {
@@ -166,6 +224,7 @@ class Export
         $builder->select(array('groups'))
             ->from('Shopware\Models\Customer\Group', 'groups')
             ->orderBy('groups.id');
+
         return $builder->getQuery()->getArrayResult();
     }
 
@@ -176,27 +235,32 @@ class Export
      */
     protected function getShopIfExists()
     {
-        $conf = $this->em->getRepository('Shopware\Models\Config\Value')->findOneBy(array('value' => $this->shopKey));
+        $conf = $this->em->getRepository('Shopware\Models\Config\Value')
+            ->findOneBy([
+                'value' => $this->shopKey
+            ]);
 
         return $conf ? $conf->getShop() : null;
     }
 
     /**
      * Gets all active categories for selected shop from database and puts it to $this->categories.
+     *
+     * @return void
      */
     protected function prepareAllActiveCategoryIdsByShop()
     {
         $queryBuilder = $this->em->createQueryBuilder();
-        $queryBuilder->select(array(
+        $queryBuilder->select([
             'o.id',
             'o.name',
             'o.path'
-        ));
+        ]);
         $queryBuilder->from('Shopware\Models\Category\Category', 'o');
         $queryBuilder->where('o.active = 1');
         $categories = $queryBuilder->getQuery()->getResult();
         // Set categories by ids for keys and only pass categories for selected shop.
-        $categoriesByIds = array();
+        $categoriesByIds = [];
         $shopCategoryId = $this->shop->getCategory()->getId();
 
         foreach ($categories as $category) {
@@ -217,24 +281,50 @@ class Export
     }
 
     /**
-     * Method for SEO optimized URL cleaning in legacy Shopware versions 5.0.x & 5.1.x
+     * Sets category path names and depth count.
      *
-     * @param string $path Category path
-     * @param string $catLanguage Category language
-     * @return string $urlSEO
+     * @param array $categoriesByIds Array of categories that should contain 'id', 'name' and 'path' keys.
+     * @param string $between Text or character to be placed between category names in full path for one category
+     * @param string $space Character that should be placed instead of space (' ') in path.
+     * @return array $categories Array of categories with keys 'depth', 'path', 'pathIds', 'name', 'id' and 'url'.
      */
-    public function urlSEOOptimizationLegacy($path, $catLanguage)
+    protected function setCategoriesPathName($categoriesByIds, $between = '_', $space = '-')
     {
-        $rewriteTable = new \sRewriteTable();
-        $reflection = new \ReflectionClass($rewriteTable);
-        $replaceRulesProperty = $reflection->getProperty('replaceRules');
-        $replaceRulesProperty->setAccessible(true);
-        $rules = $replaceRulesProperty->getValue($rewriteTable);
-        $urlSEO = $this->extraRules($path, $catLanguage);
+        $categories = [];
+        $catId = $this->shop->getCategory()->getId();
+        $catLanguage = strtolower($categoriesByIds[$catId]['name']);
 
-        $urlSEO = str_replace(array_keys($rules), array_values($rules), $urlSEO);
+        foreach ($categoriesByIds as $category) {
+            $categoryPath = array_reverse(array_filter(explode('|', $category['path'])));
+            $path = '';
 
-        return $urlSEO . '/';
+            if ($category['path'] !== null) {
+                foreach ($categoryPath as $p) {
+                    $categoryName = str_replace(' ', $space, $categoriesByIds[$p]['name']);
+                    $path .= $categoryName . $between;
+                }
+            }
+
+            $path .= $category['name'];
+            $path = str_replace($catLanguage, '', strtolower($path));
+
+            if ($this->shopwareVersion >= 524) {
+                $urlSEO =  $this->urlSEOOptimization($path, $catLanguage);
+            } else {
+                $urlSEO =  $this->urlSEOOptimizationOld($path, $catLanguage);
+            }
+
+            $categories[$category['id']] = [
+                'depth' => count($categoryPath),
+                'path' => $path,
+                'pathIds' => $category['path'],
+                'name' => $category['name'],
+                'id' => $category['id'],
+                'url' => $urlSEO,
+            ];
+        }
+
+        return $categories;
     }
 
     /**
@@ -251,6 +341,27 @@ class Export
         $replaceRulesProperty = $reflection->getProperty('rules');
         $replaceRulesProperty->setAccessible(true);
         $rules = $replaceRulesProperty->getValue($rewrite);
+        $rules = $rules[$catLanguage];
+        $urlSEO = $this->extraRules($path, $catLanguage);
+        $urlSEO = str_replace(array_keys($rules), array_values($rules), $urlSEO);
+
+        return $urlSEO . '/';
+    }
+
+    /**
+     * Method for SEO optimized URL cleaning in Shopware versions 5.0.x & 5.1.x
+     *
+     * @param string $path Category path
+     * @param string $catLanguage Category language
+     * @return string $urlSEO
+     */
+    public function urlSEOOptimizationOld($path, $catLanguage)
+    {
+        $rewriteTable = new \sRewriteTable();
+        $reflection = new \ReflectionClass($rewriteTable);
+        $replaceRulesProperty = $reflection->getProperty('replaceRules');
+        $replaceRulesProperty->setAccessible(true);
+        $rules = $replaceRulesProperty->getValue($rewriteTable);
         $urlSEO = $this->extraRules($path, $catLanguage);
 
         $urlSEO = str_replace(array_keys($rules), array_values($rules), $urlSEO);
@@ -258,100 +369,38 @@ class Export
         return $urlSEO . '/';
     }
 
+
     /**
-     * Shopware additional rules which are not checked in legacy or 5.2. Shopware version
+     * Shopware additional rules
      *
      * @param string $path
-     * @param string $catLanguage
+     * @param $catLanguage
      * @return string
      */
     private function extraRules($path, $catLanguage)
     {
-        // shopware rules
-        $extraRules = array(
-            "_" => "/",
-            "!" => "",
-            " - " => "-",
-            "---" => "-",
-            ':' => '-',
-            ',' => '-',
-            "'" => '-',
-            '"' => '-',
-            ' ' => '-',
-            '+' => '-',
-            '&#351;' => 's',
-            '&#350;' => 'S',
-            '&#287;' => 'g',
-            '&#286;' => 'G',
-            '&#304;' => 'i',
-            "-%" => "",
-        );
-
-        if ($catLanguage == 'deutsch') {
-            $extraRules['&'] = 'und';
-            $extraRules[' & '] = '-und-';
-        }
-
-        if ($catLanguage == 'english') {
-            $extraRules['-&-'] = '-';
-        }
-
         $path = strtolower($path);
-        foreach ($extraRules as $key => $value) {
+
+        $rewriteRules = static::$rewriteRules;
+        if ($this->shopwareVersion >= 524) {
+            $rewriteRules[' & '] = '-';
+            $rewriteRules['-&-'] = '-';
+        } else {
+            if ($catLanguage == 'deutsch' || $catLanguage == 'german') {
+                $rewriteRules['&'] = 'und';
+                $rewriteRules[' & '] = '-und-';
+            }
+
+            if ($catLanguage == 'englisch' || $catLanguage == 'english') {
+                $rewriteRules['-&-'] = '-';
+            }
+        }
+
+        foreach ($rewriteRules as $key => $value) {
             $path = str_replace($key, $value, $path);
         }
 
         return $path;
-    }
-
-    /**
-     * Sets category path names and depth count.
-     *
-     * @param array $categoriesByIds Array of categories that should contain 'id', 'name' and 'path' keys.
-     * @param string $between Text or character to be placed between category names in full path for one category
-     * @param string $space Character that should be placed instead of space (' ') in path.
-     * @return array $categories Array of categories with keys 'depth', 'path', 'pathIds', 'name', 'id' and 'url'.
-     */
-    protected function setCategoriesPathName($categoriesByIds, $between = '_', $space = '-')
-    {
-        $categories = array();
-        $db = Shopware()->Db();
-        $catId = $this->shop->getCategory()->getId();
-        $catLanguage = strtolower($categoriesByIds[$catId]['name']);
-
-        foreach ($categoriesByIds as $category) {
-            $categoryPath = array_reverse(array_filter(explode('|', $category['path'])));
-            $path = '';
-
-            if ($category['path'] !== null) {
-                foreach ($categoryPath as $p) {
-                    $categoryName = str_replace(' ', $space, $categoriesByIds[$p]['name']);
-                    $path .= $categoryName . $between;
-                }
-            }
-
-            $path .= $category['name'];
-            $versionInt = (int) str_replace('.', '', Shopware()->Config()->version);
-
-            $path = str_replace($catLanguage, '', strtolower($path));
-
-            if ($versionInt >= 520) {
-                $urlSEO =  $this->urlSEOOptimization($path, $catLanguage);
-            } else {
-                $urlSEO =  $this->urlSEOOptimizationLegacy($path, $catLanguage);
-            }
-
-            $categories[$category['id']] = array(
-                'depth' => count($categoryPath),
-                'path' => $path,
-                'pathIds' => $category['path'],
-                'name' => $category['name'],
-                'id' => $category['id'],
-                'url' => $urlSEO,
-            );
-        }
-
-        return $categories;
     }
 
     /**
@@ -362,12 +411,12 @@ class Export
      */
     protected function getUserGroups($article)
     {
-        $customerGroupsAvoid = array();
+        $customerGroupsAvoid = [];
         foreach ($article->getCustomerGroups() as $avoid) {
             $customerGroupsAvoid[] = $avoid->getId();
         }
 
-        $articleGroups = array();
+        $articleGroups = [];
         foreach ($this->allUserGroups as $group) {
             if (!in_array($group['id'], $customerGroupsAvoid)) {
                 $articleGroups[$group['key']] = $group;
@@ -415,6 +464,7 @@ class Export
     {
         // Create item node
         $item = $items->addChild('item');
+
         $item->addAttribute('id', $article->getId());
 
         $this->addOrderNumbers($article, $item);
@@ -451,6 +501,7 @@ class Export
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param \SimpleXMLElement $item XML node to render to.
+     * @return void
      */
     protected function addOrderNumbers($article, $item)
     {
@@ -477,6 +528,7 @@ class Export
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param \SimpleXMLElement $item XML node to render to.
+     * @return void
      */
     protected function addNames($article, $item)
     {
@@ -491,6 +543,7 @@ class Export
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param \SimpleXMLElement $item XML node to render to.
+     * @return void
      */
     protected function addSummaries($article, $item)
     {
@@ -505,6 +558,7 @@ class Export
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param \SimpleXMLElement $item XML node to render to.
+     * @return void
      */
     protected function addDescriptions($article, $item)
     {
@@ -522,11 +576,12 @@ class Export
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param array $articleGroups Customer groups for supplied $article.
      * @param \SimpleXMLElement $item XML node to render to.
+     * @return void
      */
     protected function addPrices($article, $articleGroups, $item)
     {
         /* @var $detail \Shopware\Models\Article\Detail */
-        $artPrices = array();
+        $artPrices = [];
         foreach ($article->getDetails() as $detail) {
             if ($detail->getActive()) {
                 foreach ($detail->getPrices() as $price) {
@@ -580,10 +635,11 @@ class Export
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param \SimpleXMLElement $item XML node to render to.
+     * @return void
      */
     protected function addUrls($article, $item)
     {
-        $linkDetails = Shopware()->Config()->get('baseFile') . "?sViewport=detail&sArticle=" . $article->getId();
+        $linkDetails = Shopware()->Config()->get('baseFile') . '?sViewport=detail&sArticle=' . $article->getId();
         $url = Shopware()->Modules()->Core()->sRewriteLink($linkDetails, $article->getName());
 
         $urls = $item->addChild('urls');
@@ -596,10 +652,11 @@ class Export
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param \SimpleXMLElement $item XML node to render to.
+     * @return void
      */
     protected function addImages($article, $item)
     {
-        $imageLinks = array();
+        $imageLinks = [];
         $baseLink = Shopware()->Modules()->Core()->sRewriteLink();
         // fetches Main cover image
         $image = $this->sArticle->sGetArticlePictures($article->getId())['src'];
@@ -641,10 +698,11 @@ class Export
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param \SimpleXMLElement $item XML node to render to.
+     * @return void
      */
     protected function addAttributes($article, $item)
     {
-        $attributeSet = array();
+        $attributeSet = [];
 
         // Add cat and cat_url
         $this->addCatAndCatUrl($article, $attributeSet);
@@ -660,18 +718,18 @@ class Export
 
         // Add is new
         $form = Shopware()->Models()->getRepository('\Shopware\Models\Config\Form')
-            ->findOneBy(array(
-                'name' => 'Frontend76'
-            ));
+            ->findOneBy([
+                'name' => 'Frontend76',
+            ]);
         $defaultNew = Shopware()->Models()->getRepository('\Shopware\Models\Config\Element')
-            ->findOneBy(array(
+            ->findOneBy([
                 'form' => $form,
-                'name' => 'markasnew'
-            ));
+                'name' => 'markasnew',
+            ]);
         $specificValueNew = Shopware()->Models()->getRepository('\Shopware\Models\Config\Value')
-            ->findOneBy(array(
-                'element' => $defaultNew
-            ));
+            ->findOneBy([
+                'element' => $defaultNew,
+            ]);
 
         $articleAdded = $article->getAdded()->getTimestamp();
 
@@ -747,31 +805,55 @@ class Export
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param array $attributes Array to store attributes.
+     * @return void
      */
     protected function addCatAndCatUrl($article, &$attributes)
     {
         $baseUrl = $this->shop->getBaseUrl();
         $baseUrl = !empty($baseUrl) ? $baseUrl : '';
+        $shopId = $this->getShop()->getId();
+        $productStreams = $this->getArticleProductStream($article->getId(), $shopId);
+        $allCategories = array_merge($article->getCategories()->toArray(), $productStreams);
 
         /* @var $category \Shopware\Models\Category\Category */
-        foreach ($article->getCategories() as $category) {
-            $cat = $this->categories[$category->getId()];
-            if ($cat) {
-                $pathIds = explode('|', trim($cat['pathIds'], '|'));
-                $pathNames = array($cat['name']);
-                foreach ($pathIds as $pathId) {
-                    $pathNames[] = $this->categories[$pathId]['name'];
-                }
+        foreach ($allCategories as $category) {
+            $categoryId = is_object($category) ? $category->getId() : $category['id'];
+            $this->createCatAndCatUrls($categoryId, $baseUrl, $attributes);
+        }
 
-                $reversedPathNames = array_slice(array_reverse($pathNames), 1);
-                $attributes['cat'][] = implode('_', $reversedPathNames);
-                $catUrls = explode('/', $cat['url']);
-                $url = '';
-                foreach ($catUrls as $catUrl) {
-                    if ($catUrl) {
-                        $url .= '/' . $catUrl;
-                        $attributes['cat_url'][] = $baseUrl . $url . '/';
-                    }
+        $attributes['cat'] = array_unique($attributes['cat']);
+        $attributes['cat_url'] = array_unique($attributes['cat_url']);
+    }
+
+    /**
+     * Creates 'cat' and 'cat_url' data.
+     *
+     * @param $categoryId
+     * @param $baseUrl
+     * @param $attributes
+     * @return void
+     */
+    protected function createCatAndCatUrls($categoryId, $baseUrl, &$attributes)
+    {
+        $cat = $this->categories[$categoryId];
+        if ($cat) {
+            $pathIds = explode('|', trim($cat['pathIds'], '|'));
+            $pathNames = [
+                $cat['name']
+            ];
+
+            foreach ($pathIds as $pathId) {
+                $pathNames[] = $this->categories[$pathId]['name'];
+            }
+
+            $reversedPathNames = array_slice(array_reverse($pathNames), 1);
+            $attributes['cat'][] = implode('_', $reversedPathNames);
+            $catUrls = explode('/', $cat['url']);
+            $url = '';
+            foreach ($catUrls as $catUrl) {
+                if ($catUrl) {
+                    $url .= '/' . $catUrl;
+                    $attributes['cat_url'][] = $baseUrl . $url . '/';
                 }
             }
         }
@@ -782,14 +864,19 @@ class Export
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param array $attributes Array to store attributes.
+     * @return void
      */
     protected function addSupplierName($article, &$attributes)
     {
         // this is done through SQL because Shopware can be in state that $supplier->getId() returns proper ID,
         // but that supplier does not exist in database so $supplier->getName() produces fatal error.
         $supplier = $article->getSupplier();
-        $sql = "SELECT name FROM s_articles_supplier where id =?";
-        $name = Shopware()->Db()->fetchOne($sql, array($supplier->getId()));
+        $sql = /** @lang mysql */
+            'SELECT name FROM s_articles_supplier where id =?';
+        $name = Shopware()->Db()->fetchOne($sql, [
+            $supplier->getId()
+        ]);
+
         if ($name) {
             $attributes['brand'][] = $name;
         }
@@ -800,12 +887,16 @@ class Export
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param array $attributes Array to store attributes.
+     * @return void
      */
     protected function addVariantAttributes($article, &$attributes)
     {
         //get all active product values
-        $sqlVariants = "SELECT additionalText FROM s_articles_details where articleID =?  and active = 1";
-        $sqlVariants = Shopware()->Db()->fetchAll($sqlVariants, array($article->getId()));
+        $sqlVariants = /** @lang mysql */
+            'SELECT additionalText FROM s_articles_details where articleID =?  and active = 1';
+        $sqlVariants = Shopware()->Db()->fetchAll($sqlVariants, [
+            $article->getId()
+        ]);
         $temp = [];
         foreach ($sqlVariants as $res) {
             if (!empty($res['additionalText'])) {
@@ -815,7 +906,7 @@ class Export
             }
         }
 
-        /* @var $configurator \Shopware\Models\Article\Configurator */
+        /* @var $configurator \Shopware\Models\Article\Configurator\Set */
         $configurator = $article->getConfiguratorSet();
 
         if ($configurator) {
@@ -841,6 +932,7 @@ class Export
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param array $attributes Array to store attributes.
+     * @return void
      */
     protected function addFilterAttributes($article, &$attributes)
     {
@@ -858,6 +950,7 @@ class Export
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param \SimpleXMLElement $item XML node to render to.
+     * @return void
      */
     protected function addKeywords($article, $item)
     {
@@ -872,18 +965,19 @@ class Export
     }
 
     /**
-     * Add usergroups to whom this article is visible.
+     * Add user-groups to whom this article is visible.
      *
      * @param array $articleGroups User groups array with 'key' key.
      * @param \SimpleXMLElement $item XML node to render to.
+     * @return void
      */
     protected function addUserGroups($articleGroups, $item)
     {
         if ($articleGroups) {
-            $usergroups = $item->addChild('usergroups');
+            $userGroups = $item->addChild('usergroups');
             foreach ($articleGroups as $group) {
                 $userGroupHash = $this->userGroupToHash($this->shopKey, $group['key']);
-                $this->appendCData($usergroups->addChild('usergroup'), $userGroupHash);
+                $this->appendCData($userGroups->addChild('usergroup'), $userGroupHash);
             }
         }
     }
@@ -893,15 +987,19 @@ class Export
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param \SimpleXMLElement $item XML node to render to.
+     * @return void
      */
     protected function addSalesFrequency($article, $item)
     {
         // get orders order number (not articles)
-        $sqlOrder = "SELECT s_order_details.ordernumber"
-            . " FROM s_order_details"
-            . " WHERE s_order_details.articleID =?"
-            . " GROUP BY s_order_details.ordernumber";
-        $order = Shopware()->Db()->fetchAll($sqlOrder, array($article->getId()));
+        $sqlOrder = /** @lang mysql */
+            'SELECT s_order_details.ordernumber
+              FROM s_order_details
+              WHERE s_order_details.articleID = ?
+              GROUP BY s_order_details.ordernumber';
+        $order = Shopware()->Db()->fetchAll($sqlOrder, [
+            $article->getId()
+        ]);
 
         $salesFrequencies = $item->addChild('salesFrequencies');
         $orderCount = count($order);
@@ -916,6 +1014,7 @@ class Export
      *
      * @param array $groups Customer groups to get keys from.
      * @return array Array of customer group keys
+     * @return void
      */
     protected function getCustomerGroupKeys($groups)
     {
@@ -932,6 +1031,7 @@ class Export
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param \SimpleXMLElement $item XML node to render to.
+     * @return void
      */
     protected function addDateAdded($article, $item)
     {
@@ -945,7 +1045,8 @@ class Export
      * Adds different properties.
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
-     * @param SimpleXMLElement $item XML node to render to.
+     * @param \SimpleXMLElement $item XML node to render to.
+     * @return void
      */
     private function addProperties($article, $item)
     {
@@ -981,7 +1082,8 @@ class Export
             $this->addProperty($properties, 'height',
                 $detail->getHeight() ? $detail->getHeight() : '');
             $this->addProperty($properties, 'length',
-                $detail->getLen() ? $detail->getLen() : '');
+
+            $detail->getLen() ? $detail->getLen() : '');
 
             if ($attribute) {
                 // Go through all the free text fields in the database
@@ -1020,13 +1122,16 @@ class Export
                     Shopware()->Modules()->Core()->sRewriteLink() . $brandImage);
             }
 
-            $sql = "SELECT  s.articleID,
-                            s.unitID,
-                            m.description
+            $sql = /** @lang mysql */
+                'SELECT  s.articleID,
+                         s.unitID,
+                         m.description
                     FROM s_articles_details as s
                     LEFT JOIN s_core_units as m ON m.id=s.unitID
-                    WHERE s.articleID=?";
-            $unit = Shopware()->Db()->fetchRow($sql, array($article->getId()));
+                    WHERE s.articleID=?';
+            $unit = Shopware()->Db()->fetchRow($sql, [
+                $article->getId()
+            ]);
 
             if ($unit) {
                 $this->addProperty($properties, 'unit',
@@ -1041,6 +1146,7 @@ class Export
             }
 
             // TODO: SKIP AVOIDED GROUPS!!!
+            /** @var \Shopware\Models\Article\Article $articlePrices */
             $articlePrices = $this->em->getRepository('Shopware\Models\Article\Article')
                 ->getPricesQuery($detail->getId())
                 ->getArrayResult();
@@ -1069,22 +1175,23 @@ class Export
      * add New
      * @param \Shopware\Models\Article\Article $article
      * @param \SimpleXMLElement $properties XML node to render to.
+     * @return void
      */
     protected function addNew($article, $properties)
     {
         $form = Shopware()->Models()->getRepository('\Shopware\Models\Config\Form')
-            ->findOneBy(array(
-                'name' => 'Frontend76'
-            ));
+            ->findOneBy([
+                'name' => 'Frontend76',
+            ]);
         $defaultNew = Shopware()->Models()->getRepository('\Shopware\Models\Config\Element')
-            ->findOneBy(array(
+            ->findOneBy([
                 'form' => $form,
-                'name' => 'markasnew'
-            ));
+                'name' => 'markasnew',
+            ]);
         $specificValueNew = Shopware()->Models()->getRepository('\Shopware\Models\Config\Value')
-            ->findOneBy(array(
+            ->findOneBy([
                 'element' => $defaultNew
-            ));
+            ]);
 
         $articleAdded = $article->getAdded()->getTimestamp();
 
@@ -1106,19 +1213,23 @@ class Export
     /**
      * add Variants Additional Info
      * @param \Shopware\Models\Article\Article $article
-     * @param SimpleXMLElement $properties XML node to render to.
+     * @param \SimpleXMLElement $properties XML node to render to.
+     * @return void
      */
     protected function addVariantsAdditionalInfo($article, $properties)
     {
-        $sqlVariants = "SELECT * FROM s_articles_details WHERE kind=2 AND articleID =?";
-        $variantsData = Shopware()->Db()->fetchAll($sqlVariants, array($article->getId()));
+        $sqlVariants = /** @lang mysql */
+            'SELECT * FROM s_articles_details WHERE kind=2 AND articleID =?';
+        $variantsData = Shopware()->Db()->fetchAll($sqlVariants, [
+            $article->getId()
+        ]);
         // 0 or 1
         if (empty($variantsData)) {
             $this->addProperty($properties, 'has_variants', 0);
         } else {
             $this->addProperty($properties, 'has_variants', 1);
             $mainPrice = $article->getMainDetail()->getPrices();
-            $mainPrices = array();
+            $mainPrices = [];
             /** @var \Shopware\Models\Article\Price $price */
             foreach ($mainPrice as $price) {
                 $mainPrices[$price->getCustomerGroup()->getKey()] = $price->getPrice();
@@ -1152,6 +1263,7 @@ class Export
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
      * @param $properties \SimpleXMLElement $properties XML node to render to.
+     * @return void
      */
     protected function addCustomProperties($article, $properties) {
         $customExportFilePath = realpath(__DIR__ . '/../../') . '/customExport.php';
@@ -1160,7 +1272,7 @@ class Export
             require_once $customExportFilePath;
 
             if (class_exists('FindologicCustomExport', false)) {
-                $this->customExport = $this->customExport ? : new FindologicCustomExport();
+                $this->customExport = $this->customExport ?: new \FindologicCustomExport($this->shopKey, $this->start, $this->count);
 
                 if (method_exists($this->customExport, 'addCustomProperty')) {
                     $this->customExport->addCustomProperty($article, $properties, $this);
@@ -1173,21 +1285,27 @@ class Export
      * Adds votes node.
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
-     * @param SimpleXMLElement $allProperties XML node to render to.
+     * @param \SimpleXMLElement $allProperties XML node to render to.
+     * @return void
      */
     protected function addVotes($article, $allProperties)
     {
         // add votes for an article depending on user groups that vote. If none, add to no-group
         // get votes average
-        $sqlVote = "SELECT email, points FROM s_articles_vote where articleID =?";
-        $voteData = Shopware()->Db()->fetchAll($sqlVote, array($article->getId()));
+        $sqlVote = /** @lang mysql */
+            'SELECT email, points FROM s_articles_vote where articleID =?';
+        $voteData = Shopware()->Db()->fetchAll($sqlVote, [
+            $article->getId()
+        ]);
         $votes = array();
         if (count($voteData) > 0) {
             foreach ($voteData as $vote) {
                 if ($vote['email'] !== '') {
-                    $sqlGroup = 'SELECT customergroup FROM s_user' .
-                        ' WHERE s_user.email=?';
-                    $groupKey = Shopware()->Db()->fetchOne($sqlGroup, array($vote['email']));
+                    $sqlGroup = /** @lang mysql */
+                        'SELECT customergroup FROM s_user WHERE s_user.email=?';
+                    $groupKey = Shopware()->Db()->fetchOne($sqlGroup, [
+                        $vote['email']
+                    ]);
                     // TODO: SKIP AVOIDED GROUPS!!!
                     $votes[$groupKey]['sum'] += $vote['points'];
                     $votes[$groupKey]['count'] += 1;
@@ -1211,6 +1329,7 @@ class Export
      * @param \SimpleXMLElement $properties XML node to render to.
      * @param string $key Key part of property.
      * @param mixed $value Value part of property.
+     * @return void
      */
     public function addProperty($properties, $key, $value)
     {
@@ -1238,6 +1357,7 @@ class Export
      *
      * @param \SimpleXMLElement $node XML node to append text to.
      * @param string $text Text to wrap and append.
+     * @return void
      */
     protected function appendCData(\SimpleXMLElement $node, $text)
     {
@@ -1254,5 +1374,266 @@ class Export
     protected function utf8Replace($text)
     {
         return preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x80-\x9F]/u', '', trim($text));
+    }
+
+    /**
+     * Get article product stream
+     *
+     * @param int $article_id
+     * @param $shopId
+     * @return array
+     */
+    public function getArticleProductStream($article_id, $shopId)
+    {
+        $productStreams = /** @lang mysql */
+            "SELECT cat.*
+                FROM s_product_streams AS ps
+                LEFT JOIN s_product_streams_selection AS pss
+                ON ps.id = pss.stream_id
+                LEFT JOIN s_categories AS cat
+                ON cat.stream_id = ps.id
+                LEFT JOIN {$this->streamsTable}{$shopId} AS flsaps
+                ON ps.id = flsaps.stream_id
+                WHERE pss.article_id = :article_id OR flsaps.article_id = :article_id";
+
+        $productStreamsData = Shopware()->Db()->fetchAll($productStreams, ['article_id' => $article_id]);
+
+        // Clear empty records from data-set
+        foreach ($productStreamsData as $key => $data) {
+            if (empty($data['id'])) {
+                unset($productStreamsData[$key]);
+            }
+        }
+
+        return $productStreamsData;
+    }
+
+    /**
+     * Imports data about conditional streams to 'findologic_search_di_product_streams_{$shopId}' table
+     *
+     * @param $shopId
+     * @throws \Zend_Db_Adapter_Exception
+     * @return void
+     */
+    public function importProductStreamsDataToDb($shopId)
+    {
+
+        $productStreamsSql = /** @lang mysql */
+            'SELECT * FROM s_product_streams';
+        $streams = Shopware()->Db()->fetchAll($productStreamsSql);
+
+        $importData = [];
+        foreach ($streams as $stream) {
+            if (!empty($stream['conditions'])) {
+                $productsTotalCount = $this->getProductStreamArticlesByConditionsTotalCount($stream['conditions'], 0, 1, $shopId);
+                $offset = 0;
+                $limit = 200;
+                $products = [];
+                while ($offset < $productsTotalCount) {
+                    $products = array_merge(
+                        $products,
+                        $this->getProductStreamArticlesByConditions($stream['conditions'], $offset, $limit, $shopId)
+                    );
+                    $offset += $limit;
+                }
+                $importData[$stream['id']] = $products;
+            }
+        }
+
+        $this->truncateProductStreamsDataTable($shopId);
+
+        foreach($importData as $streamId => $productIds) {
+            foreach ($productIds as $productId) {
+                Shopware()->Db()->exec(
+                /** @lang mysql */
+                    "INSERT INTO {$this->streamsTable}{$shopId} (stream_id, article_id)
+                    VALUES ({$streamId}, {$productId})"
+                );
+            }
+        }
+    }
+
+    /**
+     * Checks if 'findologic_search_di_product_streams_{$shopId}' table is empty
+     * Empty => true
+     * Not Empty => false
+     * @param $shopId
+     * @return bool
+     */
+    public function checkIfProductStreamsTableIsEmpty($shopId)
+    {
+        return !(bool)Shopware()->Db()->fetchOne(
+        /** @lang mysql */
+            "SELECT count(*) FROM {$this->streamsTable}{$shopId}"
+        );
+    }
+
+    /**
+     * Checks if product streams table for current shop exists
+     * If does not exists it creates one
+     *
+     * @param $shopId
+     * @return void
+     */
+    public function createTableIfProductStreamTableNotExists($shopId)
+    {
+        Shopware()->Db()->exec(
+        /** @lang mysql */
+            "CREATE TABLE IF NOT EXISTS {$this->streamsTable}{$shopId}
+              (id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+               stream_id int NOT NULL,
+               article_id int NOT NULL)"
+        );
+    }
+
+    /**
+     * Truncates 'findologic_search_di_product_streams_{$shopId}' table
+     *
+     * @param $shopId
+     * @return int
+     * @throws \Zend_Db_Adapter_Exception
+     */
+    public function truncateProductStreamsDataTable($shopId)
+    {
+        return Shopware()->Db()->exec("TRUNCATE {$this->streamsTable}{$shopId}");
+    }
+
+    /**
+     * Gets articles that belong to conditional product stream
+     *
+     * @param $conditions
+     * @param $offset
+     * @param $limit
+     * @param $shopId
+     * @return array
+     */
+    protected function getProductStreamArticlesByConditions($conditions, $offset, $limit, $shopId)
+    {
+        $result = $this->getProductStreamResults($conditions, $offset, $limit, $shopId);
+
+        $products = array_values($result->getProducts());
+
+        /** @var $product Article */
+        $productsIds = [];
+        foreach ($products as $product) {
+            $productsIds[] = $product->getId();
+        }
+
+        return $productsIds;
+    }
+
+    /**
+     * Gets product stream articles total count
+     *
+     * @param $conditions
+     * @param $offset
+     * @param $limit
+     * @param $shopId
+     * @return int
+     */
+    protected function getProductStreamArticlesByConditionsTotalCount($conditions, $offset, $limit, $shopId)
+    {
+        $result = $this->getProductStreamResults($conditions, $offset, $limit, $shopId);
+
+        return $result->getTotalCount();
+    }
+
+    /**
+     * Gets product stream results
+     *
+     * @param $conditions
+     * @param $offset
+     * @param $limit
+     * @param $shopId
+     * @return \Shopware\Bundle\SearchBundle\ProductSearchResult
+     * @throws \Exception
+     */
+    private function getProductStreamResults($conditions, $offset, $limit, $shopId)
+    {
+        $conditions = json_decode($conditions, true);
+        $shopwareInstance = Shopware();
+
+        /** @var $criteria Criteria */
+        $criteria = new Criteria();
+        $criteria->offset($offset);
+        $criteria->limit($limit);
+
+        $connection = $shopwareInstance->Models()->getConnection();
+        $repository = new Repository($connection);
+
+        $conditions = $repository->unserialize($conditions);
+
+        /** @var $condition \Shopware\Bundle\SearchBundle\ConditionInterface */
+        foreach ($conditions as $condition) {
+            $criteria->addCondition($condition);
+        }
+
+        $context = $this->createContext($shopId);
+
+        $criteria->addBaseCondition(
+            new CustomerGroupCondition([
+                $context->getCurrentCustomerGroup()->getId()
+            ])
+        );
+
+        $category = $context->getShop()
+            ->getCategory()
+            ->getId();
+
+        $criteria->addBaseCondition(
+            new CategoryCondition([$category])
+        );
+
+        $result = $shopwareInstance->Container()
+            ->get('shopware_search.product_search')
+            ->search($criteria, $context);
+
+        return $result;
+    }
+
+    /**
+     * @param $shopId
+     * @param int $currencyId
+     * @param int $customerGroupKey
+     * @return ProductContext
+     */
+    private function createContext($shopId, $currencyId = null, $customerGroupKey = null)
+    {
+        $container = Shopware()->Container();
+        /** @var \Shopware\Models\Shop\Repository $repo */
+        $repo = $container->get('models')->getRepository('Shopware\Models\Shop\Shop');
+
+        $shop = $repo->getActiveById($shopId);
+
+        if (!$currencyId) {
+            $currencyId = $shop->getCurrency()->getId();
+        }
+
+        if (!$customerGroupKey) {
+            $customerGroupKey = ContextService::FALLBACK_CUSTOMER_GROUP;
+        }
+
+        return $container->get('shopware_storefront.context_service')
+            ->createProductContext($shopId, $currencyId, $customerGroupKey);
+    }
+
+    /**
+     * Gets total amount of articles for export
+     *
+     * @return int
+     */
+    public function getTotal()
+    {
+        return $this->total;
+    }
+
+    /**
+     * Returns shop connected to specific shopkey
+     *
+     * @return \Shopware\Models\Shop\Shop
+     */
+    public function getShop()
+    {
+        return $this->shop;
     }
 }

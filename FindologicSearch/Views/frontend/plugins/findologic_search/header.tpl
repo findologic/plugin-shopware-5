@@ -1,10 +1,7 @@
 {block name="frontend_index_header_javascript_modernizr_lib" prepend}
 <script type="text/javascript">
 (function() {
-    var placeHolder1 = "{$placeholder1}";
-    var placeHolder2 = "{if $placeholder2 != ''}?usergrouphash=P{$placeholder2}{/if}";
-
-    var mainUrl = "https://cdn.findologic.com/static/"+ placeHolder1 +"/main.js" + placeHolder2;
+    var mainUrl = "{$mainUrl}";
 
     var loader = document.createElement('script');
     loader.type = 'text/javascript';
