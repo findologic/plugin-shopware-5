@@ -336,6 +336,10 @@ class Export
      */
     public function urlSEOOptimization($path, $catLanguage)
     {
+        if ($catLanguage == 'deutsch') {
+            $catLanguage = 'german';
+        }
+
         $rewrite = new DefaultRuleProvider();
         $reflection = new \ReflectionClass($rewrite);
         $replaceRulesProperty = $reflection->getProperty('rules');
