@@ -36,4 +36,4 @@ before_script:
   - cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
 
 script:
-  - phpunit --configuration Tests/phpunit.xml
+  - phpunit --configuration ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}/Tests/phpunit.xml
