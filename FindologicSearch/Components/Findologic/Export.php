@@ -139,7 +139,7 @@ class Export
     public function getAllValidProducts()
     {
         $exportOutOfStock = (bool)Shopware()->Config()->get('findologic.exportOutOfStock');
-        $query = $exportOutOfStock ? '(d.inStock <= 0 AND a.lastStock = 0) OR (d.inStock > 0)' : 'd.inStock > 0';
+        $query = $exportOutOfStock ? '(ad.inStock <= 0 AND a.lastStock = 0) OR (ad.inStock > 0)' : 'ad.inStock > 0';
 
         $queryBuilder = $this->em->createQueryBuilder();
         $queryBuilder
@@ -147,29 +147,24 @@ class Export
             ->from('Shopware\Models\Article\Article', 'article')
             ->orderBy('article.id');
 
-        $subQuery = $this->em->createQueryBuilder();
-        $subQuery
-            ->select('a')
-            ->from('Shopware\Models\Article\Article', 'a')
-            ->innerJoin('a.details', 'd')
-            ->leftJoin('a.customerGroups', 'cg')
-            ->innerJoin('a.categories', 'cat')
-            ->andWhere('a.active = 1')
-            ->andWhere("a.name != ''")
-            // only items that are on stock
-            ->andWhere($query)
-            ->andWhere('d.kind = 1') // meaning: field 'kind' represent variations
-            ->andWhere('d.active = 1') // meaning: include only active variations
-            // (value: 1 is for basic article and value: 2 for variant article ).
-            ->andWhere('cat.id IN (' . implode(',', array_keys($this->categories)) . ')')
-            ->groupBy('a.id')
-            ->having('COUNT(cg.id) < :nr_of_all_groups'); // meaning: if all user group are selected
-        // as avoid per article
+        $sql = "
+SELECT a.id
+FROM s_articles a
+INNER JOIN s_articles_details ad ON a.id = ad.articleID
+LEFT JOIN s_articles_avoid_customergroups aac ON a.id = aac.articleID
+LEFT JOIN s_core_customergroups cc ON cc.id = aac.customergroupID
+WHERE a.active = 1 AND a.name <> '' AND ". $query . " AND ad.kind = 1 AND ad.active = 1 AND (SELECT COUNT(*) FROM s_articles_categories ac WHERE ac.articleID = a.id AND ac.categoryID IN (". implode(',', array_keys($this->categories)) . ")) > 0 GROUP BY a.id HAVING COUNT(cc.id) < " . count($this->allUserGroups);
 
-        $sq = $subQuery->getQuery()->getDQL();
+        $statement = $this->em->getConnection()->prepare($sql);
+        $statement->execute();
+        $ids = $statement->fetchAll();
+
+        $ids = array_map(function ($record) {
+            return $record['id'];
+        }, $ids);
+
         $queryBuilder
-            ->andWhere($queryBuilder->expr()->in('article', $sq))
-            ->setParameter('nr_of_all_groups', count($this->allUserGroups));
+            ->andWhere($queryBuilder->expr()->in('article', $ids));
 
         $countQueryBuilder = clone $queryBuilder;
         $this->total = $countQueryBuilder
