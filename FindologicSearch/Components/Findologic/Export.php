@@ -1151,19 +1151,18 @@ WHERE a.active = 1 AND a.name <> '' AND ". $query . " AND ad.kind = 1 AND ad.act
                 ->getArrayResult();
             foreach ($articlePrices as $articlePrice) {
                 if ($articlePrice['customerGroup']['discount'] > 0) {
-                    $allProperties = $item->addChild('allProperties');
-                    $properties = $allProperties->addChild('properties');
+                    $discounts = $allProperties->addChild('properties');
 
-                    $properties->addAttribute(
+                    $discounts->addAttribute(
                         'usergroup',
                         $this->userGroupToHash($this->shopKey, $articlePrice['customerGroup']['key'])
                     );
-                    $this->addProperty($properties, 'discount', $articlePrice['customerGroup']['discount']);
+                    $this->addProperty($discounts, 'discount', $articlePrice['customerGroup']['discount']);
                 }
             }
 
             $this->addCustomProperties($article, $properties);
-            $this->addVotes($article, $properties);
+            $this->addVotes($article, $allProperties->addChild('properties'));
             $this->addNew($article, $properties);
             $this->addVariantsAdditionalInfo($article, $properties);
         }
@@ -1284,10 +1283,10 @@ WHERE a.active = 1 AND a.name <> '' AND ". $query . " AND ad.kind = 1 AND ad.act
      * Adds votes node.
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
-     * @param \SimpleXMLElement $allProperties XML node to render to.
+     * @param \SimpleXMLElement $properties XML node to render to.
      * @return void
      */
-    protected function addVotes($article, $allProperties)
+    protected function addVotes($article, $properties)
     {
         // add votes for an article depending on user groups that vote. If none, add to no-group
         // get votes average
@@ -1313,7 +1312,7 @@ WHERE a.active = 1 AND a.name <> '' AND ". $query . " AND ad.kind = 1 AND ad.act
                     $votes['no-group']['count'] += 1;
                 }
             }
-            $properties = $allProperties->addChild('properties');
+
             foreach ($votes as $key => $value) {
                 $properties->addAttribute('usergroup',
                     $this->userGroupToHash($this->shopKey, $key !== 'no-group' ? $key : 'EK'));
