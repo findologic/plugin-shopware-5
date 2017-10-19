@@ -1563,7 +1563,14 @@ class Export
         $criteria->limit($limit);
 
         $connection = $shopwareInstance->Models()->getConnection();
-        $repository = new Repository($connection);
+
+        if (version_compare(\Shopware::VERSION, '5.3.0', '>=')) {
+            $logger = Shopware()->PluginLogger();
+            $reflector = new LogawareReflectionHelper($logger);
+            $repository = new Repository($connection, $reflector);
+        } else {
+            $repository = new Repository($connection);
+        }
 
         $conditions = $repository->unserialize($conditions);
 
