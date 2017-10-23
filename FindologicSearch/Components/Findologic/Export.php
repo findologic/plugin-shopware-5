@@ -1231,7 +1231,9 @@ WHERE a.active = 1 AND a.name <> '' AND ". $query . " AND ad.kind = 1 AND ad.act
             $mainPrices = [];
             /** @var \Shopware\Models\Article\Price $price */
             foreach ($mainPrice as $price) {
-                $mainPrices[$price->getCustomerGroup()->getKey()] = $price->getPrice();
+                if ($price->getCustomerGroup()) {
+                    $mainPrices[$price->getCustomerGroup()->getKey()] = $price->getPrice();
+                }
             }
 
             /** @var \Shopware\Models\Article\Detail $variant */
@@ -1240,10 +1242,12 @@ WHERE a.active = 1 AND a.name <> '' AND ". $query . " AND ad.kind = 1 AND ad.act
                 if ($variant->getId() != $article->getMainDetail()->getId()) {
                     /** @var \Shopware\Models\Article\Price $variantPrice */
                     foreach ($variant->getPrices() as $variantPrice) {
-                        $group = $variantPrice->getCustomerGroup()->getKey();
-                        if (!empty($mainPrices[$group]) && $mainPrices[$group] !== $variantPrice->getPrice()) {
-                            $show = 1;
-                            break;
+                        if ($variantPrice->getCustomerGroup()) {
+                            $group = $variantPrice->getCustomerGroup()->getKey();
+                            if (!empty($mainPrices[$group]) && $mainPrices[$group] !== $variantPrice->getPrice()) {
+                                $show = 1;
+                                break;
+                            }
                         }
                     }
                 }
