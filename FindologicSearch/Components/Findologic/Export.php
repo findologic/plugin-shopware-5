@@ -7,6 +7,7 @@ use Shopware\Bundle\SearchBundle\Condition\CustomerGroupCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\StoreFrontBundle\Service\Core\ContextService;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContext;
+use Shopware\Components\LogawareReflectionHelper;
 use Shopware\Components\ProductStream\Repository;
 use Shopware\Models\Article\Article;
 use Cocur\Slugify\RuleProvider\DefaultRuleProvider;
