@@ -1162,7 +1162,7 @@ WHERE a.active = 1 AND a.name <> '' AND ". $query . " AND ad.kind = 1 AND ad.act
             }
 
             $this->addCustomProperties($article, $properties);
-            $this->addVotes($article, $allProperties->addChild('properties'));
+            $this->addVotes($article, $allProperties);
             $this->addNew($article, $properties);
             $this->addVariantsAdditionalInfo($article, $properties);
         }
@@ -1283,10 +1283,10 @@ WHERE a.active = 1 AND a.name <> '' AND ". $query . " AND ad.kind = 1 AND ad.act
      * Adds votes node.
      *
      * @param \Shopware\Models\Article\Article $article Product used as a source for XML.
-     * @param \SimpleXMLElement $properties XML node to render to.
+     * @param \SimpleXMLElement $allProperties XML node to render to.
      * @return void
      */
-    protected function addVotes($article, $properties)
+    protected function addVotes($article, $allProperties)
     {
         // add votes for an article depending on user groups that vote. If none, add to no-group
         // get votes average
@@ -1297,6 +1297,8 @@ WHERE a.active = 1 AND a.name <> '' AND ". $query . " AND ad.kind = 1 AND ad.act
         ]);
         $votes = array();
         if (count($voteData) > 0) {
+            $properties = $allProperties->addChild('properties');
+
             foreach ($voteData as $vote) {
                 if ($vote['email'] !== '') {
                     $sqlGroup = /** @lang mysql */
