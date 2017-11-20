@@ -1,4 +1,7 @@
 # findologicDI
+
+## Build Status
+
 ## About findologicDI
 This skeleton contains a License file, fileheader and a basic README.
 
