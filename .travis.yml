@@ -16,7 +16,7 @@ env:
     - SHOPWARE_VERSION="5.2"
     - SHOPWARE_VERSION="5.3"
   global:
-    - PLUGIN_NAME=FindologicDI
+    - PLUGIN_NAME=findologicDI
     - SHOPWARE_DIRECTORY=${HOME}/shopware
     - PLUGIN_DIRECTORY=${SHOPWARE_DIRECTORY}/custom/plugins
 
