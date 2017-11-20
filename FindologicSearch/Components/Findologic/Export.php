@@ -302,7 +302,7 @@ WHERE a.active = 1 AND a.name <> '' AND ". $query . " AND ad.kind = 1 AND ad.act
             }
 
             $path .= $category['name'];
-            $path = str_replace($catLanguage, '', strtolower($path));
+            $path = str_replace($catLanguage, '', $path);
 
             if ($this->shopwareVersion >= 524) {
                 $urlSEO =  $this->urlSEOOptimization($path, $catLanguage);
@@ -379,8 +379,6 @@ WHERE a.active = 1 AND a.name <> '' AND ". $query . " AND ad.kind = 1 AND ad.act
      */
     private function extraRules($path, $catLanguage)
     {
-        $path = strtolower($path);
-
         $rewriteRules = static::$rewriteRules;
         if ($this->shopwareVersion >= 524) {
             $rewriteRules[' & '] = '-';
