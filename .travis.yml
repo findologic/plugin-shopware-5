@@ -38,6 +38,7 @@ before_script:
   - cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
 
 script:
+  - composer test
 
 matrix:
   allow_failures:
