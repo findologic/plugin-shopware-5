@@ -1,0 +1,7 @@
+{
+  "name": "findologic/shopwareDI",
+  "description": "Findologic DI Plugin for shopware ecommerce system",
+  "keywords": ["shopware", "shop", "Findologic"],
+  "homepage": "http://www.findologic.com",
+  "type": "project"
+}
