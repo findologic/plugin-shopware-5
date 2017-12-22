@@ -1,13 +1,28 @@
 {
   "name": "findologic/shopwareDI",
   "description": "Findologic DI Plugin for shopware ecommerce system",
-  "keywords": ["shopware", "shop", "Findologic"],
+  "keywords": [
+    "shopware",
+    "shop",
+    "Findologic"
+  ],
   "homepage": "http://www.findologic.com",
   "type": "project",
+  "require-dev": {
+    "phpunit/phpunit": "6.4.4"
+  },
   "scripts": {
     "cs-check": "php-cs-fixer fix --dry-run -v",
     "cs-fix": "php-cs-fixer fix -v",
-    "test": "",
-    "test-unit": "phpunit -c phpunit_unit.xml.dist --colors=always"
+    "test": "phpunit -c phpunit.xml.dist --colors=always",
+    "test-unit": "phpunit tests/ --colors=always"
+  },
+  "autoload": {
+    "psr-4": {
+      "findologicDI\\": "/"
+    }
+  },
+  "require": {
+    "findologic/libflexport": "^1.0"
   }
 }

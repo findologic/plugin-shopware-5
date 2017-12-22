@@ -16,8 +16,9 @@ class findologicDI extends Plugin
     */
     public function build(ContainerBuilder $container)
     {
-        $container->setParameter('findologic_d_i.plugin_dir', $this->getPath());
+        require __DIR__ . '/vendor/autoload.php';
         parent::build($container);
+        $container->setParameter('findologic_d_i.plugin_dir', $this->getPath());
     }
 
 }
