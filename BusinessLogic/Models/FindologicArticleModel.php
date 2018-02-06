@@ -7,6 +7,7 @@ namespace findologicDI\BusinessLogic\Models {
 	use FINDOLOGIC\Export\Data\DateAdded;
 	use FINDOLOGIC\Export\Data\Description;
 	use FINDOLOGIC\Export\Data\Item;
+	use FINDOLOGIC\Export\Data\Keyword;
 	use FINDOLOGIC\Export\Data\Name;
 	use FINDOLOGIC\Export\Data\Ordernumber;
 	use FINDOLOGIC\Export\Data\Price;
@@ -239,7 +240,18 @@ namespace findologicDI\BusinessLogic\Models {
 		}
 
 		protected function setKeywords() {
-
+			$articleKeywordsString = $this->baseArticle->getKeywords();
+			// Keywords exists
+			if ($articleKeywordsString != ''){
+				//iterate through string
+				$articleKeywords = explode(',', $articleKeywordsString);
+				$xmlKeywords = array();
+				foreach ($articleKeywords as $keyword){
+					$xmlKeyword = new Keyword($keyword);
+					array_push($xmlKeywords, $xmlKeyword);
+				}
+				$this->xmlArticle->setAllKeywords($xmlKeywords);
+			}
 		}
 
 
