@@ -12,6 +12,7 @@ namespace findologicDI\BusinessLogic\Models {
 	use FINDOLOGIC\Export\Data\Price;
 	use FINDOLOGIC\Export\Data\SalesFrequency;
 	use FINDOLOGIC\Export\Data\Summary;
+	use FINDOLOGIC\Export\Data\Url;
 	use FINDOLOGIC\Export\Exporter;
 	use FINDOLOGIC\Export\XML\XMLExporter;
 	use findologicDI\ShopwareProcess;
@@ -97,8 +98,8 @@ namespace findologicDI\BusinessLogic\Models {
 			}
 
 			$this->setAddDate();
-			//$this->setUrls();
-			//$this->setKeywords();
+			$this->setUrls();
+			$this->setKeywords();
 			//$this->setSorts();
 			//$this->setImages();
 			$this->setSales();
@@ -226,6 +227,18 @@ namespace findologicDI\BusinessLogic\Models {
 			$salesFrequency = new SalesFrequency();
 			$salesFrequency->setValue( isset($articleFrequency) ? $articleFrequency : 0 );
 			$this->xmlArticle->setSalesFrequency( $salesFrequency );
+
+		}
+
+		protected function setUrls() {
+			$baseLink =  Shopware()->Config()->get('baseFile') . '?sViewport=detail&sArticle=' . $this->baseArticle->getId();
+			$seoUrl = Shopware()->Modules()->Core()->sRewriteLink($baseLink, $this->baseArticle->getName());
+			$xmlUrl = new Url();
+			$xmlUrl->setValue($seoUrl);
+			$this->xmlArticle->setUrl($xmlUrl);
+		}
+
+		protected function setKeywords() {
 
 		}
 
