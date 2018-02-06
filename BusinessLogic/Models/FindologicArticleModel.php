@@ -17,8 +17,10 @@ namespace findologicDI\BusinessLogic\Models {
 	use FINDOLOGIC\Export\Exporter;
 	use FINDOLOGIC\Export\XML\XMLExporter;
 	use findologicDI\ShopwareProcess;
+	use Shopware\Bundle\MediaBundle\MediaService;
 	use Shopware\Models\Article\Article;
 	use Shopware\Models\Article\Detail;
+	use Shopware\Models\Article\Image;
 	use Shopware\Models\Customer\Group;
 	use Shopware\Models\Order\Order;
 
@@ -101,8 +103,7 @@ namespace findologicDI\BusinessLogic\Models {
 			$this->setAddDate();
 			$this->setUrls();
 			$this->setKeywords();
-			//$this->setSorts();
-			//$this->setImages();
+			$this->setImages();
 			$this->setSales();
 			//$this->setAddProperties();
 
@@ -221,36 +222,71 @@ namespace findologicDI\BusinessLogic\Models {
 			$key       = array_search( $articleId, array_column( $this->salesFrequency, 'articleId' ) );
 
 			if ( $key != false ) {
-				$currentSale = $this->salesFrequency[ $key ];
+				$currentSale      = $this->salesFrequency[ $key ];
 				$articleFrequency = $currentSale[1];
 			}
 
 			$salesFrequency = new SalesFrequency();
-			$salesFrequency->setValue( isset($articleFrequency) ? $articleFrequency : 0 );
+			$salesFrequency->setValue( isset( $articleFrequency ) ? $articleFrequency : 0 );
 			$this->xmlArticle->setSalesFrequency( $salesFrequency );
 
 		}
 
 		protected function setUrls() {
-			$baseLink =  Shopware()->Config()->get('baseFile') . '?sViewport=detail&sArticle=' . $this->baseArticle->getId();
-			$seoUrl = Shopware()->Modules()->Core()->sRewriteLink($baseLink, $this->baseArticle->getName());
-			$xmlUrl = new Url();
-			$xmlUrl->setValue($seoUrl);
-			$this->xmlArticle->setUrl($xmlUrl);
+			$baseLink = Shopware()->Config()->get( 'baseFile' ) . '?sViewport=detail&sArticle=' . $this->baseArticle->getId();
+			$seoUrl   = Shopware()->Modules()->Core()->sRewriteLink( $baseLink, $this->baseArticle->getName() );
+			$xmlUrl   = new Url();
+			$xmlUrl->setValue( $seoUrl );
+			$this->xmlArticle->setUrl( $xmlUrl );
 		}
 
 		protected function setKeywords() {
 			$articleKeywordsString = $this->baseArticle->getKeywords();
 			// Keywords exists
-			if ($articleKeywordsString != ''){
+			if ( $articleKeywordsString != '' ) {
 				//iterate through string
-				$articleKeywords = explode(',', $articleKeywordsString);
-				$xmlKeywords = array();
-				foreach ($articleKeywords as $keyword){
-					$xmlKeyword = new Keyword($keyword);
-					array_push($xmlKeywords, $xmlKeyword);
+				$articleKeywords = explode( ',', $articleKeywordsString );
+				$xmlKeywords     = array();
+				foreach ( $articleKeywords as $keyword ) {
+					if ( $keyword != '' ) {
+						$xmlKeyword = new Keyword( $keyword );
+						array_push( $xmlKeywords, $xmlKeyword );
+					}
 				}
-				$this->xmlArticle->setAllKeywords($xmlKeywords);
+				if ( count( $xmlKeywords ) > 0 ) {
+					$this->xmlArticle->setAllKeywords( $xmlKeywords );
+				}
+
+			}
+		}
+
+		protected function setImages() {
+			$articleMainImages = $this->baseArticle->getImages()->getValues();
+			$mediaService      = Shopware()->Container()->get( 'shopware_media.media_service' );
+			$baseLink          = Shopware()->Modules()->Core()->sRewriteLink();
+			$imagesArray       = array();
+			/** @var Image $articleImage */
+			foreach ( $articleMainImages as $articleImage ) {
+				if ( $articleImage->getMedia() != null ) {
+					$imageDetails = $articleImage->getMedia()->getThumbnailFilePaths();
+					if ( count( $imageDetails ) > 0 ) {
+						$imagePath = $mediaService->getUrl( array_values( $imageDetails )[0] );
+						if ( $imagePath != '' ) {
+							$xmlImage = new \FINDOLOGIC\Export\Data\Image( $imagePath );
+							array_push( $imagesArray, $xmlImage );
+						}
+
+					}
+				}
+
+			}
+			if ( count( $imagesArray ) > 0 ) {
+				$this->xmlArticle->setAllImages( $imagesArray );
+			} else {
+				$noImage  = $baseLink . 'templates/_default/frontend/_resources/images/no_picture.jpg';
+				$xmlImage = new \FINDOLOGIC\Export\Data\Image( $noImage );
+				array_push( $imagesArray, $xmlImage );
+				$this->xmlArticle->setAllImages( $imagesArray );
 			}
 		}
 
