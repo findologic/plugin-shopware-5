@@ -23,6 +23,7 @@ namespace findologicDI\BusinessLogic\Models {
 	use Shopware\Models\Article\Article;
 	use Shopware\Models\Article\Detail;
 	use Shopware\Models\Article\Image;
+	use Shopware\Models\Article\Supplier;
 	use Shopware\Models\Category\Category;
 	use Shopware\Models\Customer\Group;
 	use Shopware\Models\Order\Order;
@@ -96,7 +97,7 @@ namespace findologicDI\BusinessLogic\Models {
 			$this->baseVariant    = $this->baseArticle->getMainDetail();
 			$this->salesFrequency = $salesFrequency;
 			$this->allUserGroups  = $allUserGroups;
-			$this->seoRouter = Shopware()->Container()->get('modules')->sRewriteTable();
+			$this->seoRouter      = Shopware()->Container()->get( 'modules' )->sRewriteTable();
 
 			// Load all variants
 			$this->variantArticles = $this->baseArticle->getDetails();
@@ -138,6 +139,11 @@ namespace findologicDI\BusinessLogic\Models {
 
 			/** @var Detail $detail */
 			foreach ( $this->variantArticles as $detail ) {
+
+				// Remove inactive variants
+				if ( $detail->getActive() == 0 ) {
+					continue;
+				}
 				$this->xmlArticle->addOrdernumber( new Ordernumber( $detail->getNumber() ) );
 
 				if ( $detail->getEan() ) {
@@ -306,19 +312,34 @@ namespace findologicDI\BusinessLogic\Models {
 
 			// Categories to XML Output
 			/** @var Attribute $xmlCatProperty */
-			$xmlCatProperty = new Attribute('cat_url');
+			$xmlCatProperty = new Attribute( 'cat_url' );
 
 			$catPathArray = array();
 
 			/** @var Category $category */
-			foreach ($this->baseArticle->getAllCategories() as $category){
-				$catPath = $this->seoRouter->sCategoryPath($category->getId());
-				array_push($catPathArray, '/' . implode('/', $catPath));
+			foreach ( $this->baseArticle->getAllCategories() as $category ) {
+				//Hide inactive categories
+				if ( ! $category->getActive() ) {
+					continue;
+				}
+				$catPath = $this->seoRouter->sCategoryPath( $category->getId() );
+				array_push( $catPathArray, '/' . implode( '/', $catPath ) );
 			}
 
-			$xmlCatProperty->setValues(array_unique($catPathArray));
+			$xmlCatProperty->setValues( array_unique( $catPathArray ) );
 
-			$this->xmlArticle->addAttribute($xmlCatProperty);
+			$this->xmlArticle->addAttribute( $xmlCatProperty );
+
+			// Supplier
+			/** @var Supplier $articleSupplier */
+			$articleSupplier = $this->baseArticle->getSupplier();
+			if ( isset( $articleSupplier ) ) {
+				$xmlSupplier = new Attribute( 'brand' );
+				$xmlSupplier->setValues( [$articleSupplier->getName()] );
+				$this->xmlArticle->addAttribute( $xmlSupplier );
+			}
+
+
 		}
 
 
