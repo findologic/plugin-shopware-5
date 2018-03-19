@@ -27,6 +27,8 @@ namespace findologicDI\BusinessLogic\Models {
 	use Shopware\Models\Category\Category;
 	use Shopware\Models\Customer\Group;
 	use Shopware\Models\Order\Order;
+	use Shopware\Models\Property\Option;
+	use Shopware\Models\Property\Value;
 
 	class FindologicArticleModel {
 
@@ -335,10 +337,58 @@ namespace findologicDI\BusinessLogic\Models {
 			$articleSupplier = $this->baseArticle->getSupplier();
 			if ( isset( $articleSupplier ) ) {
 				$xmlSupplier = new Attribute( 'brand' );
-				$xmlSupplier->setValues( [$articleSupplier->getName()] );
+				$xmlSupplier->setValues( [ $articleSupplier->getName() ] );
 				$this->xmlArticle->addAttribute( $xmlSupplier );
 			}
 
+			// Filter Values
+			$filters = $this->baseArticle->getPropertyValues();
+
+			/** @var Value $filter */
+			foreach ( $filters as $filter ) {
+
+				/** @var Option $option */
+				$option    = $filter->getOption();
+				$xmlFilter = new Attribute( $option->getName(), [ $filter->getValue() ] );
+				$this->xmlArticle->addAttribute( $xmlFilter );
+			}
+
+			// Additionaltext Varianten
+			$temp = [];
+			/** @var Detail $variant */
+			foreach ( $this->variantArticles as $variant ) {
+				if ( ! $variant->getActive() == 0 ) {
+					continue;
+				}
+				if ( ! empty( $variant->getAdditionalText() ) ) {
+					foreach ( explode( ' / ', $variant->getAdditionalText() ) as $value ) {
+						$temp[] = $value;
+					}
+				}
+			}
+
+			/* @var $configurator \Shopware\Models\Article\Configurator\Set */
+			$configurator = $this->baseArticle->getConfiguratorSet();
+
+			if ( $configurator ) {
+				/* @var $option \Shopware\Models\Article\Configurator\Option */
+				$options   = $configurator->getOptions();
+				$optValues = [];
+				foreach ( $options as $option ) {
+					$optValues[ $option->getGroup()->getName() ][] = $option->getName();
+				}
+				//add only options from active variants
+				foreach ( $optValues as $key => $value ) {
+					if ( ! empty( $temp ) ) {
+
+						$xmlConfig = new Attribute( $key, array_intersect( $value, $temp ) );
+						$this->xmlArticle->addAttribute( $xmlConfig );
+					} else {
+						$xmlConfig = new Attribute( $key,  $value  );
+						$this->xmlArticle->addAttribute( $xmlConfig );
+					}
+				}
+			}
 
 		}
 
