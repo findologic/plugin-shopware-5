@@ -5,6 +5,8 @@ namespace findologicDI;
 use Doctrine\ORM\PersistentCollection;
 use FINDOLOGIC\Export\Exporter;
 use findologicDI\BusinessLogic\Models\FindologicArticleModel;
+use Shopware\Models\Article\Article;
+use Shopware\Models\Category\Category;
 use Shopware\Models\Customer\Customer;
 use Shopware\Models\Order\Order;
 
@@ -48,6 +50,9 @@ class ShopwareProcess {
 		// Get all articles from selected shop
 		$allArticles = $this->shop->getCategory()->getAllArticles();
 
+
+		/** @var Category[] $allCategories */
+		$allCategories = $this->shop->getCategory()->getChildren();
 		//Sales Frequency
 
 		$this->orderRepository = Shopware()->Container()->get( 'models' )->getRepository( Order::class );
@@ -66,7 +71,13 @@ class ShopwareProcess {
 		$allUserGroups = $this->customerRepository->getCustomerGroupsQuery()->getResult();
 
 
+		/** @var Article $article */
 		foreach ( $allArticles as $article ) {
+
+			// Check if Article is Visible and Active
+			if (!$article->getActive()){
+				continue;
+			}
 			$findologicArticle = new FindologicArticleModel( $article, $this->shopKey, $allUserGroups, $articleSales);
 			array_push( $findologicArticles, $findologicArticle->getXmlRepresentation() );
 		}

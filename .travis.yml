@@ -15,6 +15,7 @@ env:
   matrix:
     - SHOPWARE_VERSION="5.2"
     - SHOPWARE_VERSION="5.3"
+    - SHOPWARE_VERSION="5.4"
   global:
     - PLUGIN_NAME=findologicDI
     - SHOPWARE_DIRECTORY=${HOME}/shopware

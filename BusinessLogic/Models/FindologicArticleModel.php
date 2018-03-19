@@ -4,6 +4,7 @@ namespace findologicDI\BusinessLogic\Models {
 
 
 	use Doctrine\ORM\PersistentCollection;
+	use FINDOLOGIC\Export\Data\Attribute;
 	use FINDOLOGIC\Export\Data\DateAdded;
 	use FINDOLOGIC\Export\Data\Description;
 	use FINDOLOGIC\Export\Data\Item;
@@ -18,9 +19,11 @@ namespace findologicDI\BusinessLogic\Models {
 	use FINDOLOGIC\Export\XML\XMLExporter;
 	use findologicDI\ShopwareProcess;
 	use Shopware\Bundle\MediaBundle\MediaService;
+	use Shopware\Components\Routing\Router;
 	use Shopware\Models\Article\Article;
 	use Shopware\Models\Article\Detail;
 	use Shopware\Models\Article\Image;
+	use Shopware\Models\Category\Category;
 	use Shopware\Models\Customer\Group;
 	use Shopware\Models\Order\Order;
 
@@ -68,6 +71,12 @@ namespace findologicDI\BusinessLogic\Models {
 
 
 		/**
+		 * @var \sRewriteTable
+		 */
+		var $seoRouter;
+
+
+		/**
 		 * FindologicArticleModel constructor.
 		 *
 		 * @param Article $shopwareArticle
@@ -75,6 +84,8 @@ namespace findologicDI\BusinessLogic\Models {
 		 * @param array $allUserGroups
 		 *
 		 * @param array $salesFrequency
+		 *
+		 * @throws \Exception
 		 */
 		public function __construct( Article $shopwareArticle, string $shopKey, array $allUserGroups, array $salesFrequency ) {
 
@@ -85,6 +96,7 @@ namespace findologicDI\BusinessLogic\Models {
 			$this->baseVariant    = $this->baseArticle->getMainDetail();
 			$this->salesFrequency = $salesFrequency;
 			$this->allUserGroups  = $allUserGroups;
+			$this->seoRouter = Shopware()->Container()->get('modules')->sRewriteTable();
 
 			// Load all variants
 			$this->variantArticles = $this->baseArticle->getDetails();
@@ -105,7 +117,7 @@ namespace findologicDI\BusinessLogic\Models {
 			$this->setKeywords();
 			$this->setImages();
 			$this->setSales();
-			//$this->setAddProperties();
+			$this->setAddProperties();
 
 
 			$this->setPrices();
@@ -288,6 +300,25 @@ namespace findologicDI\BusinessLogic\Models {
 				array_push( $imagesArray, $xmlImage );
 				$this->xmlArticle->setAllImages( $imagesArray );
 			}
+		}
+
+		protected function setAddProperties() {
+
+			// Categories to XML Output
+			/** @var Attribute $xmlCatProperty */
+			$xmlCatProperty = new Attribute('cat_url');
+
+			$catPathArray = array();
+
+			/** @var Category $category */
+			foreach ($this->baseArticle->getAllCategories() as $category){
+				$catPath = $this->seoRouter->sCategoryPath($category->getId());
+				array_push($catPathArray, '/' . implode('/', $catPath));
+			}
+
+			$xmlCatProperty->setValues(array_unique($catPathArray));
+
+			$this->xmlArticle->addAttribute($xmlCatProperty);
 		}
 
 
