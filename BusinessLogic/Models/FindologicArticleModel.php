@@ -32,7 +32,12 @@ namespace findologicDI\BusinessLogic\Models {
 	use Shopware\Models\Property\Option;
 	use Shopware\Models\Property\Value;
 
+
 	class FindologicArticleModel {
+
+		CONST WISHLIST_URL = 'note/add/ordernumber/';
+		CONST COMPARE_URL = 'compare/add_article/articleID/';
+		CONST CART_URL = 'checkout/addArticle/sAdd/';
 
 		/**
 		 * @var XMLExporter
@@ -334,7 +339,7 @@ namespace findologicDI\BusinessLogic\Models {
 
 			$xmlCatProperty->setValues( array_unique( $catPathArray ) );
 
-			array_push($allAttributes, $xmlCatProperty);
+			array_push( $allAttributes, $xmlCatProperty );
 
 			// Supplier
 			/** @var Supplier $articleSupplier */
@@ -342,7 +347,7 @@ namespace findologicDI\BusinessLogic\Models {
 			if ( isset( $articleSupplier ) ) {
 				$xmlSupplier = new Attribute( 'brand' );
 				$xmlSupplier->setValues( [ $articleSupplier->getName() ] );
-				array_push($allAttributes, $xmlSupplier);
+				array_push( $allAttributes, $xmlSupplier );
 			}
 
 			// Filter Values
@@ -354,7 +359,7 @@ namespace findologicDI\BusinessLogic\Models {
 				/** @var Option $option */
 				$option    = $filter->getOption();
 				$xmlFilter = new Attribute( $option->getName(), [ $filter->getValue() ] );
-				array_push($allAttributes, $xmlFilter);
+				array_push( $allAttributes, $xmlFilter );
 			}
 
 			// Varianten
@@ -386,10 +391,10 @@ namespace findologicDI\BusinessLogic\Models {
 					if ( ! empty( $temp ) ) {
 
 						$xmlConfig = new Attribute( $key, array_intersect( $value, $temp ) );
-						array_push($allAttributes, $xmlConfig);
+						array_push( $allAttributes, $xmlConfig );
 					} else {
 						$xmlConfig = new Attribute( $key, $value );
-						array_push($allAttributes, $xmlConfig);
+						array_push( $allAttributes, $xmlConfig );
 					}
 				}
 			}
@@ -420,11 +425,11 @@ namespace findologicDI\BusinessLogic\Models {
 			$now = time();
 
 			if ( $now >= $articleTime ) {
-				$xmlNewFlag = new Attribute( 'new', [1] );
+				$xmlNewFlag = new Attribute( 'new', [ 1 ] );
 			} else {
-				$xmlNewFlag = new Attribute( 'new', [0] );
+				$xmlNewFlag = new Attribute( 'new', [ 0 ] );
 			}
-			array_push($allAttributes, $xmlNewFlag);
+			array_push( $allAttributes, $xmlNewFlag );
 
 //			// Add votes_rating
 //			try {
@@ -436,34 +441,109 @@ namespace findologicDI\BusinessLogic\Models {
 //			}
 //
 			// Add free_shipping
-			array_push($allAttributes, new Attribute( 'free_shipping', [$this->baseVariant->getShippingFree() == '' ?  0 : $this->baseArticle->getMainDetail()->getShippingFree()] ) );
+			array_push( $allAttributes, new Attribute( 'free_shipping', [ $this->baseVariant->getShippingFree() == '' ? 0 : $this->baseArticle->getMainDetail()->getShippingFree() ] ) );
 
 			// Add sale
-			array_push($allAttributes, new Attribute( 'sale', [$this->baseArticle->getLastStock() == '' ? 0 : $this->baseArticle->getLastStock()] ) );
+			array_push( $allAttributes, new Attribute( 'sale', [ $this->baseArticle->getLastStock() == '' ? 0 : $this->baseArticle->getLastStock() ] ) );
 			/** @var Attribute $attribute */
-			foreach ($allAttributes as $attribute){
-				$this->xmlArticle->addAttribute($attribute);
+			foreach ( $allAttributes as $attribute ) {
+				$this->xmlArticle->addAttribute( $attribute );
 			}
 		}
 
 		protected function setUserGroups() {
-			if (count($this->allUserGroups) > 0){
+			if ( count( $this->allUserGroups ) > 0 ) {
 				$userGroupArray = array();
 				/** @var Group $userGroup */
-				foreach ($this->allUserGroups as $userGroup){
-					if (in_array($userGroup, $this->baseArticle->getCustomerGroups()->toArray())){
+				foreach ( $this->allUserGroups as $userGroup ) {
+					if ( in_array( $userGroup, $this->baseArticle->getCustomerGroups()->toArray() ) ) {
 						continue;
 					}
-					$userGroupAttribute = new Usergroup(ShopwareProcess::calculateUsergroupHash($this->shopKey, $userGroup->getKey()));
-					array_push($userGroupArray, $userGroupAttribute);
+					$userGroupAttribute = new Usergroup( ShopwareProcess::calculateUsergroupHash( $this->shopKey, $userGroup->getKey() ) );
+					array_push( $userGroupArray, $userGroupAttribute );
 				}
-				$this->xmlArticle->setAllUsergroups($userGroupArray);
+				$this->xmlArticle->setAllUsergroups( $userGroupArray );
 			}
 		}
 
 		protected function setProperties() {
 			$allAttributes = array();
-			
+			$rewrtieLink   = Shopware()->Modules()->Core()->sRewriteLink();
+			if ( self::checkIfHasValue( $this->baseArticle->getHighlight() ) ) {
+				array_push( $allAttributes, new Attribute( 'highlight', [ $this->baseArticle->getHighlight() ] ) );
+			}
+			if ( self::checkIfHasValue( $this->baseArticle->getTax() ) ) {
+				array_push( $allAttributes, new Attribute( 'tax', [ $this->baseArticle->getTax() ] ) );
+			}
+			if ( self::checkIfHasValue( $this->baseVariant->getShippingTime() ) ) {
+				array_push( $allAttributes, new Attribute( 'shippingtime', [ $this->baseVariant->getShippingTime() ] ) );
+			}
+			if ( self::checkIfHasValue( $this->baseVariant->getPurchaseUnit() ) ) {
+				array_push( $allAttributes, new Attribute( 'purchaseunit', [ $this->baseVariant->getPurchaseUnit() ] ) );
+			}
+			if ( self::checkIfHasValue( $this->baseVariant->getReferenceUnit() ) ) {
+				array_push( $allAttributes, new Attribute( 'referenceunit', [ $this->baseVariant->getReferenceUnit() ] ) );
+			}
+			if ( self::checkIfHasValue( $this->baseVariant->getPackUnit() ) ) {
+				array_push( $allAttributes, new Attribute( 'packunit', [ $this->baseVariant->getPackUnit() ] ) );
+			}
+			if ( self::checkIfHasValue( $this->baseVariant->getInStock() ) ) {
+				array_push( $allAttributes, new Attribute( 'quantity', [ $this->baseVariant->getInStock() ] ) );
+			}
+			if ( self::checkIfHasValue( $this->baseVariant->getWeight() ) ) {
+				array_push( $allAttributes, new Attribute( 'weight', [ $this->baseVariant->getWeight() ] ) );
+			}
+			if ( self::checkIfHasValue( $this->baseVariant->getWidth() ) ) {
+				array_push( $allAttributes, new Attribute( 'width', [ $this->baseVariant->getWidth() ] ) );
+			}
+			if ( self::checkIfHasValue( $this->baseVariant->getHeight() ) ) {
+				array_push( $allAttributes, new Attribute( 'height', [ $this->baseVariant->getHeight() ] ) );
+			}
+			if ( self::checkIfHasValue( $this->baseVariant->getLen() ) ) {
+				array_push( $allAttributes, new Attribute( 'length', [ $this->baseVariant->getLen() ] ) );
+			}
+			if ( self::checkIfHasValue( $this->baseVariant->getReleaseDate() ) ) {
+				array_push( $allAttributes, new Attribute( 'release_date', [ $this->baseVariant->getReleaseDate()->format( DATE_ATOM ) ] ) );
+			}
+
+			/** @var \Shopware\Models\Attribute\Article $attributes */
+			$attributes = $this->baseArticle->getAttribute();
+			if ( $attributes ) {
+				for ( $i = 1; $i < 21; $i ++ ) {
+					$value      = "";
+					$methodName = "getAttr$i";
+
+					if ( method_exists( $attributes, $methodName ) ) {
+						$value = $attributes->$methodName();
+					}
+					if ( self::checkIfHasValue( $value ) ) {
+						array_push( $allAttributes, new Attribute( "attr$i", [ $value ] ) );
+					}
+				}
+			}
+
+			array_push( $allAttributes, new Attribute( 'wishlistUrl', [ $rewrtieLink . self::WISHLIST_URL . $this->baseVariant->getNumber() ] ) );
+			array_push( $allAttributes, new Attribute( 'compareUrl', [ $rewrtieLink . self::COMPARE_URL . $this->baseArticle->getId() ] ) );
+			array_push( $allAttributes, new Attribute( 'addToCartUrl', [ $rewrtieLink . self::CART_URL . $this->baseVariant->getNumber() ] ) );
+
+			$brandImage = $this->baseArticle->getSupplier()->getImage();
+
+			if ( self::checkIfHasValue( $brandImage ) ) {
+				array_push( $allAttributes, new Attribute( 'brand_image', [ $rewrtieLink . $brandImage ] ) );
+			}
+
+			/** @var Attribute $attribute */
+			foreach ( $allAttributes as $attribute ) {
+				$this->xmlArticle->addAttribute( $attribute );
+			}
+		}
+
+		protected static function checkIfHasValue( $value ) {
+			if ( ! isset( $value ) || strlen( $value ) == 0 || $value == '' || $value == null ) {
+				return false;
+			}
+
+			return true;
 		}
 	}
 }
