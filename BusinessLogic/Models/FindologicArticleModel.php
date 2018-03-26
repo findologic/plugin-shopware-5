@@ -15,10 +15,12 @@ namespace findologicDI\BusinessLogic\Models {
 	use FINDOLOGIC\Export\Data\SalesFrequency;
 	use FINDOLOGIC\Export\Data\Summary;
 	use FINDOLOGIC\Export\Data\Url;
+	use FINDOLOGIC\Export\Data\Usergroup;
 	use FINDOLOGIC\Export\Exporter;
 	use FINDOLOGIC\Export\XML\XMLExporter;
 	use findologicDI\ShopwareProcess;
 	use Shopware\Bundle\MediaBundle\MediaService;
+	use Shopware\Components\Api\Resource\CustomerGroup;
 	use Shopware\Components\Routing\Router;
 	use Shopware\Models\Article\Article;
 	use Shopware\Models\Article\Detail;
@@ -120,11 +122,11 @@ namespace findologicDI\BusinessLogic\Models {
 			$this->setKeywords();
 			$this->setImages();
 			$this->setSales();
-			$this->setAddProperties();
-
-
+			$this->setAttributes();
+			$this->setUserGroups();
 			$this->setPrices();
 			$this->setVariantOrdernumbers();
+			$this->setProperties();
 		}
 
 		public function getXmlRepresentation() {
@@ -310,7 +312,9 @@ namespace findologicDI\BusinessLogic\Models {
 			}
 		}
 
-		protected function setAddProperties() {
+		protected function setAttributes() {
+
+			$allAttributes = array();
 
 			// Categories to XML Output
 			/** @var Attribute $xmlCatProperty */
@@ -330,7 +334,7 @@ namespace findologicDI\BusinessLogic\Models {
 
 			$xmlCatProperty->setValues( array_unique( $catPathArray ) );
 
-			$this->xmlArticle->addAttribute( $xmlCatProperty );
+			array_push($allAttributes, $xmlCatProperty);
 
 			// Supplier
 			/** @var Supplier $articleSupplier */
@@ -338,7 +342,7 @@ namespace findologicDI\BusinessLogic\Models {
 			if ( isset( $articleSupplier ) ) {
 				$xmlSupplier = new Attribute( 'brand' );
 				$xmlSupplier->setValues( [ $articleSupplier->getName() ] );
-				$this->xmlArticle->addAttribute( $xmlSupplier );
+				array_push($allAttributes, $xmlSupplier);
 			}
 
 			// Filter Values
@@ -350,10 +354,10 @@ namespace findologicDI\BusinessLogic\Models {
 				/** @var Option $option */
 				$option    = $filter->getOption();
 				$xmlFilter = new Attribute( $option->getName(), [ $filter->getValue() ] );
-				$this->xmlArticle->addAttribute( $xmlFilter );
+				array_push($allAttributes, $xmlFilter);
 			}
 
-			// Additionaltext Varianten
+			// Varianten
 			$temp = [];
 			/** @var Detail $variant */
 			foreach ( $this->variantArticles as $variant ) {
@@ -382,16 +386,84 @@ namespace findologicDI\BusinessLogic\Models {
 					if ( ! empty( $temp ) ) {
 
 						$xmlConfig = new Attribute( $key, array_intersect( $value, $temp ) );
-						$this->xmlArticle->addAttribute( $xmlConfig );
+						array_push($allAttributes, $xmlConfig);
 					} else {
-						$xmlConfig = new Attribute( $key,  $value  );
-						$this->xmlArticle->addAttribute( $xmlConfig );
+						$xmlConfig = new Attribute( $key, $value );
+						array_push($allAttributes, $xmlConfig);
 					}
 				}
 			}
 
+			// Add is new
+			$form             = Shopware()->Models()->getRepository( '\Shopware\Models\Config\Form' )
+			                              ->findOneBy( [
+				                              'name' => 'Frontend76',
+			                              ] );
+			$defaultNew       = Shopware()->Models()->getRepository( '\Shopware\Models\Config\Element' )
+			                              ->findOneBy( [
+				                              'form' => $form,
+				                              'name' => 'markasnew',
+			                              ] );
+			$specificValueNew = Shopware()->Models()->getRepository( '\Shopware\Models\Config\Value' )
+			                              ->findOneBy( [
+				                              'element' => $defaultNew,
+			                              ] );
+
+			$articleAdded = $this->baseArticle->getAdded()->getTimestamp();
+
+			if ( $specificValueNew ) {
+				$articleTime = $specificValueNew->getValue() * 86400 + $articleAdded;
+			} else {
+				$articleTime = $defaultNew->getValue() * 86400 + $articleAdded;
+			}
+
+			$now = time();
+
+			if ( $now >= $articleTime ) {
+				$xmlNewFlag = new Attribute( 'new', [1] );
+			} else {
+				$xmlNewFlag = new Attribute( 'new', [0] );
+			}
+			array_push($allAttributes, $xmlNewFlag);
+
+//			// Add votes_rating
+//			try {
+//				$sArticle     = Shopware()->Modules()->Articles()->sGetArticleById( $this->baseArticle->getId() );
+//				$votesAverage = (float) $sArticle['sVoteAverange']['averange'];
+//				$this->xmlArticle->addAttribute( new Attribute( 'votes_rating', [round( $votesAverage / 2 ) ?? 0] ) );
+//			} catch ( \Exception $e ) {
+//				// LOG EXCEPTION
+//			}
+//
+			// Add free_shipping
+			array_push($allAttributes, new Attribute( 'free_shipping', [$this->baseVariant->getShippingFree() == '' ?  0 : $this->baseArticle->getMainDetail()->getShippingFree()] ) );
+
+			// Add sale
+			array_push($allAttributes, new Attribute( 'sale', [$this->baseArticle->getLastStock() == '' ? 0 : $this->baseArticle->getLastStock()] ) );
+			/** @var Attribute $attribute */
+			foreach ($allAttributes as $attribute){
+				$this->xmlArticle->addAttribute($attribute);
+			}
 		}
 
+		protected function setUserGroups() {
+			if (count($this->allUserGroups) > 0){
+				$userGroupArray = array();
+				/** @var Group $userGroup */
+				foreach ($this->allUserGroups as $userGroup){
+					if (in_array($userGroup, $this->baseArticle->getCustomerGroups()->toArray())){
+						continue;
+					}
+					$userGroupAttribute = new Usergroup(ShopwareProcess::calculateUsergroupHash($this->shopKey, $userGroup->getKey()));
+					array_push($userGroupArray, $userGroupAttribute);
+				}
+				$this->xmlArticle->setAllUsergroups($userGroupArray);
+			}
+		}
 
+		protected function setProperties() {
+			$allAttributes = array();
+			
+		}
 	}
 }
