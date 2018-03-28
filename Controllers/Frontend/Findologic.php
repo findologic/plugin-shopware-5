@@ -28,4 +28,5 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
 
     }
 
+
 }

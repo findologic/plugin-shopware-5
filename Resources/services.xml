@@ -9,6 +9,8 @@
 
     <services>
         <service id="findologic_d_i.subscriber.frontend" class="findologicDI\Subscriber\Frontend">
+            <argument>%findologic_d_i.plugin_dir%</argument>
+            <argument type="service" id="template"/>
             <tag name="shopware.event_subscriber" />
         </service>
 
