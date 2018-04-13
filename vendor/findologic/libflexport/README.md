@@ -2,13 +2,15 @@
 
 [![Travis](https://img.shields.io/travis/findologic/libflexport.svg)](https://travis-ci.org/findologic/libflexport)
 [![Latest Stable Version](https://poser.pugx.org/findologic/libflexport/v/stable)](https://packagist.org/packages/findologic/libflexport)
-[![Code Coverage](https://codeclimate.com/github/findologic/libflexport.svg)](https://codeclimate.com/github/findologic/libflexport)
+[![Code Climate](https://codeclimate.com/github/findologic/libflexport.svg)](https://codeclimate.com/github/findologic/libflexport)
+[![Codecov](https://codecov.io/gh/findologic/libflexport/branch/develop/graph/badge.svg)](https://codecov.io/gh/findologic/libflexport)
 
 ## Synopsis
 
 This project provides a export library for XML and CSV generation according to the FINDOLOGIC export patterns.
 * XML <https://docs.findologic.com/doku.php?id=export_patterns:xml>
 * CSV <https://docs.findologic.com/doku.php?id=export_patterns:csv>
+  * Note that CSV support is experimental and not intended for production use yet.
 
 #### Export recommendation
 
@@ -34,19 +36,25 @@ Using the XML export is recommended by FINDOLOGIC. The XML is easier to read and
 ```php
 require_once './vendor/autoload.php';
 
-use \FINDOLOGIC\Export\XML\XMLExporter;
+use \FINDOLOGIC\Export\Exporter;
 use \FINDOLOGIC\Export\Data\Price;
 
 $exporter = Exporter::create(Exporter::TYPE_XML);
 
 $item = $exporter->createItem('123');
 
-$price = new Price();
-$price->setValue('13.37');
-$item->setPrice($price);
+$item->addPrice(13.37);
+// Alternative long form:
+// $price = new Price();
+// $price->setValue(13.37);
+// $item->setPrice($price);
 
-$exporter->serializeItems(array($item), 0, 1);
+$xmlOutput = $exporter->serializeItems([$item], 0, 1, 1);
 ```
+
+### Examples
+
+For more specific examples, please have a look at the examples directory.
 
 ## Contributors
 

@@ -7,11 +7,5 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Prophecy\\' => array($vendorDir . '/phpspec/prophecy/src'),
-    'PhpOption\\' => array($vendorDir . '/phpoption/phpoption/src'),
-    'PhpCollection' => array($vendorDir . '/phpcollection/phpcollection/src'),
-    'Metadata\\' => array($vendorDir . '/jms/metadata/src'),
-    'JMS\\Serializer' => array($vendorDir . '/jms/serializer/src'),
-    'JMS\\' => array($vendorDir . '/jms/parser-lib/src'),
     'FINDOLOGIC\\Export' => array($vendorDir . '/findologic/libflexport/src'),
-    'Doctrine\\Common\\Lexer\\' => array($vendorDir . '/doctrine/lexer/lib'),
 );

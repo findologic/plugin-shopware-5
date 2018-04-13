@@ -23,6 +23,6 @@
     }
   },
   "require": {
-    "findologic/libflexport": "^1.0"
+    "findologic/libflexport": "1.*"
   }
 }

@@ -227,12 +227,12 @@ namespace findologicDI\BusinessLogic\Models {
 
 				$xmlPrice = new Price();
 				$xmlPrice->setValue( sprintf( '%.2f', $price ), ShopwareProcess::calculateUsergroupHash( $userGroup->getKey(), $this->shopKey ) );
-				$this->xmlArticle->setPrice( $xmlPrice );
+				$this->xmlArticle->addPrice( sprintf( '%.2f', $price ), ShopwareProcess::calculateUsergroupHash( $userGroup->getKey(), $this->shopKey ) );
 
 				if ( $userGroup->getKey() == 'EK' ) {
 					$basePrice = new Price();
-					$xmlPrice->setValue( sprintf( '%.2f', $price ) );
-					$this->xmlArticle->setPrice( $basePrice );
+					$basePrice->setValue( sprintf( '%.2f', $price ) );
+					$this->xmlArticle->addPrice( sprintf( '%.2f', $price ));
 				}
 			}
 
