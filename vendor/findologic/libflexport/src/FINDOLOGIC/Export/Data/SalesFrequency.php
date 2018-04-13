@@ -27,7 +27,7 @@ class SalesFrequency extends UsergroupAwareSimpleValue
         }
 
         if (!is_int($value) || $value < 0) {
-            //throw new ValueIsNotPositiveIntegerException($value);
+            throw new ValueIsNotPositiveIntegerException($value);
         }
 
         return $value;

@@ -41,6 +41,9 @@ class Frontend implements SubscriberInterface {
 
 	public function onFrontendPostDispatch( \Enlight_Event_EventArgs $args ) {
 
+		if (!(bool)Shopware()->Config()->get( 'ActivateFindologic' )){
+			return;
+		}
 		$sqlGroupKey = /** @lang mysql */
 			'SELECT customergroup FROM s_user where sessionID =? ';
 		$groupKey    = Shopware()->Db()->fetchone( $sqlGroupKey, [

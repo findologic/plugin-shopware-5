@@ -250,7 +250,7 @@ namespace findologicDI\BusinessLogic\Models {
 
 			if ( $key != false ) {
 				$currentSale      = $this->salesFrequency[ $key ];
-				$articleFrequency = $currentSale[1];
+				$articleFrequency = (int)$currentSale[1];
 			}
 
 			$salesFrequency = new SalesFrequency();

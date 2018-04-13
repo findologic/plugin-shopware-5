@@ -11,6 +11,13 @@
             <description lang="de">Findologic Shopkey</description>
             <description lang="en">Findologic Shopkey</description>
         </element>
+        <element type="boolean" required="true" scope="shop">
+            <name>ActivateFindologic</name>
+            <label lang="de">Aktiv</label>
+            <label lang="en">Active</label>
+            <description lang="de">Aktiviert die Findologic Suche</description>
+            <description lang="en">activate the findologic search provider</description>
+        </element>
     </elements>
 
 </config>
