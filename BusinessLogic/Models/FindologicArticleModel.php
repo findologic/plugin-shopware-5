@@ -295,12 +295,19 @@ namespace findologicDI\BusinessLogic\Models {
 			/** @var Image $articleImage */
 			foreach ( $articleMainImages as $articleImage ) {
 				if ( $articleImage->getMedia() != null ) {
-					$imageDetails = $articleImage->getMedia()->getThumbnailFilePaths();
+					/** @var Image $imageRaw */
+					$imageRaw = $articleImage->getMedia();
+					$imageDetails = $imageRaw->getThumbnailFilePaths();
+					$imageDefault=  $imageRaw->getPath();
+
 					if ( count( $imageDetails ) > 0 ) {
-						$imagePath = $mediaService->getUrl( array_values( $imageDetails )[0] );
-						if ( $imagePath != '' ) {
-							$xmlImage = new \FINDOLOGIC\Export\Data\Image( $imagePath );
-							array_push( $imagesArray, $xmlImage );
+						$imagePath = $mediaService->getUrl($imageDefault);
+						$imagePathThumb = $mediaService->getUrl( array_values( $imageDetails )[0] );
+						if ( $imagePathThumb != '' ) {
+							$xmlImagePath = new \FINDOLOGIC\Export\Data\Image( $imagePath, \FINDOLOGIC\Export\Data\Image::TYPE_DEFAULT );
+							array_push( $imagesArray, $xmlImagePath );
+							$xmlImageThumb = new \FINDOLOGIC\Export\Data\Image( $imagePathThumb, \FINDOLOGIC\Export\Data\Image::TYPE_THUMBNAIL );
+							array_push( $imagesArray, $xmlImageThumb );
 						}
 
 					}
