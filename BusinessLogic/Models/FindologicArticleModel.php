@@ -85,6 +85,11 @@ namespace findologicDI\BusinessLogic\Models {
 		 */
 		var $seoRouter;
 
+		/**
+		 * @var bool
+		 */
+		var $shouldBeExported;
+
 
 		/**
 		 * FindologicArticleModel constructor.
@@ -98,15 +103,15 @@ namespace findologicDI\BusinessLogic\Models {
 		 * @throws \Exception
 		 */
 		public function __construct( Article $shopwareArticle, string $shopKey, array $allUserGroups, array $salesFrequency ) {
-
-			$this->exporter       = Exporter::create( Exporter::TYPE_XML );
-			$this->xmlArticle     = $this->exporter->createItem( $shopwareArticle->getId() );
-			$this->shopKey        = $shopKey;
-			$this->baseArticle    = $shopwareArticle;
-			$this->baseVariant    = $this->baseArticle->getMainDetail();
-			$this->salesFrequency = $salesFrequency;
-			$this->allUserGroups  = $allUserGroups;
-			$this->seoRouter      = Shopware()->Container()->get( 'modules' )->sRewriteTable();
+			$this->shouldBeExported = false;
+			$this->exporter         = Exporter::create( Exporter::TYPE_XML );
+			$this->xmlArticle       = $this->exporter->createItem( $shopwareArticle->getId() );
+			$this->shopKey          = $shopKey;
+			$this->baseArticle      = $shopwareArticle;
+			$this->baseVariant      = $this->baseArticle->getMainDetail();
+			$this->salesFrequency   = $salesFrequency;
+			$this->allUserGroups    = $allUserGroups;
+			$this->seoRouter        = Shopware()->Container()->get( 'modules' )->sRewriteTable();
 
 			// Load all variants
 			$this->variantArticles = $this->baseArticle->getDetails();
@@ -149,6 +154,10 @@ namespace findologicDI\BusinessLogic\Models {
 			/** @var Detail $detail */
 			foreach ( $this->variantArticles as $detail ) {
 
+				if ( $detail->getInStock() < 1 ) {
+					continue;
+				}
+				$this->shouldBeExported = true;
 				// Remove inactive variants
 				if ( $detail->getActive() == 0 ) {
 					continue;
@@ -232,7 +241,7 @@ namespace findologicDI\BusinessLogic\Models {
 				if ( $userGroup->getKey() == 'EK' ) {
 					$basePrice = new Price();
 					$basePrice->setValue( sprintf( '%.2f', $price ) );
-					$this->xmlArticle->addPrice( sprintf( '%.2f', $price ));
+					$this->xmlArticle->addPrice( sprintf( '%.2f', $price ) );
 				}
 			}
 
@@ -250,7 +259,7 @@ namespace findologicDI\BusinessLogic\Models {
 
 			if ( $key != false ) {
 				$currentSale      = $this->salesFrequency[ $key ];
-				$articleFrequency = (int)$currentSale[1];
+				$articleFrequency = (int) $currentSale[1];
 			}
 
 			$salesFrequency = new SalesFrequency();
@@ -296,12 +305,12 @@ namespace findologicDI\BusinessLogic\Models {
 			foreach ( $articleMainImages as $articleImage ) {
 				if ( $articleImage->getMedia() != null ) {
 					/** @var Image $imageRaw */
-					$imageRaw = $articleImage->getMedia();
+					$imageRaw     = $articleImage->getMedia();
 					$imageDetails = $imageRaw->getThumbnailFilePaths();
-					$imageDefault=  $imageRaw->getPath();
+					$imageDefault = $imageRaw->getPath();
 
 					if ( count( $imageDetails ) > 0 ) {
-						$imagePath = $mediaService->getUrl($imageDefault);
+						$imagePath      = $mediaService->getUrl( $imageDefault );
 						$imagePathThumb = $mediaService->getUrl( array_values( $imageDetails )[0] );
 						if ( $imagePathThumb != '' ) {
 							$xmlImagePath = new \FINDOLOGIC\Export\Data\Image( $imagePath, \FINDOLOGIC\Export\Data\Image::TYPE_DEFAULT );

@@ -18,6 +18,11 @@
 
         </service>
 
+         <service id="findlogicDI.product_number_search" class="findologicDI\Bundles\ProductNumberSearch" decorates="shopware_search.product_number_search"
+                 public="false">
+            <argument type="service" id="findlogicDI.product_number_search.inner"/>
+        </service>
+
 
         <service id="findologic_d_i.commands.export_command"
                  class="findologicDI\Commands\ExportCommand">
