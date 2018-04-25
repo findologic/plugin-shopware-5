@@ -1,0 +1,16 @@
+{
+  "require-dev": {
+    "shopware/plugin-dev-tools": "master-dev",
+    "soprex/findologic-test-lib": "0.0.9.16"
+  },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/shopwareLabs/plugin-dev-tools"
+    },
+    {
+      "type": "git",
+      "url": "git@github.com:soprex/findologic-test-lib.git"
+    }
+  ]
+}
