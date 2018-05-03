@@ -4,6 +4,8 @@ namespace findologicDI\Bundles;
 
 use Exception;
 use Shopware\Bundle\SearchBundle\Criteria;
+use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
+use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
 use Shopware\Components\Api\Exception\NotFoundException;
@@ -27,8 +29,8 @@ class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumber
 	public function __construct( ProductNumberSearchInterface $service ) {
 		$this->originalService = $service;
 		$this->httpClient      = new \Zend_Http_Client();
-		$this->shopKey         = Shopware()->Config()->get( 'ShopKey' ); //'E5F652BCAD2871B7B2101B9DF87D24E0';
-		$this->shopUrl         = explode( '//', Shopware()->Modules()->Core()->sRewriteLink() )[1]; //'shop.penny.de';
+		$this->shopKey         = 'E5F652BCAD2871B7B2101B9DF87D24E0'; //Shopware()->Config()->get( 'ShopKey' ); //
+		$this->shopUrl         = 'shop.penny.de/'; //explode( '//', Shopware()->Modules()->Core()->sRewriteLink() )[1]; //
 	}
 
 	/**
@@ -72,13 +74,47 @@ class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumber
 					}
 				}
 
+				/* FACETSS */
+				$facets = array();
+				foreach ( $xmlResponse->filters->filter as $filter ) {
+					$facetItem            = array();
+					$facetItem['name']    = (string) $filter->name;
+					$facetItem['select']  = (string) $filter->select;
+					$facetItem['display'] = (string) $filter->display;
+					$facetItem['type']    = (string) $filter->type;
+					$facetItem['items']   = $this->createFilterItems( $filter->items->item );
+
+					switch ( $facetItem['type'] ) {
+						case "select":
+							$facetResult = new TreeFacetResult( $facetItem['name'],
+								$facetItem['display'], false, $facetItem['display'], $this->prepareTreeView( $facetItem['items'] ) );
+							array_push( $facets, $facetResult );
+							break;
+						/*case "label":
+							$facetResult = new TreeFacetResult( $facetItem['name'],
+								$facetItem['display'], false, $facetItem['display'], $this->prepareTreeView( $facetItem['items'] ) );
+							array_push( $facets, $facetResult );
+							break;*/
+						case "range-slider":
+							$minValue    = (float) $filter->attributes->selectedRange->min;
+							$maxValue    = (float) $filter->attributes->selectedRange->max;
+							$facetResult = new RangeFacetResult( $facetItem['name'], $facetItem['display'], $facetItem['display'], $minValue, $maxValue, $minValue, $maxValue, 'von', 'bis' );
+							array_push( $facets, $facetResult );
+							break;
+						default:
+							break;
+					}
+
+
+				}
+
 				/* PREPARE SHOPWARE ARRAY */
 				$searchResult = array();
 				foreach ( $foundProducts as $sProduct ) {
 					$searchResult[ $sProduct['ordernumber'] ] = new BaseProduct( $sProduct['articleID'], $sProduct['articleDetailsID'], $sProduct['ordernumber'] );
 				}
 
-				return new \Shopware\Bundle\SearchBundle\ProductNumberSearchResult( $searchResult, count( $searchResult ), null );
+				return new \Shopware\Bundle\SearchBundle\ProductNumberSearchResult( $searchResult, count( $searchResult ), $facets );
 			} else {
 				return $this->originalService->search( $criteria, $context );
 			}
@@ -105,4 +141,29 @@ class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumber
 
 		return $url;
 	}
+
+	private function createFilterItems( $item ) {
+		$response = array();
+		$tempItem = array();
+		foreach ( $item as $subItem ) {
+			$tempItem['name'] = (string) $subItem->name;
+			if ( $subItem->items->item ) {
+				$tempItem['items'] = self::createFilterItems( $subItem->items->item );
+			}
+			array_push( $response, $tempItem );
+		}
+
+		return $response;
+	}
+
+	private function prepareTreeView( $items ) {
+		$response = array();
+		foreach ( $items as $item ) {
+			$treeView = new SearchBundle\FacetResult\TreeItem( $item['name'], $item['name'], false, $this->prepareTreeView( $item['items'] ) );
+			array_push( $response, $treeView );
+		}
+
+		return $response;
+	}
+
 }
