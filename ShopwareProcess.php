@@ -41,14 +41,21 @@ class ShopwareProcess {
 	var $orderRepository;
 
 	/**
+	 * @param int $start
+	 * @param int $length
+	 *
 	 * @return array
 	 * @throws \Exception
 	 */
-	public function getAllProductsAsXmlArray() {
+	public function getAllProductsAsXmlArray( int $start = 0, int $length = 0 ) {
 		$this->customerRepository = Shopware()->Container()->get( 'models' )->getRepository( Customer::class );
 
 		// Get all articles from selected shop
 		$allArticles = $this->shop->getCategory()->getAllArticles();
+
+		if ( $length > 0 ) {
+			$allArticles = array_slice( $allArticles, $start, $length );
+		}
 
 
 		/** @var Category[] $allCategories */
@@ -57,10 +64,10 @@ class ShopwareProcess {
 
 		$this->orderRepository = Shopware()->Container()->get( 'models' )->getRepository( Order::class );
 
-		$orderQuery   = $this->orderRepository->createQueryBuilder( 'orders' )
-		                                      ->leftJoin( 'orders.details', 'details' )
-		                                      ->groupBy( 'details.articleId' )
-		                                      ->select( 'details.articleId, sum(details.quantity)' );
+		$orderQuery = $this->orderRepository->createQueryBuilder( 'orders' )
+		                                    ->leftJoin( 'orders.details', 'details' )
+		                                    ->groupBy( 'details.articleId' )
+		                                    ->select( 'details.articleId, sum(details.quantity)' );
 
 		$articleSales = $orderQuery->getQuery()->getArrayResult();
 
@@ -75,20 +82,25 @@ class ShopwareProcess {
 		foreach ( $allArticles as $article ) {
 
 			// Check if Article is Visible and Active
-			if (!$article->getActive()){
+			if ( ! $article->getActive() ) {
 				continue;
 			}
-			$findologicArticle = new FindologicArticleModel( $article, $this->shopKey, $allUserGroups, $articleSales);
-			array_push( $findologicArticles, $findologicArticle->getXmlRepresentation() );
+
+			$findologicArticle = new FindologicArticleModel( $article, $this->shopKey, $allUserGroups, $articleSales );
+
+			if ( $findologicArticle->shouldBeExported ) {
+				array_push( $findologicArticles, $findologicArticle->getXmlRepresentation() );
+			}
+
 		}
 
 		return $findologicArticles;
 	}
 
-	public function getFindologicXml( bool $save = false ) {
+	public function getFindologicXml( int $start = 0, int $length = 0, bool $save = false ) {
 		$exporter = Exporter::create( Exporter::TYPE_XML );
 		try {
-			$xmlArray = $this->getAllProductsAsXmlArray();
+			$xmlArray = $this->getAllProductsAsXmlArray( $start, $length );
 		} catch ( \Exception $e ) {
 			die( $e->getMessage() );
 		}

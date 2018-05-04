@@ -32,7 +32,7 @@ class ExportCommand extends ShopwareCommand{
 
         $progress->start();
         $blController->setShopKey($shopkey);
-        $blController->getFindologicXml( true);
+        $blController->getFindologicXml(0,0, true);
 
         $progress->finish();
         $output->writeln('');
