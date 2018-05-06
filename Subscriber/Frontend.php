@@ -3,6 +3,8 @@
 namespace findologicDI\Subscriber;
 
 use Enlight\Event\SubscriberInterface;
+use Enlight_Event_EventArgs;
+use findologicDI\ShopwareProcess;
 
 class Frontend implements SubscriberInterface {
 
@@ -39,16 +41,12 @@ class Frontend implements SubscriberInterface {
 		$this->templateManager->addTemplateDir( $this->pluginDirectory . '/Resources/views' );
 	}
 
-	public function onFrontendPostDispatch( \Enlight_Event_EventArgs $args ) {
+	public function onFrontendPostDispatch( Enlight_Event_EventArgs $args ) {
 
 		if (!(bool)Shopware()->Config()->get( 'ActivateFindologic' )){
 			return;
 		}
-		$sqlGroupKey = /** @lang mysql */
-			'SELECT customergroup FROM s_user where sessionID =? ';
-		$groupKey    = Shopware()->Db()->fetchone( $sqlGroupKey, [
-			Shopware()->Modules()->sSystem()->sSESSION_ID
-		] );
+		$groupKey = Shopware()->Session()->sUserGroup;
 
 		$shopKey = $this->getShopKey();
 		$hash    = '?usergrouphash=';
@@ -56,16 +54,19 @@ class Frontend implements SubscriberInterface {
 		if ( empty( $groupKey ) ) {
 			$groupKey = 'EK';
 		}
-
-		$hash .= base64_encode( $shopKey ^ $groupKey );
-
+		$hash .= ShopwareProcess::calculateUsergroupHash($shopKey, $groupKey);
 		$format  = 'https://cdn.findologic.com/static/%s/main.js%s';
 		$mainUrl = sprintf( $format, strtoupper( md5( $shopKey ) ), $hash );
+		try {
+			/** @var \Enlight_Controller_ActionEventArgs $args */
+			$view = $args->getSubject()->View();
+			$view->addTemplateDir( $this->pluginDirectory . '/Resources/views/' );
+			$view->extendsTemplate( 'frontend/findologic_d_i/header.tpl' );
+			$view->assign( 'mainUrl', $mainUrl );
+		} catch ( \Enlight_Exception $e ) {
+			//TODO LOGGING
+		}
 
-		$view = $args->getSubject()->View();
-		$view->addTemplateDir( $this->pluginDirectory . '/Resources/views/' );
-		$view->extendsTemplate( 'frontend/findologic_d_i/header.tpl' );
-		$view->assign( 'mainUrl', $mainUrl );
 	}
 
 	private function getShopKey() {

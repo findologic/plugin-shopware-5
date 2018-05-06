@@ -14,13 +14,20 @@
             <tag name="shopware.event_subscriber" />
         </service>
 
+        <service decorates="shopware_storefront.custom_facet_gateway" class="findologicDI\Bundles\FindologicFacetGateway" id="findologicDI.findologic_facet_gateway">
+            <argument type="service" id="findologicDI.findologic_facet_gateway.inner"/>
+            <argument type="service" id="dbal_connection" />
+            <argument type="service" id="shopware_storefront.field_helper_dbal" />
+            <argument type="service" id="shopware_storefront.custom_listing_hydrator" />
+        </service>
+
         <service id="findologic_d_i.shopware_process" class="findologicDI\ShopwareProcess">
 
         </service>
 
-         <service id="findlogicDI.product_number_search" class="findologicDI\Bundles\ProductNumberSearch" decorates="shopware_search.product_number_search"
+         <service id="findologicDI.product_number_search" class="findologicDI\Bundles\ProductNumberSearch" decorates="shopware_search.product_number_search"
                  public="false">
-            <argument type="service" id="findlogicDI.product_number_search.inner"/>
+            <argument type="service" id="findologicDI.product_number_search.inner"/>
         </service>
 
 
