@@ -17,7 +17,7 @@ use Shopware\Bundle\StoreFrontBundle\Struct\Customer\Group;
 
 class UrlBuilder {
 
-	CONST BASE_URL = 'http://service.findologic.com/ps/';
+	CONST BASE_URL = 'https://service.findologic.com/ps/';
 	CONST CDN_URL = 'https://cdn.findologic.com/static/';
 	CONST JSON_CONFIG = '/config.json';
 	CONST ALIVE_ENDPOINT = 'alivetest.php';
