@@ -17,7 +17,7 @@ use Shopware\Bundle\StoreFrontBundle\Struct\Customer\Group;
 
 class UrlBuilder {
 
-	CONST BASE_URL = 'http://service.findologic.com/ps/';
+	CONST BASE_URL = 'https://service.findologic.com/ps/';
 	CONST CDN_URL = 'https://cdn.findologic.com/static/';
 	CONST JSON_CONFIG = '/config.json';
 	CONST ALIVE_ENDPOINT = 'alivetest.php';
@@ -43,8 +43,8 @@ class UrlBuilder {
 	 */
 	public function __construct() {
 		$this->httpClient = new \Zend_Http_Client();
-		$this->shopKey    = Shopware()->Config()->get( 'ShopKey' ); //'E5F652BCAD2871B7B2101B9DF87D24E0'; //
-		$this->shopUrl    = explode( '//', Shopware()->Modules()->Core()->sRewriteLink() )[1]; //'shop.penny.de/'; //
+		$this->shopKey    = Shopware()->Config()->get( 'ShopKey' ); 
+		$this->shopUrl    = explode( '//', Shopware()->Modules()->Core()->sRewriteLink() )[1];
 		$this->parameters = array(
 			'shopkey' => $this->shopKey,
 		);
@@ -79,7 +79,7 @@ class UrlBuilder {
 	public function buildQueryUrlAndGetResponse( Criteria $criteria ) {
 		/** @var \Shopware\Bundle\SearchBundle\Condition\SearchTermCondition $searchQuery */
 		$searchQuery = $criteria->getBaseCondition( 'search' );
-
+		
 		/** @var SearchBundle\Condition\CategoryCondition $catQuery */
 		$catQuery = $criteria->getBaseCondition( 'category' );
 
@@ -163,7 +163,6 @@ class UrlBuilder {
 	 */
 	private function buildCategoryAttribute(int $categoryId){
 		$catString                   = StaticHelper::buildCategoryName( $categoryId );
-		//$catString                   = 'Produktkategorien_Haushalt & Wohnen_Bettwaren'; // TODO testing purpose
 		$this->parameters['attrib']['cat'] = [ urldecode( $catString ) ];
 	}
 

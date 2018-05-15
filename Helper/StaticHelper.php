@@ -13,8 +13,10 @@ use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
 use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
+use Shopware\Models\Media\Media;
 use Shopware\Models\Search\CustomFacet;
 use SimpleXMLElement;
+use Symfony\Component\HttpFoundation\File\File;
 
 
 class StaticHelper {
@@ -110,20 +112,30 @@ class StaticHelper {
 
 			switch ( $facetItem['type'] ) {
 				case "select":
-					$facetResult = new TreeFacetResult( $facetItem['name'],
-						$facetItem['name'], false, $facetItem['display'], self::prepareTreeView( $facetItem['items'] ), $facetItem['name'] );
-					array_push( $facets, $facetResult );
+					$facets[] = self::createTreeviewFacet( $facetItem );
 					break;
-				/*case "label":
-					$facetResult = new TreeFacetResult( $facetItem['name'],
-						$facetItem['display'], false, $facetItem['display'], $this->prepareTreeView( $facetItem['items'] ) );
-					array_push( $facets, $facetResult );
-					break;*/
+				case "label":
+					switch ($facetItem['select']){
+						case "single":
+							// RadioFacetResult
+							$facets[] = self::createRadioFacet($facetItem);
+							break;
+						default:
+							// ValueListFacetResult
+							$facets[] = self::createValueListFacet($facetItem);
+							break;
+					}
+					break;
+				case "color":
+					$facets[] = self::createMediaListFacet($facetItem);
+					break;
+				case "image":
+					$facets[] = self::createMediaListFacet($facetItem);
+					break;
 				case "range-slider":
 					$minValue    = (float) $filter->attributes->selectedRange->min;
 					$maxValue    = (float) $filter->attributes->selectedRange->max;
-					$facetResult = new RangeFacetResult( $facetItem['name'], $facetItem['name'], $facetItem['display'], $minValue, $maxValue, $minValue, $maxValue, 'min', 'max', $facetItem['name'] );
-					array_push( $facets, $facetResult );
+					$facets[] = self::createRangeSlideFacet( $facetItem, $minValue, $maxValue );
 					break;
 				default:
 					break;
@@ -141,10 +153,64 @@ class StaticHelper {
 	public static function getFindologicFacets( SimpleXMLElement $xmlResponse ) {
 		$facets = array();
 		foreach ( $xmlResponse->filters->filter as $filter ) {
-			array_push( $facets, self::createFindologicFacet( (string) $filter->display, (string) $filter->name ) );
+			$facets[] = self::createFindologicFacet( (string) $filter->display, (string) $filter->name );
 		}
 
 		return $facets;
+	}
+
+	/**
+	 * @param array $facetItem
+	 *
+	 * @return SearchBundle\FacetResult\MediaListFacetResult
+	 */
+	private static function createMediaListFacet(array $facetItem){
+		$facetResult = new SearchBundle\FacetResult\MediaListFacetResult($facetItem['name'],false, $facetItem['display'],self::prepareMediaItems($facetItem['items']),$facetItem['name']);
+		return $facetResult;
+	}
+
+	/**
+	 * @param array $facetItem
+	 *
+	 * @return SearchBundle\FacetResult\RadioFacetResult
+	 */
+	private static function createRadioFacet(array $facetItem){
+		$facetResult = new SearchBundle\FacetResult\RadioFacetResult($facetItem['name'],false, $facetItem['display'],self::prepareValueItems($facetItem['items']),$facetItem['name']);
+		return $facetResult;
+	}
+
+	/**
+	 * @param array $facetItem
+	 *
+	 * @return SearchBundle\FacetResult\ValueListFacetResult
+	 */
+	private static function createValueListFacet(array $facetItem){
+		$facetResult = new SearchBundle\FacetResult\ValueListFacetResult($facetItem['name'],false, $facetItem['display'],self::prepareValueItems($facetItem['items']),$facetItem['name']);
+		return $facetResult;
+	}
+
+	/**
+	 * @param SimpleXMLElement $facetItem
+	 *
+	 * @return TreeFacetResult
+	 */
+	private static function createTreeviewFacet( array $facetItem ) {
+		$facetResult = new TreeFacetResult( $facetItem['name'],
+			$facetItem['name'], false, $facetItem['display'], self::prepareTreeView( $facetItem['items'] ), $facetItem['name'] );
+
+		return $facetResult;
+	}
+
+	/**
+	 * @param SimpleXMLElement $facetItem
+	 * @param Float $minValue
+	 * @param Float $maxValue
+	 *
+	 * @return RangeFacetResult
+	 */
+	private static function createRangeSlideFacet( array $facetItem, Float $minValue, Float $maxValue){
+		$facetResult = new RangeFacetResult( $facetItem['name'], $facetItem['name'], $facetItem['display'], $minValue, $maxValue, $minValue, $maxValue, 'min', 'max', $facetItem['name'] );
+		return $facetResult;
 	}
 
 	/**
@@ -156,25 +222,80 @@ class StaticHelper {
 	public static function createFindologicFacet( string $label, string $name ) {
 		$currentFacet = new CustomFacet();
 		$currentFacet->setName( $name );
-		$currentFacet->setUniqueKey($name);
+		$currentFacet->setUniqueKey( $name );
 
 		return $currentFacet;
 	}
 
 	/**
-	 * @param $item
+	 * @param $items
 	 *
 	 * @return array
 	 */
-	private static function createFilterItems( $item ) {
+	private static function prepareValueItems($items){
+		$response = array();
+		foreach ($items as $item){
+			$valueListItem = new SearchBundle\FacetResult\ValueListItem($item['name'], $item['name'], false);
+			$response[] = $valueListItem;
+		}
+		return $response;
+	}
+
+	/**
+	 * @param $items
+	 *
+	 * @return array
+	 */
+	private static function prepareMediaItems($items){
+		$response = array();
+		foreach ($items as $item){
+			if ( $item['color'] !== '' ) {
+				if ( $item['image'] !== '' ) {
+					$mediaItem = $item['image'];
+				} else {
+					$mediaItem = $item['color'];
+				}
+			} else {
+				if ( $item['image'] !== '' ) {
+					$mediaItem = $item['image'];
+				} else {
+					$mediaItem = null;
+				}
+			}
+
+			try{
+				$imageFile = new File($mediaItem);
+				if ($imageFile->isFile()) {
+					$shopwareMedia = new Media();
+					$shopwareMedia->setFile( $imageFile );
+				}
+			}
+			catch (Exception $fileNotFound){
+
+			}
+
+			$valueListItem = new SearchBundle\FacetResult\MediaListItem($item['name'], $item['name'], $shopwareMedia);
+			$response[] = $valueListItem;
+		}
+		return $response;
+	}
+
+	/**
+	 * @param $items
+	 *
+	 * @return array
+	 */
+	private static function createFilterItems( $items ) {
 		$response = array();
 		$tempItem = array();
-		foreach ( $item as $subItem ) {
+		foreach ( $items as $subItem ) {
 			$tempItem['name'] = (string) $subItem->name;
+			$tempItem['image'] = (string) ( $subItem->image ?? '' );
+			$tempItem['color'] = (string) ( $subItem->color ?? '' );
 			if ( $subItem->items->item ) {
 				$tempItem['items'] = self::createFilterItems( $subItem->items->item );
 			}
-			array_push( $response, $tempItem );
+			$response[] = $tempItem;
 		}
 
 		return $response;
@@ -188,24 +309,25 @@ class StaticHelper {
 	private static function prepareTreeView( $items ) {
 		$response = array();
 		foreach ( $items as $item ) {
-			$treeView = new SearchBundle\FacetResult\TreeItem( $item['name'], $item['name'], false, self::prepareTreeView( $item['items'] ) );
-			array_push( $response, $treeView );
+			$treeView   = new SearchBundle\FacetResult\TreeItem( $item['name'], $item['name'], false, self::prepareTreeView( $item['items'] ) );
+			$response[] = $treeView;
 		}
 
 		return $response;
 	}
 
-	public static function checkDirectIntegration(){
-		if (!isset(Shopware()->Session()->findologicApi)){
+	public static function checkDirectIntegration() {
+		if ( ! isset( Shopware()->Session()->findologicApi ) ) {
 			// LOAD STATUS
-			$urlBuilder = new UrlBuilder();
-			$status = $urlBuilder->getConfigStatus();
+			$urlBuilder                          = new UrlBuilder();
+			$status                              = $urlBuilder->getConfigStatus();
 			Shopware()->Session()->findologicApi = $status;
 		}
 
-		if (Shopware()->Session()->findologicApi == false){
+		if ( Shopware()->Session()->findologicApi == false ) {
 			return false;
 		}
+
 		return true;
 	}
 
