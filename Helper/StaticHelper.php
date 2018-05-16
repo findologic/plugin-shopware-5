@@ -8,7 +8,10 @@
 
 namespace findologicDI\Helper;
 
+
 use Exception;
+use findologicDI\Bundles\FacetResult\ColorPickerFacetResult;
+use findologicDI\Bundles\FacetResult\ColorListItem;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
@@ -127,7 +130,7 @@ class StaticHelper {
 					}
 					break;
 				case "color":
-					$facets[] = self::createMediaListFacet($facetItem);
+					$facets[] = self::createColorListFacet($facetItem);
 					break;
 				case "image":
 					$facets[] = self::createMediaListFacet($facetItem);
@@ -166,6 +169,16 @@ class StaticHelper {
 	 */
 	private static function createMediaListFacet(array $facetItem){
 		$facetResult = new SearchBundle\FacetResult\MediaListFacetResult($facetItem['name'],false, $facetItem['display'],self::prepareMediaItems($facetItem['items']),$facetItem['name']);
+		return $facetResult;
+	}
+
+	/**
+	 * @param array $facetItem
+	 *
+	 * @return SearchBundle\FacetResult\MediaListFacetResult
+	 */
+	private static function createColorListFacet(array $facetItem){
+		$facetResult = new ColorPickerFacetResult($facetItem['name'],false, $facetItem['display'],self::prepareColorItems($facetItem['items']),$facetItem['name']);
 		return $facetResult;
 	}
 
@@ -249,20 +262,11 @@ class StaticHelper {
 	private static function prepareMediaItems($items){
 		$response = array();
 		foreach ($items as $item){
-			if ( $item['color'] !== '' ) {
-				if ( $item['image'] !== '' ) {
-					$mediaItem = $item['image'];
-				} else {
-					$mediaItem = $item['color'];
-				}
-			} else {
 				if ( $item['image'] !== '' ) {
 					$mediaItem = $item['image'];
 				} else {
 					$mediaItem = null;
 				}
-			}
-
 			try{
 				$imageFile = new File($mediaItem);
 				if ($imageFile->isFile()) {
@@ -274,7 +278,24 @@ class StaticHelper {
 
 			}
 
-			$valueListItem = new SearchBundle\FacetResult\MediaListItem($item['name'], $item['name'], $shopwareMedia);
+			$valueListItem = new SearchBundle\FacetResult\MediaListItem($item['name'], $item['name'], false, $shopwareMedia);
+			$response[] = $valueListItem;
+		}
+		return $response;
+	}
+
+	/**
+	 * @param $items
+	 *
+	 * @return array
+	 */
+	private static function prepareColorItems($items){
+		$response = array();
+		foreach ($items as $item){
+			if ( $item['color'] !== '' ) {
+					$mediaItem = $item['color'];
+			}
+			$valueListItem = new ColorListItem($item['name'], $item['name'], false, null, $mediaItem);
 			$response[] = $valueListItem;
 		}
 		return $response;
@@ -317,6 +338,7 @@ class StaticHelper {
 	}
 
 	public static function checkDirectIntegration() {
+		return true;
 		if ( ! isset( Shopware()->Session()->findologicApi ) ) {
 			// LOAD STATUS
 			$urlBuilder                          = new UrlBuilder();
