@@ -13,7 +13,7 @@ class ColorListItem extends \Shopware\Bundle\SearchBundle\FacetResult\MediaListI
 	/** @var string */
 	protected $colorcode;
 
-	public function __construct( $id, string $label, bool $active, \Shopware\Bundle\StoreFrontBundle\Struct\Media $media = null, $color = null, $attributes = [] ) {
+	public function __construct( $id, $label, $active, \Shopware\Bundle\StoreFrontBundle\Struct\Media $media = null, $color = null, $attributes = [] ) {
 		parent::__construct( $id, $label, $active, $media, $attributes );
 		$this->colorcode = $color;
 	}
@@ -28,7 +28,7 @@ class ColorListItem extends \Shopware\Bundle\SearchBundle\FacetResult\MediaListI
 	/**
 	 * @param string $colorcode
 	 */
-	public function setColorcode( $colorcode ): void {
+	public function setColorcode( $colorcode ) {
 		$this->colorcode = $colorcode;
 	}
 }

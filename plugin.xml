@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="../../../engine/Shopware/Components/Plugin/schema/plugin.xsd">
-    <label lang="de">findologicDI</label>
-    <label lang="en">findologicDI</label>
+    <label lang="de">FindologicSearch</label>
+    <label lang="en">FindologicSearch</label>
     <version>1.0.0</version>
     <copyright>(c) by Shopware AG</copyright>
     <license>proprietary</license>

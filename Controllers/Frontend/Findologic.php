@@ -18,20 +18,21 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
 
 		$shopKey = $this->request->get( 'shopkey' );
 		$start = $this->request->get( 'start' );
-		$length = $this->request->get( 'length' );
+		$length = $this->request->get( 'count' );
 
 		/** @var \findologicDI\ShopwareProcess $blController */
 		$blController = $this->container->get( 'findologic_d_i.shopware_process' );
 		$blController->setShopKey( $shopKey );
-		if ( isset( $length ) ) {
-			$xmlDocument = $blController->getFindologicXml($start ?? 0, $length);
+		if ( $length !== null ) {
+			$xmlDocument = $blController->getFindologicXml($start != null ? $start :  0, $length);
 		} else {
 			$xmlDocument = $blController->getFindologicXml();
 		}
 
-		header( 'Content-Type: application/xml; charset=utf-8' );
-		die( $xmlDocument );
-
+		$this->response->setHeader('Content-Type', 'application/xml; charset=utf-8', true);
+		$this->response->setBody($xmlDocument);
+		$this->container->get('front')->Plugins()->ViewRenderer()->setNoRender();
+		return $this->response;
 	}
 
 

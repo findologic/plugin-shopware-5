@@ -213,7 +213,7 @@ class UrlBuilder {
 	/**
 	 * @param Group $customerGroup
 	 */
-	public function setCustomerGroup(Group $customerGroup ): void {
+	public function setCustomerGroup(Group $customerGroup ) {
 		$this->customerGroup = $customerGroup;
 		$this->hashedKey = ShopwareProcess::calculateUsergroupHash($this->shopKey, $customerGroup->getKey());
 		$this->parameters['group'] = [$this->hashedKey];
