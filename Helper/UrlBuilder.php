@@ -17,7 +17,7 @@ use Shopware\Bundle\StoreFrontBundle\Struct\Customer\Group;
 
 class UrlBuilder {
 
-	CONST BASE_URL = 'https://service.findologic.com/ps/';
+	CONST BASE_URL = 'https://service.findologic.com/ps/xml_2.0/';
 	CONST CDN_URL = 'https://cdn.findologic.com/static/';
 	CONST JSON_CONFIG = '/config.json';
 	CONST ALIVE_ENDPOINT = 'alivetest.php';
@@ -88,7 +88,10 @@ class UrlBuilder {
 			$this->buildKeywordQuery($searchQuery->getTerm());
 		}
 		if ( $catQuery instanceof SearchBundle\Condition\CategoryCondition ) {
-			$this->buildCategoryAttribute($catQuery->getCategoryIds()[0]);
+			if ($catQuery->getCategoryIds()[0] !== null && $catQuery->getCategoryIds()[0] !== '') {
+				$this->buildCategoryAttribute($catQuery->getCategoryIds()[0]);
+			}
+
 		}
 		/** @var SearchBundle\SortingInterface $sorting */
 		foreach ($sortingQuery as $sorting){
@@ -163,7 +166,10 @@ class UrlBuilder {
 	 */
 	private function buildCategoryAttribute( $categoryId){
 		$catString                   = StaticHelper::buildCategoryName( $categoryId );
-		$this->parameters['attrib']['cat'] = [ urldecode( $catString ) ];
+		if ($catString !== null && $catString !== ''){
+			$this->parameters['attrib']['cat'] = [ urldecode( $catString ) ];
+		}
+
 	}
 
 	/**
