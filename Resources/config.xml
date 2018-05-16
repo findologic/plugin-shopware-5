@@ -15,8 +15,20 @@
             <name>ActivateFindologic</name>
             <label lang="de">Aktiv</label>
             <label lang="en">Active</label>
+            <value>true</value>
             <description lang="de">Aktiviert die Findologic Suche</description>
             <description lang="en">activate the findologic search provider</description>
+        </element>
+        <element type="boolean" required="false" scope="shop">
+            <name>DirectIntegration</name>
+            <label lang="de">Direct Integration</label>
+            <label lang="en">Direct Integration</label>
+            <value>false</value>
+            <description lang="de">Direct Integration Status</description>
+            <description lang="en">Direct Integration status</description>
+            <options>
+                <readOnly>true</readOnly>
+            </options>
         </element>
     </elements>
 

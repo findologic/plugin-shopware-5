@@ -25,6 +25,10 @@
 
         </service>
 
+        <service id="findologicDI.color_picker_facet_result" class="findologicDI\Bundles\FacetResult\ColorPickerFacetResult">
+
+        </service>
+
          <service id="findologicDI.product_number_search" class="findologicDI\Bundles\ProductNumberSearch" decorates="shopware_search.product_number_search"
                  public="false">
             <argument type="service" id="findologicDI.product_number_search.inner"/>

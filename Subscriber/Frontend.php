@@ -33,9 +33,17 @@ class Frontend implements SubscriberInterface {
 		return array(
 			'Enlight_Controller_Action_PreDispatch'                   => 'onPreDispatch',
 			'Enlight_Controller_Action_PostDispatchSecure_Frontend'   => 'onFrontendPostDispatch',
-			'Enlight_Controller_Dispatcher_ControllerPath_Findologic' => 'onFindologicController'
+			'Enlight_Controller_Dispatcher_ControllerPath_Findologic' => 'onFindologicController',
+			'Enlight_Controller_Action_PreDispatch_Backend_Form' => 'onLoadPluginManager'
 		);
 	}
+
+	public function onLoadPluginManager( \Enlight_Event_EventArgs $args ) {
+		/** @var \Shopware_Controllers_Backend_Form $subject */
+		$subject = $args->getSubject();
+	}
+
+
 
 	public function onPreDispatch() {
 		$this->templateManager->addTemplateDir( $this->pluginDirectory . '/Resources/views' );
