@@ -128,6 +128,8 @@ class UrlBuilder {
 				case 'max':
 					$this->buildPriceAttribute($key, $parameter);
 					break;
+				case 'sSearch':
+					break;
 				default:
 					$this->buildAttribute($key, $parameter);
 					break;
