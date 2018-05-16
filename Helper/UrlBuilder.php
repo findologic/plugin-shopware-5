@@ -110,6 +110,9 @@ class UrlBuilder {
 	private function processQueryParameter(){
 		// Filter Request Parameter
 		foreach ($_REQUEST as $key => $parameter){
+			if (array_key_exists($key, $_COOKIE)){
+				continue;
+			}
 			switch ($key){
 				case 'o':
 					break;
