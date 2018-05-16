@@ -44,14 +44,18 @@ class ShopwareProcess {
 	 * @param int $start
 	 * @param int $length
 	 *
-	 * @return array
+	 * @return xmlInformation
 	 * @throws \Exception
 	 */
-	public function getAllProductsAsXmlArray( int $start = 0, int $length = 0 ) {
+	public function getAllProductsAsXmlArray( $start = 0, $length = 0 ) {
+		$response = new xmlInformation();
+
 		$this->customerRepository = Shopware()->Container()->get( 'models' )->getRepository( Customer::class );
 
 		// Get all articles from selected shop
 		$allArticles = $this->shop->getCategory()->getAllArticles();
+
+		$response->total = count($allArticles);
 
 		if ( $length > 0 ) {
 			$allArticles = array_slice( $allArticles, $start, $length );
@@ -89,15 +93,18 @@ class ShopwareProcess {
 			$findologicArticle = new FindologicArticleModel( $article, $this->shopKey, $allUserGroups, $articleSales );
 
 			if ( $findologicArticle->shouldBeExported ) {
-				array_push( $findologicArticles, $findologicArticle->getXmlRepresentation() );
+				$findologicArticles[] = $findologicArticle->getXmlRepresentation();
 			}
 
 		}
 
-		return $findologicArticles;
+		$response->items = $findologicArticles;
+		$response->count = count($findologicArticles);
+
+		return $response;
 	}
 
-	public function getFindologicXml( int $start = 0, int $length = 0, bool $save = false ) {
+	public function getFindologicXml( $start = 0, $length = 0, $save = false ) {
 		$exporter = Exporter::create( Exporter::TYPE_XML );
 		try {
 			$xmlArray = $this->getAllProductsAsXmlArray( $start, $length );
@@ -105,19 +112,18 @@ class ShopwareProcess {
 			die( $e->getMessage() );
 		}
 		if ( $save ) {
-			$exporter->serializeItemsToFile( __DIR__ . '', $xmlArray, 0, count( $xmlArray ), count( $xmlArray ) );
+			$exporter->serializeItemsToFile( __DIR__ . '', $xmlArray->items, 0, $xmlArray->count , $xmlArray->total );
 		} else {
-			$xmlDocument = $exporter->serializeItems( $xmlArray, 0, count( $xmlArray ), count( $xmlArray ) );
+			$xmlDocument = $exporter->serializeItems( $xmlArray->items, 0, $xmlArray->count, $xmlArray->total );
 
 			return $xmlDocument;
 		}
-
 	}
 
 	/**
 	 * @param string $shopKey
 	 */
-	public function setShopKey( string $shopKey ) {
+	public function setShopKey( $shopKey ) {
 		$this->shopKey = $shopKey;
 		$configValue   = Shopware()->Models()->getRepository( 'Shopware\Models\Config\Value' )->findOneBy( [ 'value' => $shopKey ] );
 		$this->shop    = $configValue ? $configValue->getShop() : null;
@@ -125,15 +131,22 @@ class ShopwareProcess {
 
 	/* HELPER FUNCTIONS */
 
-	public static function calculateUsergroupHash( string $shopkey, string $usergroup ) {
+	public static function calculateUsergroupHash( $shopkey, $usergroup ) {
 		$hash = base64_encode( $shopkey ^ $usergroup );
 
 		return $hash;
 	}
 
-	public static function decryptUsergroupHash( string $shopkey, string $hash ) {
+	public static function decryptUsergroupHash( $shopkey, $hash ) {
 		return ( $shopkey ^ base64_decode( $hash ) );
 	}
-
-
 }
+
+ class xmlInformation{
+	/** @var int */
+	public $count;
+	/** @var int */
+	public $total;
+	/** @var array */
+	public $items;
+ }

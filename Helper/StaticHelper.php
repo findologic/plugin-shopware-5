@@ -311,8 +311,8 @@ class StaticHelper {
 		$tempItem = array();
 		foreach ( $items as $subItem ) {
 			$tempItem['name'] = (string) $subItem->name;
-			$tempItem['image'] = (string) ( $subItem->image ?? '' );
-			$tempItem['color'] = (string) ( $subItem->color ?? '' );
+			$tempItem['image'] = ( $subItem->image !== null ? $subItem->image : '' );
+			$tempItem['color'] = ( $subItem->color !== null ? $subItem->color : '' );
 			if ( $subItem->items->item ) {
 				$tempItem['items'] = self::createFilterItems( $subItem->items->item );
 			}
@@ -338,7 +338,6 @@ class StaticHelper {
 	}
 
 	public static function checkDirectIntegration() {
-		return true;
 		if ( ! isset( Shopware()->Session()->findologicApi ) ) {
 			// LOAD STATUS
 			$urlBuilder                          = new UrlBuilder();
@@ -346,11 +345,7 @@ class StaticHelper {
 			Shopware()->Session()->findologicApi = $status;
 		}
 
-		if ( Shopware()->Session()->findologicApi == false ) {
-			return false;
-		}
-
-		return true;
+		return ! ( false == Shopware()->Session()->findologicApi );
 	}
 
 }
