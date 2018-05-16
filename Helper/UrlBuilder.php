@@ -134,7 +134,7 @@ class UrlBuilder {
 	 *
 	 * @return null|\Zend_Http_Response
 	 */
-	public function buildCategoryUrlAndGetResponse(int $categoryId){
+	public function buildCategoryUrlAndGetResponse( $categoryId){
 		$this->buildCategoryAttribute($categoryId);
 		$this->processQueryParameter();
 		return $this->callFindologicForXmlResponse();
@@ -161,7 +161,7 @@ class UrlBuilder {
 	/**
 	 * @param int $categoryId
 	 */
-	private function buildCategoryAttribute(int $categoryId){
+	private function buildCategoryAttribute( $categoryId){
 		$catString                   = StaticHelper::buildCategoryName( $categoryId );
 		$this->parameters['attrib']['cat'] = [ urldecode( $catString ) ];
 	}
@@ -170,7 +170,7 @@ class UrlBuilder {
 	 * @param string $key
 	 * @param float $value
 	 */
-	private function buildPriceAttribute(string $key, float $value){
+	private function buildPriceAttribute( $key,  $value){
 		$this->parameters['attrib']['price'][$key] = [urldecode($value)];
 	}
 
@@ -178,14 +178,14 @@ class UrlBuilder {
 	 * @param string $key
 	 * @param string $value
 	 */
-	private function buildAttribute(string $key, string $value){
+	private function buildAttribute( $key,  $value){
 		$this->parameters['attrib'][$key] = [ urldecode( $value ) ];
 	}
 
 	/**
 	 * @param string $searchQuery
 	 */
-	private function buildKeywordQuery(string $searchQuery){
+	private function buildKeywordQuery( $searchQuery){
 		$this->parameters['query'] = urldecode($searchQuery);
 	}
 
