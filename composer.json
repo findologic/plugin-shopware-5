@@ -9,7 +9,6 @@
   "homepage": "http://www.findologic.com",
   "type": "project",
   "require-dev": {
-    "phpunit/phpunit": "6.4.4"
   },
   "scripts": {
     "cs-check": "php-cs-fixer fix --dry-run -v",
