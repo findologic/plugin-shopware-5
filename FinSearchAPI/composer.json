@@ -1,12 +1,12 @@
 {
-  "name": "findologic/shopwareDI",
-  "description": "Findologic DI Plugin for shopware ecommerce system",
+  "name": "findologic/shopware",
+  "description": "FINDOLOGIC plugin for Shopware e-commerce system",
   "keywords": [
-    "shopware",
+    "Shopware",
     "shop",
-    "Findologic"
+    "FINDOLOGIC"
   ],
-  "homepage": "http://www.findologic.com",
+  "homepage": "https://www.findologic.com",
   "type": "project",
   "scripts": {
     "cs-check": "php-cs-fixer fix --dry-run -v",
