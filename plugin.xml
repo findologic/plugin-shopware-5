@@ -3,7 +3,6 @@
         xsi:noNamespaceSchemaLocation="../../../engine/Shopware/Components/Plugin/schema/plugin.xsd">
     <label lang="de">FINDOLOGIC-Suche</label>
     <label lang="en">FINDOLOGIC-Search</label>
-
     <version>6.0.2</version>
     <link>http://www.findologic.com/</link>
     <author>FINDOLOGIC GmbH</author>

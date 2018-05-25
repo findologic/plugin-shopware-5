@@ -28,6 +28,7 @@ namespace findologicDI\BusinessLogic\Models {
 	use Shopware\Models\Article\Supplier;
 	use Shopware\Models\Category\Category;
 	use Shopware\Models\Customer\Group;
+	use Shopware\Models\Media\Media;
 	use Shopware\Models\Order\Order;
 	use Shopware\Models\Property\Option;
 	use Shopware\Models\Property\Value;
@@ -102,7 +103,7 @@ namespace findologicDI\BusinessLogic\Models {
 		 *
 		 * @throws \Exception
 		 */
-		public function __construct( Article $shopwareArticle, string $shopKey, array $allUserGroups, array $salesFrequency ) {
+		public function __construct( Article $shopwareArticle, $shopKey, array $allUserGroups, array $salesFrequency ) {
 			$this->shouldBeExported = false;
 			$this->exporter         = Exporter::create( Exporter::TYPE_XML );
 			$this->xmlArticle       = $this->exporter->createItem( $shopwareArticle->getId() );
@@ -120,11 +121,11 @@ namespace findologicDI\BusinessLogic\Models {
 			$this->setArticleName( $this->baseArticle->getName() );
 
 			if ( trim( $this->baseArticle->getDescription() ) ) {
-				$this->setSummary( $shopwareArticle->getDescription() );
+				$this->setSummary( strip_tags($shopwareArticle->getDescription() ));
 			}
 
 			if ( trim( $this->baseArticle->getDescriptionLong() ) ) {
-				$this->setDescription( $shopwareArticle->getDescriptionLong() );
+				$this->setDescription( strip_tags($shopwareArticle->getDescriptionLong() ));
 			}
 
 			$this->setAddDate();
@@ -143,7 +144,7 @@ namespace findologicDI\BusinessLogic\Models {
 			return $this->xmlArticle;
 		}
 
-		protected function setArticleName( string $name, string $userGroup = null ) {
+		protected function setArticleName( $name, $userGroup = null ) {
 			$xmlName = new Name();
 			$xmlName->setValue( $name, $userGroup );
 			$this->xmlArticle->setName( $xmlName );
@@ -176,13 +177,13 @@ namespace findologicDI\BusinessLogic\Models {
 
 		}
 
-		protected function setSummary( string $description ) {
+		protected function setSummary( $description ) {
 			$summary = new Summary();
 			$summary->setValue( trim( $description ) );
 			$this->xmlArticle->setSummary( $summary );
 		}
 
-		protected function setDescription( string $descriptionLong ) {
+		protected function setDescription( $descriptionLong ) {
 			$description = new Description();
 			$description->setValue( $descriptionLong );
 			$this->xmlArticle->setDescription( $description );
@@ -231,7 +232,7 @@ namespace findologicDI\BusinessLogic\Models {
 
 				// Add taxes if needed
 				if ( $userGroup->getTax() ) {
-					$price = $price * ( 1 + (float) $tax->getTax() / 100 );
+					$price *= ( 1 + (float) $tax->getTax() / 100 );
 				}
 
 				$xmlPrice = new Price();
@@ -255,7 +256,7 @@ namespace findologicDI\BusinessLogic\Models {
 
 		protected function setSales() {
 			$articleId = $this->baseArticle->getId();
-			$key       = array_search( $articleId, array_column( $this->salesFrequency, 'articleId' ) );
+			$key       = array_search( $articleId, array_column( $this->salesFrequency, 'articleId' ), true );
 
 			if ( $key != false ) {
 				$currentSale      = $this->salesFrequency[ $key ];
@@ -263,7 +264,7 @@ namespace findologicDI\BusinessLogic\Models {
 			}
 
 			$salesFrequency = new SalesFrequency();
-			$salesFrequency->setValue( isset( $articleFrequency ) ? $articleFrequency : 0 );
+			$salesFrequency->setValue( $articleFrequency !== null ? $articleFrequency : 0 );
 			$this->xmlArticle->setSalesFrequency( $salesFrequency );
 
 		}
@@ -285,8 +286,8 @@ namespace findologicDI\BusinessLogic\Models {
 				$xmlKeywords     = array();
 				foreach ( $articleKeywords as $keyword ) {
 					if ( $keyword != '' ) {
-						$xmlKeyword = new Keyword( $keyword );
-						array_push( $xmlKeywords, $xmlKeyword );
+						$xmlKeyword    = new Keyword( $keyword );
+						$xmlKeywords[] = $xmlKeyword;
 					}
 				}
 				if ( count( $xmlKeywords ) > 0 ) {
@@ -306,17 +307,27 @@ namespace findologicDI\BusinessLogic\Models {
 				if ( $articleImage->getMedia() != null ) {
 					/** @var Image $imageRaw */
 					$imageRaw     = $articleImage->getMedia();
-					$imageDetails = $imageRaw->getThumbnailFilePaths();
-					$imageDefault = $imageRaw->getPath();
+					if (!($imageRaw instanceof Media) || $imageRaw === null){
+						continue;
+					}
+					try{
+						$imageDetails = $imageRaw->getThumbnailFilePaths();
+						$imageDefault = $imageRaw->getPath();
+					}
+					catch (\Exception $ex){
+						// Entitiy removed
+						continue;
+					}
+
 
 					if ( count( $imageDetails ) > 0 ) {
 						$imagePath      = $mediaService->getUrl( $imageDefault );
 						$imagePathThumb = $mediaService->getUrl( array_values( $imageDetails )[0] );
 						if ( $imagePathThumb != '' ) {
-							$xmlImagePath = new \FINDOLOGIC\Export\Data\Image( $imagePath, \FINDOLOGIC\Export\Data\Image::TYPE_DEFAULT );
-							array_push( $imagesArray, $xmlImagePath );
+							$xmlImagePath  = new \FINDOLOGIC\Export\Data\Image( $imagePath, \FINDOLOGIC\Export\Data\Image::TYPE_DEFAULT );
+							$imagesArray[] = $xmlImagePath;
 							$xmlImageThumb = new \FINDOLOGIC\Export\Data\Image( $imagePathThumb, \FINDOLOGIC\Export\Data\Image::TYPE_THUMBNAIL );
-							array_push( $imagesArray, $xmlImageThumb );
+							$imagesArray[] = $xmlImageThumb;
 						}
 
 					}
@@ -326,9 +337,9 @@ namespace findologicDI\BusinessLogic\Models {
 			if ( count( $imagesArray ) > 0 ) {
 				$this->xmlArticle->setAllImages( $imagesArray );
 			} else {
-				$noImage  = $baseLink . 'templates/_default/frontend/_resources/images/no_picture.jpg';
-				$xmlImage = new \FINDOLOGIC\Export\Data\Image( $noImage );
-				array_push( $imagesArray, $xmlImage );
+				$noImage       = $baseLink . 'templates/_default/frontend/_resources/images/no_picture.jpg';
+				$xmlImage      = new \FINDOLOGIC\Export\Data\Image( $noImage );
+				$imagesArray[] = $xmlImage;
 				$this->xmlArticle->setAllImages( $imagesArray );
 			}
 		}
@@ -349,21 +360,21 @@ namespace findologicDI\BusinessLogic\Models {
 				if ( ! $category->getActive() ) {
 					continue;
 				}
-				$catPath = $this->seoRouter->sCategoryPath( $category->getId() );
-				array_push( $catPathArray, '/' . implode( '/', $catPath ) );
+				$catPath        = $this->seoRouter->sCategoryPath( $category->getId() );
+				$catPathArray[] = '/' . implode( '/', $catPath );
 			}
 
 			$xmlCatProperty->setValues( array_unique( $catPathArray ) );
 
-			array_push( $allAttributes, $xmlCatProperty );
+			$allAttributes[] = $xmlCatProperty;
 
 			// Supplier
 			/** @var Supplier $articleSupplier */
 			$articleSupplier = $this->baseArticle->getSupplier();
-			if ( isset( $articleSupplier ) ) {
+			if ( $articleSupplier !== null ) {
 				$xmlSupplier = new Attribute( 'brand' );
 				$xmlSupplier->setValues( [ $articleSupplier->getName() ] );
-				array_push( $allAttributes, $xmlSupplier );
+				$allAttributes[] = $xmlSupplier;
 			}
 
 			// Filter Values
@@ -373,9 +384,9 @@ namespace findologicDI\BusinessLogic\Models {
 			foreach ( $filters as $filter ) {
 
 				/** @var Option $option */
-				$option    = $filter->getOption();
-				$xmlFilter = new Attribute( $option->getName(), [ $filter->getValue() ] );
-				array_push( $allAttributes, $xmlFilter );
+				$option          = $filter->getOption();
+				$xmlFilter       = new Attribute( $option->getName(), [ $filter->getValue() ] );
+				$allAttributes[] = $xmlFilter;
 			}
 
 			// Varianten
@@ -406,11 +417,11 @@ namespace findologicDI\BusinessLogic\Models {
 				foreach ( $optValues as $key => $value ) {
 					if ( ! empty( $temp ) ) {
 
-						$xmlConfig = new Attribute( $key, array_intersect( $value, $temp ) );
-						array_push( $allAttributes, $xmlConfig );
+						$xmlConfig       = new Attribute( $key, array_intersect( $value, $temp ) );
+						$allAttributes[] = $xmlConfig;
 					} else {
-						$xmlConfig = new Attribute( $key, $value );
-						array_push( $allAttributes, $xmlConfig );
+						$xmlConfig       = new Attribute( $key, $value );
+						$allAttributes[] = $xmlConfig;
 					}
 				}
 			}
@@ -445,7 +456,7 @@ namespace findologicDI\BusinessLogic\Models {
 			} else {
 				$xmlNewFlag = new Attribute( 'new', [ 0 ] );
 			}
-			array_push( $allAttributes, $xmlNewFlag );
+			$allAttributes[] = $xmlNewFlag;
 
 //			// Add votes_rating
 //			try {
@@ -457,10 +468,10 @@ namespace findologicDI\BusinessLogic\Models {
 //			}
 //
 			// Add free_shipping
-			array_push( $allAttributes, new Attribute( 'free_shipping', [ $this->baseVariant->getShippingFree() == '' ? 0 : $this->baseArticle->getMainDetail()->getShippingFree() ] ) );
+			$allAttributes[] = new Attribute( 'free_shipping', [ $this->baseVariant->getShippingFree() == '' ? 0 : $this->baseArticle->getMainDetail()->getShippingFree() ] );
 
 			// Add sale
-			array_push( $allAttributes, new Attribute( 'sale', [ $this->baseArticle->getLastStock() == '' ? 0 : $this->baseArticle->getLastStock() ] ) );
+			$allAttributes[] = new Attribute( 'sale', [ $this->baseArticle->getLastStock() == '' ? 0 : $this->baseArticle->getLastStock() ] );
 			/** @var Attribute $attribute */
 			foreach ( $allAttributes as $attribute ) {
 				$this->xmlArticle->addAttribute( $attribute );
@@ -472,11 +483,11 @@ namespace findologicDI\BusinessLogic\Models {
 				$userGroupArray = array();
 				/** @var Group $userGroup */
 				foreach ( $this->allUserGroups as $userGroup ) {
-					if ( in_array( $userGroup, $this->baseArticle->getCustomerGroups()->toArray() ) ) {
+					if ( in_array( $userGroup, $this->baseArticle->getCustomerGroups()->toArray(), true ) ) {
 						continue;
 					}
 					$userGroupAttribute = new Usergroup( ShopwareProcess::calculateUsergroupHash( $this->shopKey, $userGroup->getKey() ) );
-					array_push( $userGroupArray, $userGroupAttribute );
+					$userGroupArray[]   = $userGroupAttribute;
 				}
 				$this->xmlArticle->setAllUsergroups( $userGroupArray );
 			}
@@ -486,40 +497,40 @@ namespace findologicDI\BusinessLogic\Models {
 			$allAttributes = array();
 			$rewrtieLink   = Shopware()->Modules()->Core()->sRewriteLink();
 			if ( self::checkIfHasValue( $this->baseArticle->getHighlight() ) ) {
-				array_push( $allAttributes, new Attribute( 'highlight', [ $this->baseArticle->getHighlight() ] ) );
+				$allAttributes[] = new Attribute( 'highlight', [ $this->baseArticle->getHighlight() ] );
 			}
 			if ( self::checkIfHasValue( $this->baseArticle->getTax() ) ) {
-				array_push( $allAttributes, new Attribute( 'tax', [ $this->baseArticle->getTax() ] ) );
+				$allAttributes[] = new Attribute( 'tax', [ $this->baseArticle->getTax() ] );
 			}
 			if ( self::checkIfHasValue( $this->baseVariant->getShippingTime() ) ) {
-				array_push( $allAttributes, new Attribute( 'shippingtime', [ $this->baseVariant->getShippingTime() ] ) );
+				$allAttributes[] = new Attribute( 'shippingtime', [ $this->baseVariant->getShippingTime() ] );
 			}
 			if ( self::checkIfHasValue( $this->baseVariant->getPurchaseUnit() ) ) {
-				array_push( $allAttributes, new Attribute( 'purchaseunit', [ $this->baseVariant->getPurchaseUnit() ] ) );
+				$allAttributes[] = new Attribute( 'purchaseunit', [ $this->baseVariant->getPurchaseUnit() ] );
 			}
 			if ( self::checkIfHasValue( $this->baseVariant->getReferenceUnit() ) ) {
-				array_push( $allAttributes, new Attribute( 'referenceunit', [ $this->baseVariant->getReferenceUnit() ] ) );
+				$allAttributes[] = new Attribute( 'referenceunit', [ $this->baseVariant->getReferenceUnit() ] );
 			}
 			if ( self::checkIfHasValue( $this->baseVariant->getPackUnit() ) ) {
-				array_push( $allAttributes, new Attribute( 'packunit', [ $this->baseVariant->getPackUnit() ] ) );
+				$allAttributes[] = new Attribute( 'packunit', [ $this->baseVariant->getPackUnit() ] );
 			}
 			if ( self::checkIfHasValue( $this->baseVariant->getInStock() ) ) {
-				array_push( $allAttributes, new Attribute( 'quantity', [ $this->baseVariant->getInStock() ] ) );
+				$allAttributes[] = new Attribute( 'quantity', [ $this->baseVariant->getInStock() ] );
 			}
 			if ( self::checkIfHasValue( $this->baseVariant->getWeight() ) ) {
-				array_push( $allAttributes, new Attribute( 'weight', [ $this->baseVariant->getWeight() ] ) );
+				$allAttributes[] = new Attribute( 'weight', [ $this->baseVariant->getWeight() ] );
 			}
 			if ( self::checkIfHasValue( $this->baseVariant->getWidth() ) ) {
-				array_push( $allAttributes, new Attribute( 'width', [ $this->baseVariant->getWidth() ] ) );
+				$allAttributes[] = new Attribute( 'width', [ $this->baseVariant->getWidth() ] );
 			}
 			if ( self::checkIfHasValue( $this->baseVariant->getHeight() ) ) {
-				array_push( $allAttributes, new Attribute( 'height', [ $this->baseVariant->getHeight() ] ) );
+				$allAttributes[] = new Attribute( 'height', [ $this->baseVariant->getHeight() ] );
 			}
 			if ( self::checkIfHasValue( $this->baseVariant->getLen() ) ) {
-				array_push( $allAttributes, new Attribute( 'length', [ $this->baseVariant->getLen() ] ) );
+				$allAttributes[] = new Attribute( 'length', [ $this->baseVariant->getLen() ] );
 			}
 			if ( self::checkIfHasValue( $this->baseVariant->getReleaseDate() ) ) {
-				array_push( $allAttributes, new Attribute( 'release_date', [ $this->baseVariant->getReleaseDate()->format( DATE_ATOM ) ] ) );
+				$allAttributes[] = new Attribute( 'release_date', [ $this->baseVariant->getReleaseDate()->format( DATE_ATOM ) ] );
 			}
 
 			/** @var \Shopware\Models\Attribute\Article $attributes */
@@ -533,19 +544,19 @@ namespace findologicDI\BusinessLogic\Models {
 						$value = $attributes->$methodName();
 					}
 					if ( self::checkIfHasValue( $value ) ) {
-						array_push( $allAttributes, new Attribute( "attr$i", [ $value ] ) );
+						$allAttributes[] = new Attribute( "attr$i", [ $value ] );
 					}
 				}
 			}
 
-			array_push( $allAttributes, new Attribute( 'wishlistUrl', [ $rewrtieLink . self::WISHLIST_URL . $this->baseVariant->getNumber() ] ) );
-			array_push( $allAttributes, new Attribute( 'compareUrl', [ $rewrtieLink . self::COMPARE_URL . $this->baseArticle->getId() ] ) );
-			array_push( $allAttributes, new Attribute( 'addToCartUrl', [ $rewrtieLink . self::CART_URL . $this->baseVariant->getNumber() ] ) );
+			$allAttributes[] = new Attribute( 'wishlistUrl', [ $rewrtieLink . self::WISHLIST_URL . $this->baseVariant->getNumber() ] );
+			$allAttributes[] = new Attribute( 'compareUrl', [ $rewrtieLink . self::COMPARE_URL . $this->baseArticle->getId() ] );
+			$allAttributes[] = new Attribute( 'addToCartUrl', [ $rewrtieLink . self::CART_URL . $this->baseVariant->getNumber() ] );
 
 			$brandImage = $this->baseArticle->getSupplier()->getImage();
 
 			if ( self::checkIfHasValue( $brandImage ) ) {
-				array_push( $allAttributes, new Attribute( 'brand_image', [ $rewrtieLink . $brandImage ] ) );
+				$allAttributes[] = new Attribute( 'brand_image', [ $rewrtieLink . $brandImage ] );
 			}
 
 			/** @var Attribute $attribute */
@@ -555,11 +566,7 @@ namespace findologicDI\BusinessLogic\Models {
 		}
 
 		protected static function checkIfHasValue( $value ) {
-			if ( ! isset( $value ) || strlen( $value ) == 0 || $value == '' || $value == null ) {
-				return false;
-			}
-
-			return true;
+			return $value;
 		}
 	}
 }

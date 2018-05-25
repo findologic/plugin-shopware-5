@@ -41,7 +41,7 @@ class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumber
 	 * @return SearchBundle\ProductNumberSearchResult
 	 */
 	public function search( Criteria $criteria, \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context ) {
-		If (!StaticHelper::checkDirectIntegration()){
+		If (!StaticHelper::checkDirectIntegration() || !(bool)Shopware()->Config()->get( 'ActivateFindologic' )){
 			return $this->originalService->search( $criteria, $context );
 		}
 		try {
