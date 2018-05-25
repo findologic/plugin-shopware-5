@@ -120,12 +120,15 @@ namespace FinSearchAPI\BusinessLogic\Models {
 			// Fill out the Basedata
 			$this->setArticleName( $this->baseArticle->getName() );
 
-			if ( trim( $this->baseArticle->getDescription() ) ) {
-				$this->setSummary( strip_tags($shopwareArticle->getDescription() ));
+			$summary = strip_tags(trim($this->baseArticle->getDescription()));
+			$description = strip_tags(trim($this->baseArticle->getDescriptionLong()));
+
+			if ($summary) {
+				$this->setSummary($summary);
 			}
 
-			if ( trim( $this->baseArticle->getDescriptionLong() ) ) {
-				$this->setDescription( strip_tags($shopwareArticle->getDescriptionLong() ));
+			if ($description) {
+				$this->setDescription($description);
 			}
 
 			$this->setAddDate();
