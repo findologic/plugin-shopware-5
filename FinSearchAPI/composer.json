@@ -1,0 +1,26 @@
+{
+  "name": "findologic/shopware",
+  "description": "FINDOLOGIC plugin for Shopware e-commerce system",
+  "keywords": [
+    "Shopware",
+    "shop",
+    "FINDOLOGIC"
+  ],
+  "homepage": "https://www.findologic.com",
+  "type": "project",
+  "scripts": {
+    "cs-check": "php-cs-fixer fix --dry-run -v",
+    "cs-fix": "php-cs-fixer fix -v",
+    "test": "phpunit -c phpunit.xml.dist --colors=always",
+    "test-unit": "phpunit tests/ --colors=always"
+  },
+  "autoload": {
+    "psr-4": {
+      "FinSearchAPI\\": "/"
+    }
+  },
+  "require": {
+    "php": ">=5.6.4",
+    "findologic/libflexport": "1.*"
+  }
+}
