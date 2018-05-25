@@ -90,6 +90,10 @@ class ShopwareProcess {
 				continue;
 			}
 
+			if ($article->getMainDetail() == null || !($article->getMainDetail() instanceof Detail)){
+				continue;
+			}
+
 			$findologicArticle = new FindologicArticleModel( $article, $this->shopKey, $allUserGroups, $articleSales );
 
 			if ( $findologicArticle->shouldBeExported ) {
