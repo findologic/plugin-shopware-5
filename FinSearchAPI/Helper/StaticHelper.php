@@ -49,6 +49,8 @@ class StaticHelper {
 	public static function getXmlFromResponse( \Zend_Http_Response $response ) {
 		/* TLOAD XML RESPONSE */
 		$responseText = (string) $response->getBody();
+
+
 		$xmlResponse  = new SimpleXMLElement( $responseText );
 
 		return $xmlResponse;
@@ -65,22 +67,27 @@ class StaticHelper {
 			/* READ PRODUCT IDS */
 			foreach ( $xmlResponse->products->product as $product ) {
 				try {
-					$articleId = (string) $product->attributes();
+					$articleId = (string) $product->attributes()['id'];
 					/** @var array $baseArticle */
 					$baseArticle = Shopware()->Modules()->Articles()->sGetArticleById( $articleId );
-					if ( $baseArticle != null and count( $baseArticle ) > 0 ) {
-						array_push( $foundProducts, $baseArticle );
+					if ( $baseArticle !== null && count( $baseArticle ) > 0 ) {
+						$foundProducts[] = $baseArticle;
 					}
 				} catch ( Exception $ex ) {
 					// No Mapping for Search Results
+					print_r($ex->getMessage());
+					die();
 				}
 			}
 		} catch ( Exception $ex ) {
 			// Logging Function
+			print_r($ex->getMessage());
+			die();
 		}
 
 		return $foundProducts;
 	}
+
 
 	/**
 	 * @param array $foundProducts
@@ -262,11 +269,11 @@ class StaticHelper {
 	private static function prepareMediaItems($items){
 		$response = array();
 		foreach ($items as $item){
-				if ( $item['image'] !== '' ) {
-					$mediaItem = $item['image'];
-				} else {
-					$mediaItem = null;
-				}
+			if ( $item['image'] !== '' ) {
+				$mediaItem = $item['image'];
+			} else {
+				$mediaItem = null;
+			}
 			try{
 				$imageFile = new File($mediaItem);
 				if ($imageFile->isFile()) {
@@ -293,7 +300,7 @@ class StaticHelper {
 		$response = array();
 		foreach ($items as $item){
 			if ( $item['color'] !== '' ) {
-					$mediaItem = $item['color'];
+				$mediaItem = $item['color'];
 			}
 			$valueListItem = new ColorListItem($item['name'], $item['name'], false, null, $mediaItem);
 			$response[] = $valueListItem;
@@ -342,10 +349,10 @@ class StaticHelper {
 			// LOAD STATUS
 			$urlBuilder                          = new UrlBuilder();
 			$status                              = $urlBuilder->getConfigStatus();
-			Shopware()->Session()->findologicApi = $status;
+			Shopware()->Session()->findologicApi = !$status;
 		}
 
-		return ! ( false == Shopware()->Session()->findologicApi );
+		return ! ( true == Shopware()->Session()->findologicApi );
 	}
 
 }
