@@ -37,7 +37,7 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface {
 	 * @return array indexed by category id, each element contains a list of CustomFacet
 	 */
 	public function getFacetsOfCategories( array $categoryIds, \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context ) {
-		if (!StaticHelper::checkDirectIntegration() || !(bool)Shopware()->Config()->get( 'ActivateFindologic' )){
+		if (!StaticHelper::checkDirectIntegration() || !(bool)Shopware()->Config()->get( 'ActivateFindologic' ) || !(bool)Shopware()->Config()->get( 'FindologicKategorien' )){
 			return $this->originalService->getFacetsOfCategories( $categoryIds, $context );
 		}
 		// Facets abfragen
