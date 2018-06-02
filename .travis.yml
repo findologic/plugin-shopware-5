@@ -36,10 +36,10 @@ before_script:
   - cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
 
 install:
-  - composer install
+  - ${PLUGIN_NAME}/composer install
 
 script:
-  - composer test
+  - ${PLUGIN_NAME}/composer test
 
 matrix:
   allow_failures:
