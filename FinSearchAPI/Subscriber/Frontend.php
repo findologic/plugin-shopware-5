@@ -3,6 +3,7 @@
 namespace FinSearchAPI\Subscriber;
 
 use Enlight\Event\SubscriberInterface;
+use Enlight_Controller_ActionEventArgs;
 use Enlight_Event_EventArgs;
 use FinSearchAPI\ShopwareProcess;
 
@@ -34,8 +35,18 @@ class Frontend implements SubscriberInterface {
 			'Enlight_Controller_Action_PreDispatch'                   => 'onPreDispatch',
 			'Enlight_Controller_Action_PostDispatchSecure_Frontend'   => 'onFrontendPostDispatch',
 			'Enlight_Controller_Dispatcher_ControllerPath_Findologic' => 'onFindologicController',
-			'Enlight_Controller_Action_PreDispatch_Backend_Form' => 'onLoadPluginManager'
+			'Enlight_Controller_Action_PreDispatch_Backend_Form' => 'onLoadPluginManager',
+			'Enlight_Controller_Action_PreDispatch_Frontend_AjaxSearch' => 'onAjaxLoad'
 		);
+	}
+
+	/**
+	 * @param Enlight_Controller_ActionEventArgs $args
+	 */
+	public function onAjaxLoad( \Enlight_Event_EventArgs $args ) {
+		if ((bool)Shopware()->Config()->get( 'ActivateFindologic' )){
+			return;
+		}
 	}
 
 	public function onLoadPluginManager( \Enlight_Event_EventArgs $args ) {
