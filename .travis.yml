@@ -40,7 +40,6 @@ install:
   - composer install
 
 script:
-  - cd ${PLUGIN_NAME}
   - composer test
 
 matrix:
