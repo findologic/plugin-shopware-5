@@ -47,8 +47,28 @@ class UrlBuilder {
 		$this->shopUrl    = explode( '//', Shopware()->Modules()->Core()->sRewriteLink() )[1];
 		$this->parameters = array(
 			'shopkey' => $this->shopKey,
+			'userip' => self::getClientIpServer()
 		);
 		$this->configUrl  = self::CDN_URL . strtoupper( md5( $this->shopKey ) ) . self::JSON_CONFIG;
+	}
+
+	public static function getClientIpServer() {
+		if ($_SERVER['HTTP_CLIENT_IP'])
+			$ipaddress = $_SERVER['HTTP_CLIENT_IP'];
+		else if($_SERVER['HTTP_X_FORWARDED_FOR'])
+			$ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
+		else if($_SERVER['HTTP_X_FORWARDED'])
+			$ipaddress = $_SERVER['HTTP_X_FORWARDED'];
+		else if($_SERVER['HTTP_FORWARDED_FOR'])
+			$ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
+		else if($_SERVER['HTTP_FORWARDED'])
+			$ipaddress = $_SERVER['HTTP_FORWARDED'];
+		else if($_SERVER['REMOTE_ADDR'])
+			$ipaddress = $_SERVER['REMOTE_ADDR'];
+		else
+			$ipaddress = 'UNKNOWN';
+
+		return $ipaddress;
 	}
 
 	/**
