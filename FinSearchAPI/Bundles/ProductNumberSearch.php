@@ -2,17 +2,12 @@
 
 namespace FinSearchAPI\Bundles;
 
-use Exception;
 use FinSearchAPI\Helper\FacetBuilder;
 use FinSearchAPI\Helper\StaticHelper;
 use FinSearchAPI\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\Criteria;
-use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
-use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
-use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
-use SimpleXMLElement;
 
 class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumberSearchInterface {
 

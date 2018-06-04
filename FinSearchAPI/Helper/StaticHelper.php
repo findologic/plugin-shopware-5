@@ -15,7 +15,11 @@ use FinSearchAPI\Bundles\FacetResult\ColorListItem;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
+use Shopware\Bundle\StoreFrontBundle;
+use Shopware\Bundle\StoreFrontBundle\Service\Core\ConfiguratorService;
 use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
+use Shopware\Bundle\StoreFrontBundle\Struct\Configurator\Group;
+use Shopware\Bundle\StoreFrontBundle\Struct\Product;
 use Shopware\Models\Media\Media;
 use Shopware\Models\Search\CustomFacet;
 use SimpleXMLElement;
@@ -64,10 +68,17 @@ class StaticHelper {
 	public static function getProductsFromXml( SimpleXMLElement $xmlResponse ) {
 		$foundProducts = array();
 		try {
+			$container = Shopware()->Container();
+			/** @var StoreFrontBundle\Service\ProductNumberServiceInterface $productService */
+			$productService = $container->get('shopware_storefront.product_number_service');
 			/* READ PRODUCT IDS */
 			foreach ( $xmlResponse->products->product as $product ) {
 				try {
 					$articleId = (string) $product->attributes()['id'];
+					$productCheck = $productService->getMainProductNumberById($articleId);
+					if ($articleId === '' || $articleId === null){
+						continue;
+					}
 					/** @var array $baseArticle */
 					$baseArticle = Shopware()->Modules()->Articles()->sGetArticleById( $articleId );
 					if ( $baseArticle !== null && count( $baseArticle ) > 0 ) {
@@ -75,14 +86,12 @@ class StaticHelper {
 					}
 				} catch ( Exception $ex ) {
 					// No Mapping for Search Results
-					print_r($ex->getMessage());
-					die();
 				}
 			}
 		} catch ( Exception $ex ) {
 			// Logging Function
-			print_r($ex->getMessage());
-			die();
+			//print_r($ex->getMessage());
+
 		}
 
 		return $foundProducts;

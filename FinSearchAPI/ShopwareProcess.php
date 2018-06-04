@@ -6,6 +6,7 @@ use Doctrine\ORM\PersistentCollection;
 use FINDOLOGIC\Export\Exporter;
 use FinSearchAPI\BusinessLogic\Models\FindologicArticleModel;
 use Shopware\Models\Article\Article;
+use Shopware\Models\Article\Detail;
 use Shopware\Models\Category\Category;
 use Shopware\Models\Customer\Customer;
 use Shopware\Models\Order\Order;
@@ -90,7 +91,7 @@ class ShopwareProcess {
 				continue;
 			}
 
-			if ($article->getMainDetail() == null || !($article->getMainDetail() instanceof Detail)){
+			if ($article->getMainDetail() === null || !($article->getMainDetail() instanceof Detail)){
 				continue;
 			}
 
