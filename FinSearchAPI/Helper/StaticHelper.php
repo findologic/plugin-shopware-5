@@ -75,6 +75,7 @@ class StaticHelper {
 					$articleId = (string) $product->attributes()['id'];
 
 					$productCheck = $productService->getMainProductNumberById( $articleId );
+
 					if ( $articleId === '' || $articleId === null ) {
 						continue;
 					}
@@ -84,13 +85,14 @@ class StaticHelper {
 					$baseArticle['detailId']    = self::getDetailIdForOrdernumber( $productCheck );
 					$foundProducts[ $articleId ] = $baseArticle;
 				} catch ( Exception $ex ) {
+				//	die($ex->getMessage());
 					// No Mapping for Search Results
+					continue;
 				}
 			}
 		} catch ( Exception $ex ) {
 			// Logging Function
 			//print_r($ex->getMessage());
-
 		}
 
 		return $foundProducts;
