@@ -91,7 +91,7 @@ class ShopwareProcess {
 				continue;
 			}
 
-			if ($article->getMainDetail() === null || !($article->getMainDetail() instanceof Detail)){
+			if ($article->getMainDetail() === null || !($article->getMainDetail() instanceof Detail || !$article->getMainDetail()->getActive() === 0)){
 				continue;
 			}
 
