@@ -8,24 +8,24 @@
             <label lang="de">Shopkey</label>
             <label lang="en">Shopkey</label>
             <value>Findologic Shopkey</value>
-            <description lang="de">Findologic Shopkey</description>
-            <description lang="en">Findologic Shopkey</description>
+            <description lang="de">FINDOLOGIC Shopkey</description>
+            <description lang="en">FINDOLOGIC Shopkey</description>
         </element>
         <element type="boolean" required="true" scope="shop">
             <name>ActivateFindologic</name>
             <label lang="de">Aktiv</label>
             <label lang="en">Active</label>
             <value>true</value>
-            <description lang="de">Aktiviert die Findologic Suche</description>
-            <description lang="en">activate the findologic search provider</description>
+            <description lang="de">Aktiviert die FINDOLOGIC Suche</description>
+            <description lang="en">Activate the FINDOLOGIC search provider</description>
         </element>
         <element type="boolean" required="true" scope="shop">
-            <name>FindologicKategorien</name>
-            <label lang="de">Kategorien Aktiv</label>
-            <label lang="en">Categories Active</label>
+            <name>ActivateFindologicForCategoryPages</name>
+            <label lang="de">Aktiv auf Kategorieseiten</label>
+            <label lang="en">Active for category pages</label>
             <value>true</value>
-            <description lang="de">Aktiviert die Findologic Kategorien</description>
-            <description lang="en">activate the findologic categories</description>
+            <description lang="de">Aktiviert die FINDOLOGIC Suche für Kategorieseiten</description>
+            <description lang="en">Activate the FINDOLOGIC search provider for category pages</description>
         </element>
     </elements>
 

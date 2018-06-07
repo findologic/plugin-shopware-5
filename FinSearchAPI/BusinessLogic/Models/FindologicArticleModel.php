@@ -120,8 +120,8 @@ namespace FinSearchAPI\BusinessLogic\Models {
 			// Fill out the Basedata
 			$this->setArticleName( $this->baseArticle->getName() );
 
-			$summary = strip_tags(trim($this->baseArticle->getDescription()));
-			$description = strip_tags(trim($this->baseArticle->getDescriptionLong()));
+			$summary = trim(strip_tags($this->baseArticle->getDescription()));
+			$description = trim(strip_tags($this->baseArticle->getDescriptionLong()));
 
 			if ($summary) {
 				$this->setSummary($summary);
@@ -503,7 +503,7 @@ namespace FinSearchAPI\BusinessLogic\Models {
 				$allAttributes[] = new Attribute( 'highlight', [ $this->baseArticle->getHighlight() ] );
 			}
 			if ( self::checkIfHasValue( $this->baseArticle->getTax() ) ) {
-				$allAttributes[] = new Attribute( 'tax', [ $this->baseArticle->getTax() ] );
+				$allAttributes[] = new Attribute( 'tax', [ $this->baseArticle->getTax()->getTax() ] );
 			}
 			if ( self::checkIfHasValue( $this->baseVariant->getShippingTime() ) ) {
 				$allAttributes[] = new Attribute( 'shippingtime', [ $this->baseVariant->getShippingTime() ] );
@@ -569,6 +569,10 @@ namespace FinSearchAPI\BusinessLogic\Models {
 		}
 
 		protected static function checkIfHasValue( $value ) {
+			if (is_string($value)) {
+				$value = trim($value);
+			}
+
 			return $value;
 		}
 	}

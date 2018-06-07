@@ -1,13 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: wege
- * Date: 06.05.2018
- * Time: 09:28
- */
 
 namespace FinSearchAPI\Helper;
-
 
 use Exception;
 use FinSearchAPI\Bundles\FacetResult\ColorListItem;
