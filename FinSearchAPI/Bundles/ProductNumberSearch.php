@@ -52,7 +52,6 @@ class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumber
 				$facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
 
 				$searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
-
 				return new SearchBundle\ProductNumberSearchResult( $searchResult, count( $searchResult ), $facets );
 			} else {
 				return $this->originalService->search( $criteria, $context );
