@@ -91,7 +91,7 @@ class StaticHelper {
 		return $foundProducts;
 	}
 
-	public static function getDetailIdForOrdernumber( string $ordernumber ) {
+	public static function getDetailIdForOrdernumber( $ordernumber ) {
 		$db              = Shopware()->Container()->get( 'db' );
 		$checkForArticle = $db->fetchRow( '
         SELECT id AS id FROM s_articles_details WHERE ordernumber=?
