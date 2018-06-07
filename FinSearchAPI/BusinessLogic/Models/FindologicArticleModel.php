@@ -19,6 +19,7 @@ namespace FinSearchAPI\BusinessLogic\Models {
 	use FINDOLOGIC\Export\Exporter;
 	use FINDOLOGIC\Export\XML\XMLExporter;
 	use FinSearchAPI\ShopwareProcess;
+	use FinSearchAPI\Helper\StaticHelper;
 	use Shopware\Bundle\MediaBundle\MediaService;
 	use Shopware\Components\Api\Resource\CustomerGroup;
 	use Shopware\Components\Routing\Router;
@@ -120,8 +121,8 @@ namespace FinSearchAPI\BusinessLogic\Models {
 			// Fill out the Basedata
 			$this->setArticleName( $this->baseArticle->getName() );
 
-			$summary = trim(strip_tags($this->baseArticle->getDescription()));
-			$description = trim(strip_tags($this->baseArticle->getDescriptionLong()));
+			$summary = StaticHelper::cleanString($this->baseArticle->getDescription());
+			$description = StaticHelper::cleanString($this->baseArticle->getDescriptionLong());
 
 			if ($summary) {
 				$this->setSummary($summary);

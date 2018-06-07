@@ -378,4 +378,14 @@ class StaticHelper {
 		return ! ( true == Shopware()->Session()->findologicApi );
 	}
 
+	public static function cleanString($string)
+	{
+		$string = str_replace("\\", '', addslashes(strip_tags($string)));
+		$string = str_replace(array("\n", "\r", "\t"), ' ', $string);
+
+		// Remove unprintable characters since they would cause an invalid XML.
+		$string = preg_replace('/[[:^print:]]/', '', $string);
+
+		return trim($string);
+	}
 }
