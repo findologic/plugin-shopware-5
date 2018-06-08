@@ -547,6 +547,11 @@ namespace FinSearchAPI\BusinessLogic\Models {
 					if ( method_exists( $attributes, $methodName ) ) {
 						$value = $attributes->$methodName();
 					}
+
+					if ($value instanceof \DateTime) {
+						$value = $value->format( DATE_ATOM );
+					}
+
 					if ( self::checkIfHasValue( $value ) ) {
 						$allAttributes[] = new Attribute( "attr$i", [ $value ] );
 					}
