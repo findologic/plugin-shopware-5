@@ -419,14 +419,16 @@ namespace FinSearchAPI\BusinessLogic\Models {
 				}
 				//add only options from active variants
 				foreach ( $optValues as $key => $value ) {
-					if ( ! empty( $temp ) ) {
-
-						$xmlConfig       = new Attribute( $key, array_intersect( $value, $temp ) );
-						$allAttributes[] = $xmlConfig;
-					} else {
-						$xmlConfig       = new Attribute( $key, $value );
-						$allAttributes[] = $xmlConfig;
+					if ($temp) {
+						$value = array_intersect( $value, $temp );
 					}
+
+					if (!self::checkIfHasValue($value)) {
+						continue;
+					}
+
+					$xmlConfig       = new Attribute( $key, $value );
+					$allAttributes[] = $xmlConfig;
 				}
 			}
 
