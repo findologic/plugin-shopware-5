@@ -203,7 +203,7 @@ class UrlBuilder {
 	 * @param float $value
 	 */
 	private function buildPriceAttribute( $key, $value ) {
-		$this->parameters['attrib']['price'][ $key ] = [ urldecode( $value ) ];
+		$this->parameters['attrib']['price'][ $key ] = urldecode( $value );
 	}
 
 	/**
