@@ -119,7 +119,6 @@ class ShopwareProcess {
 			$exporter->serializeItemsToFile( __DIR__ . '', $xmlArray->items, $start, $xmlArray->count , $xmlArray->total );
 		} else {
 			$xmlDocument = $exporter->serializeItems( $xmlArray->items, $start, $xmlArray->count, $xmlArray->total );
-
 			return $xmlDocument;
 		}
 	}

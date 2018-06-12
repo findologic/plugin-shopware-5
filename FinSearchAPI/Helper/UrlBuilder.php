@@ -14,6 +14,7 @@ use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\Customer\Group;
+use Shopware\Models\Plugin\Plugin;
 
 class UrlBuilder {
 
@@ -45,9 +46,12 @@ class UrlBuilder {
 		$this->httpClient = new \Zend_Http_Client();
 		$this->shopKey    = Shopware()->Config()->get( 'ShopKey' );
 		$this->shopUrl    = explode( '//', Shopware()->Modules()->Core()->sRewriteLink() )[1];
+		/** @var Plugin $plugin */
+		$plugin           = Shopware()->Container()->get('shopware.plugin_manager')->getPluginByName('FinSearchAPI');
 		$this->parameters = array(
 			'shopkey' => $this->shopKey,
-			'userip' => self::getClientIpServer()
+			'userip' => self::getClientIpServer(),
+			'revision' => $plugin->getVersion()
 		);
 		$this->configUrl  = self::CDN_URL . strtoupper( md5( $this->shopKey ) ) . self::JSON_CONFIG;
 	}
