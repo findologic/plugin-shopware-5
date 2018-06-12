@@ -229,8 +229,8 @@ class UrlBuilder {
 	 * @return null|\Zend_Http_Response
 	 */
 	private function callFindologicForXmlResponse() {
-		//$url = self::BASE_URL . $this->shopUrl . 'index.php?' . http_build_query( $this->parameters );
-		$url = 'http://172.20.10.2/shopware/liebeslust_de_filter.xml';
+		$url = self::BASE_URL . $this->shopUrl . 'index.php?' . http_build_query( $this->parameters );
+
 		try {
 			$request = $this->httpClient->setUri( $url );
 
