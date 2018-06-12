@@ -116,9 +116,9 @@ class ShopwareProcess {
 			die( $e->getMessage() );
 		}
 		if ( $save ) {
-			$exporter->serializeItemsToFile( __DIR__ . '', $xmlArray->items, 0, $xmlArray->count , $xmlArray->total );
+			$exporter->serializeItemsToFile( __DIR__ . '', $xmlArray->items, $start, $xmlArray->count , $xmlArray->total );
 		} else {
-			$xmlDocument = $exporter->serializeItems( $xmlArray->items, 0, $xmlArray->count, $xmlArray->total );
+			$xmlDocument = $exporter->serializeItems( $xmlArray->items, $start, $xmlArray->count, $xmlArray->total );
 
 			return $xmlDocument;
 		}
