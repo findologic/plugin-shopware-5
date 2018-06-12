@@ -122,10 +122,7 @@ class UrlBuilder {
 		foreach ( $sortingQuery as $sorting ) {
 			$this->buildSortingParameter( $sorting );
 		}
-
-
 		$this->processQueryParameter();
-
 		return $this->callFindologicForXmlResponse();
 	}
 
@@ -215,7 +212,10 @@ class UrlBuilder {
 	 * @param string $value
 	 */
 	private function buildAttribute( $key, $value ) {
-		$this->parameters['attrib'][ $key ] = [ urldecode( $value ) ];
+		$splittedValues = explode('|', $value);
+		foreach ($splittedValues as $realValue){
+			$this->parameters['attrib'][ $key ][] = urldecode( $realValue );
+		}
 	}
 
 	/**
@@ -229,7 +229,8 @@ class UrlBuilder {
 	 * @return null|\Zend_Http_Response
 	 */
 	private function callFindologicForXmlResponse() {
-		$url = self::BASE_URL . $this->shopUrl . 'index.php?' . http_build_query( $this->parameters );
+		//$url = self::BASE_URL . $this->shopUrl . 'index.php?' . http_build_query( $this->parameters );
+		$url = 'http://172.20.10.2/shopware/liebeslust_de_filter.xml';
 		try {
 			$request = $this->httpClient->setUri( $url );
 
