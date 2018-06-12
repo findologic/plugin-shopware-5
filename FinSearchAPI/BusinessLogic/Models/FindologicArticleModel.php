@@ -158,13 +158,15 @@ namespace FinSearchAPI\BusinessLogic\Models {
 
 			/** @var Detail $detail */
 			foreach ( $this->variantArticles as $detail ) {
-
+				if (!($detail instanceof Detail)){
+					continue;
+				}
 				if ( $detail->getInStock() < 1 ) {
 					continue;
 				}
 				$this->shouldBeExported = true;
 				// Remove inactive variants
-				if ( $detail->getActive() == 0 ) {
+				if ( $detail->getActive() === 0 ) {
 					continue;
 				}
 				$this->xmlArticle->addOrdernumber( new Ordernumber( $detail->getNumber() ) );
@@ -198,6 +200,9 @@ namespace FinSearchAPI\BusinessLogic\Models {
 			// variant prices per customergroup
 			/** @var Detail $detail */
 			foreach ( $this->variantArticles as $detail ) {
+				if (!($detail instanceof Detail)){
+					continue;
+				}
 				if ( $detail->getActive() == 1 ) {
 					/** @var \Shopware\Models\Article\Price $price */
 					foreach ( $detail->getPrices() as $price ) {
