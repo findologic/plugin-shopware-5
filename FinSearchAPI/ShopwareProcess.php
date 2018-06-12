@@ -2,6 +2,7 @@
 
 namespace FinSearchAPI;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\PersistentCollection;
 use FINDOLOGIC\Export\Exporter;
 use FinSearchAPI\BusinessLogic\Models\FindologicArticleModel;
@@ -54,6 +55,7 @@ class ShopwareProcess {
 		$this->customerRepository = Shopware()->Container()->get( 'models' )->getRepository( Customer::class );
 
 		// Get all articles from selected shop
+		/** @var array $allArticles */
 		$allArticles = $this->shop->getCategory()->getAllArticles();
 
 		$response->total = count($allArticles);
@@ -62,9 +64,6 @@ class ShopwareProcess {
 			$allArticles = array_slice( $allArticles, $start, $length );
 		}
 
-
-		/** @var Category[] $allCategories */
-		$allCategories = $this->shop->getCategory()->getChildren();
 		//Sales Frequency
 
 		$this->orderRepository = Shopware()->Container()->get( 'models' )->getRepository( Order::class );
