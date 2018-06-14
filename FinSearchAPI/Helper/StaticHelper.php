@@ -249,7 +249,7 @@ class StaticHelper {
 	 * @return RangeFacetResult
 	 */
 	private static function createRangeSlideFacet( array $facetItem, Float $minValue, Float $maxValue ) {
-		$facetResult = new RangeFacetResult( $facetItem['name'], $facetItem['name'], $facetItem['display'], $minValue, $maxValue, $minValue, $maxValue, 'min', 'max', $facetItem['name'] );
+		$facetResult = new RangeFacetResult( $facetItem['name'],false, $facetItem['display'], $minValue, $maxValue, $minValue, $maxValue, 'min', 'max', $facetItem['name'] );
 
 		return $facetResult;
 	}
