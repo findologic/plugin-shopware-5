@@ -122,10 +122,7 @@ class UrlBuilder {
 		foreach ( $sortingQuery as $sorting ) {
 			$this->buildSortingParameter( $sorting );
 		}
-
-
 		$this->processQueryParameter();
-
 		return $this->callFindologicForXmlResponse();
 	}
 
@@ -215,7 +212,10 @@ class UrlBuilder {
 	 * @param string $value
 	 */
 	private function buildAttribute( $key, $value ) {
-		$this->parameters['attrib'][ $key ] = [ urldecode( $value ) ];
+		$splittedValues = explode('|', $value);
+		foreach ($splittedValues as $realValue){
+			$this->parameters['attrib'][ $key ][] = urldecode( $realValue );
+		}
 	}
 
 	/**
