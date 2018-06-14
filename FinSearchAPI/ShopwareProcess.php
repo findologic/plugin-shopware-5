@@ -72,7 +72,8 @@ class ShopwareProcess {
 			                                       ->select( 'articles' )
 			                                       ->setMaxResults( $length )
 			                                       ->setFirstResult( $start );
-			$allArticles = $articlesQuery->getQuery()->getArrayResult();
+			/** @var array $allArticles */
+			$allArticles = $articlesQuery->getQuery()->execute();
 		}
 		else{
 			/** @var array $allArticles */
