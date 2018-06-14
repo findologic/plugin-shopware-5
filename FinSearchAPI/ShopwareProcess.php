@@ -4,6 +4,7 @@ namespace FinSearchAPI;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\PersistentCollection;
+use Doctrine\ORM\EntityNotFoundException;
 use FINDOLOGIC\Export\Exporter;
 use FinSearchAPI\BusinessLogic\Models\FindologicArticleModel;
 use Shopware\Models\Article\Article;
@@ -69,9 +70,9 @@ class ShopwareProcess {
 		$this->orderRepository = Shopware()->Container()->get( 'models' )->getRepository( Order::class );
 
 		$orderQuery = $this->orderRepository->createQueryBuilder( 'orders' )
-		                                    ->leftJoin( 'orders.details', 'details' )
-		                                    ->groupBy( 'details.articleId' )
-		                                    ->select( 'details.articleId, sum(details.quantity)' );
+											->leftJoin( 'orders.details', 'details' )
+											->groupBy( 'details.articleId' )
+											->select( 'details.articleId, sum(details.quantity)' );
 
 		$articleSales = $orderQuery->getQuery()->getArrayResult();
 
@@ -90,7 +91,11 @@ class ShopwareProcess {
 				continue;
 			}
 
-			if ($article->getMainDetail() === null || !($article->getMainDetail() instanceof Detail || !($article->getMainDetail() instanceof \Shopware\Models\Article\Detail) || !$article->getMainDetail()->getActive() === 0)){
+			try {
+				if ($article->getMainDetail()->getActive() === 0) {
+					continue;
+				}
+			} catch (EntityNotFoundException $exception) {
 				continue;
 			}
 
