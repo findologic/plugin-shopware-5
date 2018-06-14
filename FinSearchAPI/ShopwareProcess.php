@@ -9,7 +9,6 @@ use FINDOLOGIC\Export\Exporter;
 use FinSearchAPI\BusinessLogic\Models\FindologicArticleModel;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Article\Detail;
-use Shopware\Models\Category\Category;
 use Shopware\Models\Customer\Customer;
 use Shopware\Models\Order\Order;
 
@@ -27,6 +26,11 @@ class ShopwareProcess {
 	 * @var \Shopware\Models\Customer\Repository
 	 */
 	protected $customerRepository;
+
+	/**
+	 * @var \Shopware\Models\Article\Repository
+	 */
+	protected $articleRepository;
 
 	/**
 	 * @var \Shopware\Models\Shop\Shop
@@ -54,20 +58,29 @@ class ShopwareProcess {
 		$response = new xmlInformation();
 
 		$this->customerRepository = Shopware()->Container()->get( 'models' )->getRepository( Customer::class );
+		$this->articleRepository  = Shopware()->Container()->get( 'models' )->getRepository( Article::class );
+		$this->orderRepository    = Shopware()->Container()->get( 'models' )->getRepository( Order::class );
 
 		// Get all articles from selected shop
 		/** @var array $allArticles */
-		$allArticles = $this->shop->getCategory()->getAllArticles();
 
-		$response->total = count($allArticles);
+		$response->total = count( $allArticles );
 
 		if ( $length > 0 ) {
-			$allArticles = array_slice( $allArticles, $start, $length );
+			$articlesQuery = $this->articleRepository->createQueryBuilder( 'articles' )
+			                                       ->leftJoin( 'articles.details', 'details' )
+			                                       ->select( 'articles' )
+			                                       ->setMaxResults( $length )
+			                                       ->setFirstResult( $start );
+			$allArticles = $articlesQuery->getQuery()->getArrayResult();
+		}
+		else{
+			/** @var array $allArticles */
+			$allArticles = $this->shop->getCategory()->getAllArticles();
 		}
 
 		//Sales Frequency
 
-		$this->orderRepository = Shopware()->Container()->get( 'models' )->getRepository( Order::class );
 
 		$orderQuery = $this->orderRepository->createQueryBuilder( 'orders' )
 											->leftJoin( 'orders.details', 'details' )
@@ -108,7 +121,7 @@ class ShopwareProcess {
 		}
 
 		$response->items = $findologicArticles;
-		$response->count = count($findologicArticles);
+		$response->count = count( $findologicArticles );
 
 		return $response;
 	}
@@ -121,9 +134,10 @@ class ShopwareProcess {
 			die( $e->getMessage() );
 		}
 		if ( $save ) {
-			$exporter->serializeItemsToFile( __DIR__ . '', $xmlArray->items, $start, $xmlArray->count , $xmlArray->total );
+			$exporter->serializeItemsToFile( __DIR__ . '', $xmlArray->items, $start, $xmlArray->count, $xmlArray->total );
 		} else {
 			$xmlDocument = $exporter->serializeItems( $xmlArray->items, $start, $xmlArray->count, $xmlArray->total );
+
 			return $xmlDocument;
 		}
 	}
@@ -150,11 +164,11 @@ class ShopwareProcess {
 	}
 }
 
- class xmlInformation{
+class xmlInformation {
 	/** @var int */
 	public $count;
 	/** @var int */
 	public $total;
 	/** @var array */
 	public $items;
- }
+}
