@@ -49,12 +49,12 @@ class ShopwareProcess {
 
 	/**
 	 * @param int $start
-	 * @param int $length
+	 * @param int $count
 	 *
 	 * @return xmlInformation
 	 * @throws \Exception
 	 */
-	public function getAllProductsAsXmlArray( $start = 0, $length = 0 ) {
+	public function getAllProductsAsXmlArray( $start = 0, $count = 0 ) {
 		$response = new xmlInformation();
 
 		$this->customerRepository = Shopware()->Container()->get( 'models' )->getRepository( Customer::class );
@@ -66,11 +66,11 @@ class ShopwareProcess {
 
 		$response->total = count( $allArticles );
 
-		if ( $length > 0 ) {
+		if ( $count > 0 ) {
 			$articlesQuery = $this->articleRepository->createQueryBuilder( 'articles' )
 			                                       ->leftJoin( 'articles.details', 'details' )
 			                                       ->select( 'articles' )
-			                                       ->setMaxResults( $length )
+			                                       ->setMaxResults( $count )
 			                                       ->setFirstResult( $start );
 			/** @var array $allArticles */
 			$allArticles = $articlesQuery->getQuery()->execute();
