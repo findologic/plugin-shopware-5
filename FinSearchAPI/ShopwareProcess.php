@@ -75,10 +75,10 @@ class ShopwareProcess {
 			/** @var array $allArticles */
 			$allArticles = $articlesQuery->getQuery()->execute();
 		}
-		else{
+		else {
 			/** @var array $allArticles */
 			$allArticles = $this->shop->getCategory()->getAllArticles();
-			$response->total = count(  $this->shop->getCategory()->getAllArticles() );
+			$response->total = count( $allArticles );
 		}
 
 		//Sales Frequency
