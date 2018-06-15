@@ -62,6 +62,11 @@ class ShopwareProcess {
 		$this->orderRepository    = Shopware()->Container()->get( 'models' )->getRepository( Order::class );
 
 		if ( $count > 0 ) {
+			$countQuery = $this->articleRepository->createQueryBuilder( 'articles' )
+			                                      ->select( 'count(articles.id)' );
+
+			$response->total = $countQuery->getQuery()->getScalarResult()[0][1];
+
 			$articlesQuery = $this->articleRepository->createQueryBuilder( 'articles' )
 			                                       ->leftJoin( 'articles.details', 'details' )
 			                                       ->select( 'articles' )
@@ -73,8 +78,9 @@ class ShopwareProcess {
 		else{
 			/** @var array $allArticles */
 			$allArticles = $this->shop->getCategory()->getAllArticles();
+			$response->total = count(  $this->shop->getCategory()->getAllArticles() );
 		}
-		$response->total = count(  $this->shop->getCategory()->getAllArticles() );
+
 		//Sales Frequency
 		$orderQuery = $this->orderRepository->createQueryBuilder( 'orders' )
 											->leftJoin( 'orders.details', 'details' )
