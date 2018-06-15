@@ -294,7 +294,7 @@ namespace FinSearchAPI\BusinessLogic\Models {
 				$articleKeywords = explode( ',', $articleKeywordsString );
 				$xmlKeywords     = array();
 				foreach ( $articleKeywords as $keyword ) {
-					if ( $keyword != '' ) {
+					if ( self::checkIfHasValue($keyword) ) {
 						$xmlKeyword    = new Keyword( $keyword );
 						$xmlKeywords[] = $xmlKeyword;
 					}
@@ -394,8 +394,11 @@ namespace FinSearchAPI\BusinessLogic\Models {
 
 				/** @var Option $option */
 				$option          = $filter->getOption();
-				$xmlFilter       = new Attribute( $option->getName(), [ $filter->getValue() ] );
-				$allAttributes[] = $xmlFilter;
+
+				if (self::checkIfHasValue($filter->getValue())) {
+					$xmlFilter       = new Attribute( $option->getName(), [ $filter->getValue() ] );
+					$allAttributes[] = $xmlFilter;
+				}
 			}
 
 			// Varianten
