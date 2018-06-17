@@ -10,7 +10,9 @@ namespace FinSearchAPI\Helper;
 
 
 use FinSearchAPI\ShopwareProcess;
+use Shopware\Bundle\AttributeBundle\Repository\Searcher\SearcherInterface;
 use Shopware\Bundle\SearchBundle;
+use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\Customer\Group;
@@ -109,6 +111,9 @@ class UrlBuilder {
 		$catQuery = $criteria->getBaseCondition( 'category' );
 
 		$sortingQuery = $criteria->getSortings();
+
+        /** @var SearchBundle\ConditionInterface[] $conditions */
+        $conditions = $criteria->getConditions();
 		if ( $searchQuery instanceof SearchBundle\Condition\SearchTermCondition ) {
 			$this->buildKeywordQuery( $searchQuery->getTerm() );
 		}
@@ -122,14 +127,29 @@ class UrlBuilder {
 		foreach ( $sortingQuery as $sorting ) {
 			$this->buildSortingParameter( $sorting );
 		}
-		$this->processQueryParameter();
+		$this->processQueryParameter($conditions);
 		return $this->callFindologicForXmlResponse();
 	}
 
-	/**
-	 *
-	 */
-	private function processQueryParameter() {
+    /**
+     * @param ConditionInterface[] $conditions
+     */
+	private function processQueryParameter($conditions) {
+        /** @var ConditionInterface $condition */
+        foreach ($conditions as $condition){
+            if ($condition instanceof SearchBundle\Condition\CategoryCondition || $condition instanceof SearchBundle\Condition\CustomerGroupCondition){
+
+            }
+            else if($condition instanceof SearchBundle\Condition\PriceCondition){
+                $this->buildPriceAttribute('min', $condition->getMinPrice());
+                $this->buildPriceAttribute('max', $condition->getMaxPrice());
+            }
+            else{
+                /** @var SearchBundle\Condition\ProductAttributeCondition $condition */
+                $this->buildAttribute($condition->getField(), $condition->getValue());
+            }
+
+        }
 		// Filter Request Parameter
 		foreach ( $_REQUEST as $key => $parameter ) {
 			if ( array_key_exists( $key, $_COOKIE ) ) {
@@ -144,18 +164,7 @@ class UrlBuilder {
 				case 'n':
 					$this->parameters['count'] = $parameter;
 					break;
-				case 'min':
-					$this->buildPriceAttribute( $key, $parameter );
-					break;
-				case 'max':
-					$this->buildPriceAttribute( $key, $parameter );
-					break;
-				case 'sSearch':
-					break;
-				case 'q':
-					break;
 				default:
-					$this->buildAttribute( $key, $parameter );
 					break;
 			}
 		}
@@ -209,11 +218,10 @@ class UrlBuilder {
 
 	/**
 	 * @param string $key
-	 * @param string $value
+	 * @param array $value
 	 */
 	private function buildAttribute( $key, $value ) {
-		$splittedValues = explode('|', $value);
-		foreach ($splittedValues as $realValue){
+		foreach ($value as $realValue){
 			$this->parameters['attrib'][ $key ][] = urldecode( $realValue );
 		}
 	}

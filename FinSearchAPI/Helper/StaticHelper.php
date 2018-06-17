@@ -179,7 +179,7 @@ class StaticHelper {
 	public static function getFindologicFacets( SimpleXMLElement $xmlResponse ) {
 		$facets = array();
 		foreach ( $xmlResponse->filters->filter as $filter ) {
-			$facets[] = self::createFindologicFacet( (string) $filter->display, (string) $filter->name );
+			$facets[] = self::createFindologicFacet( (string) $filter->display, (string) $filter->name, (string) $filter->type, (string) $filter->select );
 		}
 
 		return $facets;
@@ -224,7 +224,7 @@ class StaticHelper {
 	 * @return SearchBundle\FacetResult\ValueListFacetResult
 	 */
 	private static function createValueListFacet( array $facetItem ) {
-		$facetResult = new SearchBundle\FacetResult\ValueListFacetResult( $facetItem['name'], false, $facetItem['display'], self::prepareValueItems( $facetItem['items'] ), $facetItem['name'] );
+		$facetResult = new SearchBundle\FacetResult\ValueListFacetResult( $facetItem['name'], false, $facetItem['display'], self::prepareValueItems( $facetItem['items'] ), $facetItem['name'], $facetItem['name'] );
 
 		return $facetResult;
 	}
@@ -260,11 +260,31 @@ class StaticHelper {
 	 *
 	 * @return CustomFacet
 	 */
-	public static function createFindologicFacet( string $label, string $name ) {
+	public static function createFindologicFacet( string $label, string $name, string $type, string $filter ) {
 		$currentFacet = new CustomFacet();
 		$currentFacet->setName( $name );
 		$currentFacet->setUniqueKey( $name );
+		switch ($type){
+            case "select":
+                $facetType = new SearchBundle\Facet\ProductAttributeFacet($name,SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT,$name, $label);
+                break;
+            case "range-slider":
+                $facetType = new SearchBundle\Facet\ProductAttributeFacet($name,SearchBundle\Facet\ProductAttributeFacet::MODE_RANGE_RESULT,$name, $label);
+                break;
+            case "label":
+                if ($filter == "single"){
+                    $facetType = new SearchBundle\Facet\ProductAttributeFacet($name,SearchBundle\Facet\ProductAttributeFacet::MODE_RADIO_LIST_RESULT,$name, $label);
+                }
+                else{
+                    $facetType = new SearchBundle\Facet\ProductAttributeFacet($name,SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT,$name, $label);
+                }
+                break;
+            default:
+                $facetType = new SearchBundle\Facet\ProductAttributeFacet($name,SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT,$name, $label);
+                break;
+        }
 
+        $currentFacet->setFacet($facetType);
 		return $currentFacet;
 	}
 
