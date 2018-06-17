@@ -11,17 +11,17 @@ use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
 class CriteriaRequestHandler implements CriteriaRequestHandlerInterface {
 
-	/**
-	 * @param \Enlight_Controller_Request_RequestHttp $request
-	 * @param \Shopware\Bundle\SearchBundle\Criteria $criteria
-	 * @param \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context
-	 */
-	public function handleRequest(
-		\Enlight_Controller_Request_RequestHttp $request,
-		\Shopware\Bundle\SearchBundle\Criteria $criteria,
-		\Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context
-	) {
+    /**
+     * @param \Enlight_Controller_Request_RequestHttp $request
+     * @param \Shopware\Bundle\SearchBundle\Criteria $criteria
+     * @param \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context
+     */
+    public function handleRequest(
+        \Enlight_Controller_Request_RequestHttp $request,
+        \Shopware\Bundle\SearchBundle\Criteria $criteria,
+        \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context
+    ) {
 
-		// TODO: Implement handleRequest() method.
-	}
+        // TODO: Implement handleRequest() method.
+    }
 }

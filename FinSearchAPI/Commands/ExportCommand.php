@@ -9,7 +9,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ExportCommand extends ShopwareCommand{
+class ExportCommand extends ShopwareCommand {
 
     protected function configure()
     {
@@ -32,7 +32,7 @@ class ExportCommand extends ShopwareCommand{
 
         $progress->start();
         $blController->setShopKey($shopkey);
-        $blController->getFindologicXml(0,0, true);
+        $blController->getFindologicXml(0, 0, true);
 
         $progress->finish();
         $output->writeln('');

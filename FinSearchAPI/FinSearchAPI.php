@@ -12,8 +12,8 @@ class FinSearchAPI extends Plugin
 {
 
     /**
-    * @param ContainerBuilder $container
-    */
+     * @param ContainerBuilder $container
+     */
     public function build(ContainerBuilder $container)
     {
         require __DIR__ . '/vendor/autoload.php';
