@@ -2,23 +2,23 @@
 
 namespace FinSearchAPI\Bundles;
 
-use FinSearchAPI\Helper\FacetBuilder;
 use FinSearchAPI\Helper\StaticHelper;
 use FinSearchAPI\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
 
-class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumberSearchInterface {
-
+class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumberSearchInterface
+{
     private $urlBuilder;
 
     private $facetBuilder;
 
     private $originalService;
 
-    public function __construct(ProductNumberSearchInterface $service) {
-        $this->urlBuilder      = new UrlBuilder();
+    public function __construct(ProductNumberSearchInterface $service)
+    {
+        $this->urlBuilder = new UrlBuilder();
         $this->originalService = $service;
     }
 
@@ -30,21 +30,22 @@ class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumber
      * The search gateway has to implement an event which plugin can be listened to,
      * to add their own handler classes.
      *
-     * @param \Shopware\Bundle\SearchBundle\Criteria $criteria
+     * @param \Shopware\Bundle\SearchBundle\Criteria                        $criteria
      * @param \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context
      *
      * @return SearchBundle\ProductNumberSearchResult
      */
-    public function search(Criteria $criteria, \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context) {
-        if (StaticHelper::checkDirectIntegration() || !(bool)Shopware()->Config()->get('ActivateFindologic')) {
+    public function search(Criteria $criteria, \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context)
+    {
+        if (StaticHelper::checkDirectIntegration() || !(bool) Shopware()->Config()->get('ActivateFindologic')) {
             return $this->originalService->search($criteria, $context);
         }
+
         try {
             /* SEND REQUEST TO FINDOLOGIC */
             $this->urlBuilder->setCustomerGroup($context->getCurrentCustomerGroup());
             $response = $this->urlBuilder->buildQueryUrlAndGetResponse($criteria);
             if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
-
                 $xmlResponse = StaticHelper::getXmlFromResponse($response);
 
                 $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
@@ -60,12 +61,8 @@ class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumber
 
                 return $this->originalService->search($criteria, $context);
             }
-
-
         } catch (\Zend_Http_Client_Exception $e) {
             return $this->originalService->search($criteria, $context);
         }
     }
-
-
 }
