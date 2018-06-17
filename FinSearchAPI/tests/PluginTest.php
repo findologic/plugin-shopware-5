@@ -20,7 +20,7 @@ class PluginTest extends TestCase
         $this->assertInstanceOf(Plugin::class, $plugin);
     }
 
-    public function testCalculateGroupkey(){
+    public function testCalculateGroupkey() {
         $shopkey = 'ABCD0815';
         $usergroup = 'at_rated';
 

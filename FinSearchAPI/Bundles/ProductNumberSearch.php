@@ -17,7 +17,7 @@ class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumber
 
     private $originalService;
 
-    public function __construct( ProductNumberSearchInterface $service ) {
+    public function __construct(ProductNumberSearchInterface $service) {
         $this->urlBuilder      = new UrlBuilder();
         $this->originalService = $service;
     }
@@ -35,35 +35,35 @@ class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumber
      *
      * @return SearchBundle\ProductNumberSearchResult
      */
-    public function search( Criteria $criteria, \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context ) {
-        if ( StaticHelper::checkDirectIntegration() || ! (bool) Shopware()->Config()->get( 'ActivateFindologic' ) ) {
-            return $this->originalService->search( $criteria, $context );
+    public function search(Criteria $criteria, \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context) {
+        if (StaticHelper::checkDirectIntegration() || !(bool)Shopware()->Config()->get('ActivateFindologic')) {
+            return $this->originalService->search($criteria, $context);
         }
         try {
             /* SEND REQUEST TO FINDOLOGIC */
-            $this->urlBuilder->setCustomerGroup( $context->getCurrentCustomerGroup() );
-            $response = $this->urlBuilder->buildQueryUrlAndGetResponse( $criteria );
-            if ( $response instanceof \Zend_Http_Response && $response->getStatus() == 200 ) {
+            $this->urlBuilder->setCustomerGroup($context->getCurrentCustomerGroup());
+            $response = $this->urlBuilder->buildQueryUrlAndGetResponse($criteria);
+            if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
 
-                $xmlResponse = StaticHelper::getXmlFromResponse( $response );
+                $xmlResponse = StaticHelper::getXmlFromResponse($response);
 
-                $foundProducts = StaticHelper::getProductsFromXml( $xmlResponse );
+                $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
 
-                $facets = StaticHelper::getFacetResultsFromXml( $xmlResponse );
+                $facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
 
-                $searchResult = StaticHelper::getShopwareArticlesFromFindologicId( $foundProducts );
-                setcookie( 'Fallback', 0 );
+                $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
+                setcookie('Fallback', 0);
 
-                return new SearchBundle\ProductNumberSearchResult( $searchResult, count( $searchResult ), $facets );
+                return new SearchBundle\ProductNumberSearchResult($searchResult, count($searchResult), $facets);
             } else {
-                setcookie( 'Fallback', 1 );
+                setcookie('Fallback', 1);
 
-                return $this->originalService->search( $criteria, $context );
+                return $this->originalService->search($criteria, $context);
             }
 
 
-        } catch ( \Zend_Http_Client_Exception $e ) {
-            return $this->originalService->search( $criteria, $context );
+        } catch (\Zend_Http_Client_Exception $e) {
+            return $this->originalService->search($criteria, $context);
         }
     }
 
