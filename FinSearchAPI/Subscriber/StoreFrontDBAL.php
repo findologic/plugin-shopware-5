@@ -3,17 +3,16 @@
  * Created by PhpStorm.
  * User: wege
  * Date: 17.06.2018
- * Time: 10:19
+ * Time: 10:19.
  */
 
 namespace FinSearchAPI\Subscriber;
 
-
-use FinSearchAPI\Bundles\SearchBundleDBAL\CriteriaRequestHandler;
 use Enlight\Event\SubscriberInterface;
+use FinSearchAPI\Bundles\SearchBundleDBAL\CriteriaRequestHandler;
 
-class StoreFrontDBAL implements SubscriberInterface {
-
+class StoreFrontDBAL implements SubscriberInterface
+{
     /**
      * Returns an array of event names this subscriber wants to listen to.
      *
@@ -42,16 +41,15 @@ class StoreFrontDBAL implements SubscriberInterface {
      *
      * @return array The event names to listen to
      */
-    public static function getSubscribedEvents() {
+    public static function getSubscribedEvents()
+    {
         return [
             'Shopware_SearchBundle_Collect_Criteria_Request_Handlers' => 'registerRequestHandlers',
         ];
     }
 
-
     public function registerRequestHandlers()
     {
         return new CriteriaRequestHandler();
     }
-
 }
