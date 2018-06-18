@@ -9,11 +9,11 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ExportCommand extends ShopwareCommand{
-
+class ExportCommand extends ShopwareCommand
+{
     protected function configure()
     {
-        $this->setName("findologic:export")
+        $this->setName('findologic:export')
             ->setDescription('Export Data to Findologic')
             ->addArgument('shopkey', InputArgument::REQUIRED, 'Findologic ShopKey')
             ->setHelp('The <info>%command.name%</info> exports Data to XML Schema for Findologic');
@@ -25,18 +25,16 @@ class ExportCommand extends ShopwareCommand{
         /** @var ShopwareProcess $blController */
         $blController = $this->container->get('fin_search_api.shopware_process');
         $shopkey = $input->getArgument('shopkey');
-        $output->writeln("Starting export Data to Findologic XML");
-
+        $output->writeln('Starting export Data to Findologic XML');
 
         $progress = new ProgressBar($output, count(0));
 
         $progress->start();
         $blController->setShopKey($shopkey);
-        $blController->getFindologicXml(0,0, true);
+        $blController->getFindologicXml(0, 0, true);
 
         $progress->finish();
         $output->writeln('');
-        $output->writeln("Export succesful");
+        $output->writeln('Export succesful');
     }
-
 }

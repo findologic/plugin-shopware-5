@@ -2,159 +2,174 @@
 
 namespace FinSearchAPI;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\PersistentCollection;
 use Doctrine\ORM\EntityNotFoundException;
 use FINDOLOGIC\Export\Exporter;
 use FinSearchAPI\BusinessLogic\Models\FindologicArticleModel;
 use Shopware\Models\Article\Article;
-use Shopware\Models\Article\Detail;
-use Shopware\Models\Category\Category;
 use Shopware\Models\Customer\Customer;
 use Shopware\Models\Order\Order;
 
-require __DIR__ . '/vendor/autoload.php';
+require __DIR__.'/vendor/autoload.php';
 
+class ShopwareProcess
+{
+    /**
+     * @var \Shopware\Bundle\StoreFrontBundle\Struct\ShopContext
+     */
+    protected $context;
 
-class ShopwareProcess {
+    /**
+     * @var \Shopware\Models\Customer\Repository
+     */
+    protected $customerRepository;
 
-	/**
-	 * @var \Shopware\Bundle\StoreFrontBundle\Struct\ShopContext
-	 */
-	protected $context;
+    /**
+     * @var \Shopware\Models\Article\Repository
+     */
+    protected $articleRepository;
 
-	/**
-	 * @var \Shopware\Models\Customer\Repository
-	 */
-	protected $customerRepository;
+    /**
+     * @var \Shopware\Models\Shop\Shop
+     */
+    public $shop;
 
-	/**
-	 * @var \Shopware\Models\Shop\Shop
-	 */
-	var $shop;
+    /**
+     * @var string
+     */
+    public $shopKey;
 
-	/**
-	 * @var string
-	 */
-	var $shopKey;
+    /**
+     * @var \Shopware\Models\Order\Repository
+     */
+    public $orderRepository;
 
-	/**
-	 * @var \Shopware\Models\Order\Repository
-	 */
-	var $orderRepository;
+    /**
+     * @param int $start
+     * @param int $count
+     *
+     * @throws \Exception
+     *
+     * @return xmlInformation
+     */
+    public function getAllProductsAsXmlArray($start = 0, $count = 0)
+    {
+        $response = new xmlInformation();
 
-	/**
-	 * @param int $start
-	 * @param int $length
-	 *
-	 * @return xmlInformation
-	 * @throws \Exception
-	 */
-	public function getAllProductsAsXmlArray( $start = 0, $length = 0 ) {
-		$response = new xmlInformation();
+        $this->customerRepository = Shopware()->Container()->get('models')->getRepository(Customer::class);
+        $this->articleRepository = Shopware()->Container()->get('models')->getRepository(Article::class);
+        $this->orderRepository = Shopware()->Container()->get('models')->getRepository(Order::class);
 
-		$this->customerRepository = Shopware()->Container()->get( 'models' )->getRepository( Customer::class );
+        if ($count > 0) {
+            $countQuery = $this->articleRepository->createQueryBuilder('articles')
+                                                    ->select('count(articles.id)');
 
-		// Get all articles from selected shop
-		/** @var array $allArticles */
-		$allArticles = $this->shop->getCategory()->getAllArticles();
+            $response->total = $countQuery->getQuery()->getScalarResult()[0][1];
 
-		$response->total = count($allArticles);
+            $articlesQuery = $this->articleRepository->createQueryBuilder('articles')
+                                                    ->leftJoin('articles.details', 'details')
+                                                    ->select('articles')
+                                                    ->setMaxResults($count)
+                                                    ->setFirstResult($start);
+            /** @var array $allArticles */
+            $allArticles = $articlesQuery->getQuery()->execute();
+        } else {
+            /** @var array $allArticles */
+            $allArticles = $this->shop->getCategory()->getAllArticles();
+            $response->total = count($allArticles);
+        }
 
-		if ( $length > 0 ) {
-			$allArticles = array_slice( $allArticles, $start, $length );
-		}
+        //Sales Frequency
+        $orderQuery = $this->orderRepository->createQueryBuilder('orders')
+                                            ->leftJoin('orders.details', 'details')
+                                            ->groupBy('details.articleId')
+                                            ->select('details.articleId, sum(details.quantity)');
 
-		//Sales Frequency
+        $articleSales = $orderQuery->getQuery()->getArrayResult();
 
-		$this->orderRepository = Shopware()->Container()->get( 'models' )->getRepository( Order::class );
+        // Own Model for XML extraction
+        $findologicArticles = [];
 
-		$orderQuery = $this->orderRepository->createQueryBuilder( 'orders' )
-											->leftJoin( 'orders.details', 'details' )
-											->groupBy( 'details.articleId' )
-											->select( 'details.articleId, sum(details.quantity)' );
+        /** @var array $allUserGroups */
+        $allUserGroups = $this->customerRepository->getCustomerGroupsQuery()->getResult();
 
-		$articleSales = $orderQuery->getQuery()->getArrayResult();
+        /** @var Article $article */
+        foreach ($allArticles as $article) {
 
-		// Own Model for XML extraction
-		$findologicArticles = array();
+            // Check if Article is Visible and Active
+            if (!$article->getActive()) {
+                continue;
+            }
 
-		/** @var array $allUserGroups */
-		$allUserGroups = $this->customerRepository->getCustomerGroupsQuery()->getResult();
+            try {
+                if ($article->getMainDetail()->getActive() === 0) {
+                    continue;
+                }
+            } catch (EntityNotFoundException $exception) {
+                continue;
+            }
 
+            $findologicArticle = new FindologicArticleModel($article, $this->shopKey, $allUserGroups, $articleSales);
 
-		/** @var Article $article */
-		foreach ( $allArticles as $article ) {
+            if ($findologicArticle->shouldBeExported) {
+                $findologicArticles[] = $findologicArticle->getXmlRepresentation();
+            }
+        }
 
-			// Check if Article is Visible and Active
-			if ( ! $article->getActive() ) {
-				continue;
-			}
+        $response->items = $findologicArticles;
+        $response->count = count($findologicArticles);
 
-			try {
-				if ($article->getMainDetail()->getActive() === 0) {
-					continue;
-				}
-			} catch (EntityNotFoundException $exception) {
-				continue;
-			}
+        return $response;
+    }
 
-			$findologicArticle = new FindologicArticleModel( $article, $this->shopKey, $allUserGroups, $articleSales );
+    public function getFindologicXml($start = 0, $length = 0, $save = false)
+    {
+        $exporter = Exporter::create(Exporter::TYPE_XML);
 
-			if ( $findologicArticle->shouldBeExported ) {
-				$findologicArticles[] = $findologicArticle->getXmlRepresentation();
-			}
+        try {
+            $xmlArray = $this->getAllProductsAsXmlArray($start, $length);
+        } catch (\Exception $e) {
+            die($e->getMessage());
+        }
+        if ($save) {
+            $exporter->serializeItemsToFile(__DIR__.'', $xmlArray->items, $start, $xmlArray->count, $xmlArray->total);
+        } else {
+            $xmlDocument = $exporter->serializeItems($xmlArray->items, $start, $xmlArray->count, $xmlArray->total);
 
-		}
+            return $xmlDocument;
+        }
+    }
 
-		$response->items = $findologicArticles;
-		$response->count = count($findologicArticles);
+    /**
+     * @param string $shopKey
+     */
+    public function setShopKey($shopKey)
+    {
+        $this->shopKey = $shopKey;
+        $configValue = Shopware()->Models()->getRepository('Shopware\Models\Config\Value')->findOneBy(['value' => $shopKey]);
+        $this->shop = $configValue ? $configValue->getShop() : null;
+    }
 
-		return $response;
-	}
+    /* HELPER FUNCTIONS */
 
-	public function getFindologicXml( $start = 0, $length = 0, $save = false ) {
-		$exporter = Exporter::create( Exporter::TYPE_XML );
-		try {
-			$xmlArray = $this->getAllProductsAsXmlArray( $start, $length );
-		} catch ( \Exception $e ) {
-			die( $e->getMessage() );
-		}
-		if ( $save ) {
-			$exporter->serializeItemsToFile( __DIR__ . '', $xmlArray->items, $start, $xmlArray->count , $xmlArray->total );
-		} else {
-			$xmlDocument = $exporter->serializeItems( $xmlArray->items, $start, $xmlArray->count, $xmlArray->total );
-			return $xmlDocument;
-		}
-	}
+    public static function calculateUsergroupHash($shopkey, $usergroup)
+    {
+        $hash = base64_encode($shopkey ^ $usergroup);
 
-	/**
-	 * @param string $shopKey
-	 */
-	public function setShopKey( $shopKey ) {
-		$this->shopKey = $shopKey;
-		$configValue   = Shopware()->Models()->getRepository( 'Shopware\Models\Config\Value' )->findOneBy( [ 'value' => $shopKey ] );
-		$this->shop    = $configValue ? $configValue->getShop() : null;
-	}
+        return $hash;
+    }
 
-	/* HELPER FUNCTIONS */
-
-	public static function calculateUsergroupHash( $shopkey, $usergroup ) {
-		$hash = base64_encode( $shopkey ^ $usergroup );
-
-		return $hash;
-	}
-
-	public static function decryptUsergroupHash( $shopkey, $hash ) {
-		return ( $shopkey ^ base64_decode( $hash ) );
-	}
+    public static function decryptUsergroupHash($shopkey, $hash)
+    {
+        return  $shopkey ^ base64_decode($hash);
+    }
 }
 
- class xmlInformation{
-	/** @var int */
-	public $count;
-	/** @var int */
-	public $total;
-	/** @var array */
-	public $items;
- }
+class xmlInformation
+{
+    /** @var int */
+    public $count;
+    /** @var int */
+    public $total;
+    /** @var array */
+    public $items;
+}
