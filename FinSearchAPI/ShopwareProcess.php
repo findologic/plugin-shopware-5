@@ -96,7 +96,7 @@ class ShopwareProcess
         foreach ($allArticles as $article) {
 
             // Check if Article is Visible and Active
-            if (!$article->getActive()) {
+            if (!$article->getActive() || count($article->getAllCategories()) === 0) {
                 continue;
             }
 
