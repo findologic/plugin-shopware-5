@@ -242,7 +242,7 @@ class UrlBuilder
     private function callFindologicForXmlResponse()
     {
         $url = self::BASE_URL.$this->shopUrl.'index.php?'.http_build_query($this->parameters);
-
+        $url = 'http://192.168.18.157/shopware/liebeslust_de_filter.xml';
         try {
             $request = $this->httpClient->setUri($url);
 
