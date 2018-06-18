@@ -66,7 +66,6 @@ class ShopwareProcess
             $response->total = $countQuery->getQuery()->getScalarResult()[0][1];
 
             $articlesQuery = $this->articleRepository->createQueryBuilder('articles')
-                                                    ->leftJoin('articles.details', 'details')
                                                     ->select('articles')
                                                     ->setMaxResults($count)
                                                     ->setFirstResult($start);
