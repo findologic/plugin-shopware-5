@@ -364,7 +364,8 @@ namespace FinSearchAPI\BusinessLogic\Models {
                     continue;
                 }
                 $catPath = $this->seoRouter->sCategoryPath($category->getId());
-                $catPathArray[] = '/'.implode('/', $catPath);
+                $tempPath = '/'.implode('/', $catPath);
+                $catPathArray[] = $this->seoRouter->sCleanupPath($tempPath);
             }
 
             $xmlCatProperty->setValues(array_unique($catPathArray));
