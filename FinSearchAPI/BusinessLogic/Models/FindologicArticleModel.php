@@ -352,10 +352,14 @@ namespace FinSearchAPI\BusinessLogic\Models {
             $allAttributes = [];
 
             // Categories to XML Output
-            /** @var Attribute $xmlCatProperty */
-            $xmlCatProperty = new Attribute('cat_url');
+            /** @var Attribute $xmlCatUrl */
+            $xmlCatProperty = new Attribute('cat');
 
-            $catPathArray = [];
+            /** @var Attribute $xmlCatUrlProperty */
+            $xmlCatUrlProperty = new Attribute('cat_url');
+
+            $catUrlArray = [];
+            $catArray = [];
 
             /** @var Category $category */
             foreach ($this->baseArticle->getAllCategories() as $category) {
@@ -365,11 +369,19 @@ namespace FinSearchAPI\BusinessLogic\Models {
                 }
                 $catPath = $this->seoRouter->sCategoryPath($category->getId());
                 $tempPath = '/'.implode('/', $catPath);
-                $catPathArray[] = $this->seoRouter->sCleanupPath($tempPath);
+                $catUrlArray[] = $this->seoRouter->sCleanupPath($tempPath);
+                $exportCat = StaticHelper::buildCategoryName($category->getId());
+                if ($exportCat !== ""){
+                    $catArray[] = $exportCat;
+                }
             }
 
-            $xmlCatProperty->setValues(array_unique($catPathArray));
+            $xmlCatUrlProperty->setValues(array_unique($catUrlArray));
+            $xmlCatProperty->setValues(array_unique($catArray));
 
+            /** @var array $xmlCatUrlProperty */
+            $allAttributes[] = $xmlCatUrlProperty;
+            /** @var array $xmlCatProperty */
             $allAttributes[] = $xmlCatProperty;
 
             // Supplier
