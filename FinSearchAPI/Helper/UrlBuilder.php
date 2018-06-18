@@ -139,13 +139,13 @@ class UrlBuilder
     {
         /** @var ConditionInterface $condition */
         foreach ($conditions as $condition) {
-            if ($condition instanceof SearchBundle\Condition\CategoryCondition || $condition instanceof SearchBundle\Condition\CustomerGroupCondition) {
-            } elseif ($condition instanceof SearchBundle\Condition\PriceCondition) {
+            if ($condition instanceof SearchBundle\Condition\PriceCondition) {
                 $this->buildPriceAttribute('min', $condition->getMinPrice());
                 $this->buildPriceAttribute('max', $condition->getMaxPrice());
-            } else {
-                /* @var SearchBundle\Condition\ProductAttributeCondition $condition */
+            } elseif ($condition instanceof SearchBundle\Condition\ProductAttributeCondition) {
                 $this->buildAttribute($condition->getField(), $condition->getValue());
+            } else {
+                continue;
             }
         }
         // Filter Request Parameter
