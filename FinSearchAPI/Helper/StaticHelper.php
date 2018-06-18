@@ -22,17 +22,33 @@ class StaticHelper
      *
      * @return string
      */
-    public static function buildCategoryName(int $categoryId)
+    public static function buildCategoryName(int $categoryId, $decode = true)
     {
         $categories = Shopware()->Modules()->Categories()->sGetCategoriesByParent($categoryId);
         $categoryNames = [];
         foreach ($categories as $category) {
-            $categoryNames[] = rawurlencode($category['name']);
+            if ($decode){
+                $categoryNames[] = rawurlencode($category['name']);
+            }
+            else{
+                $categoryNames[] = $category['name'];
+            }
+
         }
         $categoryNames = array_reverse($categoryNames);
         $categoryName = implode('_', $categoryNames);
 
         return $categoryName;
+    }
+
+    public static function checkIfSearch($conditionArray){
+        /** @var SearchBundle\ConditionInterface $condition */
+        foreach ($conditionArray as $condition){
+            if ($condition instanceof SearchBundle\Condition\SearchTermCondition){
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
