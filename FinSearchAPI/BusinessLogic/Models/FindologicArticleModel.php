@@ -370,7 +370,7 @@ namespace FinSearchAPI\BusinessLogic\Models {
                 $catPath = $this->seoRouter->sCategoryPath($category->getId());
                 $tempPath = '/'.implode('/', $catPath);
                 $catUrlArray[] = $this->seoRouter->sCleanupPath($tempPath);
-                $exportCat = StaticHelper::buildCategoryName($category->getId());
+                $exportCat = StaticHelper::buildCategoryName($category->getId(), false);
                 if ($exportCat !== ""){
                     $catArray[] = $exportCat;
                 }
