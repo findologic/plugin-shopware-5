@@ -35,6 +35,16 @@ class StaticHelper
         return $categoryName;
     }
 
+    public static function checkIfSearch($conditionArray){
+        /** @var SearchBundle\ConditionInterface $condition */
+        foreach ($conditionArray as $condition){
+            if ($condition instanceof SearchBundle\Condition\SearchTermCondition){
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * @param \Zend_Http_Response $response
      *
