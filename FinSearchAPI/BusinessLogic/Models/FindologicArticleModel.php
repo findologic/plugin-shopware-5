@@ -371,7 +371,8 @@ namespace FinSearchAPI\BusinessLogic\Models {
                 $tempPath = '/'.implode('/', $catPath);
                 $catUrlArray[] = $this->seoRouter->sCleanupPath($tempPath);
                 $exportCat = StaticHelper::buildCategoryName($category->getId(), false);
-                if ($exportCat !== ""){
+
+                if (self::checkIfHasValue($exportCat)) {
                     $catArray[] = $exportCat;
                 }
             }
