@@ -7,12 +7,11 @@ use FinSearchAPI\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
+use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
-class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumberSearchInterface
+class ProductNumberSearch implements ProductNumberSearchInterface
 {
     private $urlBuilder;
-
-    private $facetBuilder;
 
     private $originalService;
 
@@ -35,9 +34,16 @@ class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumber
      *
      * @return SearchBundle\ProductNumberSearchResult
      */
-    public function search(Criteria $criteria, \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context)
+    public function search(Criteria $criteria, ShopContextInterface $context)
     {
-        if (StaticHelper::checkDirectIntegration() || !(bool) Shopware()->Config()->get('ActivateFindologic')) {
+        if (
+            StaticHelper::checkDirectIntegration() ||
+            !(bool) Shopware()->Config()->get('ActivateFindologic') ||
+            (
+                !(bool) Shopware()->Config()->get('ActivateFindologicForCategoryPages') &&
+                !StaticHelper::checkIfSearch($criteria->getConditions())
+            )
+        ) {
             return $this->originalService->search($criteria, $context);
         }
 
@@ -54,14 +60,17 @@ class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumber
 
                 $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
                 setcookie('Fallback', 0);
+                $totalResults = (int) $xmlResponse->results->count;
 
-                return new SearchBundle\ProductNumberSearchResult($searchResult, count($searchResult), $facets);
+                return new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $facets);
             } else {
                 setcookie('Fallback', 1);
 
                 return $this->originalService->search($criteria, $context);
             }
         } catch (\Zend_Http_Client_Exception $e) {
+            setcookie('Fallback', 1);
+
             return $this->originalService->search($criteria, $context);
         }
     }

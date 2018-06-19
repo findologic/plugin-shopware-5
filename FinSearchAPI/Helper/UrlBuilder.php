@@ -127,45 +127,32 @@ class UrlBuilder
         foreach ($sortingQuery as $sorting) {
             $this->buildSortingParameter($sorting);
         }
-        $this->processQueryParameter($conditions);
+        $this->processQueryParameter($conditions, $criteria->getOffset(), $criteria->getLimit());
 
         return $this->callFindologicForXmlResponse();
     }
 
     /**
      * @param ConditionInterface[] $conditions
+     * @param int                  $offset
+     * @param int                  $itemsPerPage
      */
-    private function processQueryParameter($conditions)
+    private function processQueryParameter($conditions, $offset, $itemsPerPage)
     {
         /** @var ConditionInterface $condition */
         foreach ($conditions as $condition) {
-            if ($condition instanceof SearchBundle\Condition\CategoryCondition || $condition instanceof SearchBundle\Condition\CustomerGroupCondition) {
-            } elseif ($condition instanceof SearchBundle\Condition\PriceCondition) {
+            if ($condition instanceof SearchBundle\Condition\PriceCondition) {
+                $max = $condition->getMaxPrice() === 0 ? PHP_INT_MAX : $condition->getMaxPrice();
                 $this->buildPriceAttribute('min', $condition->getMinPrice());
-                $this->buildPriceAttribute('max', $condition->getMaxPrice());
-            } else {
-                /* @var SearchBundle\Condition\ProductAttributeCondition $condition */
+                $this->buildPriceAttribute('max', $max);
+            } elseif ($condition instanceof SearchBundle\Condition\ProductAttributeCondition) {
                 $this->buildAttribute($condition->getField(), $condition->getValue());
-            }
-        }
-        // Filter Request Parameter
-        foreach ($_REQUEST as $key => $parameter) {
-            if (array_key_exists($key, $_COOKIE)) {
+            } else {
                 continue;
             }
-            switch ($key) {
-                case 'o':
-                    break;
-                case 'p':
-                    $this->parameters['first'] = ($parameter - 1) * $_REQUEST['n']; //Shopware starts at 1
-                    break;
-                case 'n':
-                    $this->parameters['count'] = $parameter;
-                    break;
-                default:
-                    break;
-            }
         }
+        $this->parameters['first'] = $offset;
+        $this->parameters['count'] = $itemsPerPage;
     }
 
     /**

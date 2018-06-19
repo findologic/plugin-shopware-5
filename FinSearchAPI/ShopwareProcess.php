@@ -66,7 +66,6 @@ class ShopwareProcess
             $response->total = $countQuery->getQuery()->getScalarResult()[0][1];
 
             $articlesQuery = $this->articleRepository->createQueryBuilder('articles')
-                                                    ->leftJoin('articles.details', 'details')
                                                     ->select('articles')
                                                     ->setMaxResults($count)
                                                     ->setFirstResult($start);
@@ -96,7 +95,7 @@ class ShopwareProcess
         foreach ($allArticles as $article) {
 
             // Check if Article is Visible and Active
-            if (!$article->getActive()) {
+            if (!$article->getActive() || count($article->getAllCategories()) === 0) {
                 continue;
             }
 
