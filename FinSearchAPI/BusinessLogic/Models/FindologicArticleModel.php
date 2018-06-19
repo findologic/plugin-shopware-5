@@ -4,7 +4,6 @@ namespace FinSearchAPI\BusinessLogic\Models;
 
 use Doctrine\ORM\PersistentCollection;
 use FINDOLOGIC\Export\Data\Attribute;
-use FINDOLOGIC\Export\Data\Property;
 use FINDOLOGIC\Export\Data\DateAdded;
 use FINDOLOGIC\Export\Data\Description;
 use FINDOLOGIC\Export\Data\Item;
@@ -12,6 +11,7 @@ use FINDOLOGIC\Export\Data\Keyword;
 use FINDOLOGIC\Export\Data\Name;
 use FINDOLOGIC\Export\Data\Ordernumber;
 use FINDOLOGIC\Export\Data\Price;
+use FINDOLOGIC\Export\Data\Property;
 use FINDOLOGIC\Export\Data\SalesFrequency;
 use FINDOLOGIC\Export\Data\Summary;
 use FINDOLOGIC\Export\Data\Url;
@@ -384,9 +384,9 @@ class FindologicArticleModel
         $xmlCatUrlProperty->setValues(array_unique($catUrlArray));
         $xmlCatProperty->setValues(array_unique($catArray));
 
-        /** @var array $xmlCatUrlProperty */
+        /* @var array $xmlCatUrlProperty */
         $allAttributes[] = $xmlCatUrlProperty;
-        /** @var array $xmlCatProperty */
+        /* @var array $xmlCatProperty */
         $allAttributes[] = $xmlCatProperty;
 
         // Supplier
