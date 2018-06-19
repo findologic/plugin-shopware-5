@@ -9,7 +9,7 @@ use Shopware\Models\Article\Article;
 use Shopware\Models\Customer\Customer;
 use Shopware\Models\Order\Order;
 
-require __DIR__.'/vendor/autoload.php';
+require __DIR__ . '/vendor/autoload.php';
 
 class ShopwareProcess
 {
@@ -130,7 +130,7 @@ class ShopwareProcess
             die($e->getMessage());
         }
         if ($save) {
-            $exporter->serializeItemsToFile(__DIR__.'', $xmlArray->items, $start, $xmlArray->count, $xmlArray->total);
+            $exporter->serializeItemsToFile(__DIR__ . '', $xmlArray->items, $start, $xmlArray->count, $xmlArray->total);
         } else {
             $xmlDocument = $exporter->serializeItems($xmlArray->items, $start, $xmlArray->count, $xmlArray->total);
 

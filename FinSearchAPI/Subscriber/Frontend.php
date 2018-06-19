@@ -47,7 +47,7 @@ class Frontend implements SubscriberInterface
      */
     public function onAjaxLoad(\Enlight_Event_EventArgs $args)
     {
-        if ((bool) Shopware()->Config()->get('ActivateFindologic')) {
+        if ((bool)Shopware()->Config()->get('ActivateFindologic')) {
             return;
         }
     }
@@ -60,12 +60,12 @@ class Frontend implements SubscriberInterface
 
     public function onPreDispatch()
     {
-        $this->templateManager->addTemplateDir($this->pluginDirectory.'/Resources/views');
+        $this->templateManager->addTemplateDir($this->pluginDirectory . '/Resources/views');
     }
 
     public function onFrontendPostDispatch(Enlight_Event_EventArgs $args)
     {
-        if (!(bool) Shopware()->Config()->get('ActivateFindologic')) {
+        if (!(bool)Shopware()->Config()->get('ActivateFindologic')) {
             return;
         }
         $groupKey = Shopware()->Session()->sUserGroup;
@@ -83,7 +83,7 @@ class Frontend implements SubscriberInterface
         try {
             /** @var \Enlight_Controller_ActionEventArgs $args */
             $view = $args->getSubject()->View();
-            $view->addTemplateDir($this->pluginDirectory.'/Resources/views/');
+            $view->addTemplateDir($this->pluginDirectory . '/Resources/views/');
             $view->extendsTemplate('frontend/fin_search_api/header.tpl');
             $view->assign('mainUrl', $mainUrl);
         } catch (\Enlight_Exception $e) {
@@ -104,6 +104,6 @@ class Frontend implements SubscriberInterface
 
     public function onFindologicController(\Enlight_Event_EventArgs $args)
     {
-        return $this->Path().'Controllers/Frontend/Findologic.php';
+        return $this->Path() . 'Controllers/Frontend/Findologic.php';
     }
 }
