@@ -7,12 +7,11 @@ use FinSearchAPI\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
+use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
-class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumberSearchInterface
+class ProductNumberSearch implements ProductNumberSearchInterface
 {
     private $urlBuilder;
-
-    private $facetBuilder;
 
     private $originalService;
 
@@ -35,9 +34,16 @@ class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumber
      *
      * @return SearchBundle\ProductNumberSearchResult
      */
-    public function search(Criteria $criteria, \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context)
+    public function search(Criteria $criteria, ShopContextInterface $context)
     {
-        if (StaticHelper::checkDirectIntegration() || !(bool) Shopware()->Config()->get('ActivateFindologic') || (!(bool) Shopware()->Config()->get('ActivateFindologicForCategoryPages') && !StaticHelper::checkIfSearch($criteria->getConditions()))) {
+        if (
+            StaticHelper::checkDirectIntegration() ||
+            !(bool) Shopware()->Config()->get('ActivateFindologic') ||
+            (
+                !(bool) Shopware()->Config()->get('ActivateFindologicForCategoryPages') &&
+                !StaticHelper::checkIfSearch($criteria->getConditions())
+            )
+        ) {
             return $this->originalService->search($criteria, $context);
         }
 
