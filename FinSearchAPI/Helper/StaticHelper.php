@@ -59,7 +59,7 @@ class StaticHelper
     public static function getXmlFromResponse(\Zend_Http_Response $response)
     {
         /* TLOAD XML RESPONSE */
-        $responseText = (string) $response->getBody();
+        $responseText = (string)$response->getBody();
 
         $xmlResponse = new SimpleXMLElement($responseText);
 
@@ -82,7 +82,7 @@ class StaticHelper
             /* READ PRODUCT IDS */
             foreach ($xmlResponse->products->product as $product) {
                 try {
-                    $articleId = (string) $product->attributes()['id'];
+                    $articleId = (string)$product->attributes()['id'];
 
                     $productCheck = $productService->getMainProductNumberById($articleId);
 
@@ -149,10 +149,10 @@ class StaticHelper
         $facets = [];
         foreach ($xmlResponse->filters->filter as $filter) {
             $facetItem = [];
-            $facetItem['name'] = (string) $filter->name;
-            $facetItem['select'] = (string) $filter->select;
-            $facetItem['display'] = (string) $filter->display;
-            $facetItem['type'] = (string) $filter->type;
+            $facetItem['name'] = (string)$filter->name;
+            $facetItem['select'] = (string)$filter->select;
+            $facetItem['display'] = (string)$filter->display;
+            $facetItem['type'] = (string)$filter->type;
             $facetItem['items'] = self::createFilterItems($filter->items->item);
 
             switch ($facetItem['type']) {
@@ -178,8 +178,8 @@ class StaticHelper
                     $facets[] = self::createMediaListFacet($facetItem);
                     break;
                 case 'range-slider':
-                    $minValue = (float) $filter->attributes->selectedRange->min;
-                    $maxValue = (float) $filter->attributes->selectedRange->max;
+                    $minValue = (float)$filter->attributes->selectedRange->min;
+                    $maxValue = (float)$filter->attributes->selectedRange->max;
                     $facets[] = self::createRangeSlideFacet($facetItem, $minValue, $maxValue);
                     break;
                 default:
@@ -199,7 +199,7 @@ class StaticHelper
     {
         $facets = [];
         foreach ($xmlResponse->filters->filter as $filter) {
-            $facets[] = self::createFindologicFacet((string) $filter->display, (string) $filter->name, (string) $filter->type, (string) $filter->select);
+            $facets[] = self::createFindologicFacet((string)$filter->display, (string)$filter->name, (string)$filter->type, (string)$filter->select);
         }
 
         return $facets;
@@ -391,7 +391,7 @@ class StaticHelper
         $response = [];
         $tempItem = [];
         foreach ($items as $subItem) {
-            $tempItem['name'] = (string) $subItem->name;
+            $tempItem['name'] = (string)$subItem->name;
             $tempItem['image'] = ($subItem->image !== null ? $subItem->image : '');
             $tempItem['color'] = ($subItem->color !== null ? $subItem->color : '');
             if ($subItem->items->item) {

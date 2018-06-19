@@ -53,7 +53,7 @@ class UrlBuilder
             'userip'   => self::getClientIpServer(),
             'revision' => $plugin->getVersion(),
         ];
-        $this->configUrl = self::CDN_URL.strtoupper(md5($this->shopKey)).self::JSON_CONFIG;
+        $this->configUrl = self::CDN_URL . strtoupper(md5($this->shopKey)) . self::JSON_CONFIG;
     }
 
     public static function getClientIpServer()
@@ -89,7 +89,7 @@ class UrlBuilder
                 $response = $requestHandler->getBody();
                 $jsonResponse = json_decode($response, true);
 
-                return (bool) $jsonResponse[self::JSON_PATH]['enabled'];
+                return (bool)$jsonResponse[self::JSON_PATH]['enabled'];
             }
 
             return false;
@@ -174,13 +174,13 @@ class UrlBuilder
     private function buildSortingParameter(SortingInterface $sorting)
     {
         if ($sorting instanceof SearchBundle\Sorting\PopularitySorting) {
-            $this->parameters['order'] = urldecode('salesfrequency '.$sorting->getDirection());
+            $this->parameters['order'] = urldecode('salesfrequency ' . $sorting->getDirection());
         } elseif ($sorting instanceof SearchBundle\Sorting\PriceSorting) {
-            $this->parameters['order'] = urldecode('price '.$sorting->getDirection());
+            $this->parameters['order'] = urldecode('price ' . $sorting->getDirection());
         } elseif ($sorting instanceof SearchBundle\Sorting\ProductNameSorting) {
-            $this->parameters['order'] = urldecode('label '.$sorting->getDirection());
+            $this->parameters['order'] = urldecode('label ' . $sorting->getDirection());
         } elseif ($sorting instanceof SearchBundle\Sorting\ReleaseDateSorting) {
-            $this->parameters['order'] = urldecode('dateadded '.$sorting->getDirection());
+            $this->parameters['order'] = urldecode('dateadded ' . $sorting->getDirection());
         }
     }
 
@@ -228,7 +228,7 @@ class UrlBuilder
      */
     private function callFindologicForXmlResponse()
     {
-        $url = self::BASE_URL.$this->shopUrl.'index.php?'.http_build_query($this->parameters);
+        $url = self::BASE_URL . $this->shopUrl . 'index.php?' . http_build_query($this->parameters);
 
         try {
             $request = $this->httpClient->setUri($url);
