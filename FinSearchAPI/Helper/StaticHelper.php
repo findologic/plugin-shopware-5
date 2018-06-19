@@ -27,13 +27,11 @@ class StaticHelper
         $categories = Shopware()->Modules()->Categories()->sGetCategoriesByParent($categoryId);
         $categoryNames = [];
         foreach ($categories as $category) {
-            if ($decode){
+            if ($decode) {
                 $categoryNames[] = rawurlencode($category['name']);
-            }
-            else{
+            } else {
                 $categoryNames[] = $category['name'];
             }
-
         }
         $categoryNames = array_reverse($categoryNames);
         $categoryName = implode('_', $categoryNames);
@@ -41,13 +39,15 @@ class StaticHelper
         return $categoryName;
     }
 
-    public static function checkIfSearch($conditionArray){
+    public static function checkIfSearch($conditionArray)
+    {
         /** @var SearchBundle\ConditionInterface $condition */
-        foreach ($conditionArray as $condition){
-            if ($condition instanceof SearchBundle\Condition\SearchTermCondition){
+        foreach ($conditionArray as $condition) {
+            if ($condition instanceof SearchBundle\Condition\SearchTermCondition) {
                 return true;
             }
         }
+
         return false;
     }
 
