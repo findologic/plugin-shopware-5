@@ -201,6 +201,9 @@ class FindologicArticleModel
             if (!($detail instanceof Detail)) {
                 continue;
             }
+            if ($detail->getInStock() < 1) {
+                continue;
+            }
             if ($detail->getActive() == 1) {
                 /** @var \Shopware\Models\Article\Price $price */
                 foreach ($detail->getPrices() as $price) {
