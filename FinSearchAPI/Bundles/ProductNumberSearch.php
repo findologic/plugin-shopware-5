@@ -62,6 +62,8 @@ class ProductNumberSearch implements \Shopware\Bundle\SearchBundle\ProductNumber
                 return $this->originalService->search($criteria, $context);
             }
         } catch (\Zend_Http_Client_Exception $e) {
+            setcookie('Fallback', 1);
+
             return $this->originalService->search($criteria, $context);
         }
     }
