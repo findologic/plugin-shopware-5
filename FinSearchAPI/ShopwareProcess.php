@@ -4,7 +4,6 @@ namespace FinSearchAPI;
 
 use Doctrine\ORM\EntityNotFoundException;
 use FINDOLOGIC\Export\Exporter;
-use FinSearchAPI\BusinessLogic\Models\FindologicArticleModel;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Customer\Customer;
 use Shopware\Models\Order\Order;
@@ -91,6 +90,8 @@ class ShopwareProcess
         /** @var array $allUserGroups */
         $allUserGroups = $this->customerRepository->getCustomerGroupsQuery()->getResult();
 
+        $findologicArticleFactory = Shopware()->Container()->get('fin_search_api.article_model_factory');;
+
         /** @var Article $article */
         foreach ($allArticles as $article) {
 
@@ -107,7 +108,7 @@ class ShopwareProcess
                 continue;
             }
 
-            $findologicArticle = new FindologicArticleModel($article, $this->shopKey, $allUserGroups, $articleSales);
+            $findologicArticle = $findologicArticleFactory->createFindologicArticle($article, $this->shopKey, $allUserGroups, $articleSales);
 
             if ($findologicArticle->shouldBeExported) {
                 $findologicArticles[] = $findologicArticle->getXmlRepresentation();
