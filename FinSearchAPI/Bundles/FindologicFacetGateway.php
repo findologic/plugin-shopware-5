@@ -40,8 +40,8 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
     {
         if (
             StaticHelper::checkDirectIntegration() ||
-            !(bool)Shopware()->Config()->get('ActivateFindologic') ||
-            !(bool)Shopware()->Config()->get('ActivateFindologicForCategoryPages')
+            !(bool) Shopware()->Config()->get('ActivateFindologic') ||
+            !(bool) Shopware()->Config()->get('ActivateFindologicForCategoryPages')
         ) {
             return $this->originalService->getFacetsOfCategories($categoryIds, $context);
         }

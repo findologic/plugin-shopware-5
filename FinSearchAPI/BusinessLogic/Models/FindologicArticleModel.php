@@ -240,7 +240,7 @@ class FindologicArticleModel
 
             // Add taxes if needed
             if ($userGroup->getTax()) {
-                $price *= (1 + (float)$tax->getTax() / 100);
+                $price *= (1 + (float) $tax->getTax() / 100);
             }
 
             $xmlPrice = new Price();
@@ -269,7 +269,7 @@ class FindologicArticleModel
 
         if ($key != false) {
             $currentSale = $this->salesFrequency[$key];
-            $articleFrequency = (int)$currentSale[1];
+            $articleFrequency = (int) $currentSale[1];
         }
 
         $salesFrequency = new SalesFrequency();
@@ -279,7 +279,7 @@ class FindologicArticleModel
 
     protected function setUrls()
     {
-        $baseLink = Shopware()->Config()->get('baseFile') . '?sViewport=detail&sArticle=' . $this->baseArticle->getId();
+        $baseLink = Shopware()->Config()->get('baseFile').'?sViewport=detail&sArticle='.$this->baseArticle->getId();
         $seoUrl = Shopware()->Modules()->Core()->sRewriteLink($baseLink, $this->baseArticle->getName());
         $xmlUrl = new Url();
         $xmlUrl->setValue($seoUrl);
@@ -344,7 +344,7 @@ class FindologicArticleModel
         if (count($imagesArray) > 0) {
             $this->xmlArticle->setAllImages($imagesArray);
         } else {
-            $noImage = $baseLink . 'templates/_default/frontend/_resources/images/no_picture.jpg';
+            $noImage = $baseLink.'templates/_default/frontend/_resources/images/no_picture.jpg';
             $xmlImage = new \FINDOLOGIC\Export\Data\Image($noImage);
             $imagesArray[] = $xmlImage;
             $this->xmlArticle->setAllImages($imagesArray);
@@ -372,7 +372,7 @@ class FindologicArticleModel
                 continue;
             }
             $catPath = $this->seoRouter->sCategoryPath($category->getId());
-            $tempPath = '/' . implode('/', $catPath);
+            $tempPath = '/'.implode('/', $catPath);
             $catUrlArray[] = $this->seoRouter->sCleanupPath($tempPath);
             $exportCat = StaticHelper::buildCategoryName($category->getId(), false);
 
@@ -582,14 +582,14 @@ class FindologicArticleModel
             }
         }
 
-        $allProperties[] = new Property('wishlistUrl', [$rewrtieLink . self::WISHLIST_URL . $this->baseVariant->getNumber()]);
-        $allProperties[] = new Property('compareUrl', [$rewrtieLink . self::COMPARE_URL . $this->baseArticle->getId()]);
-        $allProperties[] = new Property('addToCartUrl', [$rewrtieLink . self::CART_URL . $this->baseVariant->getNumber()]);
+        $allProperties[] = new Property('wishlistUrl', [$rewrtieLink.self::WISHLIST_URL.$this->baseVariant->getNumber()]);
+        $allProperties[] = new Property('compareUrl', [$rewrtieLink.self::COMPARE_URL.$this->baseArticle->getId()]);
+        $allProperties[] = new Property('addToCartUrl', [$rewrtieLink.self::CART_URL.$this->baseVariant->getNumber()]);
 
         $brandImage = $this->baseArticle->getSupplier()->getImage();
 
         if (self::checkIfHasValue($brandImage)) {
-            $allProperties[] = new Property('brand_image', [$rewrtieLink . $brandImage]);
+            $allProperties[] = new Property('brand_image', [$rewrtieLink.$brandImage]);
         }
 
         /** @var Attribute $attribute */

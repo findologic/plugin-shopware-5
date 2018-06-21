@@ -53,7 +53,7 @@ class UrlBuilder
             'userip'   => self::getClientIpServer(),
             'revision' => $plugin->getVersion(),
         ];
-        $this->configUrl = self::CDN_URL . strtoupper(md5($this->shopKey)) . self::JSON_CONFIG;
+        $this->configUrl = self::CDN_URL.strtoupper(md5($this->shopKey)).self::JSON_CONFIG;
     }
 
     public static function getClientIpServer()
@@ -89,7 +89,7 @@ class UrlBuilder
                 $response = $requestHandler->getBody();
                 $jsonResponse = json_decode($response, true);
 
-                return (bool)$jsonResponse[self::JSON_PATH]['enabled'];
+                return (bool) $jsonResponse[self::JSON_PATH]['enabled'];
             }
 
             return false;
@@ -119,8 +119,8 @@ class UrlBuilder
             $this->buildKeywordQuery($searchQuery->getTerm());
         }
         if ($catQuery instanceof SearchBundle\Condition\CategoryCondition) {
-            if ($catQuery->getCategoryIds()[0] !== null && $catQuery->getCategoryIds()[0] !== '') {
-                $this->buildCategoryAttribute($catQuery->getCategoryIds()[0]);
+            if ($catQuery->getCategoryIds() !== null && count($catQuery->getCategoryIds()) > 0) {
+                $this->buildCategoryAttribute($catQuery->getCategoryIds());
             }
         }
         /** @var SearchBundle\SortingInterface $sorting */
@@ -147,6 +147,12 @@ class UrlBuilder
                 $this->buildPriceAttribute('max', $max);
             } elseif ($condition instanceof SearchBundle\Condition\ProductAttributeCondition) {
                 $this->buildAttribute($condition->getField(), $condition->getValue());
+            } elseif ($condition instanceof SearchBundle\Condition\SearchTermCondition) {
+                /* @var SearchBundle\Condition\SearchTermCondition $condition */
+                $this->buildKeywordQuery($condition->getTerm());
+            } elseif ($condition instanceof SearchBundle\Condition\CategoryCondition) {
+                /* @var SearchBundle\Condition\CategoryCondition $condition */
+                $this->buildCategoryAttribute($condition->getCategoryIds());
             } else {
                 continue;
             }
@@ -162,8 +168,7 @@ class UrlBuilder
      */
     public function buildCategoryUrlAndGetResponse($categoryId)
     {
-        $this->buildCategoryAttribute($categoryId);
-        $this->processQueryParameter();
+        $this->buildCategoryAttribute([$categoryId]);
 
         return $this->callFindologicForXmlResponse();
     }
@@ -174,24 +179,28 @@ class UrlBuilder
     private function buildSortingParameter(SortingInterface $sorting)
     {
         if ($sorting instanceof SearchBundle\Sorting\PopularitySorting) {
-            $this->parameters['order'] = urldecode('salesfrequency ' . $sorting->getDirection());
+            $this->parameters['order'] = urldecode('salesfrequency '.$sorting->getDirection());
         } elseif ($sorting instanceof SearchBundle\Sorting\PriceSorting) {
-            $this->parameters['order'] = urldecode('price ' . $sorting->getDirection());
+            $this->parameters['order'] = urldecode('price '.$sorting->getDirection());
         } elseif ($sorting instanceof SearchBundle\Sorting\ProductNameSorting) {
-            $this->parameters['order'] = urldecode('label ' . $sorting->getDirection());
+            $this->parameters['order'] = urldecode('label '.$sorting->getDirection());
         } elseif ($sorting instanceof SearchBundle\Sorting\ReleaseDateSorting) {
-            $this->parameters['order'] = urldecode('dateadded ' . $sorting->getDirection());
+            $this->parameters['order'] = urldecode('dateadded '.$sorting->getDirection());
         }
     }
 
     /**
-     * @param int $categoryId
+     * @param int[] $categoryId
      */
     private function buildCategoryAttribute($categoryId)
     {
-        $catString = StaticHelper::buildCategoryName($categoryId);
-        if ($catString !== null && $catString !== '') {
-            $this->parameters['attrib']['cat'] = [urldecode($catString)];
+        $this->parameters['attrib']['cat'] = [];
+        foreach ($categoryId as $id) {
+            $catString = StaticHelper::buildCategoryName($id);
+
+            if ($catString !== null && $catString !== '') {
+                $this->parameters['attrib']['cat'][] = urldecode($catString);
+            }
         }
     }
 
@@ -228,7 +237,7 @@ class UrlBuilder
      */
     private function callFindologicForXmlResponse()
     {
-        $url = self::BASE_URL . $this->shopUrl . 'index.php?' . http_build_query($this->parameters);
+        $url = self::BASE_URL.$this->shopUrl.'index.php?'.http_build_query($this->parameters);
 
         try {
             $request = $this->httpClient->setUri($url);

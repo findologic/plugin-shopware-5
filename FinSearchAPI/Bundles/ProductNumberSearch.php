@@ -38,9 +38,9 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     {
         if (
             StaticHelper::checkDirectIntegration() ||
-            !(bool)Shopware()->Config()->get('ActivateFindologic') ||
+            !(bool) Shopware()->Config()->get('ActivateFindologic') ||
             (
-                !(bool)Shopware()->Config()->get('ActivateFindologicForCategoryPages') &&
+                !(bool) Shopware()->Config()->get('ActivateFindologicForCategoryPages') &&
                 !StaticHelper::checkIfSearch($criteria->getConditions())
             )
         ) {
@@ -60,7 +60,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
                 $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
                 setcookie('Fallback', 0);
-                $totalResults = (int)$xmlResponse->results->count;
+                $totalResults = (int) $xmlResponse->results->count;
 
                 return new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $facets);
             } else {

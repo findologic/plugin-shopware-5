@@ -15,6 +15,6 @@ class Api implements SubscriberInterface
 
     public function onFindologicApiController(\Enlight_Event_EventArgs $args)
     {
-        return $this->Path() . 'Controllers/Api/Findologic.php';
+        return $this->Path().'Controllers/Api/Findologic.php';
     }
 }
