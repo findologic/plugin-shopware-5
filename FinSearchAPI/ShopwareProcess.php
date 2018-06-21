@@ -108,7 +108,7 @@ class ShopwareProcess
                 continue;
             }
 
-            $findologicArticle = $findologicArticleFactory->createFindologicArticle($article, $this->shopKey, $allUserGroups, $articleSales);
+            $findologicArticle = $findologicArticleFactory->create($article, $this->shopKey, $allUserGroups, $articleSales);
 
             if ($findologicArticle->shouldBeExported) {
                 $findologicArticles[] = $findologicArticle->getXmlRepresentation();

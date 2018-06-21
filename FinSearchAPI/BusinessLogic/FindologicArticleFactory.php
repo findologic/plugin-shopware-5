@@ -8,7 +8,7 @@ use Shopware\Models\Article\Article;
 class FindologicArticleFactory
 {
     /**
-     * FindologicArticleModel constructor.
+     * Create FindologicArticleModel instance.
      *
      * @param Article $shopwareArticle
      * @param string  $shopKey
@@ -17,7 +17,7 @@ class FindologicArticleFactory
      *
      * @throws \Exception
      */
-    public function createFindologicArticle(Article $shopwareArticle, $shopKey, array $allUserGroups, array $salesFrequency)
+    public function create(Article $shopwareArticle, $shopKey, array $allUserGroups, array $salesFrequency)
     {
         return new FindologicArticleModel($shopwareArticle, $shopKey, $allUserGroups, $salesFrequency);
     }
