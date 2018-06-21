@@ -27,7 +27,18 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
     public function getList(array $ids, \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context)
     {
         // TODO: Implement getList() method.
-        return $this->originalService->getList($ids, $context);
+        $this->urlBuilder->setCustomerGroup($context->getCurrentCustomerGroup());
+        $response = $this->urlBuilder->buildCompleteFilterList();
+        if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
+            $xmlResponse = StaticHelper::getXmlFromResponse($response);
+            $categoryFacets = [];
+            $categoryFacets[] = StaticHelper::getFindologicFacets($xmlResponse);
+
+
+            return $categoryFacets[0];
+        }
+
+        //return $this->originalService->getList($ids, $context);
     }
 
     /**

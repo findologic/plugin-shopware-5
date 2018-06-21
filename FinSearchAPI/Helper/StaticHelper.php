@@ -198,6 +198,7 @@ class StaticHelper
     public static function getFindologicFacets(SimpleXMLElement $xmlResponse)
     {
         $facets = [];
+
         foreach ($xmlResponse->filters->filter as $filter) {
             $facets[] = self::createFindologicFacet((string) $filter->display, (string) $filter->name, (string) $filter->type, (string) $filter->select);
         }
@@ -212,7 +213,11 @@ class StaticHelper
      */
     private static function createMediaListFacet(array $facetItem)
     {
-        $facetResult = new SearchBundle\FacetResult\MediaListFacetResult($facetItem['name'], false, $facetItem['display'], self::prepareMediaItems($facetItem['items']), $facetItem['name']);
+        $enabled = false;
+        if (array_key_exists($facetItem['name'], $_REQUEST)){
+            $enabled = true;
+        }
+        $facetResult = new SearchBundle\FacetResult\MediaListFacetResult($facetItem['name'], $enabled, $facetItem['display'], self::prepareMediaItems($facetItem['items'], $facetItem['name']), $facetItem['name']);
 
         return $facetResult;
     }
@@ -224,7 +229,11 @@ class StaticHelper
      */
     private static function createColorListFacet(array $facetItem)
     {
-        $facetResult = new ColorPickerFacetResult($facetItem['name'], false, $facetItem['display'], self::prepareColorItems($facetItem['items']), $facetItem['name']);
+        $enabled = false;
+        if (array_key_exists($facetItem['name'], $_REQUEST)){
+            $enabled = true;
+        }
+        $facetResult = new ColorPickerFacetResult($facetItem['name'], $enabled, $facetItem['display'], self::prepareColorItems($facetItem['items'], $facetItem['name']), $facetItem['name']);
 
         return $facetResult;
     }
@@ -236,7 +245,11 @@ class StaticHelper
      */
     private static function createRadioFacet(array $facetItem)
     {
-        $facetResult = new SearchBundle\FacetResult\RadioFacetResult($facetItem['name'], false, $facetItem['display'], self::prepareValueItems($facetItem['items']), $facetItem['name']);
+        $enabled = false;
+        if (array_key_exists($facetItem['name'], $_REQUEST)){
+            $enabled = true;
+        }
+        $facetResult = new SearchBundle\FacetResult\RadioFacetResult($facetItem['name'], $enabled, $facetItem['display'], self::prepareValueItems($facetItem['items'], $facetItem['name']), $facetItem['name']);
 
         return $facetResult;
     }
@@ -248,7 +261,11 @@ class StaticHelper
      */
     private static function createValueListFacet(array $facetItem)
     {
-        $facetResult = new SearchBundle\FacetResult\ValueListFacetResult($facetItem['name'], false, $facetItem['display'], self::prepareValueItems($facetItem['items']), $facetItem['name'], $facetItem['name']);
+        $enabled = false;
+        if (array_key_exists($facetItem['name'], $_REQUEST)){
+            $enabled = true;
+        }
+        $facetResult = new SearchBundle\FacetResult\ValueListFacetResult($facetItem['name'], $enabled, $facetItem['display'], self::prepareValueItems($facetItem['items'], $facetItem['name']), $facetItem['name'], $facetItem['name']);
 
         return $facetResult;
     }
@@ -260,8 +277,12 @@ class StaticHelper
      */
     private static function createTreeviewFacet(array $facetItem)
     {
+        $enabled = false;
+        if (array_key_exists($facetItem['name'], $_REQUEST)){
+            $enabled = true;
+        }
         $facetResult = new TreeFacetResult($facetItem['name'],
-            $facetItem['name'], false, $facetItem['display'], self::prepareTreeView($facetItem['items']), $facetItem['name']);
+            $facetItem['name'], $enabled, $facetItem['display'], self::prepareTreeView($facetItem['items'], $facetItem['name']), $facetItem['name']);
 
         return $facetResult;
     }
@@ -291,6 +312,7 @@ class StaticHelper
         $currentFacet = new CustomFacet();
         $currentFacet->setName($name);
         $currentFacet->setUniqueKey($name);
+
         switch ($type) {
             case 'select':
                 $facetType = new SearchBundle\Facet\ProductAttributeFacet($name, SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT, $name, $label);
@@ -320,11 +342,23 @@ class StaticHelper
      *
      * @return array
      */
-    private static function prepareValueItems($items)
+    private static function prepareValueItems($items, $name)
     {
+
         $response = [];
         foreach ($items as $item) {
-            $valueListItem = new SearchBundle\FacetResult\ValueListItem($item['name'], $item['name'], false);
+            $enabled = false;
+            if (array_key_exists($name, $_REQUEST)){
+                $selectedItems = explode('|', $_REQUEST[$name]);
+                {
+                    foreach ($selectedItems as $selected_item){
+                        if ($selected_item == $item){
+                            $enabled = true;
+                        }
+                    }
+                }
+            }
+            $valueListItem = new SearchBundle\FacetResult\ValueListItem($item['name'], $item['name'], $enabled);
             $response[] = $valueListItem;
         }
 
@@ -336,10 +370,21 @@ class StaticHelper
      *
      * @return array
      */
-    private static function prepareMediaItems($items)
+    private static function prepareMediaItems($items, $name)
     {
         $response = [];
         foreach ($items as $item) {
+            $enabled = false;
+            if (array_key_exists($name, $_REQUEST)){
+                $selectedItems = explode('|', $_REQUEST[$name]);
+                {
+                    foreach ($selectedItems as $selected_item){
+                        if ($selected_item == $item){
+                            $enabled = true;
+                        }
+                    }
+                }
+            }
             if ($item['image'] !== '') {
                 $mediaItem = $item['image'];
             } else {
@@ -355,7 +400,7 @@ class StaticHelper
             } catch (Exception $fileNotFound) {
             }
 
-            $valueListItem = new SearchBundle\FacetResult\MediaListItem($item['name'], $item['name'], false, $shopwareMedia);
+            $valueListItem = new SearchBundle\FacetResult\MediaListItem($item['name'], $item['name'], $enabled, $shopwareMedia);
             $response[] = $valueListItem;
         }
 
@@ -367,14 +412,25 @@ class StaticHelper
      *
      * @return array
      */
-    private static function prepareColorItems($items)
+    private static function prepareColorItems($items, $name)
     {
         $response = [];
         foreach ($items as $item) {
+            $enabled = false;
+            if (array_key_exists($name, $_REQUEST)){
+                $selectedItems = explode('|', $_REQUEST[$name]);
+                {
+                    foreach ($selectedItems as $selected_item){
+                        if ($selected_item == $item){
+                            $enabled = true;
+                        }
+                    }
+                }
+            }
             if ($item['color'] !== '') {
                 $mediaItem = $item['color'];
             }
-            $valueListItem = new ColorListItem($item['name'], $item['name'], false, null, $mediaItem);
+            $valueListItem = new ColorListItem($item['name'], $item['name'], $enabled, null, $mediaItem);
             $response[] = $valueListItem;
         }
 
@@ -408,11 +464,23 @@ class StaticHelper
      *
      * @return array
      */
-    private static function prepareTreeView($items)
+    private static function prepareTreeView($items, $name)
     {
+
         $response = [];
         foreach ($items as $item) {
-            $treeView = new SearchBundle\FacetResult\TreeItem($item['name'], $item['name'], false, self::prepareTreeView($item['items']));
+            $enabled = false;
+            if (array_key_exists($name, $_REQUEST)){
+                $selectedItems = explode('|', $_REQUEST[$name]);
+                {
+                    foreach ($selectedItems as $selected_item){
+                        if ($selected_item == $item){
+                            $enabled = true;
+                        }
+                    }
+                }
+            }
+            $treeView = new SearchBundle\FacetResult\TreeItem($item['name'], $item['name'], $enabled, self::prepareTreeView($item['items']));
             $response[] = $treeView;
         }
 
