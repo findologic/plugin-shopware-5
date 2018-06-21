@@ -63,12 +63,10 @@ class ProductNumberSearch implements ProductNumberSearchInterface
                 setcookie('Fallback', 0);
                 $totalResults = (int) $xmlResponse->results->count;
 
-                $facetsInterfaces = StaticHelper::getFindologicFacets($xmlResponse);;
+                $facetsInterfaces = StaticHelper::getFindologicFacets($xmlResponse);
 
-
-                foreach ($facetsInterfaces as $facets_inteerface){
-
-                    $criteria->addFacet($facets_inteerface->getFacet());
+                foreach ($facetsInterfaces as $facetsInterface) {
+                    $criteria->addFacet($facetsInterface->getFacet());
                 }
 
                 return new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $facets);
