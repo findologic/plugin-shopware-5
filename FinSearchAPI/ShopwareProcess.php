@@ -90,7 +90,7 @@ class ShopwareProcess
         /** @var array $allUserGroups */
         $allUserGroups = $this->customerRepository->getCustomerGroupsQuery()->getResult();
 
-        $findologicArticleFactory = Shopware()->Container()->get('fin_search_api.article_model_factory');;
+        $findologicArticleFactory = Shopware()->Container()->get('fin_search_api.article_model_factory');
 
         /** @var Article $article */
         foreach ($allArticles as $article) {
