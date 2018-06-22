@@ -142,7 +142,8 @@ class UrlBuilder
         /** @var ConditionInterface $condition */
         foreach ($conditions as $condition) {
             if ($condition instanceof SearchBundle\Condition\PriceCondition) {
-                $max = $condition->getMaxPrice() === 0 ? PHP_INT_MAX : $condition->getMaxPrice();
+                echo $condition->getMaxPrice();
+                $max = $condition->getMaxPrice() == 0 || $condition->getMaxPrice() === null ? PHP_INT_MAX : $condition->getMaxPrice();
                 $this->buildPriceAttribute('min', $condition->getMinPrice());
                 $this->buildPriceAttribute('max', $max);
             } elseif ($condition instanceof SearchBundle\Condition\ProductAttributeCondition) {
@@ -170,6 +171,10 @@ class UrlBuilder
     {
         $this->buildCategoryAttribute([$categoryId]);
 
+        return $this->callFindologicForXmlResponse();
+    }
+
+    public function buildCompleteFilterList(){
         return $this->callFindologicForXmlResponse();
     }
 

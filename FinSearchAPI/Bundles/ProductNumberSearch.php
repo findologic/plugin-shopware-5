@@ -48,6 +48,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         }
 
         try {
+
             /* SEND REQUEST TO FINDOLOGIC */
             $this->urlBuilder->setCustomerGroup($context->getCurrentCustomerGroup());
             $response = $this->urlBuilder->buildQueryUrlAndGetResponse($criteria);
@@ -61,6 +62,12 @@ class ProductNumberSearch implements ProductNumberSearchInterface
                 $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
                 setcookie('Fallback', 0);
                 $totalResults = (int) $xmlResponse->results->count;
+
+                $facetsInterfaces = StaticHelper::getFindologicFacets($xmlResponse);
+
+                foreach ($facetsInterfaces as $facetsInterface) {
+                    $criteria->addFacet($facetsInterface->getFacet());
+                }
 
                 return new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $facets);
             } else {
