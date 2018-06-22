@@ -8,6 +8,7 @@ use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
+use Shopware\Models\Search\CustomFacet;
 
 class ProductNumberSearch implements ProductNumberSearchInterface
 {
@@ -66,10 +67,29 @@ class ProductNumberSearch implements ProductNumberSearchInterface
                 $facetsInterfaces = StaticHelper::getFindologicFacets($xmlResponse);;
 
 
-                foreach ($facetsInterfaces as $facets_inteerface){
-
-                    $criteria->addFacet($facets_inteerface->getFacet());
+                /** @var CustomFacet $facets_interface */
+                foreach ($facetsInterfaces as $facets_interface){
+                    $criteria->addFacet($facets_interface->getFacet());
                 }
+
+                $allConditions= $criteria->getConditions();
+
+
+                foreach ($allConditions as $condition){
+
+                    if ($condition instanceof SearchBundle\Condition\ProductAttributeCondition){
+                        $currentFacet = $criteria->getFacet($condition->getName());
+                        if ($currentFacet instanceof SearchBundle\FacetInterface){
+
+                            /** @var SearchBundle\Facet\ProductAttributeFacet $currentFacet */
+                            $facets[] = StaticHelper::createSelectedFacet($currentFacet->getFormFieldName(), $currentFacet->getLabel(), $condition->getValue());
+                         
+                        }
+
+                    }
+                }
+
+                $criteria->resetConditions();
 
                 return new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $facets);
             } else {
