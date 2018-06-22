@@ -25,6 +25,10 @@
 
         </service>
 
+        <service id="fin_search_api.article_model_factory" class="FinSearchAPI\BusinessLogic\FindologicArticleFactory">
+
+        </service>
+
             <service id="fin_search_api.storefront_dbal" class="FinSearchAPI\Subscriber\StoreFrontDBAL">
                 <argument type="service" id="service_container"/>
                 <tag name="shopware.event_subscriber"/>
