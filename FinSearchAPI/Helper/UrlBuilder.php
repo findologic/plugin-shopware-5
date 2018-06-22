@@ -243,7 +243,6 @@ class UrlBuilder
     private function callFindologicForXmlResponse()
     {
         $url = self::BASE_URL.$this->shopUrl.'index.php?'.http_build_query($this->parameters);
-
         try {
             $request = $this->httpClient->setUri($url);
 
