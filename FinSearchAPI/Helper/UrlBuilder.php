@@ -154,7 +154,7 @@ class UrlBuilder
             } elseif ($condition instanceof SearchBundle\Condition\CategoryCondition) {
 
                 /* @var SearchBundle\Condition\CategoryCondition $condition */
-                //$this->buildCategoryAttribute($condition->getCategoryIds());
+                $this->buildCategoryAttribute($condition->getCategoryIds());
             } else {
                 continue;
             }
