@@ -227,13 +227,14 @@ class StaticHelper {
         return $facetResult;
     }
 
-    public static function arrayHasFacet($facetArray, $facetName){
+    public static function arrayHasFacet( $facetArray, $facetName ) {
         /** @var SearchBundle\FacetResultInterface $facet */
-        foreach ($facetArray as $facet){
-            if ($facet->getLabel() === $facetName){
+        foreach ( $facetArray as $facet ) {
+            if ( $facet->getLabel() === $facetName ) {
                 return $facet;
             }
         }
+
         return false;
     }
 
@@ -268,16 +269,17 @@ class StaticHelper {
     }
 
     public static function createSelectedFacet( $name, $label, $itemValue ) {
-        $facetResult = new SearchBundle\FacetResult\ValueListFacetResult( $name, true, $label, self::creatSelectValues($itemValue) , $name, $name );
+        $facetResult = new SearchBundle\FacetResult\ValueListFacetResult( $name, true, $label, self::creatSelectValues( $itemValue ), $name, $name );
 
         return $facetResult;
     }
 
     private static function creatSelectValues( $items ) {
         $results = [];
-        foreach ($items as $item){
+        foreach ( $items as $item ) {
             $results[] = new SearchBundle\FacetResult\ValueListItem( $item, $item, true );
         }
+
         return $results;
     }
 
@@ -352,19 +354,17 @@ class StaticHelper {
      */
     private static function prepareValueItems( $items, $name ) {
 
-        $response = [];
+        $response      = [];
         $selectedItems = explode( '|', $_REQUEST[ $name ] );
-        {
-            foreach ( $selectedItems as $selected_item ) {
-                if ($selected_item === '' || $selected_item === null){
-                    continue;
-                }
-                $valueListItem = new SearchBundle\FacetResult\ValueListItem( $selected_item, $selected_item, true );
-                $response[]    = $valueListItem;
+        foreach ( $selectedItems as $selected_item ) {
+            if ( $selected_item === '' || $selected_item === null ) {
+                continue;
             }
+            $valueListItem = new SearchBundle\FacetResult\ValueListItem( $selected_item, $selected_item, true );
+            $response[]    = $valueListItem;
         }
         foreach ( $items as $item ) {
-            $enabled = false;
+            $enabled       = false;
             $valueListItem = new SearchBundle\FacetResult\ValueListItem( $item['name'], $item['name'], false );
             $response[]    = $valueListItem;
         }
