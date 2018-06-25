@@ -1,0 +1,16 @@
+li.ui-menu-item .label {
+    padding: inherit;
+    margin: inherit;
+    font-size: .875rem;
+    line-height: inherit;
+    background-clip: padding-box;
+    display: inline-block;
+    text-align: inherit;
+    white-space: inherit;
+    color: inherit;
+    background: transparent;
+}
+
+.main-search--results{
+    display: none !important;
+}
