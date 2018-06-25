@@ -227,6 +227,16 @@ class StaticHelper {
         return $facetResult;
     }
 
+    public static function arrayHasFacet($facetArray, $facetName){
+        /** @var SearchBundle\FacetResultInterface $facet */
+        foreach ($facetArray as $facet){
+            if ($facet->getLabel() === $facetName){
+                return $facet;
+            }
+        }
+        return false;
+    }
+
     /**
      * @param array $facetItem
      *
@@ -343,19 +353,19 @@ class StaticHelper {
     private static function prepareValueItems( $items, $name ) {
 
         $response = [];
+        $selectedItems = explode( '|', $_REQUEST[ $name ] );
+        {
+            foreach ( $selectedItems as $selected_item ) {
+                if ($selected_item === '' || $selected_item === null){
+                    continue;
+                }
+                $valueListItem = new SearchBundle\FacetResult\ValueListItem( $selected_item, $selected_item, true );
+                $response[]    = $valueListItem;
+            }
+        }
         foreach ( $items as $item ) {
             $enabled = false;
-            if ( array_key_exists( $name, $_REQUEST ) ) {
-                $selectedItems = explode( '|', $_REQUEST[ $name ] );
-                {
-                    foreach ( $selectedItems as $selected_item ) {
-                        if ( $selected_item == $item ) {
-                            $enabled = true;
-                        }
-                    }
-                }
-            }
-            $valueListItem = new SearchBundle\FacetResult\ValueListItem( $item['name'], $item['name'], $enabled );
+            $valueListItem = new SearchBundle\FacetResult\ValueListItem( $item['name'], $item['name'], false );
             $response[]    = $valueListItem;
         }
 
