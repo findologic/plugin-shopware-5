@@ -227,6 +227,17 @@ class StaticHelper {
         return $facetResult;
     }
 
+    public static function arrayHasFacet( $facetArray, $facetName ) {
+        /** @var SearchBundle\FacetResultInterface $facet */
+        foreach ( $facetArray as $facet ) {
+            if ( $facet->getFacetName() === $facetName ) {
+                return $facet;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * @param array $facetItem
      *
@@ -258,16 +269,17 @@ class StaticHelper {
     }
 
     public static function createSelectedFacet( $name, $label, $itemValue ) {
-        $facetResult = new SearchBundle\FacetResult\ValueListFacetResult( $name, true, $label, self::creatSelectValues($itemValue) , $name, $name );
+        $facetResult = new SearchBundle\FacetResult\ValueListFacetResult( $name, true, $label, self::creatSelectValues( $itemValue ), $name, $name );
 
         return $facetResult;
     }
 
     private static function creatSelectValues( $items ) {
         $results = [];
-        foreach ($items as $item){
+        foreach ( $items as $item ) {
             $results[] = new SearchBundle\FacetResult\ValueListItem( $item, $item, true );
         }
+
         return $results;
     }
 
@@ -342,20 +354,18 @@ class StaticHelper {
      */
     private static function prepareValueItems( $items, $name ) {
 
-        $response = [];
-        foreach ( $items as $item ) {
-            $enabled = false;
-            if ( array_key_exists( $name, $_REQUEST ) ) {
-                $selectedItems = explode( '|', $_REQUEST[ $name ] );
-                {
-                    foreach ( $selectedItems as $selected_item ) {
-                        if ( $selected_item == $item ) {
-                            $enabled = true;
-                        }
-                    }
-                }
+        $response      = [];
+        $selectedItems = explode( '|', $_REQUEST[ $name ] );
+        foreach ( $selectedItems as $selected_item ) {
+            if ( $selected_item === '' || $selected_item === null ) {
+                continue;
             }
-            $valueListItem = new SearchBundle\FacetResult\ValueListItem( $item['name'], $item['name'], $enabled );
+            $valueListItem = new SearchBundle\FacetResult\ValueListItem( $selected_item, $selected_item, true );
+            $response[]    = $valueListItem;
+        }
+        foreach ( $items as $item ) {
+            $enabled       = false;
+            $valueListItem = new SearchBundle\FacetResult\ValueListItem( $item['name'], $item['name'], false );
             $response[]    = $valueListItem;
         }
 
@@ -458,22 +468,25 @@ class StaticHelper {
      *
      * @return array
      */
-    private static function prepareTreeView( $items, $name ) {
+    private static function prepareTreeView( $items, $name, $recurseName = null ) {
 
         $response = [];
-        foreach ( $items as $item ) {
-            $enabled = false;
-            if ( array_key_exists( $name, $_REQUEST ) ) {
-                $selectedItems = explode( '|', $_REQUEST[ $name ] );
-                {
-                    foreach ( $selectedItems as $selected_item ) {
-                        if ( $selected_item == $item ) {
-                            $enabled = true;
-                        }
-                    }
-                }
+        $selectedItems = explode( '|', $_REQUEST[ $name ] );
+        foreach ( $selectedItems as $selected_item ) {
+            if ( $selected_item === '' || $selected_item === null ) {
+                continue;
             }
-            $treeView   = new SearchBundle\FacetResult\TreeItem( $item['name'], $item['name'], $enabled, self::prepareTreeView( $item['items'] ) );
+            $labelArray = explode('_', $selected_item);
+            $labelString = $labelArray[count($labelArray)-1];
+            $treeView   = new SearchBundle\FacetResult\TreeItem( $selected_item,$labelString,true,null );
+            $response[] = $treeView;
+        }
+        foreach ( $items as $item ) {
+            $treeName = $item['name'];
+            if ($recurseName !== null){
+                $treeName = $recurseName . '_' . $item['name'];
+            }
+            $treeView   = new SearchBundle\FacetResult\TreeItem( $treeName, $item['name'], false, self::prepareTreeView( $item['items'],null,$treeName ) );
             $response[] = $treeView;
         }
 

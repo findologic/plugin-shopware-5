@@ -82,15 +82,22 @@ class ProductNumberSearch implements ProductNumberSearchInterface
                         if ($currentFacet instanceof SearchBundle\FacetInterface){
 
                             /** @var SearchBundle\Facet\ProductAttributeFacet $currentFacet */
-                            $facets[] = StaticHelper::createSelectedFacet($currentFacet->getFormFieldName(), $currentFacet->getLabel(), $condition->getValue());
-                         
+                            $tempFacet = StaticHelper::createSelectedFacet($currentFacet->getFormFieldName(), $currentFacet->getLabel(), $condition->getValue());
+                            if (count($tempFacet->getValues()) == 0){
+                                continue;
+                            }
+                            $foundFacet = StaticHelper::arrayHasFacet($facets, $currentFacet->getFormFieldName());
+
+                            if (!$foundFacet){
+                                $facets[] = $tempFacet;
+                            }
+
+
                         }
 
                     }
                 }
-
                 $criteria->resetConditions();
-
                 return new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $facets);
             } else {
                 setcookie('Fallback', 1);

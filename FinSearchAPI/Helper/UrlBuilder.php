@@ -142,7 +142,6 @@ class UrlBuilder
         /** @var ConditionInterface $condition */
         foreach ($conditions as $condition) {
             if ($condition instanceof SearchBundle\Condition\PriceCondition) {
-                echo $condition->getMaxPrice();
                 $max = $condition->getMaxPrice() == 0 || $condition->getMaxPrice() === null ? PHP_INT_MAX : $condition->getMaxPrice();
                 $this->buildPriceAttribute('min', $condition->getMinPrice());
                 $this->buildPriceAttribute('max', $max);
@@ -152,6 +151,7 @@ class UrlBuilder
                 /* @var SearchBundle\Condition\SearchTermCondition $condition */
                 $this->buildKeywordQuery($condition->getTerm());
             } elseif ($condition instanceof SearchBundle\Condition\CategoryCondition) {
+
                 /* @var SearchBundle\Condition\CategoryCondition $condition */
                 $this->buildCategoryAttribute($condition->getCategoryIds());
             } else {
