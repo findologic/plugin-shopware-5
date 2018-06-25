@@ -230,7 +230,7 @@ class StaticHelper {
     public static function arrayHasFacet( $facetArray, $facetName ) {
         /** @var SearchBundle\FacetResultInterface $facet */
         foreach ( $facetArray as $facet ) {
-            if ( $facet->getLabel() === $facetName ) {
+            if ( $facet->getFacetName() === $facetName ) {
                 return $facet;
             }
         }
@@ -468,22 +468,25 @@ class StaticHelper {
      *
      * @return array
      */
-    private static function prepareTreeView( $items, $name ) {
+    private static function prepareTreeView( $items, $name, $recurseName = null ) {
 
         $response = [];
-        foreach ( $items as $item ) {
-            $enabled = false;
-            if ( array_key_exists( $name, $_REQUEST ) ) {
-                $selectedItems = explode( '|', $_REQUEST[ $name ] );
-                {
-                    foreach ( $selectedItems as $selected_item ) {
-                        if ( $selected_item == $item ) {
-                            $enabled = true;
-                        }
-                    }
-                }
+        $selectedItems = explode( '|', $_REQUEST[ $name ] );
+        foreach ( $selectedItems as $selected_item ) {
+            if ( $selected_item === '' || $selected_item === null ) {
+                continue;
             }
-            $treeView   = new SearchBundle\FacetResult\TreeItem( $item['name'], $item['name'], $enabled, self::prepareTreeView( $item['items'] ) );
+            $labelArray = explode('_', $selected_item);
+            $labelString = $labelArray[count($labelArray)-1];
+            $treeView   = new SearchBundle\FacetResult\TreeItem( $selected_item,$labelString,true,null );
+            $response[] = $treeView;
+        }
+        foreach ( $items as $item ) {
+            $treeName = $item['name'];
+            if ($recurseName !== null){
+                $treeName = $recurseName . '_' . $item['name'];
+            }
+            $treeView   = new SearchBundle\FacetResult\TreeItem( $treeName, $item['name'], false, self::prepareTreeView( $item['items'],null,$treeName ) );
             $response[] = $treeView;
         }
 

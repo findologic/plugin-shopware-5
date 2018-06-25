@@ -83,7 +83,11 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
                             /** @var SearchBundle\Facet\ProductAttributeFacet $currentFacet */
                             $tempFacet = StaticHelper::createSelectedFacet($currentFacet->getFormFieldName(), $currentFacet->getLabel(), $condition->getValue());
+                            if (count($tempFacet->getValues()) == 0){
+                                continue;
+                            }
                             $foundFacet = StaticHelper::arrayHasFacet($facets, $currentFacet->getFormFieldName());
+
                             if (!$foundFacet){
                                 $facets[] = $tempFacet;
                             }
@@ -94,7 +98,6 @@ class ProductNumberSearch implements ProductNumberSearchInterface
                     }
                 }
                 $criteria->resetConditions();
-
                 return new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $facets);
             } else {
                 setcookie('Fallback', 1);
