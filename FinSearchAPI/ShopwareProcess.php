@@ -112,7 +112,7 @@ class ShopwareProcess
             }
 
             try {
-                if ($article->getMainDetail()->getActive() === 0) {
+                if ($article->getMainDetail() === null || $article->getMainDetail()->getActive() === 0) {
                     continue;
                 }
             } catch (EntityNotFoundException $exception) {
