@@ -94,9 +94,20 @@ class ShopwareProcess
 
         /** @var Article $article */
         foreach ($allArticles as $article) {
+            $inactiveCatCount = 0;
+            $totalCatCount = 0;
 
-            // Check if Article is Visible and Active
-            if (!$article->getActive() || count($article->getAllCategories()) === 0) {
+            /** @var Category $category */
+            foreach ($article->getAllCategories() as $category) {
+                if (!$category->getActive()) {
+                    $inactiveCatCount++;
+                }
+
+                $totalCatCount++;
+            }
+
+            // Check if Article is Active and has active categories
+            if (!$article->getActive() || $totalCatCount === $inactiveCatCount) {
                 continue;
             }
 
