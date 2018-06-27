@@ -21,7 +21,7 @@ class StaticHelper {
      *
      * @return string
      */
-    public static function buildCategoryName( int $categoryId, $decode = true ) {
+    public static function buildCategoryName($categoryId, $decode = true ) {
         $categories    = Shopware()->Modules()->Categories()->sGetCategoriesByParent( $categoryId );
         $categoryNames = [];
         foreach ( $categories as $category ) {
