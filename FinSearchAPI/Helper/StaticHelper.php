@@ -318,7 +318,7 @@ class StaticHelper {
      *
      * @return CustomFacet
      */
-    public static function createFindologicFacet( string $label, string $name, string $type, string $filter ) {
+    public static function createFindologicFacet($label, $name, $type, $filter ) {
         $currentFacet = new CustomFacet();
         $currentFacet->setName( $name );
         $currentFacet->setUniqueKey( $name );
