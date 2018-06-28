@@ -269,12 +269,12 @@ class StaticHelper {
     }
 
     public static function createSelectedFacet( $name, $label, $itemValue ) {
-        $facetResult = new SearchBundle\FacetResult\ValueListFacetResult( $name, true, $label, self::creatSelectValues( $itemValue ), $name, $name );
+        $facetResult = new SearchBundle\FacetResult\ValueListFacetResult( $name, true, $label, self::createSelectValues( $itemValue ), $name, $name );
 
         return $facetResult;
     }
 
-    private static function creatSelectValues( $items ) {
+    private static function createSelectValues($items ) {
         $results = [];
         foreach ( $items as $item ) {
             $results[] = new SearchBundle\FacetResult\ValueListItem( $item, $item, true );
