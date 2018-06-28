@@ -364,7 +364,6 @@ class StaticHelper {
             $response[]    = $valueListItem;
         }
         foreach ( $items as $item ) {
-            $enabled       = false;
             $valueListItem = new SearchBundle\FacetResult\ValueListItem( $item['name'], $item['name'], false );
             $response[]    = $valueListItem;
         }
