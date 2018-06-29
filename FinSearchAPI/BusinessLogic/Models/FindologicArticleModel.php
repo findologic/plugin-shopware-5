@@ -366,7 +366,7 @@ class FindologicArticleModel
         $catArray = [];
 
         /** @var Category $category */
-        foreach ($this->baseArticle->getAllCategories() as $category) {
+        foreach ($this->baseArticle->getCategories() as $category) {
             //Hide inactive categories
             if (!$category->getActive()) {
                 continue;
