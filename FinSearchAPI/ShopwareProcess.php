@@ -4,7 +4,7 @@ namespace FinSearchAPI;
 
 use Doctrine\ORM\EntityNotFoundException;
 use FINDOLOGIC\Export\Exporter;
-use FinSearchAPI\BusinessLogic\Models\FindologicArticleModel;
+use FinSearchAPI\BusinessLogic\FindologicArticleFactory;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Customer\Customer;
 use Shopware\Models\Order\Order;
@@ -120,7 +120,7 @@ class ShopwareProcess
                 continue;
             }
 
-            /** @var FindologicArticleModel $findologicArticle */
+            /** @var FindologicArticleFactory $findologicArticleFactory */
             $findologicArticle = $findologicArticleFactory->create($article, $this->shopKey, $allUserGroups, $articleSales);
 
             if ($findologicArticle->shouldBeExported) {
@@ -134,7 +134,7 @@ class ShopwareProcess
         return $response;
     }
 
-    public function getFindologicXml($start = 0, $length = 0, $save = false)
+    public function getFindologicXml($lang = "de", $start = 0, $length = 0, $save = false)
     {
         $exporter = Exporter::create(Exporter::TYPE_XML);
 

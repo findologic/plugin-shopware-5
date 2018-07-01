@@ -91,8 +91,6 @@ class ProductNumberSearch implements ProductNumberSearchInterface
                             if (!$foundFacet){
                                 $facets[] = $tempFacet;
                             }
-
-
                         }
 
                     }

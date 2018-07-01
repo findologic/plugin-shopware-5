@@ -16,6 +16,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $shopKey = $this->request->get('shopkey');
         $start = $this->request->get('start');
         $length = $this->request->get('count');
+        $language = $this->request->get('language');
 
         /** @var \FinSearchAPI\ShopwareProcess $blController */
         $blController = $this->container->get('fin_search_api.shopware_process');

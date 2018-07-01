@@ -371,6 +371,7 @@ class FindologicArticleModel
             if (!$category->getActive()) {
                 continue;
             }
+            
             $catPath = $this->seoRouter->sCategoryPath($category->getId());
             $tempPath = '/'.implode('/', $catPath);
             $catUrlArray[] = $this->seoRouter->sCleanupPath($tempPath);
