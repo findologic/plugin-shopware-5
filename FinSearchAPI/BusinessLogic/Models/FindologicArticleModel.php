@@ -88,21 +88,26 @@ class FindologicArticleModel
     public $shouldBeExported;
 
     /**
+     * @var Category
+     */
+    public $baseCategory;
+
+    /**
      * FindologicArticleModel constructor.
      *
      * @param Article $shopwareArticle
-     * @param string  $shopKey
-     * @param array   $allUserGroups
-     * @param array   $salesFrequency
-     *
-     * @throws \Exception
+     * @param string $shopKey
+     * @param array $allUserGroups
+     * @param array $salesFrequency
+     * @param Category $baseCategory
      */
-    public function __construct(Article $shopwareArticle, $shopKey, array $allUserGroups, array $salesFrequency)
+    public function __construct(Article $shopwareArticle, $shopKey, array $allUserGroups, array $salesFrequency, Category $baseCategory)
     {
         $this->shouldBeExported = false;
         $this->exporter = Exporter::create(Exporter::TYPE_XML);
         $this->xmlArticle = $this->exporter->createItem($shopwareArticle->getId());
         $this->shopKey = $shopKey;
+        $this->baseCategory = $baseCategory;
         $this->baseArticle = $shopwareArticle;
         $this->baseVariant = $this->baseArticle->getMainDetail();
         $this->salesFrequency = $salesFrequency;
@@ -365,10 +370,17 @@ class FindologicArticleModel
         $catUrlArray = [];
         $catArray = [];
 
+        /** @var Category[] $categories */
+        $categories = $this->baseArticle->getCategories();
+
         /** @var Category $category */
-        foreach ($this->baseArticle->getCategories() as $category) {
+        foreach ($categories as $category) {
             //Hide inactive categories
             if (!$category->getActive()) {
+                continue;
+            }
+
+            if (!$category->isChildOf($this->baseCategory)){
                 continue;
             }
             

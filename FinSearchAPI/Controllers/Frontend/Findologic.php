@@ -22,9 +22,9 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $blController = $this->container->get('fin_search_api.shopware_process');
         $blController->setShopKey($shopKey);
         if ($length !== null) {
-            $xmlDocument = $blController->getFindologicXml($start != null ? $start : 0, $length);
+            $xmlDocument = $blController->getFindologicXml($language, $start != null ? $start : 0, $length);
         } else {
-            $xmlDocument = $blController->getFindologicXml();
+            $xmlDocument = $blController->getFindologicXml($language);
         }
 
         $this->response->setHeader('Content-Type', 'application/xml; charset=utf-8', true);

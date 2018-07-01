@@ -8,6 +8,8 @@ use FinSearchAPI\BusinessLogic\FindologicArticleFactory;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Customer\Customer;
 use Shopware\Models\Order\Order;
+use Shopware\Models\Shop\Repository;
+use Shopware\Models\Shop\Shop;
 
 require __DIR__.'/vendor/autoload.php';
 
@@ -44,16 +46,39 @@ class ShopwareProcess
     public $orderRepository;
 
     /**
+     * @param string $selectedLanguage
      * @param int $start
      * @param int $count
      *
-     * @throws \Exception
-     *
      * @return xmlInformation
+     * @throws \Exception
      */
-    public function getAllProductsAsXmlArray($start = 0, $count = 0)
+    public function getAllProductsAsXmlArray($selectedLanguage = 'de_DE', $start = 0, $count = 0)
     {
         $response = new xmlInformation();
+
+        /** @var Repository $repository */
+        $repository = Shopware()->Container()->get('models')->getRepository('Shopware\Models\Shop\Shop');
+
+        /** @var Shop[] $languageShops */
+        $languageShops = $repository->getActiveShops();
+
+        /** @var Category $baseCategory */
+        $baseCategory = null;
+        foreach ($languageShops as $languageShop){
+            $language = $languageShop->getLocale();
+            if ($language->getLocale() == $selectedLanguage){
+                // Set active language as active shop for multilang descriptions
+                $this->shop = $languageShop;
+                $baseCategory = $languageShop->getCategory();
+            }
+        }
+
+        // When no locale Shop is found, the default one is used
+        if ($baseCategory == null){
+            $baseCategory = Shopware()->Shop()->getCategory();
+        }
+
 
         $this->customerRepository = Shopware()->Container()->get('models')->getRepository(Customer::class);
         $this->articleRepository = Shopware()->Container()->get('models')->getRepository(Article::class);
@@ -93,6 +118,7 @@ class ShopwareProcess
 
         $findologicArticleFactory = Shopware()->Container()->get('fin_search_api.article_model_factory');
 
+
         /** @var Article $article */
         foreach ($allArticles as $article) {
             $inactiveCatCount = 0;
@@ -121,7 +147,7 @@ class ShopwareProcess
             }
 
             /** @var FindologicArticleFactory $findologicArticleFactory */
-            $findologicArticle = $findologicArticleFactory->create($article, $this->shopKey, $allUserGroups, $articleSales);
+            $findologicArticle = $findologicArticleFactory->create($article, $this->shopKey, $allUserGroups, $articleSales, $baseCategory);
 
             if ($findologicArticle->shouldBeExported) {
                 $findologicArticles[] = $findologicArticle->getXmlRepresentation();
@@ -134,12 +160,12 @@ class ShopwareProcess
         return $response;
     }
 
-    public function getFindologicXml($lang = "de", $start = 0, $length = 0, $save = false)
+    public function getFindologicXml($lang = "de_DE", $start = 0, $length = 0, $save = false)
     {
         $exporter = Exporter::create(Exporter::TYPE_XML);
 
         try {
-            $xmlArray = $this->getAllProductsAsXmlArray($start, $length);
+            $xmlArray = $this->getAllProductsAsXmlArray($lang, $start, $length);
         } catch (\Exception $e) {
             die($e->getMessage());
         }

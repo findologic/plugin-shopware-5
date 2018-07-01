@@ -4,6 +4,7 @@ namespace FinSearchAPI\BusinessLogic;
 
 use FinSearchAPI\BusinessLogic\Models\FindologicArticleModel;
 use Shopware\Models\Article\Article;
+use Shopware\Models\Category\Category;
 
 class FindologicArticleFactory
 {
@@ -17,8 +18,8 @@ class FindologicArticleFactory
      *
      * @throws \Exception
      */
-    public function create(Article $shopwareArticle, $shopKey, array $allUserGroups, array $salesFrequency)
+    public function create(Article $shopwareArticle, $shopKey, array $allUserGroups, array $salesFrequency, Category $baseCategory)
     {
-        return new FindologicArticleModel($shopwareArticle, $shopKey, $allUserGroups, $salesFrequency);
+        return new FindologicArticleModel($shopwareArticle, $shopKey, $allUserGroups, $salesFrequency, $baseCategory);
     }
 }
