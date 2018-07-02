@@ -125,7 +125,11 @@ class ShopwareProcess
             $totalCatCount = 0;
 
             /** @var Category $category */
-            foreach ($article->getAllCategories() as $category) {
+            foreach ($article->getCategories() as $category) {
+                if (!$category->isChildOf($baseCategory)) {
+                    continue;
+                }
+
                 if (!$category->getActive()) {
                     $inactiveCatCount++;
                 }
