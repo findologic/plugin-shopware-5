@@ -55,13 +55,27 @@ class Frontend implements SubscriberInterface
 
     public function beforeSearchIndexAction(\Enlight_Hook_HookArgs $args)
     {
-        if ($_REQUEST['catFilter']){
-            /** @var \Shopware_Controllers_Frontend_Search $subject */
-            $subject = $args->getSubject();
+        /** @var \Shopware_Controllers_Frontend_Search $subject */
+        $subject = $args->getSubject();
 
-            $request = $subject->Request();
+        $request = $subject->Request();
+
+        if ($_REQUEST['attrib']){
+            foreach ($_REQUEST['attrib'] as $key => $value){
+                foreach ($value as $detailValue){
+                    $request->setRequestUri(str_replace('&attrib[' . $key . '][0]=' . $detailValue, '', $request->getRequestUri()));
+                    $request->setRequestUri($request->getRequestUri() . '&' . $key . '=' . $detailValue);
+                }
+            }
+            unset($_REQUEST['attrib']);
+            $args->setReturn($request);
+            $subject->redirect($request->getRequestUri());
+        }
+        if ($_REQUEST['catFilter']){
+
             $params = $request->getParams();
             $params['cat'] = $_REQUEST['catFilter'];
+
             $params['sSearch'] = " ";
             $request->setParams($params);
             $request->setRequestUri(str_replace('catFilter','cat',$request->getRequestUri()));
@@ -69,6 +83,7 @@ class Frontend implements SubscriberInterface
             $args->setReturn($request);
             $subject->redirect($request->getRequestUri());
         }
+
 
 
     }
