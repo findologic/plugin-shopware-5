@@ -33,7 +33,7 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
         ) {
             return $this->originalService->getList($ids, $context);
         }
-        unset($_REQUEST['attrib']['wizard']);
+
         $this->urlBuilder->setCustomerGroup($context->getCurrentCustomerGroup());
         $response = $this->urlBuilder->buildCompleteFilterList();
         if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
@@ -60,7 +60,7 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
         ) {
             return $this->originalService->getFacetsOfCategories($categoryIds, $context);
         }
-        unset($_REQUEST['attrib']['wizard']);
+
         // Facets abfragen
         $categoryId = $categoryIds[0];
         $this->urlBuilder->setCustomerGroup($context->getCurrentCustomerGroup());
