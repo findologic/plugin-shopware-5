@@ -151,7 +151,6 @@ class UrlBuilder
                 /* @var SearchBundle\Condition\SearchTermCondition $condition */
                 $this->buildKeywordQuery($condition->getTerm());
             } elseif ($condition instanceof SearchBundle\Condition\CategoryCondition) {
-
                 /* @var SearchBundle\Condition\CategoryCondition $condition */
                 $this->buildCategoryAttribute($condition->getCategoryIds());
             } else {
