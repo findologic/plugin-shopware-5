@@ -55,22 +55,42 @@ class Frontend implements SubscriberInterface
 
     public function beforeSearchIndexAction(\Enlight_Hook_HookArgs $args)
     {
-        if ($_REQUEST['catFilter']){
-            /** @var \Shopware_Controllers_Frontend_Search $subject */
-            $subject = $args->getSubject();
+        /** @var \Shopware_Controllers_Frontend_Search $subject */
+        $subject = $args->getSubject();
+        $request = $subject->Request();
+        $params = $request->getParams();
+        $mappedParams = [];
 
-            $request = $subject->Request();
-            $params = $request->getParams();
-            $params['cat'] = $_REQUEST['catFilter'];
-            $params['sSearch'] = " ";
-            $request->setParams($params);
-            $request->setRequestUri(str_replace('catFilter','cat',$request->getRequestUri()));
-            $request->setRequestUri(str_replace('sSearch=&','sSearch=%20&',$request->getRequestUri()));
-            $args->setReturn($request);
-            $subject->redirect($request->getRequestUri());
+        if (array_key_exists('sSearch', $params) && empty($params['sSearch'])) {
+            $mappedParams['sSearch'] = ' ';
+            unset($params['sSearch']);
         }
 
+        if (array_key_exists('catFilter', $params)) {
+            $mappedParams['cat'] = $params['catFilter'];
+            unset($params['catFilter']);
+        }
 
+        if (array_key_exists('attrib', $params)) {
+            foreach ($params['attrib'] as $filterName => $filterValue) {
+                if ($filterName === 'wizard') {
+                    continue;
+                }
+
+                $mappedParams[$filterName] = is_array($filterValue) ? implode('|', $filterValue) : $filterValue;
+            }
+
+            unset($params['attrib']);
+        }
+
+        if ($mappedParams) {
+            $path = strstr($request->getRequestUri(), '?', true);
+            $request->setParams(array_merge($params, $mappedParams));
+            $request->setRequestUri($path . '?' . http_build_query($mappedParams));
+            $args->setReturn($request);
+
+            $subject->redirect($request->getRequestUri());
+        }
     }
 
     public function onLoadPluginManager(\Enlight_Event_EventArgs $args)
