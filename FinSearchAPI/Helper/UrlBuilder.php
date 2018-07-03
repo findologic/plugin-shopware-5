@@ -123,6 +123,7 @@ class UrlBuilder
                 $this->buildCategoryAttribute($catQuery->getCategoryIds());
             }
         }
+
         /** @var SearchBundle\SortingInterface $sorting */
         foreach ($sortingQuery as $sorting) {
             $this->buildSortingParameter($sorting);
