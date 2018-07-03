@@ -3,6 +3,8 @@
 namespace FinSearchAPI\Bundles\SearchBundleDBAL;
 
 use Shopware\Bundle\SearchBundle\CriteriaRequestHandlerInterface;
+use Shopware\Models\Category\Category;
+use Shopware\Models\Category\Repository;
 
 class CriteriaRequestHandler implements CriteriaRequestHandlerInterface
 {
@@ -17,6 +19,10 @@ class CriteriaRequestHandler implements CriteriaRequestHandlerInterface
         \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context
     ) {
 
-        // TODO: Implement handleRequest() method.
+        if ($request->has('catFilter')){
+            /** @var Repository $categories */
+            $categories = Shopware()->Container()->get('models')->getRepository(Category::class);
+
+        }
     }
 }

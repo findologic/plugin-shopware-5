@@ -34,6 +34,7 @@ class Frontend implements SubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
+            'Shopware_Controllers_Frontend_Search::indexAction::before' => 'beforeSearchIndexAction',
             'Enlight_Controller_Action_PreDispatch'                     => 'onPreDispatch',
             'Enlight_Controller_Action_PostDispatchSecure_Frontend'     => 'onFrontendPostDispatch',
             'Enlight_Controller_Dispatcher_ControllerPath_Findologic'   => 'onFindologicController',
@@ -50,6 +51,26 @@ class Frontend implements SubscriberInterface
         if ((bool) Shopware()->Config()->get('ActivateFindologic')) {
             return;
         }
+    }
+
+    public function beforeSearchIndexAction(\Enlight_Hook_HookArgs $args)
+    {
+        if ($_REQUEST['catFilter']){
+            /** @var \Shopware_Controllers_Frontend_Search $subject */
+            $subject = $args->getSubject();
+
+            $request = $subject->Request();
+            $params = $request->getParams();
+            $params['cat'] = $_REQUEST['catFilter'];
+            $params['sSearch'] = " ";
+            $request->setParams($params);
+            $request->setRequestUri(str_replace('catFilter','cat',$request->getRequestUri()));
+            $request->setRequestUri(str_replace('sSearch=&','sSearch=%20&',$request->getRequestUri()));
+            $args->setReturn($request);
+            $subject->redirect($request->getRequestUri());
+        }
+
+
     }
 
     public function onLoadPluginManager(\Enlight_Event_EventArgs $args)
