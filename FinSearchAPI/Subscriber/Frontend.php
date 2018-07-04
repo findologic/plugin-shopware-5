@@ -61,11 +61,6 @@ class Frontend implements SubscriberInterface
         $params = $request->getParams();
         $mappedParams = [];
 
-        if (array_key_exists('sSearch', $params) && empty($params['sSearch'])) {
-            $mappedParams['sSearch'] = ' ';
-            unset($params['sSearch']);
-        }
-
         if (array_key_exists('catFilter', $params)) {
             $mappedParams['cat'] = $params['catFilter'];
             unset($params['catFilter']);
@@ -84,6 +79,11 @@ class Frontend implements SubscriberInterface
         }
 
         if ($mappedParams) {
+            if (array_key_exists('sSearch', $params) && empty($params['sSearch'])) {
+                $mappedParams['sSearch'] = ' ';
+                unset($params['sSearch']);
+            }
+
             $path = strstr($request->getRequestUri(), '?', true);
             $request->setParams(array_merge($params, $mappedParams));
             $request->setRequestUri($path . '?' . http_build_query($mappedParams));
