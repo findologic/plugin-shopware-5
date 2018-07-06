@@ -54,7 +54,15 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             $this->urlBuilder->setCustomerGroup($context->getCurrentCustomerGroup());
             $response = $this->urlBuilder->buildQueryUrlAndGetResponse($criteria);
             if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
+
                 $xmlResponse = StaticHelper::getXmlFromResponse($response);
+
+                $hasLandingpage = StaticHelper::checkIfRedirect($xmlResponse);
+
+                if ($hasLandingpage != null){
+                    header('Location: '.$hasLandingpage);
+                    exit();
+                }
 
                 $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
 
