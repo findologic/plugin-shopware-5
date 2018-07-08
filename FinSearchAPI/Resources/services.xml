@@ -43,6 +43,10 @@
             <argument type="service" id="FinSearchAPI.product_number_search.inner"/>
         </service>
 
+        <service id="FinSearchAPI.product_number_search" class="FinSearchAPI\Bundles\ProductNumberSearch" decorates="shopware_search_es.product_number_search"
+                 public="false">
+            <argument type="service" id="FinSearchAPI.product_number_search.inner"/>
+        </service>
 
         <service id="fin_search_api.commands.export_command"
                  class="FinSearchAPI\Commands\ExportCommand">
