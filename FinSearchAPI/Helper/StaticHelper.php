@@ -37,6 +37,22 @@ class StaticHelper {
         return $categoryName;
     }
 
+    /**
+     * @param SimpleXMLElement $xmlResponse
+     * @return null|string
+     */
+    public static function checkIfRedirect(SimpleXMLElement $xmlResponse)
+    {
+        /** @var SimpleXMLElement $landingpage */
+        $landingpage = $xmlResponse->landingPage;
+        if (isset($landingpage) && $landingpage != null && count($landingpage->attributes()) > 0){
+            /** @var string $redirect */
+            $redirect = (string)$landingpage->attributes()->link;
+            return $redirect;
+        }
+        return null;
+    }
+
     public static function checkIfSearch( $conditionArray ) {
         /** @var SearchBundle\ConditionInterface $condition */
         foreach ( $conditionArray as $condition ) {
