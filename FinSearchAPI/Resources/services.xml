@@ -29,11 +29,6 @@
 
         </service>
 
-            <service id="fin_search_api.storefront_dbal" class="FinSearchAPI\Subscriber\StoreFrontDBAL">
-                <argument type="service" id="service_container"/>
-                <tag name="shopware.event_subscriber"/>
-            </service>
-
         <service id="fin_search_api.service_subscriber" class="FinSearchAPI\Subscriber\ServiceSubscriber">
             <argument type="service" id="service_container"/>
             <tag name="shopware.event_subscriber"/>
@@ -43,7 +38,7 @@
 
         </service>
 
-         <service id="fin_search_api.product_number_search" class="FinSearchAPI\Bundles\ProductNumberSearch" decorates="shopware_search.product_number_search"
+        <service id="fin_search_api.product_number_search" class="FinSearchAPI\Bundles\ProductNumberSearch" decorates="shopware_search.product_number_search"
                  public="false">
             <argument type="service" id="fin_search_api.product_number_search.inner"/>
         </service>
