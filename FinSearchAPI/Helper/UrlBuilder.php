@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: wege
- * Date: 06.05.2018
- * Time: 13:17.
- */
 
 namespace FinSearchAPI\Helper;
 
