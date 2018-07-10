@@ -538,40 +538,40 @@ class FindologicArticleModel
         $allProperties = [];
         $rewrtieLink = Shopware()->Modules()->Core()->sRewriteLink();
         if (self::checkIfHasValue($this->baseArticle->getHighlight())) {
-            $allProperties[] = new Property('highlight', [$this->baseArticle->getHighlight()]);
+            $allProperties[] = new Property('highlight', ['' => $this->baseArticle->getHighlight()]);
         }
         if (self::checkIfHasValue($this->baseArticle->getTax())) {
-            $allProperties[] = new Property('tax', [$this->baseArticle->getTax()->getTax()]);
+            $allProperties[] = new Property('tax', ['' => $this->baseArticle->getTax()->getTax()]);
         }
         if (self::checkIfHasValue($this->baseVariant->getShippingTime())) {
-            $allProperties[] = new Property('shippingtime', [$this->baseVariant->getShippingTime()]);
+            $allProperties[] = new Property('shippingtime', ['' => $this->baseVariant->getShippingTime()]);
         }
         if (self::checkIfHasValue($this->baseVariant->getPurchaseUnit())) {
-            $allProperties[] = new Property('purchaseunit', [$this->baseVariant->getPurchaseUnit()]);
+            $allProperties[] = new Property('purchaseunit', ['' => $this->baseVariant->getPurchaseUnit()]);
         }
         if (self::checkIfHasValue($this->baseVariant->getReferenceUnit())) {
-            $allProperties[] = new Property('referenceunit', [$this->baseVariant->getReferenceUnit()]);
+            $allProperties[] = new Property('referenceunit', ['' => $this->baseVariant->getReferenceUnit()]);
         }
         if (self::checkIfHasValue($this->baseVariant->getPackUnit())) {
-            $allProperties[] = new Property('packunit', [$this->baseVariant->getPackUnit()]);
+            $allProperties[] = new Property('packunit', ['' => $this->baseVariant->getPackUnit()]);
         }
         if (self::checkIfHasValue($this->baseVariant->getInStock())) {
-            $allProperties[] = new Property('quantity', [$this->baseVariant->getInStock()]);
+            $allProperties[] = new Property('quantity', ['' => $this->baseVariant->getInStock()]);
         }
         if (self::checkIfHasValue($this->baseVariant->getWeight())) {
-            $allProperties[] = new Property('weight', [$this->baseVariant->getWeight()]);
+            $allProperties[] = new Property('weight', ['' => $this->baseVariant->getWeight()]);
         }
         if (self::checkIfHasValue($this->baseVariant->getWidth())) {
-            $allProperties[] = new Property('width', [$this->baseVariant->getWidth()]);
+            $allProperties[] = new Property('width', ['' => $this->baseVariant->getWidth()]);
         }
         if (self::checkIfHasValue($this->baseVariant->getHeight())) {
-            $allProperties[] = new Property('height', [$this->baseVariant->getHeight()]);
+            $allProperties[] = new Property('height', ['' => $this->baseVariant->getHeight()]);
         }
         if (self::checkIfHasValue($this->baseVariant->getLen())) {
-            $allProperties[] = new Property('length', [$this->baseVariant->getLen()]);
+            $allProperties[] = new Property('length', ['' => $this->baseVariant->getLen()]);
         }
         if (self::checkIfHasValue($this->baseVariant->getReleaseDate())) {
-            $allProperties[] = new Property('release_date', [$this->baseVariant->getReleaseDate()->format(DATE_ATOM)]);
+            $allProperties[] = new Property('release_date', ['' => $this->baseVariant->getReleaseDate()->format(DATE_ATOM)]);
         }
 
         /** @var \Shopware\Models\Attribute\Article $attributes */
@@ -590,19 +590,19 @@ class FindologicArticleModel
                 }
 
                 if (self::checkIfHasValue($value)) {
-                    $allProperties[] = new Property("attr$i", [$value]);
+                    $allProperties[] = new Property("attr$i", ['' => $value]);
                 }
             }
         }
 
-        $allProperties[] = new Property('wishlistUrl', [$rewrtieLink.self::WISHLIST_URL.$this->baseVariant->getNumber()]);
-        $allProperties[] = new Property('compareUrl', [$rewrtieLink.self::COMPARE_URL.$this->baseArticle->getId()]);
-        $allProperties[] = new Property('addToCartUrl', [$rewrtieLink.self::CART_URL.$this->baseVariant->getNumber()]);
+        $allProperties[] = new Property('wishlistUrl', ['' => $rewrtieLink.self::WISHLIST_URL.$this->baseVariant->getNumber()]);
+        $allProperties[] = new Property('compareUrl', ['' => $rewrtieLink.self::COMPARE_URL.$this->baseArticle->getId()]);
+        $allProperties[] = new Property('addToCartUrl', ['' => $rewrtieLink.self::CART_URL.$this->baseVariant->getNumber()]);
 
         $brandImage = $this->baseArticle->getSupplier()->getImage();
 
         if (self::checkIfHasValue($brandImage)) {
-            $allProperties[] = new Property('brand_image', [$rewrtieLink.$brandImage]);
+            $allProperties[] = new Property('brand_image', ['' => $rewrtieLink.$brandImage]);
         }
 
         /** @var Attribute $attribute */
