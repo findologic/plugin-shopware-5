@@ -31,6 +31,7 @@ Each export method supports three parameters:
 * shopkey (required) → provided by FINDOLOGIC
 * start (optional) → must not be lower than zero
 * count (optional) → must not be lower than zero
+* language (optional) → respective ISO code
 
 ## Frontend
 FINDOLOGIC starts the export by calling an appropriate URL e.g.:

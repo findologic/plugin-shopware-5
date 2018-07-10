@@ -57,35 +57,40 @@ class Frontend implements SubscriberInterface
     {
         /** @var \Shopware_Controllers_Frontend_Search $subject */
         $subject = $args->getSubject();
-
         $request = $subject->Request();
+        $params = $request->getParams();
+        $mappedParams = [];
 
-        if ($_REQUEST['attrib']){
-            foreach ($_REQUEST['attrib'] as $key => $value){
-                foreach ($value as $detailValue){
-                    $request->setRequestUri(str_replace('&attrib[' . $key . '][0]=' . $detailValue, '', $request->getRequestUri()));
-                    $request->setRequestUri($request->getRequestUri() . '&' . $key . '=' . $detailValue);
+        if (array_key_exists('catFilter', $params)) {
+            $mappedParams['cat'] = $params['catFilter'];
+            unset($params['catFilter']);
+        }
+
+        if (array_key_exists('attrib', $params)) {
+            foreach ($params['attrib'] as $filterName => $filterValue) {
+                if ($filterName === 'wizard') {
+                    continue;
                 }
+
+                $mappedParams[$filterName] = is_array($filterValue) ? implode('|', $filterValue) : $filterValue;
             }
-            unset($_REQUEST['attrib']);
-            $args->setReturn($request);
-            $subject->redirect($request->getRequestUri());
-        }
-        if ($_REQUEST['catFilter']){
 
-            $params = $request->getParams();
-            $params['cat'] = $_REQUEST['catFilter'];
-
-            $params['sSearch'] = " ";
-            $request->setParams($params);
-            $request->setRequestUri(str_replace('catFilter','cat',$request->getRequestUri()));
-            $request->setRequestUri(str_replace('sSearch=&','sSearch=%20&',$request->getRequestUri()));
-            $args->setReturn($request);
-            $subject->redirect($request->getRequestUri());
+            unset($params['attrib']);
         }
 
+        if ($mappedParams) {
+            if (array_key_exists('sSearch', $params) && empty($params['sSearch'])) {
+                $mappedParams['sSearch'] = ' ';
+                unset($params['sSearch']);
+            }
 
+            $path = strstr($request->getRequestUri(), '?', true);
+            $request->setParams(array_merge($params, $mappedParams));
+            $request->setRequestUri($path . '?' . http_build_query($mappedParams));
+            $args->setReturn($request);
 
+            $subject->redirect($request->getRequestUri());
+        }
     }
 
     public function onLoadPluginManager(\Enlight_Event_EventArgs $args)
