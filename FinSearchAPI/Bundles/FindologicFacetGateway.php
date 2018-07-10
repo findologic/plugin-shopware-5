@@ -43,6 +43,9 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
 
             return $categoryFacets[0];
         }
+        else{
+            return $this->originalService->getList($ids, $context);
+        }
     }
 
     /**
