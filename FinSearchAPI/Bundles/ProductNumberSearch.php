@@ -13,9 +13,9 @@ use Shopware\Bundle\StoreFrontBundle\Struct\Customer\Group;
 
 class ProductNumberSearch implements ProductNumberSearchInterface
 {
-    private $urlBuilder;
+    protected $urlBuilder;
 
-    private $originalService;
+    protected $originalService;
 
     protected $facets = [];
 
