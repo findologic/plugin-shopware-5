@@ -317,6 +317,11 @@ class FindologicArticleModel
         $mediaService = Shopware()->Container()->get('shopware_media.media_service');
         $baseLink = Shopware()->Modules()->Core()->sRewriteLink();
         $imagesArray = [];
+        $replacements = [
+            '[' => '%5B',
+            ']' => '%5D'
+        ];
+
         /** @var Image $articleImage */
         foreach ($articleMainImages as $articleImage) {
             if ($articleImage->getMedia() != null) {
@@ -335,11 +340,6 @@ class FindologicArticleModel
                 }
 
                 if (count($imageDetails) > 0) {
-                    $replacements = array(
-                        '[' => '%5B',
-                        ']' => '%5D'
-                    );
-
                     $imagePath = strtr($mediaService->getUrl($imageDefault), $replacements);
                     $imagePathThumb = strtr($mediaService->getUrl(array_values($imageDetails)[0]), $replacements);
                     if ($imagePathThumb != '') {
