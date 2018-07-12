@@ -109,7 +109,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      *
      * @param SimpleXMLElement $xmlResponse
      */
-    protected static function redirectOnLandingpage(SimpleXMLElement $xmlResponse)
+    protected static function redirectOnLandingpage(\SimpleXMLElement $xmlResponse)
     {
         $hasLandingpage = StaticHelper::checkIfRedirect($xmlResponse);
 
