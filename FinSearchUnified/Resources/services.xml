@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="fin_search_unified.view_dir">%fin_search_unified.plugin_dir%/Resources/views</parameter>
+    </parameters>
+
+    <services>
+        <service id="fin_search_unified.subscriber.frontend" class="FinSearchUnified\Subscriber\Frontend">
+            <argument>%fin_search_unified.plugin_dir%</argument>
+            <argument type="service" id="template"/>
+            <tag name="shopware.event_subscriber" />
+        </service>
+
+        <service decorates="shopware_storefront.custom_facet_gateway" class="FinSearchUnified\Bundles\FindologicFacetGateway" id="FinSearchUnified.findologic_facet_gateway">
+            <argument type="service" id="FinSearchUnified.findologic_facet_gateway.inner"/>
+            <argument type="service" id="dbal_connection" />
+            <argument type="service" id="shopware_storefront.field_helper_dbal" />
+            <argument type="service" id="shopware_storefront.custom_listing_hydrator" />
+        </service>
+
+        <service id="fin_search_unified.shopware_process" class="FinSearchUnified\ShopwareProcess">
+
+        </service>
+
+        <service id="fin_search_unified.article_model_factory" class="FinSearchUnified\BusinessLogic\FindologicArticleFactory">
+
+        </service>
+
+        <service id="fin_search_unified.service_subscriber" class="FinSearchUnified\Subscriber\ServiceSubscriber">
+            <argument type="service" id="service_container"/>
+            <tag name="shopware.event_subscriber"/>
+        </service>
+
+        <service id="FinSearchUnified.color_picker_facet_result" class="FinSearchUnified\Bundles\FacetResult\ColorPickerFacetResult">
+
+        </service>
+
+        <service id="fin_search_unified.product_number_search" class="FinSearchUnified\Bundles\ProductNumberSearch" decorates="shopware_search.product_number_search"
+                 public="false">
+            <argument type="service" id="fin_search_unified.product_number_search.inner"/>
+        </service>
+
+        <service id="fin_search_unified_es.product_number_search" class="FinSearchUnified\Bundles\ProductNumberSearch" decorates="shopware_search_es.product_number_search"
+                 public="false">
+            <argument type="service" id="fin_search_unified_es.product_number_search.inner"/>
+        </service>
+
+        <service id="fin_search_unified.commands.export_command"
+                 class="FinSearchUnified\Commands\ExportCommand">
+            <tag name="console.command"/>
+        </service>
+
+        <service id="shopware.api.findologic" class="FinSearchUnified\Components\Api\Resource\Findologic">
+
+        </service>
+    </services>
+</container>
