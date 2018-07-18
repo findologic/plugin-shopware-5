@@ -30,6 +30,7 @@ use Shopware\Models\Customer\Group;
 use Shopware\Models\Media\Media;
 use Shopware\Models\Property\Option;
 use Shopware\Models\Property\Value;
+use Shopware\Bundle\StoreFrontBundle\Struct\Product;
 
 class FindologicArticleModel
 {
@@ -92,6 +93,12 @@ class FindologicArticleModel
      */
     public $baseCategory;
 
+    /** @var array */
+    protected $legacyStruct;
+
+    /* @var Product */
+    protected $productStruct;
+
     /**
      * FindologicArticleModel constructor.
      *
@@ -114,33 +121,27 @@ class FindologicArticleModel
         $this->allUserGroups = $allUserGroups;
         $this->seoRouter = Shopware()->Container()->get('modules')->sRewriteTable();
 
-        // Load all variants
-        $this->variantArticles = $this->baseArticle->getDetails();
+        $this->setUpStruct();
 
-        // Fill out the Basedata
-        $this->setArticleName($this->baseArticle->getName());
+        if ($this->legacyStruct) {
+            // Load all variants
+            $this->variantArticles = $this->baseArticle->getDetails();
 
-        $summary = StaticHelper::cleanString($this->baseArticle->getDescription());
-        $description = StaticHelper::cleanString($this->baseArticle->getDescriptionLong());
-
-        if ($summary) {
-            $this->setSummary($summary);
+            // Fill out the Basedata
+            $this->setArticleName();
+            $this->setSummary();
+            $this->setDescription();
+            $this->setAddDate();
+            $this->setUrls();
+            $this->setKeywords();
+            $this->setImages();
+            $this->setSales();
+            $this->setAttributes();
+            $this->setUserGroups();
+            $this->setPrices();
+            $this->setVariantOrdernumbers();
+            $this->setProperties();
         }
-
-        if ($description) {
-            $this->setDescription($description);
-        }
-
-        $this->setAddDate();
-        $this->setUrls();
-        $this->setKeywords();
-        $this->setImages();
-        $this->setSales();
-        $this->setAttributes();
-        $this->setUserGroups();
-        $this->setPrices();
-        $this->setVariantOrdernumbers();
-        $this->setProperties();
     }
 
     public function getXmlRepresentation()
@@ -148,11 +149,26 @@ class FindologicArticleModel
         return $this->xmlArticle;
     }
 
-    protected function setArticleName($name, $userGroup = null)
+    protected function setUpStruct()
     {
-        $xmlName = new Name();
-        $xmlName->setValue($name, $userGroup);
-        $this->xmlArticle->setName($xmlName);
+        $context = Shopware()->Container()->get('shopware_storefront.context_service')->getShopContext();
+        $productNumberService = Shopware()->Container()->get('shopware_storefront.product_number_service');
+        $productService = Shopware()->Container()->get('shopware_storefront.product_service');
+
+        $this->productStruct = $productService->get(
+            $productNumberService->getMainProductNumberById($this->baseArticle->getId()),
+            $context);
+
+        $this->legacyStruct = Shopware()->Container()->get('legacy_struct_converter')->convertListProductStruct($this->productStruct);
+    }
+
+    protected function setArticleName()
+    {
+        if ($this->productStruct->getName()) {
+            $xmlName = new Name();
+            $xmlName->setValue($this->productStruct->getName());
+            $this->xmlArticle->setName($xmlName);
+        }
     }
 
     protected function setVariantOrdernumbers()
@@ -183,18 +199,24 @@ class FindologicArticleModel
         }
     }
 
-    protected function setSummary($description)
+    protected function setSummary()
     {
-        $summary = new Summary();
-        $summary->setValue(trim($description));
-        $this->xmlArticle->setSummary($summary);
+        $description = StaticHelper::cleanString($this->productStruct->getShortDescription());
+        if ($description) {
+            $summary = new Summary();
+            $summary->setValue(trim($description));
+            $this->xmlArticle->setSummary($summary);
+        }
     }
 
-    protected function setDescription($descriptionLong)
+    protected function setDescription()
     {
-        $description = new Description();
-        $description->setValue($descriptionLong);
-        $this->xmlArticle->setDescription($description);
+        $descriptionLong = StaticHelper::cleanString($this->productStruct->getLongDescription());
+        if ($descriptionLong) {
+            $description = new Description();
+            $description->setValue($descriptionLong);
+            $this->xmlArticle->setDescription($description);
+        }
     }
 
     protected function setPrices()
@@ -293,11 +315,20 @@ class FindologicArticleModel
 
     protected function setKeywords()
     {
-        $articleKeywordsString = $this->baseArticle->getKeywords();
-        // Keywords exists
-        if ($articleKeywordsString != '') {
-            //iterate through string
-            $articleKeywords = explode(',', $articleKeywordsString);
+        $keywords = '';
+
+        if ($this->productStruct && $this->productStruct->getKeywords()) {
+            $keywords = $this->productStruct->getKeywords();
+
+            // Check if there exist
+            if (Shopware()->Shop()->getId() !== 1
+                && $this->productStruct->getKeywords() === $this->baseArticle->getKeywords()) {
+                $keywords = '';
+            }
+        }
+
+        if ($keywords) {
+            $articleKeywords = explode(',', $keywords);
             $xmlKeywords = [];
             foreach ($articleKeywords as $keyword) {
                 if (self::checkIfHasValue($keyword)) {
@@ -317,6 +348,11 @@ class FindologicArticleModel
         $mediaService = Shopware()->Container()->get('shopware_media.media_service');
         $baseLink = Shopware()->Modules()->Core()->sRewriteLink();
         $imagesArray = [];
+        $replacements = [
+            '[' => '%5B',
+            ']' => '%5D'
+        ];
+
         /** @var Image $articleImage */
         foreach ($articleMainImages as $articleImage) {
             if ($articleImage->getMedia() != null) {
@@ -335,8 +371,8 @@ class FindologicArticleModel
                 }
 
                 if (count($imageDetails) > 0) {
-                    $imagePath = $mediaService->getUrl($imageDefault);
-                    $imagePathThumb = $mediaService->getUrl(array_values($imageDetails)[0]);
+                    $imagePath = strtr($mediaService->getUrl($imageDefault), $replacements);
+                    $imagePathThumb = strtr($mediaService->getUrl(array_values($imageDetails)[0]), $replacements);
                     if ($imagePathThumb != '') {
                         $xmlImagePath = new \FINDOLOGIC\Export\Data\Image($imagePath, \FINDOLOGIC\Export\Data\Image::TYPE_DEFAULT);
                         $imagesArray[] = $xmlImagePath;
@@ -383,9 +419,14 @@ class FindologicArticleModel
             if (!$category->isChildOf($this->baseCategory)){
                 continue;
             }
-            
+
             $catPath = $this->seoRouter->sCategoryPath($category->getId());
             $tempPath = '/'.implode('/', $catPath);
+
+            if (Shopware()->Config()->get('routerToLower')) {
+                $tempPath = strtolower($tempPath);
+            }
+
             $catUrlArray[] = $this->seoRouter->sCleanupPath($tempPath);
             $exportCat = StaticHelper::buildCategoryName($category->getId(), false);
 
@@ -404,97 +445,56 @@ class FindologicArticleModel
 
         // Supplier
         /** @var Supplier $articleSupplier */
-        $articleSupplier = $this->baseArticle->getSupplier();
-        if ($articleSupplier !== null) {
+        $articleSupplier = $this->productStruct->getManufacturer()->getName();
+        if ($articleSupplier) {
             $xmlSupplier = new Attribute('brand');
-            $xmlSupplier->setValues([$articleSupplier->getName()]);
+            $xmlSupplier->setValues([$articleSupplier]);
             $allAttributes[] = $xmlSupplier;
         }
 
         // Filter Values
-        $filters = $this->baseArticle->getPropertyValues();
+        if ($this->productStruct->getPropertySet()) {
+            foreach ($this->productStruct->getPropertySet()->getGroups() as $group) {
+                $filterValues = [];
 
-        /** @var Value $filter */
-        foreach ($filters as $filter) {
+                foreach ($group->getOptions() as $option) {
+                    if ($option->getName()) {
+                        $filterValues[] = $option->getName();
+                    }
+                }
 
-            /** @var Option $option */
-            $option = $filter->getOption();
-
-            if (self::checkIfHasValue($filter->getValue())) {
-                $xmlFilter = new Attribute($option->getName(), [$filter->getValue()]);
-                $allAttributes[] = $xmlFilter;
+                if($filterValues) {
+                    $allAttributes[] = new Attribute($group->getName(), $filterValues);
+                }
             }
         }
 
-        // Varianten
-        $temp = [];
+        // Variant configurator entries
         /** @var Detail $variant */
         foreach ($this->variantArticles as $variant) {
-            if (!$variant->getActive() == 0) {
+            if (!$variant->getActive()
+                || (Shopware()->Config()->get('hideNoInStock') && $variant->getInStock() < 1)) {
                 continue;
             }
-            if (!empty($variant->getAdditionalText())) {
-                foreach (explode(' / ', $variant->getAdditionalText()) as $value) {
-                    $temp[] = $value;
-                }
-            }
-        }
 
-        /* @var $configurator \Shopware\Models\Article\Configurator\Set */
-        $configurator = $this->baseArticle->getConfiguratorSet();
+            /* @var $configuratorOption \Shopware\Models\Article\Configurator\Option */
+            foreach ($variant->getConfiguratorOptions() as $configuratorOption) {
 
-        if ($configurator) {
-            /* @var $option \Shopware\Models\Article\Configurator\Option */
-            $options = $configurator->getOptions();
-            $optValues = [];
-            foreach ($options as $option) {
-                $optValues[$option->getGroup()->getName()][] = $option->getName();
-            }
-            //add only options from active variants
-            foreach ($optValues as $key => $value) {
-                if ($temp) {
-                    $value = array_intersect($value, $temp);
-                }
-
-                if (!self::checkIfHasValue($value)) {
+                if (!self::checkIfHasValue($configuratorOption->getName())) {
                     continue;
                 }
 
-                $xmlConfig = new Attribute($key, $value);
+                $xmlConfig = new Attribute($configuratorOption->getGroup()->getName(), $configuratorOption->getName());
                 $allAttributes[] = $xmlConfig;
             }
         }
 
         // Add is new
-        $form = Shopware()->Models()->getRepository('\Shopware\Models\Config\Form')
-                                        ->findOneBy([
-                                            'name' => 'Frontend76',
-                                        ]);
-        $defaultNew = Shopware()->Models()->getRepository('\Shopware\Models\Config\Element')
-                                        ->findOneBy([
-                                            'form' => $form,
-                                            'name' => 'markasnew',
-                                        ]);
-        $specificValueNew = Shopware()->Models()->getRepository('\Shopware\Models\Config\Value')
-                                        ->findOneBy([
-                                            'element' => $defaultNew,
-                                        ]);
-
-        $articleAdded = $this->baseArticle->getAdded()->getTimestamp();
-
-        if ($specificValueNew) {
-            $articleTime = $specificValueNew->getValue() * 86400 + $articleAdded;
-        } else {
-            $articleTime = $defaultNew->getValue() * 86400 + $articleAdded;
+        $newFlag = 0;
+        if ($this->legacyStruct['newArticle']) {
+            $newFlag = 1;
         }
-
-        $now = time();
-
-        if ($now >= $articleTime) {
-            $xmlNewFlag = new Attribute('new', [1]);
-        } else {
-            $xmlNewFlag = new Attribute('new', [0]);
-        }
+        $xmlNewFlag = new Attribute('new', [$newFlag]);
         $allAttributes[] = $xmlNewFlag;
 
         //			// Add votes_rating
