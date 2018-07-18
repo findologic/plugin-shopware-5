@@ -490,35 +490,11 @@ class FindologicArticleModel
         }
 
         // Add is new
-        $form = Shopware()->Models()->getRepository('\Shopware\Models\Config\Form')
-                                        ->findOneBy([
-                                            'name' => 'Frontend76',
-                                        ]);
-        $defaultNew = Shopware()->Models()->getRepository('\Shopware\Models\Config\Element')
-                                        ->findOneBy([
-                                            'form' => $form,
-                                            'name' => 'markasnew',
-                                        ]);
-        $specificValueNew = Shopware()->Models()->getRepository('\Shopware\Models\Config\Value')
-                                        ->findOneBy([
-                                            'element' => $defaultNew,
-                                        ]);
-
-        $articleAdded = $this->baseArticle->getAdded()->getTimestamp();
-
-        if ($specificValueNew) {
-            $articleTime = $specificValueNew->getValue() * 86400 + $articleAdded;
-        } else {
-            $articleTime = $defaultNew->getValue() * 86400 + $articleAdded;
+        $newFlag = 0;
+        if ($this->legacyStruct['newArticle']) {
+            $newFlag = 1;
         }
-
-        $now = time();
-
-        if ($now >= $articleTime) {
-            $xmlNewFlag = new Attribute('new', [1]);
-        } else {
-            $xmlNewFlag = new Attribute('new', [0]);
-        }
+        $xmlNewFlag = new Attribute('new', [$newFlag]);
         $allAttributes[] = $xmlNewFlag;
 
         //			// Add votes_rating
