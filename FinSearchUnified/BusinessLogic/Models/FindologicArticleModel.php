@@ -453,7 +453,7 @@ class FindologicArticleModel
         }
 
         // Filter Values
-        if ($this->productStruct->hasProperties()) {
+        if ($this->productStruct->getPropertySet()) {
             foreach ($this->productStruct->getPropertySet()->getGroups() as $group) {
                 $filterValues = [];
 
