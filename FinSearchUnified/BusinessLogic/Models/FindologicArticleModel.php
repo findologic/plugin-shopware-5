@@ -391,6 +391,11 @@ class FindologicArticleModel
 
             $catPath = $this->seoRouter->sCategoryPath($category->getId());
             $tempPath = '/'.implode('/', $catPath);
+
+            if (Shopware()->Config()->get('routerToLower')) {
+                $tempPath = strtolower($tempPath);
+            }
+
             $catUrlArray[] = $this->seoRouter->sCleanupPath($tempPath);
             $exportCat = StaticHelper::buildCategoryName($category->getId(), false);
 
