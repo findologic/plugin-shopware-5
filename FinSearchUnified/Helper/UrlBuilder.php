@@ -122,6 +122,7 @@ class UrlBuilder
         foreach ($sortingQuery as $sorting) {
             $this->buildSortingParameter($sorting);
         }
+
         $this->processQueryParameter($conditions, $criteria->getOffset(), $criteria->getLimit());
 
         return $this->callFindologicForXmlResponse();
@@ -152,6 +153,7 @@ class UrlBuilder
                 continue;
             }
         }
+
         $this->parameters['first'] = $offset;
         $this->parameters['count'] = $itemsPerPage;
     }
@@ -193,13 +195,22 @@ class UrlBuilder
      */
     private function buildCategoryAttribute($categoryId)
     {
-        $this->parameters['attrib']['cat'] = [];
+        $attribCat = [];
+
         foreach ($categoryId as $id) {
             $catString = StaticHelper::buildCategoryName($id);
 
             if ($catString !== null && $catString !== '') {
-                $this->parameters['attrib']['cat'][] = urldecode($catString);
+                $attribCat[] = urldecode($catString);
             }
+        }
+
+        if (array_key_exists('catFilter', $_GET) && !empty($_GET['catFilter'])) {
+            $attribCat[] = urldecode($_GET['catFilter']);
+        }
+
+        if ($attribCat) {
+            $this->parameters['attrib']['cat'] = $attribCat;
         }
     }
 
