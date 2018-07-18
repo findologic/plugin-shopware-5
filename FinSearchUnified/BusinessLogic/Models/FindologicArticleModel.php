@@ -317,6 +317,11 @@ class FindologicArticleModel
         $mediaService = Shopware()->Container()->get('shopware_media.media_service');
         $baseLink = Shopware()->Modules()->Core()->sRewriteLink();
         $imagesArray = [];
+        $replacements = [
+            '[' => '%5B',
+            ']' => '%5D'
+        ];
+
         /** @var Image $articleImage */
         foreach ($articleMainImages as $articleImage) {
             if ($articleImage->getMedia() != null) {
@@ -335,8 +340,8 @@ class FindologicArticleModel
                 }
 
                 if (count($imageDetails) > 0) {
-                    $imagePath = $mediaService->getUrl($imageDefault);
-                    $imagePathThumb = $mediaService->getUrl(array_values($imageDetails)[0]);
+                    $imagePath = strtr($mediaService->getUrl($imageDefault), $replacements);
+                    $imagePathThumb = strtr($mediaService->getUrl(array_values($imageDetails)[0]), $replacements);
                     if ($imagePathThumb != '') {
                         $xmlImagePath = new \FINDOLOGIC\Export\Data\Image($imagePath, \FINDOLOGIC\Export\Data\Image::TYPE_DEFAULT);
                         $imagesArray[] = $xmlImagePath;
@@ -383,7 +388,7 @@ class FindologicArticleModel
             if (!$category->isChildOf($this->baseCategory)){
                 continue;
             }
-            
+
             $catPath = $this->seoRouter->sCategoryPath($category->getId());
             $tempPath = '/'.implode('/', $catPath);
             $catUrlArray[] = $this->seoRouter->sCleanupPath($tempPath);
