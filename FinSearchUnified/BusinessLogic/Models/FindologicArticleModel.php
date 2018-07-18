@@ -453,55 +453,38 @@ class FindologicArticleModel
         }
 
         // Filter Values
-        $filters = $this->baseArticle->getPropertyValues();
+        if ($this->productStruct->hasProperties()) {
+            foreach ($this->productStruct->getPropertySet()->getGroups() as $group) {
+                $filterValues = [];
 
-        /** @var Value $filter */
-        foreach ($filters as $filter) {
+                foreach ($group->getOptions() as $option) {
+                    if ($option->getName()) {
+                        $filterValues[] = $option->getName();
+                    }
+                }
 
-            /** @var Option $option */
-            $option = $filter->getOption();
-
-            if (self::checkIfHasValue($filter->getValue())) {
-                $xmlFilter = new Attribute($option->getName(), [$filter->getValue()]);
-                $allAttributes[] = $xmlFilter;
+                if($filterValues) {
+                    $allAttributes[] = new Attribute($group->getName(), $filterValues);
+                }
             }
         }
 
-        // Varianten
-        $temp = [];
+        // Variant configurator entries
         /** @var Detail $variant */
         foreach ($this->variantArticles as $variant) {
-            if (!$variant->getActive() == 0) {
+            if (!$variant->getActive()
+                || (Shopware()->Config()->get('hideNoInStock') && $variant->getInStock() < 1)) {
                 continue;
             }
-            if (!empty($variant->getAdditionalText())) {
-                foreach (explode(' / ', $variant->getAdditionalText()) as $value) {
-                    $temp[] = $value;
-                }
-            }
-        }
 
-        /* @var $configurator \Shopware\Models\Article\Configurator\Set */
-        $configurator = $this->baseArticle->getConfiguratorSet();
+            /* @var $configuratorOption \Shopware\Models\Article\Configurator\Option */
+            foreach ($variant->getConfiguratorOptions() as $configuratorOption) {
 
-        if ($configurator) {
-            /* @var $option \Shopware\Models\Article\Configurator\Option */
-            $options = $configurator->getOptions();
-            $optValues = [];
-            foreach ($options as $option) {
-                $optValues[$option->getGroup()->getName()][] = $option->getName();
-            }
-            //add only options from active variants
-            foreach ($optValues as $key => $value) {
-                if ($temp) {
-                    $value = array_intersect($value, $temp);
-                }
-
-                if (!self::checkIfHasValue($value)) {
+                if (!self::checkIfHasValue($configuratorOption->getName())) {
                     continue;
                 }
 
-                $xmlConfig = new Attribute($key, $value);
+                $xmlConfig = new Attribute($configuratorOption->getGroup()->getName(), $configuratorOption->getName());
                 $allAttributes[] = $xmlConfig;
             }
         }
