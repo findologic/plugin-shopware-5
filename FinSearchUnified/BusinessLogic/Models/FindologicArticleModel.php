@@ -30,6 +30,7 @@ use Shopware\Models\Customer\Group;
 use Shopware\Models\Media\Media;
 use Shopware\Models\Property\Option;
 use Shopware\Models\Property\Value;
+use Shopware\Bundle\StoreFrontBundle\Struct\Product;
 
 class FindologicArticleModel
 {
@@ -92,6 +93,12 @@ class FindologicArticleModel
      */
     public $baseCategory;
 
+    /** @var array */
+    protected $legacyStruct;
+
+    /* @var Product */
+    protected $productStruct;
+
     /**
      * FindologicArticleModel constructor.
      *
@@ -114,33 +121,27 @@ class FindologicArticleModel
         $this->allUserGroups = $allUserGroups;
         $this->seoRouter = Shopware()->Container()->get('modules')->sRewriteTable();
 
-        // Load all variants
-        $this->variantArticles = $this->baseArticle->getDetails();
+        $this->setUpStruct();
 
-        // Fill out the Basedata
-        $this->setArticleName($this->baseArticle->getName());
+        if ($this->legacyStruct) {
+            // Load all variants
+            $this->variantArticles = $this->baseArticle->getDetails();
 
-        $summary = StaticHelper::cleanString($this->baseArticle->getDescription());
-        $description = StaticHelper::cleanString($this->baseArticle->getDescriptionLong());
-
-        if ($summary) {
-            $this->setSummary($summary);
+            // Fill out the Basedata
+            $this->setArticleName($this->baseArticle->getName());
+            $this->setSummary();
+            $this->setDescription();
+            $this->setAddDate();
+            $this->setUrls();
+            $this->setKeywords();
+            $this->setImages();
+            $this->setSales();
+            $this->setAttributes();
+            $this->setUserGroups();
+            $this->setPrices();
+            $this->setVariantOrdernumbers();
+            $this->setProperties();
         }
-
-        if ($description) {
-            $this->setDescription($description);
-        }
-
-        $this->setAddDate();
-        $this->setUrls();
-        $this->setKeywords();
-        $this->setImages();
-        $this->setSales();
-        $this->setAttributes();
-        $this->setUserGroups();
-        $this->setPrices();
-        $this->setVariantOrdernumbers();
-        $this->setProperties();
     }
 
     public function getXmlRepresentation()
@@ -148,8 +149,22 @@ class FindologicArticleModel
         return $this->xmlArticle;
     }
 
+    protected function setUpStruct()
+    {
+        $context = Shopware()->Container()->get('shopware_storefront.context_service')->getShopContext();
+        $productNumberService = Shopware()->Container()->get('shopware_storefront.product_number_service');
+        $productService = Shopware()->Container()->get('shopware_storefront.product_service');
+
+        $this->productStruct = $productService->get(
+            $productNumberService->getMainProductNumberById($this->baseArticle->getId()),
+            $context);
+
+        $this->legacyStruct = Shopware()->Container()->get('legacy_struct_converter')->convertListProductStruct($this->productStruct);
+    }
+
     protected function setArticleName($name, $userGroup = null)
     {
+
         $xmlName = new Name();
         $xmlName->setValue($name, $userGroup);
         $this->xmlArticle->setName($xmlName);
@@ -183,18 +198,24 @@ class FindologicArticleModel
         }
     }
 
-    protected function setSummary($description)
+    protected function setSummary()
     {
-        $summary = new Summary();
-        $summary->setValue(trim($description));
-        $this->xmlArticle->setSummary($summary);
+        $description = StaticHelper::cleanString($this->baseArticle->getDescription());
+        if ($description) {
+            $summary = new Summary();
+            $summary->setValue(trim($description));
+            $this->xmlArticle->setSummary($summary);
+        }
     }
 
-    protected function setDescription($descriptionLong)
+    protected function setDescription()
     {
-        $description = new Description();
-        $description->setValue($descriptionLong);
-        $this->xmlArticle->setDescription($description);
+        $descriptionLong = StaticHelper::cleanString($this->baseArticle->getDescriptionLong());
+        if ($descriptionLong) {
+            $description = new Description();
+            $description->setValue($descriptionLong);
+            $this->xmlArticle->setDescription($description);
+        }
     }
 
     protected function setPrices()
