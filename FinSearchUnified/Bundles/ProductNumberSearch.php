@@ -9,12 +9,15 @@ use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use Shopware\Models\Search\CustomFacet;
+use Shopware\Bundle\StoreFrontBundle\Struct\Customer\Group;
 
 class ProductNumberSearch implements ProductNumberSearchInterface
 {
-    private $urlBuilder;
+    protected $urlBuilder;
 
-    private $originalService;
+    protected $originalService;
+
+    protected $facets = [];
 
     public function __construct(ProductNumberSearchInterface $service)
     {
@@ -37,83 +40,142 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      */
     public function search(Criteria $criteria, ShopContextInterface $context)
     {
-        if (
+        if (self::useShopSearch($criteria)) {
+            return $this->originalService->search($criteria, $context);
+        }
+
+        try {
+
+            $response = $this->sendRequestToFindologic($criteria, $context->getCurrentCustomerGroup());
+
+            if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
+                self::setFallbackFlag(0);
+
+                $xmlResponse = StaticHelper::getXmlFromResponse($response);
+
+                self::redirectOnLandingpage($xmlResponse);
+
+                $this->facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
+
+                $facetsInterfaces = StaticHelper::getFindologicFacets($xmlResponse);
+
+                /** @var CustomFacet $facets_interface */
+                foreach ($facetsInterfaces as $facetsInterface){
+                    $criteria->addFacet($facetsInterface->getFacet());
+                }
+
+                $this->setSelectedFacets($criteria);
+
+                $criteria->resetConditions();
+
+                $totalResults = (int) $xmlResponse->results->count;
+
+                $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
+                $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
+
+                return new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $this->facets);
+            } else {
+                self::setFallbackFlag(1);
+
+                return $this->originalService->search($criteria, $context);
+            }
+        } catch (\Zend_Http_Client_Exception $e) {
+            self::setFallbackFlag(1);
+
+            return $this->originalService->search($criteria, $context);
+        }
+    }
+
+    /**
+     * Checks if the FINDOLOGIC search should actually be performed.
+     *
+     * @param Criteria $criteria
+     * @return bool
+     */
+    protected static function useShopSearch(Criteria $criteria)
+    {
+        return (
             StaticHelper::checkDirectIntegration() ||
             !(bool) Shopware()->Config()->get('ActivateFindologic') ||
             (
                 !(bool) Shopware()->Config()->get('ActivateFindologicForCategoryPages') &&
                 !StaticHelper::checkIfSearch($criteria->getConditions())
             )
-        ) {
-            return $this->originalService->search($criteria, $context);
+        );
+    }
+
+    /**
+     * Checks if a landing page is present in the response and in that case, performs a redirect.
+     *
+     * @param SimpleXMLElement $xmlResponse
+     */
+    protected static function redirectOnLandingpage(\SimpleXMLElement $xmlResponse)
+    {
+        $hasLandingpage = StaticHelper::checkIfRedirect($xmlResponse);
+
+        if ($hasLandingpage != null) {
+            header('Location: ' . $hasLandingpage);
+            exit();
         }
+    }
 
-        try {
+    /**
+     * Sets a browser cookie with the given value.
+     *
+     * @param bool $status
+     */
+    protected static function setFallbackFlag($status)
+    {
+        setcookie('Fallback', $status);
+    }
 
-            /* SEND REQUEST TO FINDOLOGIC */
-            $this->urlBuilder->setCustomerGroup($context->getCurrentCustomerGroup());
-            $response = $this->urlBuilder->buildQueryUrlAndGetResponse($criteria);
-            if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
-
-                $xmlResponse = StaticHelper::getXmlFromResponse($response);
-
-                $hasLandingpage = StaticHelper::checkIfRedirect($xmlResponse);
-
-                if ($hasLandingpage != null){
-                    header('Location: '.$hasLandingpage);
-                    exit();
-                }
-
-                $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
-
-                $facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
-
-                $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
-                setcookie('Fallback', 0);
-                $totalResults = (int) $xmlResponse->results->count;
-
-                $facetsInterfaces = StaticHelper::getFindologicFacets($xmlResponse);
-
-
-                /** @var CustomFacet $facets_interface */
-                foreach ($facetsInterfaces as $facets_interface){
-                    $criteria->addFacet($facets_interface->getFacet());
-                }
-
-                $allConditions= $criteria->getConditions();
-
-
-                foreach ($allConditions as $condition){
-
-                    if ($condition instanceof SearchBundle\Condition\ProductAttributeCondition){
-                        $currentFacet = $criteria->getFacet($condition->getName());
-                        if ($currentFacet instanceof SearchBundle\FacetInterface){
-
-                            /** @var SearchBundle\Facet\ProductAttributeFacet $currentFacet */
-                            $tempFacet = StaticHelper::createSelectedFacet($currentFacet->getFormFieldName(), $currentFacet->getLabel(), $condition->getValue());
-                            if (count($tempFacet->getValues()) == 0){
-                                continue;
-                            }
-                            $foundFacet = StaticHelper::arrayHasFacet($facets, $currentFacet->getFormFieldName());
-
-                            if (!$foundFacet){
-                                $facets[] = $tempFacet;
-                            }
-                        }
-
-                    }
-                }
-                $criteria->resetConditions();
-                return new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $facets);
-            } else {
-                setcookie('Fallback', 1);
-
-                return $this->originalService->search($criteria, $context);
+    /**
+     * Marks the selected facets as such and prevents duplicates.
+     *
+     * @param Criteria $criteria
+     */
+    protected function setSelectedFacets(Criteria $criteria)
+    {
+        foreach ($criteria->getConditions() as $condition) {
+            if (($condition instanceof SearchBundle\Condition\ProductAttributeCondition) === false) {
+                continue;
             }
-        } catch (\Zend_Http_Client_Exception $e) {
-            setcookie('Fallback', 1);
 
-            return $this->originalService->search($criteria, $context);
+            /** @var SearchBundle\Facet\ProductAttributeFacet $currentFacet */
+            $currentFacet = $criteria->getFacet($condition->getName());
+
+            if (($currentFacet instanceof SearchBundle\FacetInterface) === false) {
+                continue;
+            }
+
+            $tempFacet = StaticHelper::createSelectedFacet(
+                $currentFacet->getFormFieldName(),
+                $currentFacet->getLabel(),
+                $condition->getValue()
+            );
+
+            if (count($tempFacet->getValues()) == 0){
+                continue;
+            }
+
+            $foundFacet = StaticHelper::arrayHasFacet($this->facets, $currentFacet->getFormFieldName());
+
+            if (!$foundFacet) {
+                $this->facets[] = $tempFacet;
+            }
         }
+    }
+
+    /**
+     * @param Criteria $criteria
+     * @param Group $customerGroup
+     * @return null|\Zend_Http_Response
+     */
+    protected function sendRequestToFindologic(Criteria $criteria, Group $customerGroup)
+    {
+        $this->urlBuilder->setCustomerGroup($customerGroup);
+        $response = $this->urlBuilder->buildQueryUrlAndGetResponse($criteria);
+
+        return $response;
     }
 }
