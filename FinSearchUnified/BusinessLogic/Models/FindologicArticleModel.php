@@ -445,10 +445,10 @@ class FindologicArticleModel
 
         // Supplier
         /** @var Supplier $articleSupplier */
-        $articleSupplier = $this->baseArticle->getSupplier();
-        if ($articleSupplier !== null) {
+        $articleSupplier = $this->productStruct->getManufacturer()->getName();
+        if ($articleSupplier) {
             $xmlSupplier = new Attribute('brand');
-            $xmlSupplier->setValues([$articleSupplier->getName()]);
+            $xmlSupplier->setValues([$articleSupplier]);
             $allAttributes[] = $xmlSupplier;
         }
 
