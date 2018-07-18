@@ -128,7 +128,7 @@ class FindologicArticleModel
             $this->variantArticles = $this->baseArticle->getDetails();
 
             // Fill out the Basedata
-            $this->setArticleName($this->baseArticle->getName());
+            $this->setArticleName();
             $this->setSummary();
             $this->setDescription();
             $this->setAddDate();
@@ -162,12 +162,13 @@ class FindologicArticleModel
         $this->legacyStruct = Shopware()->Container()->get('legacy_struct_converter')->convertListProductStruct($this->productStruct);
     }
 
-    protected function setArticleName($name, $userGroup = null)
+    protected function setArticleName()
     {
-
-        $xmlName = new Name();
-        $xmlName->setValue($name, $userGroup);
-        $this->xmlArticle->setName($xmlName);
+        if ($this->productStruct->getName()) {
+            $xmlName = new Name();
+            $xmlName->setValue($this->productStruct->getName());
+            $this->xmlArticle->setName($xmlName);
+        }
     }
 
     protected function setVariantOrdernumbers()
@@ -200,7 +201,7 @@ class FindologicArticleModel
 
     protected function setSummary()
     {
-        $description = StaticHelper::cleanString($this->baseArticle->getDescription());
+        $description = StaticHelper::cleanString($this->productStruct->getShortDescription());
         if ($description) {
             $summary = new Summary();
             $summary->setValue(trim($description));
@@ -210,7 +211,7 @@ class FindologicArticleModel
 
     protected function setDescription()
     {
-        $descriptionLong = StaticHelper::cleanString($this->baseArticle->getDescriptionLong());
+        $descriptionLong = StaticHelper::cleanString($this->productStruct->getLongDescription());
         if ($descriptionLong) {
             $description = new Description();
             $description->setValue($descriptionLong);
@@ -314,11 +315,20 @@ class FindologicArticleModel
 
     protected function setKeywords()
     {
-        $articleKeywordsString = $this->baseArticle->getKeywords();
-        // Keywords exists
-        if ($articleKeywordsString != '') {
-            //iterate through string
-            $articleKeywords = explode(',', $articleKeywordsString);
+        $keywords = '';
+
+        if ($this->productStruct && $this->productStruct->getKeywords()) {
+            $keywords = $this->productStruct->getKeywords();
+
+            // Check if there exist
+            if (Shopware()->Shop()->getId() !== 1
+                && $this->productStruct->getKeywords() === $this->baseArticle->getKeywords()) {
+                $keywords = '';
+            }
+        }
+
+        if ($keywords) {
+            $articleKeywords = explode(',', $keywords);
             $xmlKeywords = [];
             foreach ($articleKeywords as $keyword) {
                 if (self::checkIfHasValue($keyword)) {
