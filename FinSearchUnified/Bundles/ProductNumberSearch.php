@@ -107,7 +107,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     /**
      * Checks if a landing page is present in the response and in that case, performs a redirect.
      *
-     * @param SimpleXMLElement $xmlResponse
+     * @param \SimpleXMLElement $xmlResponse
      */
     protected static function redirectOnLandingpage(\SimpleXMLElement $xmlResponse)
     {
