@@ -26,11 +26,7 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
      */
     public function getList(array $ids, \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context)
     {
-        if (
-            StaticHelper::checkDirectIntegration() ||
-            !(bool) Shopware()->Config()->get('ActivateFindologic') ||
-            !(bool) Shopware()->Config()->get('ActivateFindologicForCategoryPages')
-        ) {
+        if (StaticHelper::useShopSearch()) {
             return $this->originalService->getList($ids, $context);
         }
 
@@ -56,11 +52,7 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
      */
     public function getFacetsOfCategories(array $categoryIds, \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context)
     {
-        if (
-            StaticHelper::checkDirectIntegration() ||
-            !(bool) Shopware()->Config()->get('ActivateFindologic') ||
-            !(bool) Shopware()->Config()->get('ActivateFindologicForCategoryPages')
-        ) {
+        if (StaticHelper::useShopSearch()) {
             return $this->originalService->getFacetsOfCategories($categoryIds, $context);
         }
 

@@ -38,23 +38,19 @@ class Frontend implements SubscriberInterface
             'Enlight_Controller_Action_PreDispatch'                     => 'onPreDispatch',
             'Enlight_Controller_Action_PostDispatchSecure_Frontend'     => 'onFrontendPostDispatch',
             'Enlight_Controller_Dispatcher_ControllerPath_Findologic'   => 'onFindologicController',
-            'Enlight_Controller_Action_PreDispatch_Backend_Form'        => 'onLoadPluginManager',
-            'Enlight_Controller_Action_PreDispatch_Frontend_AjaxSearch' => 'onAjaxLoad',
+            'Enlight_Controller_Action_PreDispatch_Frontend_Listing'    => 'onListingPreDispatch'
         ];
     }
 
-    /**
-     * @param Enlight_Controller_ActionEventArgs $args
-     */
-    public function onAjaxLoad(\Enlight_Event_EventArgs $args)
+    public function onListingPreDispatch()
     {
-        if ((bool) Shopware()->Config()->get('ActivateFindologic')) {
-            return;
-        }
+        Shopware()->Session()->isSearch = false;
     }
 
     public function beforeSearchIndexAction(\Enlight_Hook_HookArgs $args)
     {
+        Shopware()->Session()->isSearch = true;
+
         /** @var \Shopware_Controllers_Frontend_Search $subject */
         $subject = $args->getSubject();
         $request = $subject->Request();
@@ -86,12 +82,6 @@ class Frontend implements SubscriberInterface
 
             $subject->redirect($request->getRequestUri());
         }
-    }
-
-    public function onLoadPluginManager(\Enlight_Event_EventArgs $args)
-    {
-        /** @var \Shopware_Controllers_Backend_Form $subject */
-        $subject = $args->getSubject();
     }
 
     public function onPreDispatch()
