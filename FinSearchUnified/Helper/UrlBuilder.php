@@ -154,6 +154,14 @@ class UrlBuilder
             }
         }
 
+        if (array_key_exists('catFilter', $_GET) && !empty($_GET['catFilter'])) {
+            if (!is_array($this->parameters['attrib']['cat'])) {
+                $this->parameters['attrib']['cat'] = [];
+            }
+
+            $this->parameters['attrib']['cat'][] = urldecode($_GET['catFilter']);
+        }
+
         $this->parameters['first'] = $offset;
         $this->parameters['count'] = $itemsPerPage;
     }
@@ -203,10 +211,6 @@ class UrlBuilder
             if ($catString !== null && $catString !== '') {
                 $attribCat[] = urldecode($catString);
             }
-        }
-
-        if (array_key_exists('catFilter', $_GET) && !empty($_GET['catFilter'])) {
-            $attribCat[] = urldecode($_GET['catFilter']);
         }
 
         if ($attribCat) {
