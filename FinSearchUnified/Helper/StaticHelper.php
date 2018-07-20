@@ -529,8 +529,8 @@ class StaticHelper {
             self::checkDirectIntegration() ||
             !(bool) Shopware()->Config()->get('ActivateFindologic') ||
             (
-                !(bool) Shopware()->Config()->get('ActivateFindologicForCategoryPages') &&
-                !Shopware()->Session()->isSearch
+                Shopware()->Session()->offsetGet('isCategoryPage') &&
+                !(bool) Shopware()->Config()->get('ActivateFindologicForCategoryPages')
             )
         );
     }

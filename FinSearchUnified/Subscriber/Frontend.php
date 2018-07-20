@@ -38,19 +38,23 @@ class Frontend implements SubscriberInterface
             'Enlight_Controller_Action_PreDispatch'                     => 'onPreDispatch',
             'Enlight_Controller_Action_PostDispatchSecure_Frontend'     => 'onFrontendPostDispatch',
             'Enlight_Controller_Dispatcher_ControllerPath_Findologic'   => 'onFindologicController',
-            'Enlight_Controller_Action_PreDispatch_Frontend_Listing'    => 'onListingPreDispatch'
+            'Enlight_Controller_Action_PreDispatch_Frontend_Listing'    => 'onFrontendListingPreDispatch',
+            'Enlight_Controller_Action_PreDispatch_Frontend'            => 'onFrontendPreDispatch'
         ];
     }
 
-    public function onListingPreDispatch()
+    public function onFrontendListingPreDispatch()
     {
-        Shopware()->Session()->isSearch = false;
+        Shopware()->Session()->offsetSet('isCategoryPage', true);
+    }
+
+    public function onFrontendPreDispatch()
+    {
+        Shopware()->Session()->offsetSet('isCategoryPage', false);
     }
 
     public function beforeSearchIndexAction(\Enlight_Hook_HookArgs $args)
     {
-        Shopware()->Session()->isSearch = true;
-
         /** @var \Shopware_Controllers_Frontend_Search $subject */
         $subject = $args->getSubject();
         $request = $subject->Request();
