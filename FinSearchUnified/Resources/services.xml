@@ -56,5 +56,14 @@
         <service id="shopware.api.findologic" class="FinSearchUnified\Components\Api\Resource\Findologic">
 
         </service>
+
+        <service
+            id="fin_search_unified.product_search"
+            class="Shopware\Bundle\SearchBundle\ProductSearch"
+            decorates="shopware_search.product_search"
+        >
+            <argument type="service" id="shopware_storefront.list_product_service"/>
+            <argument type="service" id="fin_search_unified.product_number_search"/>
+        </service>
     </services>
 </container>

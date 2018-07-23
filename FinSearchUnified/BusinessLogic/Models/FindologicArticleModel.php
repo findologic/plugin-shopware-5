@@ -155,11 +155,14 @@ class FindologicArticleModel
         $productNumberService = Shopware()->Container()->get('shopware_storefront.product_number_service');
         $productService = Shopware()->Container()->get('shopware_storefront.product_service');
 
-        $this->productStruct = $productService->get(
-            $productNumberService->getMainProductNumberById($this->baseArticle->getId()),
-            $context);
+        $mainProductNumber = $productNumberService->getMainProductNumberById($this->baseArticle->getId());
+        $this->productStruct = $productService->get($mainProductNumber, $context);
 
-        $this->legacyStruct = Shopware()->Container()->get('legacy_struct_converter')->convertListProductStruct($this->productStruct);
+        if ($this->productStruct) {
+            $this->legacyStruct = Shopware()->Container()->get('legacy_struct_converter')->convertListProductStruct($this->productStruct);
+        } else {
+            $this->legacyStruct = [];
+        }
     }
 
     protected function setArticleName()
@@ -337,7 +340,7 @@ class FindologicArticleModel
                 }
             }
             if (count($xmlKeywords) > 0) {
-                $this->xmlArticle->setAllKeywords($xmlKeywords);
+                $this->xmlArticle->setAllKeywords(['' => $xmlKeywords]);
             }
         }
     }
@@ -484,7 +487,10 @@ class FindologicArticleModel
                     continue;
                 }
 
-                $xmlConfig = new Attribute($configuratorOption->getGroup()->getName(), $configuratorOption->getName());
+                $xmlConfig = new Attribute(
+                    $configuratorOption->getGroup()->getName(),
+                    ['' => $configuratorOption->getName()]
+                );
                 $allAttributes[] = $xmlConfig;
             }
         }
