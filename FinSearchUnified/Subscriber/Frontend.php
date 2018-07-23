@@ -36,6 +36,7 @@ class Frontend implements SubscriberInterface
         return [
             'Shopware_Controllers_Frontend_Search::indexAction::before' => 'beforeSearchIndexAction',
             'Enlight_Controller_Action_PreDispatch'                     => 'onPreDispatch',
+            'Enlight_Controller_Action_PreDispatch_Frontend_AjaxSearch' => 'onPreDispatchAjaxSearch',
             'Enlight_Controller_Action_PostDispatchSecure_Frontend'     => 'onFrontendPostDispatch',
             'Enlight_Controller_Dispatcher_ControllerPath_Findologic'   => 'onFindologicController',
             'Enlight_Controller_Action_PreDispatch_Frontend_Listing'    => 'onFrontendListingPreDispatch',
@@ -135,5 +136,14 @@ class Frontend implements SubscriberInterface
     public function onFindologicController(\Enlight_Event_EventArgs $args)
     {
         return $this->Path().'Controllers/Frontend/Findologic.php';
+    }
+
+    public function onPreDispatchAjaxSearch()
+    {
+        $config = Shopware()->Config()->get('ActivateFindologic');
+        if ($config) {
+            echo 'Ajax search inactive';
+            exit();
+        }
     }
 }
