@@ -53,17 +53,6 @@ class StaticHelper {
         return null;
     }
 
-    public static function checkIfSearch( $conditionArray ) {
-        /** @var SearchBundle\ConditionInterface $condition */
-        foreach ( $conditionArray as $condition ) {
-            if ( $condition instanceof SearchBundle\Condition\SearchTermCondition ) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     /**
      * @param \Zend_Http_Response $response
      *
@@ -527,5 +516,22 @@ class StaticHelper {
         $string = preg_replace( '/[[:^print:]]/', '', $string );
 
         return trim( $string );
+    }
+
+    /**
+     * Checks if the FINDOLOGIC search should actually be performed.
+     *
+     * @return bool
+     */
+    public static function useShopSearch()
+    {
+        return (
+            self::checkDirectIntegration() ||
+            !(bool) Shopware()->Config()->get('ActivateFindologic') ||
+            (
+                Shopware()->Session()->offsetGet('isCategoryPage') &&
+                !(bool) Shopware()->Config()->get('ActivateFindologicForCategoryPages')
+            )
+        );
     }
 }

@@ -40,7 +40,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      */
     public function search(Criteria $criteria, ShopContextInterface $context)
     {
-        if (self::useShopSearch($criteria)) {
+        if (StaticHelper::useShopSearch()) {
             return $this->originalService->search($criteria, $context);
         }
 
@@ -87,27 +87,9 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     }
 
     /**
-     * Checks if the FINDOLOGIC search should actually be performed.
-     *
-     * @param Criteria $criteria
-     * @return bool
-     */
-    protected static function useShopSearch(Criteria $criteria)
-    {
-        return (
-            StaticHelper::checkDirectIntegration() ||
-            !(bool) Shopware()->Config()->get('ActivateFindologic') ||
-            (
-                !(bool) Shopware()->Config()->get('ActivateFindologicForCategoryPages') &&
-                !StaticHelper::checkIfSearch($criteria->getConditions())
-            )
-        );
-    }
-
-    /**
      * Checks if a landing page is present in the response and in that case, performs a redirect.
      *
-     * @param SimpleXMLElement $xmlResponse
+     * @param \SimpleXMLElement $xmlResponse
      */
     protected static function redirectOnLandingpage(\SimpleXMLElement $xmlResponse)
     {
