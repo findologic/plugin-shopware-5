@@ -337,7 +337,7 @@ class FindologicArticleModel
                 }
             }
             if (count($xmlKeywords) > 0) {
-                $this->xmlArticle->setAllKeywords($xmlKeywords);
+                $this->xmlArticle->setAllKeywords(['' => $xmlKeywords]);
             }
         }
     }
@@ -484,7 +484,10 @@ class FindologicArticleModel
                     continue;
                 }
 
-                $xmlConfig = new Attribute($configuratorOption->getGroup()->getName(), $configuratorOption->getName());
+                $xmlConfig = new Attribute(
+                    $configuratorOption->getGroup()->getName(),
+                    ['' => $configuratorOption->getName()]
+                );
                 $allAttributes[] = $xmlConfig;
             }
         }
