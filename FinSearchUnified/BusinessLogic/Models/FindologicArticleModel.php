@@ -155,11 +155,14 @@ class FindologicArticleModel
         $productNumberService = Shopware()->Container()->get('shopware_storefront.product_number_service');
         $productService = Shopware()->Container()->get('shopware_storefront.product_service');
 
-        $this->productStruct = $productService->get(
-            $productNumberService->getMainProductNumberById($this->baseArticle->getId()),
-            $context);
+        $mainProductNumber = $productNumberService->getMainProductNumberById($this->baseArticle->getId());
+        $this->productStruct = $productService->get($mainProductNumber, $context);
 
-        $this->legacyStruct = Shopware()->Container()->get('legacy_struct_converter')->convertListProductStruct($this->productStruct);
+        if ($this->productStruct) {
+            $this->legacyStruct = Shopware()->Container()->get('legacy_struct_converter')->convertListProductStruct($this->productStruct);
+        } else {
+            $this->legacyStruct = [];
+        }
     }
 
     protected function setArticleName()
