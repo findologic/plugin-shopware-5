@@ -543,6 +543,7 @@ class StaticHelper {
     public static function isFindologicActive()
     {
         return (bool) Shopware()->Config()->get('ActivateFindologic') &&
-            !empty(trim(Shopware()->Config()->get('ShopKey')));
+            !empty(trim(Shopware()->Config()->get('ShopKey'))) &&
+            Shopware()->Config()->get('ShopKey') !== 'Findologic Shopkey';
     }
 }
