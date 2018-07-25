@@ -6,6 +6,7 @@ use Doctrine\ORM\EntityNotFoundException;
 use FINDOLOGIC\Export\Exporter;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use Shopware\Models\Article\Article;
+use Shopware\Models\Config\Value;
 use Shopware\Models\Customer\Customer;
 use Shopware\Models\Order\Order;
 use Shopware\Models\Shop\Repository;
@@ -57,28 +58,7 @@ class ShopwareProcess
     {
         $response = new xmlInformation();
 
-        /** @var Repository $repository */
-        $repository = Shopware()->Container()->get('models')->getRepository('Shopware\Models\Shop\Shop');
-
-        /** @var Shop[] $languageShops */
-        $languageShops = $repository->getActiveShops();
-
-        /** @var Category $baseCategory */
-        $baseCategory = null;
-        foreach ($languageShops as $languageShop){
-            $language = $languageShop->getLocale();
-            if ($language->getLocale() == $selectedLanguage){
-                // Set active language as active shop for multilang descriptions
-                $this->shop = $languageShop;
-                $baseCategory = $languageShop->getCategory();
-            }
-        }
-
-        // When no locale Shop is found, the default one is used
-        if ($baseCategory == null){
-            $baseCategory = Shopware()->Shop()->getCategory();
-        }
-
+        $baseCategory = $this->shop->getCategory();
 
         $this->customerRepository = Shopware()->Container()->get('models')->getRepository(Customer::class);
         $this->articleRepository = Shopware()->Container()->get('models')->getRepository(Article::class);
@@ -188,8 +168,28 @@ class ShopwareProcess
     public function setShopKey($shopKey)
     {
         $this->shopKey = $shopKey;
-        $configValue = Shopware()->Models()->getRepository('Shopware\Models\Config\Value')->findOneBy(['value' => $shopKey]);
-        $this->shop = $configValue ? $configValue->getShop() : null;
+        $this->shop = null;
+        $configValue = Shopware()->Models()->getRepository(Value::class)->findOneBy(['value' => $shopKey]);
+
+        if ($configValue && $configValue->getShop()) {
+            $shopId = $configValue->getShop()->getId();
+
+            if (Shopware()->Container()->has('shop') && $shopId === Shopware()->Shop()->getId()) {
+                $this->shop = Shopware()->Shop();
+            } else {
+                /** @var Repository $shopRepository */
+                $shopRepository = Shopware()->Container()->get('models')->getRepository(Shop::class);
+                $this->shop = $shopRepository->getActiveById($shopId);
+
+                if ($this->shop) {
+                    $this->shop->registerResources();
+                }
+            }
+        }
+
+        if (!$this->shop) {
+            throw new \RuntimeException('Provided shopkey not assigned to any shop!');
+        }
     }
 
     /* HELPER FUNCTIONS */
