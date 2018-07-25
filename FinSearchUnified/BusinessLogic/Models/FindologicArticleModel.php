@@ -488,7 +488,7 @@ class FindologicArticleModel
                     continue;
                 }
 
-                $xmlConfig = new Attribute($configuratorOption->getGroup()->getName(), $configuratorOption->getName());
+                $xmlConfig = new Attribute($configuratorOption->getGroup()->getName(), [$configuratorOption->getName()]);
                 $allAttributes[] = $xmlConfig;
             }
         }
