@@ -182,9 +182,11 @@ class FindologicArticleModel
             if (!($detail instanceof Detail)) {
                 continue;
             }
-            if ($detail->getInStock() < 1) {
+
+            if ($detail->getInStock() < 1 && $detail->getLastStock() && Shopware()->Config()->get('hideNoInStock')) {
                 continue;
             }
+
             $this->shouldBeExported = true;
             // Remove inactive variants
             if ($detail->getActive() === 0) {
