@@ -3,6 +3,7 @@
         type="text/javascript"
         src="https://cdn.findologic.com/static/loader.min.js"
         data-fl-main="{$mainUrl}"
+        async
     ></script>
 {/block}
 
