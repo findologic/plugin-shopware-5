@@ -527,11 +527,23 @@ class StaticHelper {
     {
         return (
             self::checkDirectIntegration() ||
-            !(bool) Shopware()->Config()->get('ActivateFindologic') ||
+            !self::isFindologicActive() ||
             (
                 Shopware()->Session()->offsetGet('isCategoryPage') &&
                 !(bool) Shopware()->Config()->get('ActivateFindologicForCategoryPages')
             )
         );
+    }
+
+    /**
+     * Checks if FINDOLOGIC search has been activated properly
+     *
+     * @return bool
+     */
+    public static function isFindologicActive()
+    {
+        return (bool) Shopware()->Config()->get('ActivateFindologic') &&
+            !empty(trim(Shopware()->Config()->get('ShopKey'))) &&
+            Shopware()->Config()->get('ShopKey') !== 'Findologic Shopkey';
     }
 }
