@@ -342,7 +342,7 @@ class FindologicArticleModel
                 }
             }
             if (count($xmlKeywords) > 0) {
-                $this->xmlArticle->setAllKeywords(['' => $xmlKeywords]);
+                $this->xmlArticle->setAllKeywords($xmlKeywords);
             }
         }
     }
@@ -485,14 +485,12 @@ class FindologicArticleModel
             /* @var $configuratorOption \Shopware\Models\Article\Configurator\Option */
             foreach ($variant->getConfiguratorOptions() as $configuratorOption) {
 
-                if (!self::checkIfHasValue($configuratorOption->getName())) {
+                if (!self::checkIfHasValue($configuratorOption->getName())
+                    || !$configuratorOption->getGroup()) {
                     continue;
                 }
 
-                $xmlConfig = new Attribute(
-                    $configuratorOption->getGroup()->getName(),
-                    ['' => $configuratorOption->getName()]
-                );
+                $xmlConfig = new Attribute($configuratorOption->getGroup()->getName(), [$configuratorOption->getName()]);
                 $allAttributes[] = $xmlConfig;
             }
         }
