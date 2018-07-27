@@ -16,7 +16,7 @@ class ExportCommand extends ShopwareCommand
         $this->setName('findologic:export')
             ->setDescription('Export Data to Findologic')
             ->addArgument('shopkey', InputArgument::REQUIRED, 'Findologic ShopKey')
-            ->addArgument('language', InputArgument::OPTIONAL, 'Shoplanguage')
+            ->addArgument('language', InputArgument::OPTIONAL, 'Shoplanguage', 'de_DE')
             ->setHelp('The <info>%command.name%</info> exports Data to XML Schema for Findologic');
     }
 
@@ -26,11 +26,7 @@ class ExportCommand extends ShopwareCommand
         /** @var ShopwareProcess $blController */
         $blController = $this->container->get('fin_search_unified.shopware_process');
         $shopkey = $input->getArgument('shopkey');
-        $language = 'de_DE';
-
-        if ($input->getArgument('language') !== null) {
-            $language = $input->getArgument('language');
-        }
+        $language = $input->getArgument('language');
 
         $output->writeln('Starting export Data to Findologic XML');
 
