@@ -183,9 +183,9 @@ class FindologicArticleModel
                 continue;
             }
 
-            if ($detail->getInStock() < 1
-                && ($detail->getArticle() && $detail->getArticle()->getLastStock())
-                && Shopware()->Config()->get('hideNoInStock')) {
+            $lastStock = method_exists($detail, 'getLastStock') ? $detail->getLastStock() : $detail->getArticle()->getLastStock();
+
+            if ($detail->getInStock() < 1 && $lastStock && Shopware()->Config()->get('hideNoInStock')) {
                 continue;
             }
 
