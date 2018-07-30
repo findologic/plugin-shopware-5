@@ -151,7 +151,8 @@ class FindologicArticleModel
 
     protected function setUpStruct()
     {
-        $context = Shopware()->Container()->get('shopware_storefront.context_service')->getShopContext();
+        $storefrontContextService = Shopware()->Container()->get('shopware_storefront.context_service');
+        $context = $storefrontContextService->createShopContext(Shopware()->Shop()->getId());
         $productNumberService = Shopware()->Container()->get('shopware_storefront.product_number_service');
         $productService = Shopware()->Container()->get('shopware_storefront.product_service');
 
@@ -182,9 +183,13 @@ class FindologicArticleModel
             if (!($detail instanceof Detail)) {
                 continue;
             }
-            if ($detail->getInStock() < 1) {
+
+            $lastStock = method_exists($detail, 'getLastStock') ? $detail->getLastStock() : $detail->getArticle()->getLastStock();
+
+            if ($detail->getInStock() < 1 && $lastStock && Shopware()->Config()->get('hideNoInStock')) {
                 continue;
             }
+
             $this->shouldBeExported = true;
             // Remove inactive variants
             if ($detail->getActive() === 0) {
@@ -340,7 +345,7 @@ class FindologicArticleModel
                 }
             }
             if (count($xmlKeywords) > 0) {
-                $this->xmlArticle->setAllKeywords(['' => $xmlKeywords]);
+                $this->xmlArticle->setAllKeywords($xmlKeywords);
             }
         }
     }
@@ -483,14 +488,12 @@ class FindologicArticleModel
             /* @var $configuratorOption \Shopware\Models\Article\Configurator\Option */
             foreach ($variant->getConfiguratorOptions() as $configuratorOption) {
 
-                if (!self::checkIfHasValue($configuratorOption->getName())) {
+                if (!self::checkIfHasValue($configuratorOption->getName())
+                    || !$configuratorOption->getGroup()) {
                     continue;
                 }
 
-                $xmlConfig = new Attribute(
-                    $configuratorOption->getGroup()->getName(),
-                    ['' => $configuratorOption->getName()]
-                );
+                $xmlConfig = new Attribute($configuratorOption->getGroup()->getName(), [$configuratorOption->getName()]);
                 $allAttributes[] = $xmlConfig;
             }
         }
