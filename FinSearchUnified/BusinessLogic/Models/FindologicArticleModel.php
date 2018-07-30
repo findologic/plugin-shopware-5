@@ -151,7 +151,8 @@ class FindologicArticleModel
 
     protected function setUpStruct()
     {
-        $context = Shopware()->Container()->get('shopware_storefront.context_service')->getShopContext();
+        $storefrontContextService = Shopware()->Container()->get('shopware_storefront.context_service');
+        $context = $storefrontContextService->createShopContext(Shopware()->Shop()->getId());
         $productNumberService = Shopware()->Container()->get('shopware_storefront.product_number_service');
         $productService = Shopware()->Container()->get('shopware_storefront.product_service');
 
