@@ -66,14 +66,19 @@ class ShopwareProcess
 
         if ($count > 0) {
             $countQuery = $this->articleRepository->createQueryBuilder('articles')
-                                                    ->select('count(articles.id)');
+                                                    ->select('count(articles.id)')
+                                                    ->where('articles.active = :active')
+                                                    ->setParameter('active', true);
 
             $response->total = $countQuery->getQuery()->getScalarResult()[0][1];
 
             $articlesQuery = $this->articleRepository->createQueryBuilder('articles')
                                                     ->select('articles')
+                                                    ->where('articles.active = :active')
+                                                    ->orderBy('articles.id')
                                                     ->setMaxResults($count)
-                                                    ->setFirstResult($start);
+                                                    ->setFirstResult($start)
+                                                    ->setParameter('active', true);
             /** @var array $allArticles */
             $allArticles = $articlesQuery->getQuery()->execute();
         } else {
