@@ -337,15 +337,11 @@ class FindologicArticleModel
 
         if ($keywords) {
             $articleKeywords = explode(',', $keywords);
-            $xmlKeywords = [];
             foreach ($articleKeywords as $keyword) {
                 if (self::checkIfHasValue($keyword)) {
                     $xmlKeyword = new Keyword($keyword);
-                    $xmlKeywords[] = $xmlKeyword;
+                    $this->xmlArticle->addKeyword($xmlKeyword);
                 }
-            }
-            if (count($xmlKeywords) > 0) {
-                $this->xmlArticle->setAllKeywords($xmlKeywords);
             }
         }
     }
