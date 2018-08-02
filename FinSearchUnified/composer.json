@@ -21,6 +21,6 @@
   },
   "require": {
     "php": ">=5.6.4",
-    "findologic/libflexport": "1.*"
+    "findologic/libflexport": "~1.2"
   }
 }
