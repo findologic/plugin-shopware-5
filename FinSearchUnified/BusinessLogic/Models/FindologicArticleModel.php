@@ -463,16 +463,18 @@ class FindologicArticleModel
         // Filter Values
         if ($this->productStruct->getPropertySet()) {
             foreach ($this->productStruct->getPropertySet()->getGroups() as $group) {
-                $filterValues = [];
+                if ($group->isFilterable()) {
+                    $filterValues = [];
 
-                foreach ($group->getOptions() as $option) {
-                    if ($option->getName()) {
-                        $filterValues[] = $option->getName();
+                    foreach ($group->getOptions() as $option) {
+                        if ($option->getName()) {
+                            $filterValues[] = $option->getName();
+                        }
                     }
-                }
 
-                if($filterValues) {
-                    $allAttributes[] = new Attribute($group->getName(), $filterValues);
+                    if($filterValues) {
+                        $allAttributes[] = new Attribute($group->getName(), $filterValues);
+                    }
                 }
             }
         }
