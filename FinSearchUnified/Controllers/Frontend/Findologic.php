@@ -15,7 +15,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $blController = $this->container->get('fin_search_unified.shopware_process');
         $blController->setShopKey($shopKey);
         if ($count !== null) {
-            $xmlDocument = $blController->getFindologicXml($language, $start != null ? $start : 0, $count);
+            $xmlDocument = $blController->getFindologicXml($language, $start != null ? (int)$start : 0, (int)$count);
         } else {
             $xmlDocument = $blController->getFindologicXml($language);
         }
