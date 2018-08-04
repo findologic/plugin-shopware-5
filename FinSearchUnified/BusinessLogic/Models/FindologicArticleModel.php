@@ -99,6 +99,9 @@ class FindologicArticleModel
     /* @var Product */
     protected $productStruct;
 
+    /** @var array|false */
+    protected $productStreamArticles;
+
     /**
      * FindologicArticleModel constructor.
      *
@@ -120,6 +123,7 @@ class FindologicArticleModel
         $this->salesFrequency = $salesFrequency;
         $this->allUserGroups = $allUserGroups;
         $this->seoRouter = Shopware()->Container()->get('modules')->sRewriteTable();
+        $this->productStreamArticles = Shopware()->Session()->get(StaticHelper::getProductStreamKey() . 'articles');
 
         $this->setUpStruct();
 
@@ -416,6 +420,14 @@ class FindologicArticleModel
 
         /** @var Category[] $categories */
         $categories = $this->baseArticle->getCategories();
+
+        if (array_key_exists($this->baseArticle->getId(), $this->productStreamArticles)) {
+            $streamCategories = Shopware()->Session()->get(StaticHelper::getProductStreamKey() . 'categories');
+
+            foreach ($this->productStreamArticles[$this->baseArticle->getId()] as $categoryId) {
+                $categories->add($streamCategories[$categoryId]);
+            }
+        }
 
         /** @var Category $category */
         foreach ($categories as $category) {
