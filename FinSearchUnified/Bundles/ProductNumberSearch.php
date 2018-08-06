@@ -40,48 +40,49 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      */
     public function search(Criteria $criteria, ShopContextInterface $context)
     {
-        if (StaticHelper::useShopSearch()) {
-            return $this->originalService->search($criteria, $context);
-        }
+        $controllerName = Shopware()->Front()->Request()->getControllerName();
+        if (!StaticHelper::useShopSearch() && ($controllerName === 'search' || $controllerName === 'listing')) {
+            try {
 
-        try {
+                $response = $this->sendRequestToFindologic($criteria, $context->getCurrentCustomerGroup());
 
-            $response = $this->sendRequestToFindologic($criteria, $context->getCurrentCustomerGroup());
+                if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
+                    self::setFallbackFlag(0);
 
-            if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
-                self::setFallbackFlag(0);
+                    $xmlResponse = StaticHelper::getXmlFromResponse($response);
 
-                $xmlResponse = StaticHelper::getXmlFromResponse($response);
+                    self::redirectOnLandingpage($xmlResponse);
 
-                self::redirectOnLandingpage($xmlResponse);
+                    $this->facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
 
-                $this->facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
+                    $facetsInterfaces = StaticHelper::getFindologicFacets($xmlResponse);
 
-                $facetsInterfaces = StaticHelper::getFindologicFacets($xmlResponse);
+                    /** @var CustomFacet $facets_interface */
+                    foreach ($facetsInterfaces as $facetsInterface) {
+                        $criteria->addFacet($facetsInterface->getFacet());
+                    }
 
-                /** @var CustomFacet $facets_interface */
-                foreach ($facetsInterfaces as $facetsInterface){
-                    $criteria->addFacet($facetsInterface->getFacet());
+                    $this->setSelectedFacets($criteria);
+
+                    $criteria->resetConditions();
+
+                    $totalResults = (int)$xmlResponse->results->count;
+
+                    $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
+                    $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
+
+                    return new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $this->facets);
+                } else {
+                    self::setFallbackFlag(1);
+
+                    return $this->originalService->search($criteria, $context);
                 }
-
-                $this->setSelectedFacets($criteria);
-
-                $criteria->resetConditions();
-
-                $totalResults = (int) $xmlResponse->results->count;
-
-                $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
-                $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
-
-                return new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $this->facets);
-            } else {
+            } catch (\Zend_Http_Client_Exception $e) {
                 self::setFallbackFlag(1);
 
                 return $this->originalService->search($criteria, $context);
             }
-        } catch (\Zend_Http_Client_Exception $e) {
-            self::setFallbackFlag(1);
-
+        } else {
             return $this->originalService->search($criteria, $context);
         }
     }
