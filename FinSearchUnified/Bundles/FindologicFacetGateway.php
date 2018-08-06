@@ -38,8 +38,7 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
             $categoryFacets[] = StaticHelper::getFindologicFacets($xmlResponse);
 
             return $categoryFacets[0];
-        }
-        else{
+        } else {
             return $this->originalService->getList($ids, $context);
         }
     }

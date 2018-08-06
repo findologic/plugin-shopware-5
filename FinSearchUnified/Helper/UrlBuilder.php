@@ -173,12 +173,18 @@ class UrlBuilder
      */
     public function buildCategoryUrlAndGetResponse($categoryId)
     {
-        $this->buildCategoryAttribute([$categoryId]);
+        $this->processQueryParameter(
+            [new SearchBundle\Condition\CategoryCondition([$categoryId])],
+            0, 0
+        );
 
         return $this->callFindologicForXmlResponse();
     }
 
-    public function buildCompleteFilterList(){
+    public function buildCompleteFilterList()
+    {
+        $this->processQueryParameter([], 0, 0);
+
         return $this->callFindologicForXmlResponse();
     }
 
