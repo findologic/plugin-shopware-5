@@ -125,7 +125,6 @@ class ShopwareProcess
 
                 /** @var \Shopware\Components\ProductStream\Repository $streamRepositoryService */
                 $streamRepositoryService = Shopware()->Container()->get('shopware_product_stream.repository');
-                $streamCriteria = new Criteria();
 
                 /** @var Category $category */
                 foreach ($results as $category) {
@@ -133,6 +132,8 @@ class ShopwareProcess
                     if (!$category->getActive() || !$category->isChildOf($baseCategory)) {
                         continue;
                     }
+
+                    $streamCriteria = new Criteria();
                     $streamRepositoryService->prepareCriteria($streamCriteria, $category->getStream()->getId());
 
                     $streamArticles = Shopware()->Modules()->Articles()->sGetArticlesByCategory($category->getId(), $streamCriteria);
