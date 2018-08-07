@@ -53,7 +53,10 @@ class ShopwareProcess
     protected $cache;
 
     /** @var string */
-    protected $productStreamKey;
+    protected $productStreamKeyArticles;
+
+    /** @var string */
+    protected $productStreamKeyCategories;
 
     /**
      * @param string $selectedLanguage
@@ -73,7 +76,8 @@ class ShopwareProcess
         $this->articleRepository = Shopware()->Container()->get('models')->getRepository(Article::class);
         $this->orderRepository = Shopware()->Container()->get('models')->getRepository(Order::class);
         $this->cache = Shopware()->Container()->get('cache');
-        $this->productStreamKey = StaticHelper::getProductStreamKey();
+        $this->productStreamKeyArticles = StaticHelper::getProductStreamKey() . 'articles';
+        $this->productStreamKeyCategories = StaticHelper::getProductStreamKey() . 'categories';
 
         if ($count > 0) {
             $countQuery = $this->articleRepository->createQueryBuilder('articles')
@@ -109,7 +113,7 @@ class ShopwareProcess
 
         $findologicArticleFactory = Shopware()->Container()->get('fin_search_unified.article_model_factory');
 
-        if ($start === 0 || !$this->cache->test($this->productStreamKey . 'articles')) {
+        if ($start === 0 || !$this->cache->test($this->productStreamKeyArticles)) {
             $categoryRepository = Shopware()->Models()->getRepository(Category::class);
             $categoriesWithStreams = $categoryRepository->createQueryBuilder('categories')
                 ->select('categories')
@@ -148,12 +152,12 @@ class ShopwareProcess
                 $this->addProductStreamDataToCache($productStreamArticles, $productStreamCategories);
             } else {
                 $this->clearProductStreamData(true);
-                $this->cache->save([], $this->productStreamKey . 'articles', ['findologic']);
+                $this->cache->save([], $this->productStreamKeyArticles, ['findologic']);
             }
         } else {
-            $articlesFromCache = $this->cache->load($this->productStreamKey . 'articles');
+            $articlesFromCache = $this->cache->load($this->productStreamKeyArticles);
             if ($articlesFromCache && count($articlesFromCache) > 0) {
-                $categoriesFromCache = $this->cache->load($this->productStreamKey . 'categories');
+                $categoriesFromCache = $this->cache->load($this->productStreamKeyCategories);
                 $this->loadDataIntoSession($articlesFromCache, $categoriesFromCache);
             }
         }
@@ -269,26 +273,26 @@ class ShopwareProcess
 
     private function addProductStreamDataToCache($articles, $categories)
     {
-        $this->cache->save($articles, $this->productStreamKey . 'articles', ['findologic']);
-        $this->cache->save($categories, $this->productStreamKey . 'categories', ['findologic']);
+        $this->cache->save($articles, $this->productStreamKeyArticles, ['findologic']);
+        $this->cache->save($categories, $this->productStreamKeyCategories, ['findologic']);
         $this->loadDataIntoSession($articles, $categories);
     }
 
     private function loadDataIntoSession($articles, $categories)
     {
-        Shopware()->Session()->offsetSet($this->productStreamKey . 'articles', $articles);
-        Shopware()->Session()->offsetSet($this->productStreamKey . 'categories', $categories);
+        Shopware()->Session()->offsetSet($this->productStreamKeyArticles, $articles);
+        Shopware()->Session()->offsetSet($this->productStreamKeyCategories, $categories);
     }
 
     private function clearProductStreamData($clearCachedData = false)
     {
         if ($clearCachedData && !$this->cache->clean(\Zend_Cache::CLEANING_MODE_MATCHING_TAG, ['findologic'])) {
-            $this->cache->remove($this->productStreamKey . 'articles');
-            $this->cache->remove($this->productStreamKey . 'categories');
+            $this->cache->remove($this->productStreamKeyArticles);
+            $this->cache->remove($this->productStreamKeyCategories);
         }
 
-        Shopware()->Session()->offsetUnset($this->productStreamKey . 'articles');
-        Shopware()->Session()->offsetUnset($this->productStreamKey . 'categories');
+        Shopware()->Session()->offsetUnset($this->productStreamKeyArticles);
+        Shopware()->Session()->offsetUnset($this->productStreamKeyCategories);
     }
 }
 
