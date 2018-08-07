@@ -546,4 +546,9 @@ class StaticHelper {
             !empty(trim(Shopware()->Config()->get('ShopKey'))) &&
             Shopware()->Config()->get('ShopKey') !== 'Findologic Shopkey';
     }
+
+    public static function getProductStreamKey()
+    {
+        return 'findologicProductStreams';
+    }
 }

@@ -5,12 +5,15 @@ namespace FinSearchUnified;
 use Doctrine\ORM\EntityNotFoundException;
 use FINDOLOGIC\Export\Exporter;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
+use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Models\Article\Article;
+use Shopware\Models\Category\Category;
 use Shopware\Models\Config\Value;
 use Shopware\Models\Customer\Customer;
 use Shopware\Models\Order\Order;
 use Shopware\Models\Shop\Repository;
 use Shopware\Models\Shop\Shop;
+use FinSearchUnified\Helper\StaticHelper;
 
 require __DIR__.'/vendor/autoload.php';
 
@@ -46,6 +49,15 @@ class ShopwareProcess
      */
     public $orderRepository;
 
+    /** @var \Zend_Cache_Core $cache */
+    protected $cache;
+
+    /** @var string */
+    protected $productStreamKeyArticles;
+
+    /** @var string */
+    protected $productStreamKeyCategories;
+
     /**
      * @param string $selectedLanguage
      * @param int $start
@@ -63,6 +75,9 @@ class ShopwareProcess
         $this->customerRepository = Shopware()->Container()->get('models')->getRepository(Customer::class);
         $this->articleRepository = Shopware()->Container()->get('models')->getRepository(Article::class);
         $this->orderRepository = Shopware()->Container()->get('models')->getRepository(Order::class);
+        $this->cache = Shopware()->Container()->get('cache');
+        $this->productStreamKeyArticles = StaticHelper::getProductStreamKey() . 'articles';
+        $this->productStreamKeyCategories = StaticHelper::getProductStreamKey() . 'categories';
 
         if ($count > 0) {
             $countQuery = $this->articleRepository->createQueryBuilder('articles')
@@ -98,6 +113,54 @@ class ShopwareProcess
 
         $findologicArticleFactory = Shopware()->Container()->get('fin_search_unified.article_model_factory');
 
+        if ($start === 0 || !$this->cache->test($this->productStreamKeyArticles)) {
+            $categoryRepository = Shopware()->Models()->getRepository(Category::class);
+            $categoriesWithStreams = $categoryRepository->createQueryBuilder('categories')
+                ->select('categories')
+                ->where('categories.active = :active')
+                ->andWhere('categories.streamId IS NOT NULL')
+                ->setParameter('active', true);
+
+            $results = $categoriesWithStreams->getQuery()->execute();
+
+            if (!empty($results)) {
+                $productStreamArticles = [];
+                $productStreamCategories = [];
+
+                /** @var \Shopware\Components\ProductStream\Repository $streamRepositoryService */
+                $streamRepositoryService = Shopware()->Container()->get('shopware_product_stream.repository');
+
+                /** @var Category $category */
+                foreach ($results as $category) {
+                    //Hide inactive categories
+                    if (!$category->getActive() || !$category->isChildOf($baseCategory)) {
+                        continue;
+                    }
+
+                    $streamCriteria = new Criteria();
+                    $streamRepositoryService->prepareCriteria($streamCriteria, $category->getStream()->getId());
+
+                    $streamArticles = Shopware()->Modules()->Articles()->sGetArticlesByCategory($category->getId(), $streamCriteria);
+                    if (count($streamArticles['sArticles']) > 0) {
+                        $productStreamCategories[$category->getId()] = $category;
+                        foreach ($streamArticles['sArticles'] as $article) {
+                            $productStreamArticles[$article['articleID']][] = $category->getId();
+                        }
+                    }
+                }
+
+                $this->addProductStreamDataToCache($productStreamArticles, $productStreamCategories);
+            } else {
+                $this->clearProductStreamData(true);
+                $this->cache->save([], $this->productStreamKeyArticles, ['findologic']);
+            }
+        } else {
+            $articlesFromCache = $this->cache->load($this->productStreamKeyArticles);
+            if ($articlesFromCache && count($articlesFromCache) > 0) {
+                $categoriesFromCache = $this->cache->load($this->productStreamKeyCategories);
+                $this->loadDataIntoSession($articlesFromCache, $categoriesFromCache);
+            }
+        }
 
         /** @var Article $article */
         foreach ($allArticles as $article) {
@@ -140,6 +203,8 @@ class ShopwareProcess
 
         $response->items = $findologicArticles;
         $response->count = count($findologicArticles);
+
+        $this->clearProductStreamData();
 
         return $response;
     }
@@ -204,6 +269,30 @@ class ShopwareProcess
     public static function decryptUsergroupHash($shopkey, $hash)
     {
         return  $shopkey ^ base64_decode($hash);
+    }
+
+    private function addProductStreamDataToCache($articles, $categories)
+    {
+        $this->cache->save($articles, $this->productStreamKeyArticles, ['findologic']);
+        $this->cache->save($categories, $this->productStreamKeyCategories, ['findologic']);
+        $this->loadDataIntoSession($articles, $categories);
+    }
+
+    private function loadDataIntoSession($articles, $categories)
+    {
+        Shopware()->Session()->offsetSet($this->productStreamKeyArticles, $articles);
+        Shopware()->Session()->offsetSet($this->productStreamKeyCategories, $categories);
+    }
+
+    private function clearProductStreamData($clearCachedData = false)
+    {
+        if ($clearCachedData && !$this->cache->clean(\Zend_Cache::CLEANING_MODE_MATCHING_TAG, ['findologic'])) {
+            $this->cache->remove($this->productStreamKeyArticles);
+            $this->cache->remove($this->productStreamKeyCategories);
+        }
+
+        Shopware()->Session()->offsetUnset($this->productStreamKeyArticles);
+        Shopware()->Session()->offsetUnset($this->productStreamKeyCategories);
     }
 }
 

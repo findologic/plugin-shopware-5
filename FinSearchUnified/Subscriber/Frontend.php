@@ -41,7 +41,18 @@ class Frontend implements SubscriberInterface
             'Enlight_Controller_Action_PostDispatchSecure_Frontend'     => 'onFrontendPostDispatch',
             'Enlight_Controller_Dispatcher_ControllerPath_Findologic'   => 'onFindologicController',
             'Enlight_Controller_Action_PreDispatch_Frontend_Listing'    => 'onFrontendListingPreDispatch',
-            'Enlight_Controller_Action_PreDispatch_Frontend'            => 'onFrontendPreDispatch'
+            'Enlight_Controller_Action_PreDispatch_Frontend'            => 'onFrontendPreDispatch',
+            //'Shopware\Models\Article\Price::postUpdate'                 => 'onPostPersist',
+            //'Shopware\Models\Article\Price::postPersist'                => 'onPostPersist',
+            'Shopware\Models\Article\Article::postUpdate'               => 'onPostPersist',
+            'Shopware\Models\Article\Article::postPersist'              => 'onPostPersist',
+            //'Shopware\Models\Article\Detail::postUpdate'                => 'onPostPersist',
+            //'Shopware\Models\Article\Detail::postPersist'               => 'onPostPersist',
+            'Shopware\Models\Category\Category::postPersist'            => 'onPostPersist',
+            'Shopware\Models\Category\Category::postUpdate'             => 'onPostPersist',
+            'Shopware\Models\ProductStream\ProductStream::postUpdate'            => 'onPostPersist',
+            'Shopware\Models\ProductStream\ProductStream::postPersist'            => 'onPostPersist',
+            'Shopware\Models\ProductStream\ProductStream::postRemove'            => 'onPostPersist',
         ];
     }
 
@@ -120,6 +131,14 @@ class Frontend implements SubscriberInterface
             $view->assign('mainUrl', $mainUrl);
         } catch (\Enlight_Exception $e) {
             //TODO LOGGING
+        }
+    }
+
+    public function onPostPersist() {
+        $cache = Shopware()->Container()->get('cache');
+        if (!$cache->clean(\Zend_Cache::CLEANING_MODE_MATCHING_TAG, ['findologic'])) {
+            $cache->remove(StaticHelper::getProductStreamKey() . 'articles');
+            $cache->remove(StaticHelper::getProductStreamKey() . 'categories');
         }
     }
 
