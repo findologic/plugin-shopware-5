@@ -313,7 +313,7 @@ class FindologicArticleModel
             ->select('sum(order_details.quantity)')
             ->setParameter('articleId', $this->baseArticle->getId());
 
-        $articleSales = $orderDetailQuery->getQuery()->getScalarResult()[0][1];
+        $articleSales = (int)$orderDetailQuery->getQuery()->getScalarResult()[0][1];
 
         $salesFrequency = new SalesFrequency();
         $salesFrequency->setValue($articleSales);
