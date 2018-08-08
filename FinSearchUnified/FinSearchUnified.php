@@ -52,15 +52,5 @@ class FinSearchUnified extends Plugin
         } catch (\Exception $exception) {
             Shopware()->PluginLogger()->info('ExtendFinSearchUnified plugin doesn\'t exist!');
         }
-
-        try {
-            /** @var \Shopware\Models\Plugin\Plugin $plugin */
-            $plugin = $pluginManager->getPluginByName('FinSearchCustomized');
-            if ($plugin->getActive()) {
-                $pluginManager->deactivatePlugin($plugin);
-            }
-        } catch (\Exception $exception) {
-            Shopware()->PluginLogger()->info('FinSearchCustomized plugin doesn\'t exist!');
-        }
     }
 }
