@@ -472,7 +472,7 @@ class FindologicArticleModel
                         }
                     }
 
-                    if($filterValues) {
+                    if ($filterValues) {
                         $allAttributes[] = new Attribute($group->getName(), $filterValues);
                     }
                 }
