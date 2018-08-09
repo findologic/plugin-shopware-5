@@ -30,6 +30,7 @@ use Shopware\Models\Customer\Group;
 use Shopware\Models\Media\Media;
 use Shopware\Models\Property\Option;
 use Shopware\Models\Property\Value;
+use Shopware\Models\Order\Detail as OrderDetail;
 use Shopware\Bundle\StoreFrontBundle\Struct\Product;
 
 class FindologicArticleModel
@@ -100,6 +101,11 @@ class FindologicArticleModel
     protected $productStruct;
 
     /**
+     * @var \Shopware\Components\Model\ModelRepository
+     */
+    protected $orderDetailRepository;
+
+    /**
      * FindologicArticleModel constructor.
      *
      * @param Article $shopwareArticle
@@ -126,6 +132,8 @@ class FindologicArticleModel
         if ($this->legacyStruct) {
             // Load all variants
             $this->variantArticles = $this->baseArticle->getDetails();
+
+            $this->orderDetailRepository = Shopware()->Container()->get('models')->getRepository(OrderDetail::class);
 
             // Fill out the Basedata
             $this->setArticleName();
@@ -299,16 +307,16 @@ class FindologicArticleModel
 
     protected function setSales()
     {
-        $articleId = $this->baseArticle->getId();
-        $key = array_search($articleId, array_column($this->salesFrequency, 'articleId'), true);
+        $orderDetailQuery = $this->orderDetailRepository->createQueryBuilder('order_details')
+            ->groupBy('order_details.articleId')
+            ->where('order_details.articleId = :articleId')
+            ->select('sum(order_details.quantity)')
+            ->setParameter('articleId', $this->baseArticle->getId());
 
-        if ($key != false) {
-            $currentSale = $this->salesFrequency[$key];
-            $articleFrequency = (int) $currentSale[1];
-        }
+        $articleSales = (int)$orderDetailQuery->getQuery()->getScalarResult()[0][1];
 
         $salesFrequency = new SalesFrequency();
-        $salesFrequency->setValue($articleFrequency !== null ? $articleFrequency : 0);
+        $salesFrequency->setValue($articleSales);
         $this->xmlArticle->setSalesFrequency($salesFrequency);
     }
 
