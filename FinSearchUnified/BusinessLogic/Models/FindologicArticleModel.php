@@ -452,11 +452,11 @@ class FindologicArticleModel
         $allAttributes[] = $xmlCatProperty;
 
         // Supplier
-        /** @var Supplier $articleSupplier */
-        $articleSupplier = $this->productStruct->getManufacturer()->getName();
-        if ($articleSupplier) {
+        /** @var Product\Manufacturer $supplier */
+        $supplier = $this->productStruct->getManufacturer();
+        if ($supplier) {
             $xmlSupplier = new Attribute('brand');
-            $xmlSupplier->setValues([$articleSupplier]);
+            $xmlSupplier->setValues([$supplier->getName()]);
             $allAttributes[] = $xmlSupplier;
         }
 
@@ -608,10 +608,15 @@ class FindologicArticleModel
         $allProperties[] = new Property('compareUrl', ['' => $rewrtieLink.self::COMPARE_URL.$this->baseArticle->getId()]);
         $allProperties[] = new Property('addToCartUrl', ['' => $rewrtieLink.self::CART_URL.$this->baseVariant->getNumber()]);
 
-        $brandImage = $this->baseArticle->getSupplier()->getImage();
+        // Supplier
+        /** @var Product\Manufacturer $supplier */
+        $supplier = $this->productStruct->getManufacturer();
+        if ($supplier) {
+            $brandImage = $supplier->getCoverFile();
 
-        if (self::checkIfHasValue($brandImage)) {
-            $allProperties[] = new Property('brand_image', ['' => $rewrtieLink.$brandImage]);
+            if (self::checkIfHasValue($brandImage)) {
+                $allProperties[] = new Property('brand_image', ['' => $brandImage]);
+            }
         }
 
         /** @var Attribute $attribute */
