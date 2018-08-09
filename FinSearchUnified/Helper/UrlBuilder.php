@@ -162,6 +162,14 @@ class UrlBuilder
             $this->parameters['attrib']['cat'][] = urldecode($_GET['catFilter']);
         }
 
+        if (array_key_exists('vendor', $_GET) && !empty($_GET['vendor'])) {
+            if (!is_array($this->parameters['attrib']['vendor'])) {
+                $this->parameters['attrib']['vendor'] = [];
+            }
+
+            $this->parameters['attrib']['vendor'][] = urldecode($_GET['vendor']);
+        }
+
         $this->parameters['first'] = $offset;
         $this->parameters['count'] = $itemsPerPage;
     }
