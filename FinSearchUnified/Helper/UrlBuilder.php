@@ -154,12 +154,12 @@ class UrlBuilder
             }
         }
 
-        if (array_key_exists('catFilter', $_GET) && !empty($_GET['catFilter'])) {
+        if (array_key_exists('cat', $_GET) && !empty($_GET['cat'])) {
             if (!is_array($this->parameters['attrib']['cat'])) {
                 $this->parameters['attrib']['cat'] = [];
             }
 
-            $this->parameters['attrib']['cat'][] = urldecode($_GET['catFilter']);
+            $this->parameters['attrib']['cat'][] = urldecode($_GET['cat']);
         }
 
         if (array_key_exists('vendor', $_GET) && !empty($_GET['vendor'])) {
