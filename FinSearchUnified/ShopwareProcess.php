@@ -42,11 +42,6 @@ class ShopwareProcess
     public $shopKey;
 
     /**
-     * @var \Shopware\Models\Order\Repository
-     */
-    public $orderRepository;
-
-    /**
      * @param string $selectedLanguage
      * @param int $start
      * @param int $count
@@ -62,18 +57,22 @@ class ShopwareProcess
 
         $this->customerRepository = Shopware()->Container()->get('models')->getRepository(Customer::class);
         $this->articleRepository = Shopware()->Container()->get('models')->getRepository(Article::class);
-        $this->orderRepository = Shopware()->Container()->get('models')->getRepository(Order::class);
 
         if ($count > 0) {
             $countQuery = $this->articleRepository->createQueryBuilder('articles')
-                                                    ->select('count(articles.id)');
+                                                    ->select('count(articles.id)')
+                                                    ->where('articles.active = :active')
+                                                    ->setParameter('active', true);
 
             $response->total = $countQuery->getQuery()->getScalarResult()[0][1];
 
             $articlesQuery = $this->articleRepository->createQueryBuilder('articles')
                                                     ->select('articles')
+                                                    ->where('articles.active = :active')
+                                                    ->orderBy('articles.id')
                                                     ->setMaxResults($count)
-                                                    ->setFirstResult($start);
+                                                    ->setFirstResult($start)
+                                                    ->setParameter('active', true);
             /** @var array $allArticles */
             $allArticles = $articlesQuery->getQuery()->execute();
         } else {
@@ -81,14 +80,6 @@ class ShopwareProcess
             $allArticles = $this->shop->getCategory()->getAllArticles();
             $response->total = count($allArticles);
         }
-
-        //Sales Frequency
-        $orderQuery = $this->orderRepository->createQueryBuilder('orders')
-                                            ->leftJoin('orders.details', 'details')
-                                            ->groupBy('details.articleId')
-                                            ->select('details.articleId, sum(details.quantity)');
-
-        $articleSales = $orderQuery->getQuery()->getArrayResult();
 
         // Own Model for XML extraction
         $findologicArticles = [];
@@ -131,7 +122,7 @@ class ShopwareProcess
             }
 
             /** @var FindologicArticleFactory $findologicArticleFactory */
-            $findologicArticle = $findologicArticleFactory->create($article, $this->shopKey, $allUserGroups, $articleSales, $baseCategory);
+            $findologicArticle = $findologicArticleFactory->create($article, $this->shopKey, $allUserGroups, [], $baseCategory);
 
             if ($findologicArticle->shouldBeExported) {
                 $findologicArticles[] = $findologicArticle->getXmlRepresentation();
