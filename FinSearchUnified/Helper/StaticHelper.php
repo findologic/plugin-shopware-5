@@ -15,13 +15,16 @@ use Shopware\Models\Search\CustomFacet;
 use SimpleXMLElement;
 use Symfony\Component\HttpFoundation\File\File;
 
-class StaticHelper {
+class StaticHelper
+{
     /**
      * @param int $categoryId
+     * @param bool $decode
      *
      * @return string
      */
-    public static function buildCategoryName($categoryId, $decode = true ) {
+    public static function buildCategoryName($categoryId, $decode = true)
+    {
         $categories    = Shopware()->Modules()->Categories()->sGetCategoriesByParent( $categoryId );
         $categoryNames = [];
         foreach ( $categories as $category ) {
@@ -58,7 +61,8 @@ class StaticHelper {
      *
      * @return SimpleXMLElement
      */
-    public static function getXmlFromResponse( \Zend_Http_Response $response ) {
+    public static function getXmlFromResponse(\Zend_Http_Response $response)
+    {
         /* TLOAD XML RESPONSE */
         $responseText = (string) $response->getBody();
 
@@ -72,7 +76,8 @@ class StaticHelper {
      *
      * @return array
      */
-    public static function getProductsFromXml( SimpleXMLElement $xmlResponse ) {
+    public static function getProductsFromXml(SimpleXMLElement $xmlResponse)
+    {
         $foundProducts = [];
 
         try {
@@ -95,20 +100,24 @@ class StaticHelper {
                     $baseArticle['detailId']     = self::getDetailIdForOrdernumber( $productCheck );
                     $foundProducts[ $articleId ] = $baseArticle;
                 } catch ( Exception $ex ) {
-                    //	die($ex->getMessage());
                     // No Mapping for Search Results
                     continue;
                 }
             }
         } catch ( Exception $ex ) {
             // Logging Function
-            //print_r($ex->getMessage());
         }
 
         return $foundProducts;
     }
 
-    public static function getDetailIdForOrdernumber( $ordernumber ) {
+    /**
+     * @param string $ordernumber
+     *
+     * @return bool
+     */
+    public static function getDetailIdForOrdernumber($ordernumber)
+    {
         $db              = Shopware()->Container()->get( 'db' );
         $checkForArticle = $db->fetchRow( '
         SELECT id AS id FROM s_articles_details WHERE ordernumber=?
@@ -126,11 +135,16 @@ class StaticHelper {
      *
      * @return array
      */
-    public static function getShopwareArticlesFromFindologicId( array $foundProducts ) {
+    public static function getShopwareArticlesFromFindologicId(array $foundProducts)
+    {
         /* PREPARE SHOPWARE ARRAY */
         $searchResult = [];
         foreach ( $foundProducts as $productKey => $sProduct ) {
-            $searchResult[ $sProduct['orderNumber'] ] = new BaseProduct( $productKey, $sProduct['detailId'], $sProduct['orderNumber'] );
+            $searchResult[ $sProduct['orderNumber'] ] = new BaseProduct(
+                $productKey,
+                $sProduct['detailId'],
+                $sProduct['orderNumber']
+            );
         }
 
         return $searchResult;
@@ -141,8 +155,9 @@ class StaticHelper {
      *
      * @return array
      */
-    public static function getFacetResultsFromXml( $xmlResponse ) {
-        /* FACETSS */
+    public static function getFacetResultsFromXml(SimpleXMLElement $xmlResponse)
+    {
+        /* FACETS */
         $facets = [];
         foreach ( $xmlResponse->filters->filter as $filter ) {
             $facetItem            = [];
@@ -192,11 +207,17 @@ class StaticHelper {
      *
      * @return array
      */
-    public static function getFindologicFacets( SimpleXMLElement $xmlResponse ) {
+    public static function getFindologicFacets(SimpleXMLElement $xmlResponse)
+    {
         $facets = [];
 
         foreach ( $xmlResponse->filters->filter as $filter ) {
-            $facets[] = self::createFindologicFacet( (string) $filter->display, (string) $filter->name, (string) $filter->type, (string) $filter->select );
+            $facets[] = self::createFindologicFacet(
+                (string) $filter->display,
+                (string) $filter->name,
+                (string) $filter->type,
+                (string) $filter->select
+            );
         }
 
         return $facets;
@@ -207,7 +228,8 @@ class StaticHelper {
      *
      * @return SearchBundle\FacetResult\MediaListFacetResult
      */
-    private static function createMediaListFacet( array $facetItem ) {
+    private static function createMediaListFacet(array $facetItem)
+    {
         $enabled = false;
         if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
             $enabled = true;
@@ -222,7 +244,8 @@ class StaticHelper {
      *
      * @return SearchBundle\FacetResult\MediaListFacetResult
      */
-    private static function createColorListFacet( array $facetItem ) {
+    private static function createColorListFacet(array $facetItem)
+    {
         $enabled = false;
         if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
             $enabled = true;
@@ -232,7 +255,14 @@ class StaticHelper {
         return $facetResult;
     }
 
-    public static function arrayHasFacet( $facetArray, $facetName ) {
+    /**
+     * @param SearchBundle\FacetResultInterface[] $facetArray
+     * @param string $facetName
+     *
+     * @return bool|SearchBundle\FacetResultInterface
+     */
+    public static function arrayHasFacet($facetArray, $facetName)
+    {
         /** @var SearchBundle\FacetResultInterface $facet */
         foreach ( $facetArray as $facet ) {
             if ( $facet->getFacetName() === $facetName ) {
@@ -248,7 +278,8 @@ class StaticHelper {
      *
      * @return SearchBundle\FacetResult\RadioFacetResult
      */
-    private static function createRadioFacet( array $facetItem ) {
+    private static function createRadioFacet(array $facetItem)
+    {
         $enabled = false;
         if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
             $enabled = true;
@@ -263,23 +294,54 @@ class StaticHelper {
      *
      * @return SearchBundle\FacetResult\ValueListFacetResult
      */
-    private static function createValueListFacet( array $facetItem ) {
+    private static function createValueListFacet(array $facetItem)
+    {
         $enabled = false;
-        if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
+
+        if (array_key_exists($facetItem['name'], $_REQUEST)) {
             $enabled = true;
         }
-        $facetResult = new SearchBundle\FacetResult\ValueListFacetResult( $facetItem['name'], $enabled, $facetItem['display'], self::prepareValueItems( $facetItem['items'], $facetItem['name'] ), $facetItem['name'], $facetItem['name'] );
+
+        $facetResult = new SearchBundle\FacetResult\ValueListFacetResult(
+            $facetItem['name'],
+            $enabled,
+            $facetItem['display'],
+            self::prepareValueItems($facetItem['items'], $facetItem['name']),
+            $facetItem['name'],
+            $facetItem['name']
+        );
 
         return $facetResult;
     }
 
-    public static function createSelectedFacet( $name, $label, $itemValue ) {
-        $facetResult = new SearchBundle\FacetResult\ValueListFacetResult( $name, true, $label, self::createSelectValues( $itemValue ), $name, $name );
+    /**
+     * @param string $name
+     * @param string $label
+     * @param array $itemValue
+     *
+     * @return SearchBundle\FacetResult\ValueListFacetResult
+     */
+    public static function createSelectedFacet($name, $label, $itemValue)
+    {
+        $facetResult = new SearchBundle\FacetResult\ValueListFacetResult(
+            $name,
+            true,
+            $label,
+            self::createSelectValues($itemValue),
+            $name,
+            $name
+        );
 
         return $facetResult;
     }
 
-    private static function createSelectValues($items ) {
+    /**
+     * @param array $items
+     *
+     * @return array
+     */
+    private static function createSelectValues($items)
+    {
         $results = [];
         foreach ( $items as $item ) {
             $results[] = new SearchBundle\FacetResult\ValueListItem( $item, $item, true );
@@ -289,11 +351,12 @@ class StaticHelper {
     }
 
     /**
-     * @param SimpleXMLElement $facetItem
+     * @param array $facetItem
      *
      * @return TreeFacetResult
      */
-    private static function createTreeviewFacet( array $facetItem ) {
+    private static function createTreeviewFacet(array $facetItem)
+    {
         $enabled = false;
         if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
             $enabled = true;
@@ -305,13 +368,14 @@ class StaticHelper {
     }
 
     /**
-     * @param SimpleXMLElement $facetItem
+     * @param array $facetItem
      * @param float $minValue
      * @param float $maxValue
      *
      * @return RangeFacetResult
      */
-    private static function createRangeSlideFacet( array $facetItem, Float $minValue, Float $maxValue ) {
+    private static function createRangeSlideFacet(array $facetItem, $minValue, $maxValue)
+    {
         $facetResult = new RangeFacetResult( $facetItem['name'], false, $facetItem['display'], $minValue, $maxValue, $minValue, $maxValue, 'min', 'max', $facetItem['name'] );
 
         return $facetResult;
@@ -320,10 +384,13 @@ class StaticHelper {
     /**
      * @param string $label
      * @param string $name
+     * @param string $type
+     * @param string $filter
      *
      * @return CustomFacet
      */
-    public static function createFindologicFacet($label, $name, $type, $filter ) {
+    public static function createFindologicFacet($label, $name, $type, $filter)
+    {
         $currentFacet = new CustomFacet();
         $currentFacet->setName( $name );
         $currentFacet->setUniqueKey( $name );
@@ -378,12 +445,15 @@ class StaticHelper {
     }
 
     /**
-     * @param $items
+     * @param array $items
+     * @param string $name
      *
      * @return array
      */
-    private static function prepareMediaItems( $items, $name ) {
+    private static function prepareMediaItems($items, $name)
+    {
         $response = [];
+
         foreach ( $items as $item ) {
             $enabled = false;
             if ( array_key_exists( $name, $_REQUEST ) ) {
@@ -419,12 +489,15 @@ class StaticHelper {
     }
 
     /**
-     * @param $items
+     * @param array $items
+     * @param string $name
      *
      * @return array
      */
-    private static function prepareColorItems( $items, $name ) {
+    private static function prepareColorItems($items, $name)
+    {
         $response = [];
+
         foreach ( $items as $item ) {
             $enabled = false;
             if ( array_key_exists( $name, $_REQUEST ) ) {
@@ -452,7 +525,8 @@ class StaticHelper {
      *
      * @return array
      */
-    private static function createFilterItems( $items ) {
+    private static function createFilterItems( $items )
+    {
         $response = [];
         $tempItem = [];
         foreach ( $items as $subItem ) {
@@ -505,7 +579,8 @@ class StaticHelper {
         return $response;
     }
 
-    public static function checkDirectIntegration() {
+    public static function checkDirectIntegration()
+    {
         if ( ! isset( Shopware()->Session()->findologicApi ) ) {
             // LOAD STATUS
             $urlBuilder                          = new UrlBuilder();
@@ -516,7 +591,8 @@ class StaticHelper {
         return ! ( true == Shopware()->Session()->findologicApi );
     }
 
-    public static function cleanString( $string ) {
+    public static function cleanString( $string )
+    {
         $string = str_replace( '\\', '', addslashes( strip_tags( $string ) ) );
         $string = str_replace( [ "\n", "\r", "\t" ], ' ', $string );
 
