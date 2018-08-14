@@ -40,19 +40,27 @@ class Frontend implements SubscriberInterface
             'Enlight_Controller_Action_Frontend_AjaxSearch_Index'       => 'onAjaxSearchIndexAction',
             'Enlight_Controller_Action_PostDispatchSecure_Frontend'     => 'onFrontendPostDispatch',
             'Enlight_Controller_Dispatcher_ControllerPath_Findologic'   => 'onFindologicController',
-            'Enlight_Controller_Action_PreDispatch_Frontend_Listing'    => 'onFrontendListingPreDispatch',
             'Enlight_Controller_Action_PreDispatch_Frontend'            => 'onFrontendPreDispatch'
         ];
     }
 
-    public function onFrontendListingPreDispatch()
+    public function onFrontendPreDispatch(Enlight_Event_EventArgs $args)
     {
-        Shopware()->Session()->offsetSet('isCategoryPage', true);
-    }
+        $subject = $args->getSubject();
+        $request = $subject->Request();
+        $params = $request->getParams();
 
-    public function onFrontendPreDispatch()
-    {
-        Shopware()->Session()->offsetSet('isCategoryPage', false);
+        if ($params['controller'] === 'search') {
+            Shopware()->Session()->offsetSet('isSearchPage', true);
+        } else {
+            Shopware()->Session()->offsetSet('isSearchPage', false);
+        }
+
+        if (array_key_exists('sCategory', $params)) {
+            Shopware()->Session()->offsetSet('isCategoryPage', true);
+        } else {
+            Shopware()->Session()->offsetSet('isCategoryPage', false);
+        }
     }
 
     public function beforeSearchIndexAction(\Enlight_Hook_HookArgs $args)
