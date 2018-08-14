@@ -353,23 +353,24 @@ class StaticHelper {
     }
 
     /**
-     * @param $items
+     * @param array $items
+     * @param string $name
      *
      * @return array
      */
-    private static function prepareValueItems( $items, $name ) {
-
+    private static function prepareValueItems($items, $name)
+    {
         $response      = [];
         $selectedItems = explode( '|', $_REQUEST[ $name ] );
-        foreach ( $selectedItems as $selected_item ) {
-            if ( $selected_item === '' || $selected_item === null ) {
-                continue;
-            }
-            $valueListItem = new SearchBundle\FacetResult\ValueListItem( $selected_item, $selected_item, true );
-            $response[]    = $valueListItem;
-        }
+
         foreach ( $items as $item ) {
-            $valueListItem = new SearchBundle\FacetResult\ValueListItem( $item['name'], $item['name'], false );
+            if (in_array($item['name'], $selectedItems)) {
+                $enabled = true;
+            } else {
+                $enabled = false;
+            }
+
+            $valueListItem = new SearchBundle\FacetResult\ValueListItem( $item['name'], $item['name'], $enabled );
             $response[]    = $valueListItem;
         }
 
@@ -468,29 +469,36 @@ class StaticHelper {
     }
 
     /**
-     * @param $items
+     * @param array $items
+     * @param string|null $name
+     * @param string|null $recurseName
      *
      * @return array
      */
-    private static function prepareTreeView( $items, $name, $recurseName = null ) {
-
+    private static function prepareTreeView(array $items, $name, $recurseName = null)
+    {
         $response = [];
-        $selectedItems = explode( '|', $_REQUEST[ $name ] );
-        foreach ( $selectedItems as $selected_item ) {
-            if ( $selected_item === '' || $selected_item === null ) {
-                continue;
-            }
-            $labelArray = explode('_', $selected_item);
-            $labelString = $labelArray[count($labelArray)-1];
-            $treeView   = new SearchBundle\FacetResult\TreeItem( $selected_item,$labelString,true,null );
-            $response[] = $treeView;
-        }
+        $selectedItems = explode('|', $_REQUEST[$name]);
+
         foreach ( $items as $item ) {
             $treeName = $item['name'];
-            if ($recurseName !== null){
+
+            if ($recurseName !== null) {
                 $treeName = $recurseName . '_' . $item['name'];
             }
-            $treeView   = new SearchBundle\FacetResult\TreeItem( $treeName, $item['name'], false, self::prepareTreeView( $item['items'],null,$treeName ) );
+
+            if (in_array($treeName, $selectedItems)) {
+                $enabled = true;
+            } else {
+                $enabled = false;
+            }
+
+            $treeView = new SearchBundle\FacetResult\TreeItem(
+                $treeName,
+                $item['name'],
+                $enabled,
+                self::prepareTreeView($item['items'], $name, $treeName)
+            );
             $response[] = $treeView;
         }
 
