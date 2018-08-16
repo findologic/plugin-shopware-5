@@ -52,14 +52,12 @@ class Frontend implements SubscriberInterface
 
         if ($params['controller'] === 'search') {
             Shopware()->Session()->offsetSet('isSearchPage', true);
-        } else {
-            Shopware()->Session()->offsetSet('isSearchPage', false);
+            Shopware()->Session()->offsetSet('isCategoryPage', false);
         }
 
         if (array_key_exists('sCategory', $params)) {
             Shopware()->Session()->offsetSet('isCategoryPage', true);
-        } else {
-            Shopware()->Session()->offsetSet('isCategoryPage', false);
+            Shopware()->Session()->offsetSet('isSearchPage', false);
         }
     }
 
