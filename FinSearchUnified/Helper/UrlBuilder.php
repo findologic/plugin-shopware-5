@@ -155,19 +155,27 @@ class UrlBuilder
         }
 
         if (array_key_exists('cat', $_GET) && !empty($_GET['cat'])) {
+            $category = urldecode($_GET['cat']);
+
             if (!is_array($this->parameters['attrib']['cat'])) {
                 $this->parameters['attrib']['cat'] = [];
             }
 
-            $this->parameters['attrib']['cat'][] = urldecode($_GET['cat']);
+            if (!in_array($category, $this->parameters['attrib']['cat'])) {
+                $this->parameters['attrib']['cat'][] = $category;
+            }
         }
 
         if (array_key_exists('vendor', $_GET) && !empty($_GET['vendor'])) {
+            $vendor = urldecode($_GET['vendor']);
+
             if (!is_array($this->parameters['attrib']['vendor'])) {
                 $this->parameters['attrib']['vendor'] = [];
             }
 
-            $this->parameters['attrib']['vendor'][] = urldecode($_GET['vendor']);
+            if (!in_array($vendor, $this->parameters['attrib']['vendor'])) {
+                $this->parameters['attrib']['vendor'][] = $vendor;
+            }
         }
 
         $this->parameters['first'] = $offset;
