@@ -549,7 +549,7 @@ class StaticHelper
      *
      * @return array
      */
-    private static function prepareTreeView(array $items, $name, $recurseName = null)
+    private static function prepareTreeView($items, $name, $recurseName = null)
     {
         $response = [];
         $selectedItems = explode('|', $_REQUEST[$name]);
