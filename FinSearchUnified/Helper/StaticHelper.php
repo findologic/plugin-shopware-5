@@ -610,8 +610,12 @@ class StaticHelper
     public static function useShopSearch()
     {
         return (
-            self::checkDirectIntegration() ||
             !self::isFindologicActive() ||
+            self::checkDirectIntegration() ||
+            (
+                !Shopware()->Session()->offsetGet('isCategoryPage') &&
+                !Shopware()->Session()->offsetGet('isSearchPage')
+            ) ||
             (
                 Shopware()->Session()->offsetGet('isCategoryPage') &&
                 !(bool) Shopware()->Config()->get('ActivateFindologicForCategoryPages')

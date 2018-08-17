@@ -41,7 +41,13 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     public function search(Criteria $criteria, ShopContextInterface $context)
     {
         $controllerName = Shopware()->Front()->Request()->getControllerName();
-        if (!StaticHelper::useShopSearch() && ($controllerName === 'search' || $controllerName === 'listing')) {
+        $moduleName = Shopware()->Front()->Request()->getModuleName();
+
+        if (
+            $moduleName !== 'backend' &&
+            ($controllerName === 'search' || $controllerName === 'listing') &&
+            !StaticHelper::useShopSearch()
+        ) {
             try {
 
                 $response = $this->sendRequestToFindologic($criteria, $context->getCurrentCustomerGroup());
