@@ -437,13 +437,19 @@ class FindologicArticleModel
             }
 
             $catPath = $this->seoRouter->sCategoryPath($category->getId());
-            $tempPath = '/'.implode('/', $catPath);
 
-            if (Shopware()->Config()->get('routerToLower')) {
-                $tempPath = strtolower($tempPath);
+            while (!empty($catPath)) {
+                $tempPath = '/' . implode('/', $catPath);
+
+                if (Shopware()->Config()->get('routerToLower')) {
+                    $tempPath = strtolower($tempPath);
+                }
+
+                $catUrlArray[] = $this->seoRouter->sCleanupPath($tempPath);
+
+                array_pop($catPath);
             }
 
-            $catUrlArray[] = $this->seoRouter->sCleanupPath($tempPath);
             $exportCat = StaticHelper::buildCategoryName($category->getId(), false);
 
             if (self::checkIfHasValue($exportCat)) {
