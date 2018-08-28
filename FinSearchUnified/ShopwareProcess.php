@@ -181,20 +181,6 @@ class ShopwareProcess
             throw new \RuntimeException('Provided shopkey not assigned to any shop!');
         }
     }
-
-    /* HELPER FUNCTIONS */
-
-    public static function calculateUsergroupHash($shopkey, $usergroup)
-    {
-        $hash = base64_encode($shopkey ^ $usergroup);
-
-        return $hash;
-    }
-
-    public static function decryptUsergroupHash($shopkey, $hash)
-    {
-        return  $shopkey ^ base64_decode($hash);
-    }
 }
 
 class xmlInformation

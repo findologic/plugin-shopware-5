@@ -19,7 +19,6 @@ use FINDOLOGIC\Export\Data\Usergroup;
 use FINDOLOGIC\Export\Exporter;
 use FINDOLOGIC\Export\XML\XMLExporter;
 use FinSearchUnified\Helper\StaticHelper;
-use FinSearchUnified\ShopwareProcess;
 use Shopware\Components\Api\Resource\CustomerGroup;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Article\Detail;
@@ -287,8 +286,8 @@ class FindologicArticleModel
             }
 
             $xmlPrice = new Price();
-            $xmlPrice->setValue(sprintf('%.2f', $price), ShopwareProcess::calculateUsergroupHash($userGroup->getKey(), $this->shopKey));
-            $this->xmlArticle->addPrice(sprintf('%.2f', $price), ShopwareProcess::calculateUsergroupHash($userGroup->getKey(), $this->shopKey));
+            $xmlPrice->setValue(sprintf('%.2f', $price), StaticHelper::calculateUsergroupHash($userGroup->getKey(), $this->shopKey));
+            $this->xmlArticle->addPrice(sprintf('%.2f', $price), StaticHelper::calculateUsergroupHash($userGroup->getKey(), $this->shopKey));
 
             if ($userGroup->getKey() == 'EK') {
                 $basePrice = new Price();
@@ -545,7 +544,7 @@ class FindologicArticleModel
                 if (in_array($userGroup, $this->baseArticle->getCustomerGroups()->toArray(), true)) {
                     continue;
                 }
-                $userGroupAttribute = new Usergroup(ShopwareProcess::calculateUsergroupHash($this->shopKey, $userGroup->getKey()));
+                $userGroupAttribute = new Usergroup(StaticHelper::calculateUsergroupHash($this->shopKey, $userGroup->getKey()));
                 $userGroupArray[] = $userGroupAttribute;
             }
             $this->xmlArticle->setAllUsergroups($userGroupArray);
