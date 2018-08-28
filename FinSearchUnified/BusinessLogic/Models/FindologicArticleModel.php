@@ -105,6 +105,11 @@ class FindologicArticleModel
     protected $orderDetailRepository;
 
     /**
+     * @var \Zend_Cache_Core
+     */
+    protected $cache;
+
+    /**
      * FindologicArticleModel constructor.
      *
      * @param Article $shopwareArticle
@@ -125,6 +130,7 @@ class FindologicArticleModel
         $this->salesFrequency = $salesFrequency;
         $this->allUserGroups = $allUserGroups;
         $this->seoRouter = Shopware()->Container()->get('modules')->sRewriteTable();
+        $this->cache = Shopware()->Container()->get('cache');
 
         $this->setUpStruct();
 
@@ -423,6 +429,14 @@ class FindologicArticleModel
 
         /** @var Category[] $categories */
         $categories = $this->baseArticle->getCategories();
+
+        $productStreams = $this->cache->load('fin_product_streams');
+
+        if ($productStreams != false && array_key_exists($this->baseArticle->getId(), $productStreams)) {
+            foreach ($productStreams[$this->baseArticle->getId()] as $cat) {
+                $categories->add($cat);
+            }
+        }
 
         /** @var Category $category */
         foreach ($categories as $category) {

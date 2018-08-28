@@ -10,6 +10,9 @@ use Shopware\Models\Config\Value;
 use Shopware\Models\Customer\Customer;
 use Shopware\Models\Shop\Repository;
 use Shopware\Models\Shop\Shop;
+use Zend_Cache_Core;
+use Shopware\Components\ProductStream\RepositoryInterface;
+use Shopware\Bundle\SearchBundle\Criteria;
 
 require __DIR__.'/vendor/autoload.php';
 
@@ -39,6 +42,22 @@ class ShopwareProcess
      * @var string
      */
     public $shopKey;
+
+    /**
+     * @var \Zend_Cache_Core
+     */
+    protected $cache;
+
+    /**
+     * @var Shopware\Components\ProductStream\Repository
+     */
+    protected $productStreamRepository;
+
+    public function __construct(Zend_Cache_Core $cache, RepositoryInterface $repository)
+    {
+        $this->cache = $cache;
+        $this->productStreamRepository = $repository;
+    }
 
     /**
      * @param string $selectedLanguage
@@ -134,22 +153,38 @@ class ShopwareProcess
         return $response;
     }
 
+    /**
+     * @param string $lang
+     * @param int $start
+     * @param int $length
+     * @param bool $save
+     * @return null|string
+     */
     public function getFindologicXml($lang = "de_DE", $start = 0, $length = 0, $save = false)
     {
+        $xmlDocument = null;
         $exporter = Exporter::create(Exporter::TYPE_XML);
 
         try {
+            if ($start === 0) {
+                $this->cache->remove('fin_product_streams');
+                $this->warmUpCache();
+            }
+
             $xmlArray = $this->getAllProductsAsXmlArray($lang, $start, $length);
         } catch (\Exception $e) {
             die($e->getMessage());
+        } finally {
+            $this->cache->remove('fin_product_streams');
         }
+
         if ($save) {
             $exporter->serializeItemsToFile(__DIR__.'', $xmlArray->items, $start, $xmlArray->count, $xmlArray->total);
         } else {
             $xmlDocument = $exporter->serializeItems($xmlArray->items, $start, $xmlArray->count, $xmlArray->total);
-
-            return $xmlDocument;
         }
+
+        return $xmlDocument;
     }
 
     /**
@@ -180,6 +215,29 @@ class ShopwareProcess
         if (!$this->shop) {
             throw new \RuntimeException('Provided shopkey not assigned to any shop!');
         }
+    }
+
+    protected function warmUpCache()
+    {
+        $articles = [];
+        $baseCategory = $this->shop->getCategory();
+
+        foreach ($baseCategory->getChildren() as $child) {
+            if (!$child->getActive() || $child->getStream() === null) {
+                continue;
+            }
+
+            $criteria = new Criteria();
+
+            $this->productStreamRepository->prepareCriteria($criteria, $child->getStream()->getId());
+            $result = Shopware()->Modules()->Articles()->sGetArticlesByCategory($child->getId(), $criteria);
+
+            foreach ($result['sArticles'] as $sArticle) {
+                $articles[$sArticle['articleID']][] = $child;
+            }
+        }
+
+        $this->cache->save($articles, 'fin_product_streams', ['FINDOLOGIC'], null);
     }
 }
 

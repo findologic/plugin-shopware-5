@@ -22,7 +22,8 @@
         </service>
 
         <service id="fin_search_unified.shopware_process" class="FinSearchUnified\ShopwareProcess">
-
+            <argument type="service" id="cache" />
+            <argument type="service" id="shopware_product_stream.repository" />
         </service>
 
         <service id="fin_search_unified.article_model_factory" class="FinSearchUnified\BusinessLogic\FindologicArticleFactory">
