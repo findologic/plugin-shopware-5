@@ -8,7 +8,6 @@ use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Config\Value;
 use Shopware\Models\Customer\Customer;
-use Shopware\Models\Order\Order;
 use Shopware\Models\Shop\Repository;
 use Shopware\Models\Shop\Shop;
 
