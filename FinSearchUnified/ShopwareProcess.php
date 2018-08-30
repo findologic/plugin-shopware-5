@@ -3,6 +3,7 @@
 namespace FinSearchUnified;
 
 use Doctrine\ORM\EntityNotFoundException;
+use Doctrine\ORM\PersistentCollection;
 use FINDOLOGIC\Export\Exporter;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use Shopware\Models\Article\Article;
@@ -13,6 +14,7 @@ use Shopware\Models\Shop\Shop;
 use Zend_Cache_Core;
 use Shopware\Components\ProductStream\RepositoryInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
+use Shopware\Models\Category\Category;
 
 require __DIR__.'/vendor/autoload.php';
 
@@ -219,25 +221,39 @@ class ShopwareProcess
 
     protected function warmUpCache()
     {
-        $articles = [];
-        $baseCategory = $this->shop->getCategory();
+        $this->cache->save(
+            $this->parseProductStreams($this->shop->getCategory()->getChildren()),
+            'fin_product_streams',
+            ['FINDOLOGIC'],
+            null
+        );
+    }
 
-        foreach ($baseCategory->getChildren() as $child) {
-            if (!$child->getActive() || $child->getStream() === null) {
+    protected function parseProductStreams(PersistentCollection $categories, array &$articles = [])
+    {
+        /**
+         * @var Category $category
+         */
+        foreach ($categories as $category) {
+            if (!$category->getActive()) {
                 continue;
-            }
+            } elseif (!$category->isLeaf()) {
+                $this->parseProductStreams($category->getChildren(), $articles);
+            } elseif ($category->getStream() === null) {
+                continue;
+            } else {
+                $criteria = new Criteria();
 
-            $criteria = new Criteria();
+                $this->productStreamRepository->prepareCriteria($criteria, $category->getStream()->getId());
+                $result = Shopware()->Modules()->Articles()->sGetArticlesByCategory($category->getId(), $criteria);
 
-            $this->productStreamRepository->prepareCriteria($criteria, $child->getStream()->getId());
-            $result = Shopware()->Modules()->Articles()->sGetArticlesByCategory($child->getId(), $criteria);
-
-            foreach ($result['sArticles'] as $sArticle) {
-                $articles[$sArticle['articleID']][] = $child;
+                foreach ($result['sArticles'] as $sArticle) {
+                    $articles[$sArticle['articleID']][] = $category;
+                }
             }
         }
 
-        $this->cache->save($articles, 'fin_product_streams', ['FINDOLOGIC'], null);
+        return $articles;
     }
 }
 
