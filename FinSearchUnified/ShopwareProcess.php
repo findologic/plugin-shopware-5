@@ -15,6 +15,7 @@ use Zend_Cache_Core;
 use Shopware\Components\ProductStream\RepositoryInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Models\Category\Category;
+use FinSearchUnified\Constants;
 
 require __DIR__.'/vendor/autoload.php';
 
@@ -168,18 +169,19 @@ class ShopwareProcess
         $exporter = Exporter::create(Exporter::TYPE_XML);
 
         try {
-            if ($this->cache->test('fin_product_streams') === false) {
+            // Make a type safe check since \Zend_Cache_Core::test might actually return zero.
+            if ($this->cache->test(Constants::CACHE_ID_PRODUCT_STREAMS) === false) {
                 $this->warmUpCache();
             }
 
             $xmlArray = $this->getAllProductsAsXmlArray($lang, $start, $length);
         } catch (\Exception $e) {
-            $this->cache->remove('fin_product_streams');
+            $this->cache->remove(Constants::CACHE_ID_PRODUCT_STREAMS);
             die($e->getMessage());
         }
 
         if (($start + $length) >= $xmlArray->total) {
-            $this->cache->remove('fin_product_streams');
+            $this->cache->remove(Constants::CACHE_ID_PRODUCT_STREAMS);
         }
 
         if ($save) {
@@ -225,7 +227,7 @@ class ShopwareProcess
     {
         $this->cache->save(
             $this->parseProductStreams($this->shop->getCategory()->getChildren()),
-            'fin_product_streams',
+            Constants::CACHE_ID_PRODUCT_STREAMS,
             ['FINDOLOGIC'],
             null
         );

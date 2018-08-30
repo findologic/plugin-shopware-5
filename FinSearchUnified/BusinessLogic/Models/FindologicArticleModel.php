@@ -31,6 +31,7 @@ use Shopware\Models\Property\Option;
 use Shopware\Models\Property\Value;
 use Shopware\Models\Order\Detail as OrderDetail;
 use Shopware\Bundle\StoreFrontBundle\Struct\Product;
+use FinSearchUnified\Constants;
 
 class FindologicArticleModel
 {
@@ -430,7 +431,7 @@ class FindologicArticleModel
         /** @var Category[] $categories */
         $categories = $this->baseArticle->getCategories();
 
-        $productStreams = $this->cache->load('fin_product_streams');
+        $productStreams = $this->cache->load(Constants::CACHE_ID_PRODUCT_STREAMS);
 
         if ($productStreams != false && array_key_exists($this->baseArticle->getId(), $productStreams)) {
             foreach ($productStreams[$this->baseArticle->getId()] as $cat) {
