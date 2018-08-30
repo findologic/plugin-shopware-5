@@ -243,13 +243,21 @@ class ShopwareProcess
                 continue;
             } else {
                 $criteria = new Criteria();
+                $criteria
+                    ->limit(200)
+                    ->offset(0);
 
                 $this->productStreamRepository->prepareCriteria($criteria, $category->getStream()->getId());
-                $result = Shopware()->Modules()->Articles()->sGetArticlesByCategory($category->getId(), $criteria);
 
-                foreach ($result['sArticles'] as $sArticle) {
-                    $articles[$sArticle['articleID']][] = $category;
-                }
+                do {
+                    $result = Shopware()->Modules()->Articles()->sGetArticlesByCategory($category->getId(), $criteria);
+
+                    foreach ($result['sArticles'] as $sArticle) {
+                        $articles[$sArticle['articleID']][] = $category;
+                    }
+
+                    $criteria->offset($criteria->getOffset() + $criteria->getLimit());
+                } while ($criteria->getOffset() < $result['sNumberArticles']);
             }
         }
 
