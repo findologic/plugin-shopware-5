@@ -237,11 +237,9 @@ class ShopwareProcess
          * @var Category $category
          */
         foreach ($categories as $category) {
-            if (!$category->getActive()) {
-                continue;
-            } elseif (!$category->isLeaf()) {
+            if (!$category->isLeaf()) {
                 $this->parseProductStreams($category->getChildren(), $articles);
-            } elseif ($category->getStream() === null) {
+            } elseif (!$category->getActive() || $category->getStream() === null) {
                 continue;
             } else {
                 $criteria = new Criteria();
