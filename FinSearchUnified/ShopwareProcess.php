@@ -233,6 +233,16 @@ class ShopwareProcess
         );
     }
 
+    /**
+     * Recursively parses Product Streams into an array with the respective product's ID as index and
+     * an array of its categories as value.
+     * Inactive categories will be skipped but active subcategories will still be parsed.
+     *
+     * @param PersistentCollection $categories List of categories to be checked for Product Streams
+     * @param array &$articles List of affected products.
+     *                         May be omitted when the method is called since it is used internally for the recursion
+     * @return array
+     */
     protected function parseProductStreams(PersistentCollection $categories, array &$articles = [])
     {
         /**
