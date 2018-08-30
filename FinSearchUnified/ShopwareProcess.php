@@ -176,7 +176,9 @@ class ShopwareProcess
         } catch (\Exception $e) {
             $this->cache->remove('fin_product_streams');
             die($e->getMessage());
-        } finally {
+        }
+
+        if (($start + $length) >= $xmlArray->total) {
             $this->cache->remove('fin_product_streams');
         }
 
