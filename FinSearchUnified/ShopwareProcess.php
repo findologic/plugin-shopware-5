@@ -168,8 +168,7 @@ class ShopwareProcess
         $exporter = Exporter::create(Exporter::TYPE_XML);
 
         try {
-            if ($start === 0) {
-                $this->cache->remove('fin_product_streams');
+            if ($this->cache->test('fin_product_streams') === false) {
                 $this->warmUpCache();
             }
 
