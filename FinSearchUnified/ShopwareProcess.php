@@ -174,6 +174,7 @@ class ShopwareProcess
 
             $xmlArray = $this->getAllProductsAsXmlArray($lang, $start, $length);
         } catch (\Exception $e) {
+            $this->cache->remove('fin_product_streams');
             die($e->getMessage());
         } finally {
             $this->cache->remove('fin_product_streams');
