@@ -6,7 +6,6 @@ use Enlight\Event\SubscriberInterface;
 use Enlight_Controller_ActionEventArgs;
 use Enlight_Event_EventArgs;
 use FinSearchUnified\Helper\StaticHelper;
-use FinSearchUnified\ShopwareProcess;
 
 class Frontend implements SubscriberInterface
 {
@@ -125,7 +124,7 @@ class Frontend implements SubscriberInterface
         if (empty($groupKey)) {
             $groupKey = 'EK';
         }
-        $hash .= ShopwareProcess::calculateUsergroupHash($shopKey, $groupKey);
+        $hash .= StaticHelper::calculateUsergroupHash($shopKey, $groupKey);
         $format = 'https://cdn.findologic.com/static/%s/main.js%s';
         $mainUrl = sprintf($format, strtoupper(md5($shopKey)), $hash);
 

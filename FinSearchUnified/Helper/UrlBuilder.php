@@ -2,7 +2,6 @@
 
 namespace FinSearchUnified\Helper;
 
-use FinSearchUnified\ShopwareProcess;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -297,7 +296,7 @@ class UrlBuilder
     public function setCustomerGroup(Group $customerGroup)
     {
         $this->customerGroup = $customerGroup;
-        $this->hashedKey = ShopwareProcess::calculateUsergroupHash($this->shopKey, $customerGroup->getKey());
+        $this->hashedKey = StaticHelper::calculateUsergroupHash($this->shopKey, $customerGroup->getKey());
         $this->parameters['group'] = [$this->hashedKey];
     }
 }
