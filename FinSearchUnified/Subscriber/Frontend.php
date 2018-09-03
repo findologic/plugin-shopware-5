@@ -6,7 +6,6 @@ use Enlight\Event\SubscriberInterface;
 use Enlight_Controller_ActionEventArgs;
 use Enlight_Event_EventArgs;
 use FinSearchUnified\Helper\StaticHelper;
-use FinSearchUnified\ShopwareProcess;
 
 class Frontend implements SubscriberInterface
 {

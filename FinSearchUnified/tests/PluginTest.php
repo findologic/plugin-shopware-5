@@ -3,7 +3,7 @@
 namespace FinSearchUnified\tests;
 
 use FinSearchUnified\finSearchUnified as Plugin;
-use FinSearchUnified\ShopwareProcess;
+use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Components\Test\Plugin\TestCase;
 
 class PluginTest extends TestCase
@@ -25,8 +25,8 @@ class PluginTest extends TestCase
         $shopkey = 'ABCD0815';
         $usergroup = 'at_rated';
 
-        $hash = ShopwareProcess::calculateUsergroupHash($shopkey, $usergroup);
-        $decrypted = ShopwareProcess::decryptUsergroupHash($shopkey, $hash);
+        $hash = StaticHelper::calculateUsergroupHash($shopkey, $usergroup);
+        $decrypted = StaticHelper::decryptUsergroupHash($shopkey, $hash);
 
         $this->assertEquals($usergroup, $decrypted);
     }

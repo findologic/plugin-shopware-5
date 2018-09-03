@@ -19,19 +19,15 @@ use FINDOLOGIC\Export\Data\Usergroup;
 use FINDOLOGIC\Export\Exporter;
 use FINDOLOGIC\Export\XML\XMLExporter;
 use FinSearchUnified\Helper\StaticHelper;
-use FinSearchUnified\ShopwareProcess;
-use Shopware\Components\Api\Resource\CustomerGroup;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Article\Detail;
 use Shopware\Models\Article\Image;
-use Shopware\Models\Article\Supplier;
 use Shopware\Models\Category\Category;
 use Shopware\Models\Customer\Group;
 use Shopware\Models\Media\Media;
-use Shopware\Models\Property\Option;
-use Shopware\Models\Property\Value;
 use Shopware\Models\Order\Detail as OrderDetail;
 use Shopware\Bundle\StoreFrontBundle\Struct\Product;
+use FinSearchUnified\Constants;
 
 class FindologicArticleModel
 {
@@ -106,6 +102,11 @@ class FindologicArticleModel
     protected $orderDetailRepository;
 
     /**
+     * @var \Zend_Cache_Core
+     */
+    protected $cache;
+
+    /**
      * FindologicArticleModel constructor.
      *
      * @param Article $shopwareArticle
@@ -126,6 +127,7 @@ class FindologicArticleModel
         $this->salesFrequency = $salesFrequency;
         $this->allUserGroups = $allUserGroups;
         $this->seoRouter = Shopware()->Container()->get('modules')->sRewriteTable();
+        $this->cache = Shopware()->Container()->get('cache');
 
         $this->setUpStruct();
 
@@ -287,8 +289,8 @@ class FindologicArticleModel
             }
 
             $xmlPrice = new Price();
-            $xmlPrice->setValue(sprintf('%.2f', $price), ShopwareProcess::calculateUsergroupHash($userGroup->getKey(), $this->shopKey));
-            $this->xmlArticle->addPrice(sprintf('%.2f', $price), ShopwareProcess::calculateUsergroupHash($userGroup->getKey(), $this->shopKey));
+            $xmlPrice->setValue(sprintf('%.2f', $price), StaticHelper::calculateUsergroupHash($userGroup->getKey(), $this->shopKey));
+            $this->xmlArticle->addPrice(sprintf('%.2f', $price), StaticHelper::calculateUsergroupHash($userGroup->getKey(), $this->shopKey));
 
             if ($userGroup->getKey() == 'EK') {
                 $basePrice = new Price();
@@ -425,6 +427,14 @@ class FindologicArticleModel
         /** @var Category[] $categories */
         $categories = $this->baseArticle->getCategories();
 
+        $productStreams = $this->cache->load(Constants::CACHE_ID_PRODUCT_STREAMS);
+
+        if ($productStreams != false && array_key_exists($this->baseArticle->getId(), $productStreams)) {
+            foreach ($productStreams[$this->baseArticle->getId()] as $cat) {
+                $categories->add($cat);
+            }
+        }
+
         /** @var Category $category */
         foreach ($categories as $category) {
             //Hide inactive categories
@@ -437,13 +447,19 @@ class FindologicArticleModel
             }
 
             $catPath = $this->seoRouter->sCategoryPath($category->getId());
-            $tempPath = '/'.implode('/', $catPath);
 
-            if (Shopware()->Config()->get('routerToLower')) {
-                $tempPath = strtolower($tempPath);
+            while (!empty($catPath)) {
+                $tempPath = '/' . implode('/', $catPath);
+
+                if (Shopware()->Config()->get('routerToLower')) {
+                    $tempPath = strtolower($tempPath);
+                }
+
+                $catUrlArray[] = $this->seoRouter->sCleanupPath($tempPath);
+
+                array_pop($catPath);
             }
 
-            $catUrlArray[] = $this->seoRouter->sCleanupPath($tempPath);
             $exportCat = StaticHelper::buildCategoryName($category->getId(), false);
 
             if (self::checkIfHasValue($exportCat)) {
@@ -545,7 +561,7 @@ class FindologicArticleModel
                 if (in_array($userGroup, $this->baseArticle->getCustomerGroups()->toArray(), true)) {
                     continue;
                 }
-                $userGroupAttribute = new Usergroup(ShopwareProcess::calculateUsergroupHash($this->shopKey, $userGroup->getKey()));
+                $userGroupAttribute = new Usergroup(StaticHelper::calculateUsergroupHash($this->shopKey, $userGroup->getKey()));
                 $userGroupArray[] = $userGroupAttribute;
             }
             $this->xmlArticle->setAllUsergroups($userGroupArray);
