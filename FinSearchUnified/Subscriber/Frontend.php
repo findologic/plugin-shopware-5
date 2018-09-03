@@ -6,7 +6,6 @@ use Enlight\Event\SubscriberInterface;
 use Enlight_Controller_ActionEventArgs;
 use Enlight_Event_EventArgs;
 use FinSearchUnified\Helper\StaticHelper;
-use FinSearchUnified\ShopwareProcess;
 
 class Frontend implements SubscriberInterface
 {
@@ -117,24 +116,17 @@ class Frontend implements SubscriberInterface
         if (!(bool) Shopware()->Config()->get('ActivateFindologic')) {
             return;
         }
-        $groupKey = Shopware()->Session()->sUserGroup;
 
-        $shopKey = $this->getShopKey();
-        $hash = '?usergrouphash=';
-
-        if (empty($groupKey)) {
-            $groupKey = 'EK';
-        }
-        $hash .= ShopwareProcess::calculateUsergroupHash($shopKey, $groupKey);
-        $format = 'https://cdn.findologic.com/static/%s/main.js%s';
-        $mainUrl = sprintf($format, strtoupper(md5($shopKey)), $hash);
+        $groupKey = Shopware()->Session()->get('sUserGroup', 'EK');
+        $hash = ShopwareProcess::calculateUsergroupHash($this->getShopKey(), $groupKey);
 
         try {
             /** @var \Enlight_Controller_ActionEventArgs $args */
             $view = $args->getSubject()->View();
             $view->addTemplateDir($this->pluginDirectory.'/Resources/views/');
             $view->extendsTemplate('frontend/fin_search_unified/header.tpl');
-            $view->assign('mainUrl', $mainUrl);
+            $view->assign('userGroupHash', $hash);
+            $view->assign('hashedShopkey', strtoupper(md5($this->getShopKey())));
         } catch (\Enlight_Exception $e) {
             //TODO LOGGING
         }

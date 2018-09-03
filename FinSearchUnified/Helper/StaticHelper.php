@@ -634,4 +634,26 @@ class StaticHelper
             !empty(trim(Shopware()->Config()->get('ShopKey'))) &&
             Shopware()->Config()->get('ShopKey') !== 'Findologic Shopkey';
     }
+
+    /**
+     * @param string $shopkey
+     * @param string $usergroup
+     * @return string
+     */
+    public static function calculateUsergroupHash($shopkey, $usergroup)
+    {
+        $hash = base64_encode($shopkey ^ $usergroup);
+
+        return $hash;
+    }
+
+    /**
+     * @param string $shopkey
+     * @param string $hash
+     * @return int
+     */
+    public static function decryptUsergroupHash($shopkey, $hash)
+    {
+        return $shopkey ^ base64_decode($hash);
+    }
 }
