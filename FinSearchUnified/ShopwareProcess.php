@@ -172,16 +172,13 @@ class ShopwareProcess
             // Make a type safe check since \Zend_Cache_Core::test might actually return zero.
             if ($this->cache->test(Constants::CACHE_ID_PRODUCT_STREAMS) === false) {
                 $this->warmUpCache();
+            } else {
+                $this->cache->touch(Constants::CACHE_ID_PRODUCT_STREAMS, Constants::CACHE_LIFETIME_PRODUCT_STREAMS);
             }
 
             $xmlArray = $this->getAllProductsAsXmlArray($lang, $start, $length);
         } catch (\Exception $e) {
-            $this->cache->remove(Constants::CACHE_ID_PRODUCT_STREAMS);
             die($e->getMessage());
-        }
-
-        if (($start + $length) >= $xmlArray->total) {
-            $this->cache->remove(Constants::CACHE_ID_PRODUCT_STREAMS);
         }
 
         if ($save) {
@@ -229,7 +226,7 @@ class ShopwareProcess
             $this->parseProductStreams($this->shop->getCategory()->getChildren()),
             Constants::CACHE_ID_PRODUCT_STREAMS,
             ['FINDOLOGIC'],
-            null
+            Constants::CACHE_LIFETIME_PRODUCT_STREAMS
         );
     }
 
