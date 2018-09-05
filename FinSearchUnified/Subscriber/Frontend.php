@@ -118,7 +118,7 @@ class Frontend implements SubscriberInterface
         }
 
         $groupKey = Shopware()->Session()->get('sUserGroup', 'EK');
-        $hash = ShopwareProcess::calculateUsergroupHash($this->getShopKey(), $groupKey);
+        $hash = StaticHelper::calculateUsergroupHash($this->getShopKey(), $groupKey);
 
         try {
             /** @var \Enlight_Controller_ActionEventArgs $args */
