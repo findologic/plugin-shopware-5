@@ -10,7 +10,7 @@ This plugin goes through all the shop's data to find suitable products for the e
 * Product categories must be active
 
 # Build Status
-[![Build Status](https://travis-ci.org/findologic/plugin-shopware-di.svg?branch=master)](https://travis-ci.org/findologic/plugin-shopware-di)
+[![Build Status](https://travis-ci.org/findologic/plugin-shopware-unified.svg?branch=master)](https://travis-ci.org/findologic/plugin-shopware-unified)
 
 # Installation
 FINDOLOGIC Shopware 5 plugin installation procedure is basically the same as for any other Shopware plugin. It can be
