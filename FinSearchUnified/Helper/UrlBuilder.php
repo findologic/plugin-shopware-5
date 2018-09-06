@@ -128,7 +128,7 @@ class UrlBuilder
             }
 
             return false;
-        } catch (\Zend_Http_Client_Exception $e) {
+        } catch (Zend_Http_Client_Exception $e) {
             return false;
         }
     }
@@ -136,7 +136,7 @@ class UrlBuilder
     /**
      * @param \Shopware\Bundle\SearchBundle\Criteria $criteria
      *
-     * @return null|\Zend_Http_Response
+     * @return null|Zend_Http_Response
      */
     public function buildQueryUrlAndGetResponse(Criteria $criteria)
     {
@@ -226,7 +226,7 @@ class UrlBuilder
     /**
      * @param int $categoryId
      *
-     * @return null|\Zend_Http_Response
+     * @return null|Zend_Http_Response
      */
     public function buildCategoryUrlAndGetResponse($categoryId)
     {
@@ -310,7 +310,7 @@ class UrlBuilder
     }
 
     /**
-     * @return null|\Zend_Http_Response
+     * @return null|Zend_Http_Response
      */
     private function callFindologicForXmlResponse()
     {
@@ -322,7 +322,7 @@ class UrlBuilder
             $request = $this->httpClient->setUri($url);
 
             return $request->request();
-        } catch (\Zend_Http_Client_Exception $e) {
+        } catch (Zend_Http_Client_Exception $e) {
             return;
         }
     }
