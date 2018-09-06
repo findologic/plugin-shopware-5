@@ -40,3 +40,7 @@ install:
 
 script:
   - composer test
+
+branches:
+  only:
+    - master
