@@ -12,7 +12,6 @@ services:
 
 env:
   matrix:
-    - SHOPWARE_VERSION="5.2"
     - SHOPWARE_VERSION="5.3"
     - SHOPWARE_VERSION="5.4"
   global:
@@ -40,7 +39,3 @@ install:
 
 script:
   - composer test
-
-matrix:
-  allow_failures:
-    - env: SHOPWARE_VERSION="5.2"
