@@ -20,6 +20,9 @@ class UrlBuilder
     const ALIVE_ENDPOINT = 'alivetest.php';
     const JSON_PATH = 'directIntegration';
 
+    /**
+     * @var Zend_Http_Client
+     */
     private $httpClient;
 
     /**
@@ -27,6 +30,9 @@ class UrlBuilder
      */
     private $shopkey;
 
+    /**
+     * @var string
+     */
     private $shopUrl;
 
     /**
@@ -34,8 +40,14 @@ class UrlBuilder
      */
     private $parameters;
 
+    /**
+     * @var Group
+     */
     private $customerGroup;
 
+    /**
+     * @var string
+     */
     private $hashedKey;
 
     /**
