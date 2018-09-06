@@ -2,6 +2,9 @@
 
 namespace FinSearchUnified\Helper;
 
+use Zend_Http_Client;
+use Zend_Http_Response;
+use Zend_Http_Client_Exception;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -19,16 +22,25 @@ class UrlBuilder
 
     private $httpClient;
 
-    private $shopKey;
+    /**
+     * @var string
+     */
+    private $shopkey;
 
     private $shopUrl;
 
+    /**
+     * @var array
+     */
     private $parameters;
 
     private $customerGroup;
 
     private $hashedKey;
 
+    /**
+     * @var string
+     */
     private $configUrl;
 
     /**
@@ -36,17 +48,16 @@ class UrlBuilder
      */
     public function __construct()
     {
-        $this->httpClient = new \Zend_Http_Client();
-        $this->shopKey = Shopware()->Config()->get('ShopKey');
+        $this->httpClient = new Zend_Http_Client();
         $this->shopUrl = explode('//', Shopware()->Modules()->Core()->sRewriteLink())[1];
+
         /** @var Plugin $plugin */
         $plugin = Shopware()->Container()->get('shopware.plugin_manager')->getPluginByName('FinSearchUnified');
+
         $this->parameters = [
-            'shopkey'  => $this->shopKey,
             'userip'   => self::getClientIpServer(),
             'revision' => $plugin->getVersion(),
         ];
-        $this->configUrl = self::CDN_URL.strtoupper(md5($this->shopKey)).self::JSON_CONFIG;
     }
 
     public static function getClientIpServer()
@@ -71,12 +82,43 @@ class UrlBuilder
     }
 
     /**
+     * Never call this method in any constructor since Shopware can't guarantee that the relevant shop is already
+     * loaded at that point. Therefore the master shops shopkey would be returned.
+     *
+     * Caches and returns the current shop's shopkey.
+     *
+     * @return string
+     */
+    private function getShopkey()
+    {
+        if ($this->shopkey === null) {
+            $this->shopkey = strtoupper(Shopware()->Config()->get('ShopKey'));
+        }
+
+        return $this->shopkey;
+    }
+
+    /**
+     * Caches and returns the URL for the current shop's config JSON.
+     *
+     * @return string
+     */
+    private function getConfigUrl()
+    {
+        if ($this->configUrl === null) {
+            $this->configUrl = self::CDN_URL . strtoupper(md5($this->getShopkey())) . self::JSON_CONFIG;
+        }
+
+        return $this->configUrl;
+    }
+
+    /**
      * @return bool
      */
     public function getConfigStatus()
     {
         try {
-            $request = $this->httpClient->setUri($this->configUrl);
+            $request = $this->httpClient->setUri($this->getConfigUrl());
             $requestHandler = $request->request();
             if ($requestHandler->getStatus() == 200) {
                 $response = $requestHandler->getBody();
@@ -272,7 +314,10 @@ class UrlBuilder
      */
     private function callFindologicForXmlResponse()
     {
-        $url = self::BASE_URL.$this->shopUrl.'index.php?'.http_build_query($this->parameters);
+        $this->parameters['shopkey'] = $this->getShopkey();
+
+        $url = sprintf('%s%sindex.php?%s', self::BASE_URL, $this->shopUrl, http_build_query($this->parameters));
+
         try {
             $request = $this->httpClient->setUri($url);
 
@@ -296,7 +341,7 @@ class UrlBuilder
     public function setCustomerGroup(Group $customerGroup)
     {
         $this->customerGroup = $customerGroup;
-        $this->hashedKey = StaticHelper::calculateUsergroupHash($this->shopKey, $customerGroup->getKey());
+        $this->hashedKey = StaticHelper::calculateUsergroupHash($this->getShopkey(), $customerGroup->getKey());
         $this->parameters['group'] = [$this->hashedKey];
     }
 }
