@@ -184,7 +184,12 @@ class StaticHelper
                     }
                     break;
                 case 'color':
-                    $facets[] = self::createColorListFacet( $facetItem );
+                    if ($facetItem['items'] && $facetItem['items'][0]['image']) {
+                        $facets[] = self::createMediaListFacet( $facetItem );
+                    } else {
+                        $facets[] = self::createColorListFacet( $facetItem );
+                    }
+
                     break;
                 case 'image':
                     $facets[] = self::createMediaListFacet( $facetItem );
