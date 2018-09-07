@@ -3,19 +3,13 @@
 namespace FinSearchUnified\Helper;
 
 use Exception;
-use FinSearchUnified\Bundles\FacetResult\ColorListItem;
-use FinSearchUnified\Bundles\FacetResult\ColorPickerFacetResult;
-use Shopware\Bundle\SearchBundle;
-use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
-use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
-use Shopware\Bundle\StoreFrontBundle;
-use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
-use Shopware\Bundle\StoreFrontBundle\Struct\Media;
-use Shopware\Models\Search\CustomFacet;
 use SimpleXMLElement;
-use Symfony\Component\HttpFoundation\File\File;
 use Zend_Http_Client;
-use Zend_Http_Client_Exception;
+use Zend_Http_Response;
+use Shopware\Bundle\SearchBundle;
+use Shopware\Bundle\StoreFrontBundle;
+use Shopware\Models\Search\CustomFacet;
+use FinSearchUnified\Bundles\FacetResult as FinFacetResult;
 
 class StaticHelper
 {
@@ -59,11 +53,11 @@ class StaticHelper
     }
 
     /**
-     * @param \Zend_Http_Response $response
+     * @param Zend_Http_Response $response
      *
      * @return SimpleXMLElement
      */
-    public static function getXmlFromResponse(\Zend_Http_Response $response)
+    public static function getXmlFromResponse(Zend_Http_Response $response)
     {
         /* TLOAD XML RESPONSE */
         $responseText = (string) $response->getBody();
@@ -142,7 +136,7 @@ class StaticHelper
         /* PREPARE SHOPWARE ARRAY */
         $searchResult = [];
         foreach ( $foundProducts as $productKey => $sProduct ) {
-            $searchResult[ $sProduct['orderNumber'] ] = new BaseProduct(
+            $searchResult[ $sProduct['orderNumber'] ] = new StoreFrontBundle\Struct\BaseProduct(
                 $productKey,
                 $sProduct['detailId'],
                 $sProduct['orderNumber']
@@ -238,10 +232,18 @@ class StaticHelper
     private static function createMediaListFacet(array $facetItem)
     {
         $enabled = false;
+
         if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
             $enabled = true;
         }
-        $facetResult = new SearchBundle\FacetResult\MediaListFacetResult( $facetItem['name'], $enabled, $facetItem['display'], self::prepareMediaItems( $facetItem['items'], $facetItem['name'] ), $facetItem['name'] );
+
+        $facetResult = new SearchBundle\FacetResult\MediaListFacetResult(
+            $facetItem['name'],
+            $enabled,
+            $facetItem['display'],
+            self::prepareMediaItems($facetItem['items'], $facetItem['name']),
+            $facetItem['name']
+        );
 
         return $facetResult;
     }
@@ -254,10 +256,18 @@ class StaticHelper
     private static function createColorListFacet(array $facetItem)
     {
         $enabled = false;
+
         if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
             $enabled = true;
         }
-        $facetResult = new ColorPickerFacetResult( $facetItem['name'], $enabled, $facetItem['display'], self::prepareColorItems( $facetItem['items'], $facetItem['name'] ), $facetItem['name'] );
+
+        $facetResult = new FinFacetResult\ColorPickerFacetResult(
+            $facetItem['name'],
+            $enabled,
+            $facetItem['display'],
+            self::prepareColorItems( $facetItem['items'], $facetItem['name'] ),
+            $facetItem['name']
+        );
 
         return $facetResult;
     }
@@ -360,16 +370,24 @@ class StaticHelper
     /**
      * @param array $facetItem
      *
-     * @return TreeFacetResult
+     * @return SearchBundle\FacetResult\TreeFacetResult
      */
     private static function createTreeviewFacet(array $facetItem)
     {
         $enabled = false;
+
         if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
             $enabled = true;
         }
-        $facetResult = new TreeFacetResult( $facetItem['name'],
-            $facetItem['name'], $enabled, $facetItem['display'], self::prepareTreeView( $facetItem['items'], $facetItem['name'] ), $facetItem['name'] );
+
+        $facetResult = new SearchBundle\FacetResult\TreeFacetResult(
+            $facetItem['name'],
+            $facetItem['name'],
+            $enabled,
+            $facetItem['display'],
+            self::prepareTreeView($facetItem['items'], $facetItem['name']),
+            $facetItem['name']
+        );
 
         return $facetResult;
     }
@@ -379,11 +397,22 @@ class StaticHelper
      * @param float $minValue
      * @param float $maxValue
      *
-     * @return RangeFacetResult
+     * @return SearchBundle\FacetResult\RangeFacetResult
      */
     private static function createRangeSlideFacet(array $facetItem, $minValue, $maxValue)
     {
-        $facetResult = new RangeFacetResult( $facetItem['name'], false, $facetItem['display'], $minValue, $maxValue, $minValue, $maxValue, 'min', 'max', $facetItem['name'] );
+        $facetResult = new SearchBundle\FacetResult\RangeFacetResult(
+            $facetItem['name'],
+            false,
+            $facetItem['display'],
+            $minValue,
+            $maxValue,
+            $minValue,
+            $maxValue,
+            'min',
+            'max',
+            $facetItem['name']
+        );
 
         return $facetResult;
     }
@@ -489,7 +518,7 @@ class StaticHelper
                 // Explicitly use Zend_Http_Response::isError here since only status codes >= 400
                 // should count as errors.
                 if ($response !== null && !$response->isError()) {
-                    $media = new Media();
+                    $media = new StoreFrontBundle\Struct\Media();
                     $media->setFile($item['image']);
                 }
             }
@@ -525,7 +554,7 @@ class StaticHelper
             if ( $item['color'] !== '' ) {
                 $mediaItem = $item['color'];
             }
-            $valueListItem = new ColorListItem( $item['name'], $item['name'], $enabled, null, $mediaItem );
+            $valueListItem = new FinFacetResult\ColorListItem( $item['name'], $item['name'], $enabled, null, $mediaItem );
             $response[]    = $valueListItem;
         }
 
