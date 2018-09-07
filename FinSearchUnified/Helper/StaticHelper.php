@@ -531,8 +531,8 @@ class StaticHelper
         $tempItem = [];
         foreach ( $items as $subItem ) {
             $tempItem['name']  = (string) $subItem->name;
-            $tempItem['image'] = ( $subItem->image !== null ? $subItem->image : '' );
-            $tempItem['color'] = ( $subItem->color !== null ? $subItem->color : '' );
+            $tempItem['image'] = (string) ( $subItem->image !== null ? $subItem->image[0] : '' );
+            $tempItem['color'] = (string) ( $subItem->color !== null ? $subItem->color[0] : '' );
             if ( $subItem->items->item ) {
                 $tempItem['items'] = self::createFilterItems( $subItem->items->item );
             }
