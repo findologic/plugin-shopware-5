@@ -10,10 +10,12 @@ use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
 use Shopware\Bundle\StoreFrontBundle;
 use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
-use Shopware\Models\Media\Media;
+use Shopware\Bundle\StoreFrontBundle\Struct\Media;
 use Shopware\Models\Search\CustomFacet;
 use SimpleXMLElement;
 use Symfony\Component\HttpFoundation\File\File;
+use Zend_Http_Client;
+use Zend_Http_Client_Exception;
 
 class StaticHelper
 {
@@ -457,40 +459,43 @@ class StaticHelper
      */
     private static function prepareMediaItems($items, $name)
     {
-        $response = [];
+        $values = [];
+        $httpClient = new Zend_Http_Client();
+        $httpClient->setMethod(Zend_Http_Client::HEAD);
 
         foreach ( $items as $item ) {
+            $media = null;
             $enabled = false;
+
             if ( array_key_exists( $name, $_REQUEST ) ) {
                 $selectedItems = explode( '|', $_REQUEST[ $name ] );
-                {
-                    foreach ( $selectedItems as $selected_item ) {
-                        if ( $selected_item == $item ) {
-                            $enabled = true;
-                        }
+
+                foreach ( $selectedItems as $selected_item ) {
+                    if ( $selected_item == $item ) {
+                        $enabled = true;
                     }
                 }
             }
-            if ( $item['image'] !== '' ) {
-                $mediaItem = $item['image'];
-            } else {
-                $mediaItem = null;
-            }
 
-            try {
-                $imageFile = new File( $mediaItem );
-                if ( $imageFile->isFile() ) {
-                    $shopwareMedia = new Media();
-                    $shopwareMedia->setFile( $imageFile );
+            if ($item['image']) {
+                $httpClient->setUri($item['image']);
+
+                try {
+                    $response = $httpClient->request();
+                } catch (Exception $e) {
+                    $response = null;
                 }
-            } catch ( Exception $fileNotFound ) {
+
+                if ($response !== null && !$response->isError()) {
+                    $media = new Media();
+                    $media->setFile($item['image']);
+                }
             }
 
-            $valueListItem = new SearchBundle\FacetResult\MediaListItem( $item['name'], $item['name'], $enabled, $shopwareMedia );
-            $response[]    = $valueListItem;
+            $values[] = new SearchBundle\FacetResult\MediaListItem($item['name'], $item['name'], $enabled, $media);
         }
 
-        return $response;
+        return $values;
     }
 
     /**
