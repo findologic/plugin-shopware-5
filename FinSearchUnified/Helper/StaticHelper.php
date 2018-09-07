@@ -507,9 +507,9 @@ class StaticHelper
             }
 
             if ($item['image']) {
-                $httpClient->setUri($item['image']);
 
                 try {
+                    $httpClient->setUri($item['image']);
                     $response = $httpClient->request();
                 } catch (Exception $e) {
                     $response = null;
