@@ -414,6 +414,14 @@ class FindologicArticleModel
     {
         $allAttributes = [];
 
+        $routerCategoryTemplate = Shopware()->Config()->get('routerCategoryTemplate');
+
+        if (StaticHelper::stringEndsWith('/', $routerCategoryTemplate)) {
+            $routerCategoryTemplate = '/%s/';
+        } else {
+            $routerCategoryTemplate = '/%s';
+        }
+
         // Categories to XML Output
         /** @var Attribute $xmlCatUrl */
         $xmlCatProperty = new Attribute('cat');
@@ -449,7 +457,7 @@ class FindologicArticleModel
             $catPath = $this->seoRouter->sCategoryPath($category->getId());
 
             while (!empty($catPath)) {
-                $tempPath = '/' . implode('/', $catPath);
+                $tempPath = sprintf($routerCategoryTemplate, implode('/', $catPath));
 
                 if (Shopware()->Config()->get('routerToLower')) {
                     $tempPath = strtolower($tempPath);
