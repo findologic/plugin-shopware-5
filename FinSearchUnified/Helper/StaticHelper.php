@@ -656,4 +656,18 @@ class StaticHelper
     {
         return $shopkey ^ base64_decode($hash);
     }
+
+    /**
+     * Checks if $haystack ends with $needle.
+     *
+     * @param string $needle
+     * @param string $haystack
+     * @return bool
+     */
+    public static function stringEndsWith($needle, $haystack)
+    {
+        $start = -1 * strlen($needle);
+
+        return substr($haystack, $start) === $needle;
+    }
 }
