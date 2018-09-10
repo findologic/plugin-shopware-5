@@ -3,17 +3,13 @@
 namespace FinSearchUnified\Helper;
 
 use Exception;
-use FinSearchUnified\Bundles\FacetResult\ColorListItem;
-use FinSearchUnified\Bundles\FacetResult\ColorPickerFacetResult;
-use Shopware\Bundle\SearchBundle;
-use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
-use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
-use Shopware\Bundle\StoreFrontBundle;
-use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
-use Shopware\Models\Media\Media;
-use Shopware\Models\Search\CustomFacet;
 use SimpleXMLElement;
-use Symfony\Component\HttpFoundation\File\File;
+use Zend_Http_Client;
+use Zend_Http_Response;
+use Shopware\Bundle\SearchBundle;
+use Shopware\Bundle\StoreFrontBundle;
+use Shopware\Models\Search\CustomFacet;
+use FinSearchUnified\Bundles\FacetResult as FinFacetResult;
 
 class StaticHelper
 {
@@ -57,11 +53,11 @@ class StaticHelper
     }
 
     /**
-     * @param \Zend_Http_Response $response
+     * @param Zend_Http_Response $response
      *
      * @return SimpleXMLElement
      */
-    public static function getXmlFromResponse(\Zend_Http_Response $response)
+    public static function getXmlFromResponse(Zend_Http_Response $response)
     {
         /* TLOAD XML RESPONSE */
         $responseText = (string) $response->getBody();
@@ -140,7 +136,7 @@ class StaticHelper
         /* PREPARE SHOPWARE ARRAY */
         $searchResult = [];
         foreach ( $foundProducts as $productKey => $sProduct ) {
-            $searchResult[ $sProduct['orderNumber'] ] = new BaseProduct(
+            $searchResult[ $sProduct['orderNumber'] ] = new StoreFrontBundle\Struct\BaseProduct(
                 $productKey,
                 $sProduct['detailId'],
                 $sProduct['orderNumber']
@@ -184,7 +180,12 @@ class StaticHelper
                     }
                     break;
                 case 'color':
-                    $facets[] = self::createColorListFacet( $facetItem );
+                    if ($facetItem['items'] && $facetItem['items'][0]['image']) {
+                        $facets[] = self::createMediaListFacet( $facetItem );
+                    } else {
+                        $facets[] = self::createColorListFacet( $facetItem );
+                    }
+
                     break;
                 case 'image':
                     $facets[] = self::createMediaListFacet( $facetItem );
@@ -231,10 +232,18 @@ class StaticHelper
     private static function createMediaListFacet(array $facetItem)
     {
         $enabled = false;
+
         if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
             $enabled = true;
         }
-        $facetResult = new SearchBundle\FacetResult\MediaListFacetResult( $facetItem['name'], $enabled, $facetItem['display'], self::prepareMediaItems( $facetItem['items'], $facetItem['name'] ), $facetItem['name'] );
+
+        $facetResult = new SearchBundle\FacetResult\MediaListFacetResult(
+            $facetItem['name'],
+            $enabled,
+            $facetItem['display'],
+            self::prepareMediaItems($facetItem['items'], $facetItem['name']),
+            $facetItem['name']
+        );
 
         return $facetResult;
     }
@@ -247,10 +256,18 @@ class StaticHelper
     private static function createColorListFacet(array $facetItem)
     {
         $enabled = false;
+
         if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
             $enabled = true;
         }
-        $facetResult = new ColorPickerFacetResult( $facetItem['name'], $enabled, $facetItem['display'], self::prepareColorItems( $facetItem['items'], $facetItem['name'] ), $facetItem['name'] );
+
+        $facetResult = new FinFacetResult\ColorPickerFacetResult(
+            $facetItem['name'],
+            $enabled,
+            $facetItem['display'],
+            self::prepareColorItems( $facetItem['items'], $facetItem['name'] ),
+            $facetItem['name']
+        );
 
         return $facetResult;
     }
@@ -353,16 +370,24 @@ class StaticHelper
     /**
      * @param array $facetItem
      *
-     * @return TreeFacetResult
+     * @return SearchBundle\FacetResult\TreeFacetResult
      */
     private static function createTreeviewFacet(array $facetItem)
     {
         $enabled = false;
+
         if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
             $enabled = true;
         }
-        $facetResult = new TreeFacetResult( $facetItem['name'],
-            $facetItem['name'], $enabled, $facetItem['display'], self::prepareTreeView( $facetItem['items'], $facetItem['name'] ), $facetItem['name'] );
+
+        $facetResult = new SearchBundle\FacetResult\TreeFacetResult(
+            $facetItem['name'],
+            $facetItem['name'],
+            $enabled,
+            $facetItem['display'],
+            self::prepareTreeView($facetItem['items'], $facetItem['name']),
+            $facetItem['name']
+        );
 
         return $facetResult;
     }
@@ -372,11 +397,22 @@ class StaticHelper
      * @param float $minValue
      * @param float $maxValue
      *
-     * @return RangeFacetResult
+     * @return SearchBundle\FacetResult\RangeFacetResult
      */
     private static function createRangeSlideFacet(array $facetItem, $minValue, $maxValue)
     {
-        $facetResult = new RangeFacetResult( $facetItem['name'], false, $facetItem['display'], $minValue, $maxValue, $minValue, $maxValue, 'min', 'max', $facetItem['name'] );
+        $facetResult = new SearchBundle\FacetResult\RangeFacetResult(
+            $facetItem['name'],
+            false,
+            $facetItem['display'],
+            $minValue,
+            $maxValue,
+            $minValue,
+            $maxValue,
+            'min',
+            'max',
+            $facetItem['name']
+        );
 
         return $facetResult;
     }
@@ -452,40 +488,45 @@ class StaticHelper
      */
     private static function prepareMediaItems($items, $name)
     {
-        $response = [];
+        $values = [];
+        $httpClient = new Zend_Http_Client();
+        $httpClient->setMethod(Zend_Http_Client::HEAD);
 
         foreach ( $items as $item ) {
+            $media = null;
             $enabled = false;
+
             if ( array_key_exists( $name, $_REQUEST ) ) {
                 $selectedItems = explode( '|', $_REQUEST[ $name ] );
-                {
-                    foreach ( $selectedItems as $selected_item ) {
-                        if ( $selected_item == $item ) {
-                            $enabled = true;
-                        }
+
+                foreach ( $selectedItems as $selected_item ) {
+                    if ( $selected_item == $item ) {
+                        $enabled = true;
                     }
                 }
             }
-            if ( $item['image'] !== '' ) {
-                $mediaItem = $item['image'];
-            } else {
-                $mediaItem = null;
-            }
 
-            try {
-                $imageFile = new File( $mediaItem );
-                if ( $imageFile->isFile() ) {
-                    $shopwareMedia = new Media();
-                    $shopwareMedia->setFile( $imageFile );
+            if ($item['image']) {
+
+                try {
+                    $httpClient->setUri($item['image']);
+                    $response = $httpClient->request();
+                } catch (Exception $e) {
+                    $response = null;
                 }
-            } catch ( Exception $fileNotFound ) {
+
+                // Explicitly use Zend_Http_Response::isError here since only status codes >= 400
+                // should count as errors.
+                if ($response !== null && !$response->isError()) {
+                    $media = new StoreFrontBundle\Struct\Media();
+                    $media->setFile($item['image']);
+                }
             }
 
-            $valueListItem = new SearchBundle\FacetResult\MediaListItem( $item['name'], $item['name'], $enabled, $shopwareMedia );
-            $response[]    = $valueListItem;
+            $values[] = new SearchBundle\FacetResult\MediaListItem($item['name'], $item['name'], $enabled, $media);
         }
 
-        return $response;
+        return $values;
     }
 
     /**
@@ -513,7 +554,7 @@ class StaticHelper
             if ( $item['color'] !== '' ) {
                 $mediaItem = $item['color'];
             }
-            $valueListItem = new ColorListItem( $item['name'], $item['name'], $enabled, null, $mediaItem );
+            $valueListItem = new FinFacetResult\ColorListItem( $item['name'], $item['name'], $enabled, null, $mediaItem );
             $response[]    = $valueListItem;
         }
 
@@ -531,8 +572,8 @@ class StaticHelper
         $tempItem = [];
         foreach ( $items as $subItem ) {
             $tempItem['name']  = (string) $subItem->name;
-            $tempItem['image'] = ( $subItem->image !== null ? $subItem->image : '' );
-            $tempItem['color'] = ( $subItem->color !== null ? $subItem->color : '' );
+            $tempItem['image'] = (string) ( $subItem->image !== null ? $subItem->image[0] : '' );
+            $tempItem['color'] = (string) ( $subItem->color !== null ? $subItem->color[0] : '' );
             if ( $subItem->items->item ) {
                 $tempItem['items'] = self::createFilterItems( $subItem->items->item );
             }
