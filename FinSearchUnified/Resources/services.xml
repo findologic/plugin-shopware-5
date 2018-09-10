@@ -10,70 +10,69 @@
     <services>
         <service id="fin_search_unified.subscriber.frontend" class="FinSearchUnified\Subscriber\Frontend">
             <argument>%fin_search_unified.plugin_dir%</argument>
-            <argument type="service" id="template"/>
+            <argument type="service" id="template" />
             <tag name="shopware.event_subscriber" />
         </service>
-
-        <service decorates="shopware_storefront.custom_facet_gateway" class="FinSearchUnified\Bundles\FindologicFacetGateway" id="FinSearchUnified.findologic_facet_gateway">
-            <argument type="service" id="FinSearchUnified.findologic_facet_gateway.inner"/>
+        <service
+            id="fin_search_unified.custom_facet_gateway"
+            class="FinSearchUnified\Bundles\FindologicFacetGateway"
+            decorates="shopware_storefront.custom_facet_gateway"
+        >
+            <argument type="service" id="fin_search_unified.custom_facet_gateway.inner" />
             <argument type="service" id="dbal_connection" />
             <argument type="service" id="shopware_storefront.field_helper_dbal" />
             <argument type="service" id="shopware_storefront.custom_listing_hydrator" />
         </service>
-
         <service id="fin_search_unified.shopware_process" class="FinSearchUnified\ShopwareProcess">
             <argument type="service" id="cache" />
             <argument type="service" id="shopware_product_stream.repository" />
         </service>
-
-        <service id="fin_search_unified.article_model_factory" class="FinSearchUnified\BusinessLogic\FindologicArticleFactory">
-
-        </service>
-
+        <service
+            id="fin_search_unified.article_model_factory"
+            class="FinSearchUnified\BusinessLogic\FindologicArticleFactory"
+        />
         <service id="fin_search_unified.service_subscriber" class="FinSearchUnified\Subscriber\ServiceSubscriber">
-            <argument type="service" id="service_container"/>
-            <tag name="shopware.event_subscriber"/>
+            <argument type="service" id="service_container" />
+            <tag name="shopware.event_subscriber" />
         </service>
-
-        <service id="FinSearchUnified.color_picker_facet_result" class="FinSearchUnified\Bundles\FacetResult\ColorPickerFacetResult">
-
+        <service
+            id="fin_search_unified.color_picker_facet_result"
+            class="FinSearchUnified\Bundles\FacetResult\ColorPickerFacetResult"
+        />
+        <service
+            id="fin_search_unified.product_number_search"
+            class="FinSearchUnified\Bundles\ProductNumberSearch"
+            decorates="shopware_search.product_number_search"
+            public="false"
+        >
+            <argument type="service" id="fin_search_unified.product_number_search.inner" />
         </service>
-
-        <service id="fin_search_unified.product_number_search" class="FinSearchUnified\Bundles\ProductNumberSearch" decorates="shopware_search.product_number_search"
-                 public="false">
-            <argument type="service" id="fin_search_unified.product_number_search.inner"/>
+        <service
+            id="fin_search_unified_es.product_number_search"
+            class="FinSearchUnified\Bundles\ProductNumberSearch"
+            decorates="shopware_search_es.product_number_search"
+            public="false"
+        >
+            <argument type="service" id="fin_search_unified_es.product_number_search.inner" />
         </service>
-
-        <service id="fin_search_unified_es.product_number_search" class="FinSearchUnified\Bundles\ProductNumberSearch" decorates="shopware_search_es.product_number_search"
-                 public="false">
-            <argument type="service" id="fin_search_unified_es.product_number_search.inner"/>
+        <service id="fin_search_unified.commands.export_command" class="FinSearchUnified\Commands\ExportCommand">
+            <tag name="console.command" />
         </service>
-
-        <service id="fin_search_unified.commands.export_command"
-                 class="FinSearchUnified\Commands\ExportCommand">
-            <tag name="console.command"/>
-        </service>
-
-        <service id="shopware.api.findologic" class="FinSearchUnified\Components\Api\Resource\Findologic">
-
-        </service>
-
         <service
             id="fin_search_unified.product_search"
             class="Shopware\Bundle\SearchBundle\ProductSearch"
             decorates="shopware_search.product_search"
         >
-            <argument type="service" id="shopware_storefront.list_product_service"/>
-            <argument type="service" id="fin_search_unified.product_number_search"/>
+            <argument type="service" id="shopware_storefront.list_product_service" />
+            <argument type="service" id="fin_search_unified.product_number_search" />
         </service>
-
         <service
             id="fin_search_unified.product_stream.criteria_factory"
             class="FinSearchUnified\Components\ProductStream\CriteriaFactory"
             decorates="shopware_product_stream.criteria_factory"
         >
             <argument type="service" id="shopware_search.store_front_criteria_factory" />
-            <argument type="service" id="fin_search_unified.product_stream.criteria_factory.inner"/>
+            <argument type="service" id="fin_search_unified.product_stream.criteria_factory.inner" />
         </service>
     </services>
 </container>
