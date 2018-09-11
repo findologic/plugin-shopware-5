@@ -13,16 +13,6 @@
             <argument type="service" id="template" />
             <tag name="shopware.event_subscriber" />
         </service>
-        <service
-            id="fin_search_unified.custom_facet_gateway"
-            class="FinSearchUnified\Bundles\FindologicFacetGateway"
-            decorates="shopware_storefront.custom_facet_gateway"
-        >
-            <argument type="service" id="fin_search_unified.custom_facet_gateway.inner" />
-            <argument type="service" id="dbal_connection" />
-            <argument type="service" id="shopware_storefront.field_helper_dbal" />
-            <argument type="service" id="shopware_storefront.custom_listing_hydrator" />
-        </service>
         <service id="fin_search_unified.shopware_process" class="FinSearchUnified\ShopwareProcess">
             <argument type="service" id="cache" />
             <argument type="service" id="shopware_product_stream.repository" />
@@ -39,14 +29,6 @@
             id="fin_search_unified.color_picker_facet_result"
             class="FinSearchUnified\Bundles\FacetResult\ColorPickerFacetResult"
         />
-        <service
-            id="fin_search_unified.product_number_search"
-            class="FinSearchUnified\Bundles\ProductNumberSearch"
-            decorates="shopware_search.product_number_search"
-            public="false"
-        >
-            <argument type="service" id="fin_search_unified.product_number_search.inner" />
-        </service>
         <service
             id="fin_search_unified_es.product_number_search"
             class="FinSearchUnified\Bundles\ProductNumberSearch"
