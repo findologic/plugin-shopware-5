@@ -534,7 +534,7 @@ class StaticHelper
             $active = in_array($item['name'], $selectedItems);
             $color = $item['color'] ?: null;
 
-            $values[] = new FinFacetResult\ColorListItem($item['name'], $item['name'], $active, null, $color);
+            $values[] = new FinFacetResult\ColorListItem($item['name'], $item['name'], $active, $color);
         }
 
         return $values;
