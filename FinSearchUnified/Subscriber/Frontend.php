@@ -82,9 +82,13 @@ class Frontend implements SubscriberInterface
             foreach ($params['attrib'] as $filterName => $filterValue) {
                 if ($filterName === 'wizard') {
                     continue;
+                } elseif ($filterName === 'price') {
+                    foreach ($filterValue as $key => $value) {
+                        $mappedParams[$key] = $value;
+                    }
+                } else {
+                    $mappedParams[$filterName] = is_array($filterValue) ? implode('|', $filterValue) : $filterValue;
                 }
-
-                $mappedParams[$filterName] = is_array($filterValue) ? implode('|', $filterValue) : $filterValue;
             }
 
             unset($params['attrib']);
