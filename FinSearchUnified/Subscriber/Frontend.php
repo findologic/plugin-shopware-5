@@ -93,6 +93,13 @@ class Frontend implements SubscriberInterface
         if ($mappedParams) {
             $path = strstr($request->getRequestUri(), '?', true);
             $mappedParams = array_merge($params, $mappedParams);
+
+            // Explicitly re-add this parameter only if there were parameters to be mapped.
+            // This will avoid a redirect loop.
+            if ($request->has('sSearch')) {
+                $mappedParams['sSearch'] = $request->getParam('sSearch');
+            }
+
             $request->setParams($mappedParams);
 
             unset($mappedParams['module']);
