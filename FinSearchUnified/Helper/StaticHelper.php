@@ -505,9 +505,10 @@ class StaticHelper
                 $response = null;
             }
 
-            // Explicitly use Zend_Http_Response::isError here since only status codes >= 400
-            // should count as errors.
-            if ($response !== null && !$response->isError()) {
+            // Explicitly use Zend_Http_Response::isError here since only status codes >= 400 should count as errors.
+            if ($response === null || $response->isError()) {
+                $media = null;
+            } else {
                 $media = new StoreFrontBundle\Struct\Media();
                 $media->setFile($item['image']);
             }
