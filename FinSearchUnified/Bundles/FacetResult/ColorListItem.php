@@ -2,14 +2,25 @@
 
 namespace FinSearchUnified\Bundles\FacetResult;
 
-class ColorListItem extends \Shopware\Bundle\SearchBundle\FacetResult\MediaListItem
+use Shopware\Bundle\SearchBundle\FacetResult;
+
+class ColorListItem extends FacetResult\MediaListItem
 {
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $colorcode;
 
-    public function __construct($id, $label, $active, \Shopware\Bundle\StoreFrontBundle\Struct\Media $media = null, $color = null, $attributes = [])
+    /**
+     * @param int|string  $id
+     * @param string      $label
+     * @param bool        $active
+     * @param string|null $color
+     * @param Attribute[] $attributes
+     */
+    public function __construct($id, $label, $active, $color = null, $attributes = [])
     {
-        parent::__construct($id, $label, $active, $media, $attributes);
+        parent::__construct($id, $label, $active, null, $attributes);
         $this->colorcode = $color;
     }
 
