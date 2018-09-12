@@ -68,8 +68,11 @@ class Frontend implements SubscriberInterface
         $params = $request->getParams();
         $mappedParams = [];
 
-        if (array_key_exists('sSearch', $params) && empty($params['sSearch'])) {
-            $request->setParams(['sSearch' => ' ']);
+        if (
+            (array_key_exists('sSearch', $params) && empty($params['sSearch'])) ||
+            (Shopware()->Session()->offsetGet('isSearchPage') && !array_key_exists('sSearch', $params))
+        ) {
+            $request->setParam('sSearch', ' ');
             unset($params['sSearch']);
         }
 
@@ -97,6 +100,13 @@ class Frontend implements SubscriberInterface
         if ($mappedParams) {
             $path = strstr($request->getRequestUri(), '?', true);
             $mappedParams = array_merge($params, $mappedParams);
+
+            // Explicitly re-add this parameter only if there were parameters to be mapped.
+            // This will avoid a redirect loop.
+            if ($request->has('sSearch')) {
+                $mappedParams['sSearch'] = $request->getParam('sSearch');
+            }
+
             $request->setParams($mappedParams);
 
             unset($mappedParams['module']);
