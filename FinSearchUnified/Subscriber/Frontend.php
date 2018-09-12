@@ -68,8 +68,11 @@ class Frontend implements SubscriberInterface
         $params = $request->getParams();
         $mappedParams = [];
 
-        if (array_key_exists('sSearch', $params) && empty($params['sSearch'])) {
-            $request->setParams(['sSearch' => ' ']);
+        if (
+            (array_key_exists('sSearch', $params) && empty($params['sSearch'])) ||
+            (Shopware()->Session()->offsetGet('isSearchPage') && !array_key_exists('sSearch', $params))
+        ) {
+            $request->setParam('sSearch', ' ');
             unset($params['sSearch']);
         }
 
