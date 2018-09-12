@@ -191,9 +191,11 @@ class StaticHelper
                     $facets[] = self::createMediaListFacet( $facetItem );
                     break;
                 case 'range-slider':
-                    $minValue = (float) $filter->attributes->selectedRange->min;
-                    $maxValue = (float) $filter->attributes->selectedRange->max;
-                    $facets[] = self::createRangeSlideFacet( $facetItem, $minValue, $maxValue );
+                    $min = (float) $filter->attributes->totalRange->min;
+                    $max = (float) $filter->attributes->totalRange->max;
+                    $activeMin = (float) $filter->attributes->selectedRange->min;
+                    $activeMax = (float) $filter->attributes->selectedRange->max;
+                    $facets[] = self::createRangeSlideFacet($facetItem, $min, $max, $activeMin, $activeMax);
                     break;
                 default:
                     break;
@@ -394,24 +396,34 @@ class StaticHelper
 
     /**
      * @param array $facetItem
-     * @param float $minValue
-     * @param float $maxValue
+     * @param float $min
+     * @param float $max
+     * @param float $activeMin
+     * @param float $activeMax
      *
      * @return SearchBundle\FacetResult\RangeFacetResult
      */
-    private static function createRangeSlideFacet(array $facetItem, $minValue, $maxValue)
+    private static function createRangeSlideFacet(array $facetItem, $min, $max, $activeMin, $activeMax)
     {
+        $request = Shopware()->Front()->Request();
+
+        // Perform a loose comparison since the floating numbers could actually be integers.
+        if ($request->getParam('min') == $activeMin || $request->getParam('max') == $activeMax) {
+            $active = true;
+        } else {
+            $active = false;
+        }
+
         $facetResult = new SearchBundle\FacetResult\RangeFacetResult(
             $facetItem['name'],
-            false,
+            $active,
             $facetItem['display'],
-            $minValue,
-            $maxValue,
-            $minValue,
-            $maxValue,
+            $min,
+            $max,
+            $activeMin,
+            $activeMax,
             'min',
-            'max',
-            $facetItem['name']
+            'max'
         );
 
         return $facetResult;
