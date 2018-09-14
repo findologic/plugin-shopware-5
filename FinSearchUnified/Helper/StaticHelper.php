@@ -191,9 +191,11 @@ class StaticHelper
                     $facets[] = self::createMediaListFacet( $facetItem );
                     break;
                 case 'range-slider':
-                    $minValue = (float) $filter->attributes->selectedRange->min;
-                    $maxValue = (float) $filter->attributes->selectedRange->max;
-                    $facets[] = self::createRangeSlideFacet( $facetItem, $minValue, $maxValue );
+                    $min = (float) $filter->attributes->totalRange->min;
+                    $max = (float) $filter->attributes->totalRange->max;
+                    $activeMin = (float) $filter->attributes->selectedRange->min;
+                    $activeMax = (float) $filter->attributes->selectedRange->max;
+                    $facets[] = self::createRangeSlideFacet($facetItem, $min, $max, $activeMin, $activeMax);
                     break;
                 default:
                     break;
@@ -394,24 +396,34 @@ class StaticHelper
 
     /**
      * @param array $facetItem
-     * @param float $minValue
-     * @param float $maxValue
+     * @param float $min
+     * @param float $max
+     * @param float $activeMin
+     * @param float $activeMax
      *
      * @return SearchBundle\FacetResult\RangeFacetResult
      */
-    private static function createRangeSlideFacet(array $facetItem, $minValue, $maxValue)
+    private static function createRangeSlideFacet(array $facetItem, $min, $max, $activeMin, $activeMax)
     {
+        $request = Shopware()->Front()->Request();
+
+        // Perform a loose comparison since the floating numbers could actually be integers.
+        if ($request->getParam('min') == $activeMin || $request->getParam('max') == $activeMax) {
+            $active = true;
+        } else {
+            $active = false;
+        }
+
         $facetResult = new SearchBundle\FacetResult\RangeFacetResult(
             $facetItem['name'],
-            false,
+            $active,
             $facetItem['display'],
-            $minValue,
-            $maxValue,
-            $minValue,
-            $maxValue,
+            $min,
+            $max,
+            $activeMin,
+            $activeMax,
             'min',
-            'max',
-            $facetItem['name']
+            'max'
         );
 
         return $facetResult;
@@ -489,41 +501,31 @@ class StaticHelper
     private static function prepareMediaItems($items, $name)
     {
         $values = [];
+        $selectedItems = explode('|', Shopware()->Front()->Request()->getParam($name, []));
+
         $httpClient = new Zend_Http_Client();
         $httpClient->setMethod(Zend_Http_Client::HEAD);
 
-        foreach ( $items as $item ) {
+        foreach ($items as $item) {
             $media = null;
-            $enabled = false;
+            $active = in_array($item['name'], $selectedItems);
 
-            if ( array_key_exists( $name, $_REQUEST ) ) {
-                $selectedItems = explode( '|', $_REQUEST[ $name ] );
-
-                foreach ( $selectedItems as $selected_item ) {
-                    if ( $selected_item == $item ) {
-                        $enabled = true;
-                    }
-                }
+            try {
+                $httpClient->setUri($item['image']);
+                $response = $httpClient->request();
+            } catch (Exception $e) {
+                $response = null;
             }
 
-            if ($item['image']) {
-
-                try {
-                    $httpClient->setUri($item['image']);
-                    $response = $httpClient->request();
-                } catch (Exception $e) {
-                    $response = null;
-                }
-
-                // Explicitly use Zend_Http_Response::isError here since only status codes >= 400
-                // should count as errors.
-                if ($response !== null && !$response->isError()) {
-                    $media = new StoreFrontBundle\Struct\Media();
-                    $media->setFile($item['image']);
-                }
+            // Explicitly use Zend_Http_Response::isError here since only status codes >= 400 should count as errors.
+            if ($response === null || $response->isError()) {
+                $media = null;
+            } else {
+                $media = new StoreFrontBundle\Struct\Media();
+                $media->setFile($item['image']);
             }
 
-            $values[] = new SearchBundle\FacetResult\MediaListItem($item['name'], $item['name'], $enabled, $media);
+            $values[] = new SearchBundle\FacetResult\MediaListItem($item['name'], $item['name'], $active, $media);
         }
 
         return $values;
@@ -537,28 +539,17 @@ class StaticHelper
      */
     private static function prepareColorItems($items, $name)
     {
-        $response = [];
+        $values = [];
+        $selectedItems = explode('|', Shopware()->Front()->Request()->getParam($name, []));
 
-        foreach ( $items as $item ) {
-            $enabled = false;
-            if ( array_key_exists( $name, $_REQUEST ) ) {
-                $selectedItems = explode( '|', $_REQUEST[ $name ] );
-                {
-                    foreach ( $selectedItems as $selected_item ) {
-                        if ( $selected_item == $item ) {
-                            $enabled = true;
-                        }
-                    }
-                }
-            }
-            if ( $item['color'] !== '' ) {
-                $mediaItem = $item['color'];
-            }
-            $valueListItem = new FinFacetResult\ColorListItem( $item['name'], $item['name'], $enabled, null, $mediaItem );
-            $response[]    = $valueListItem;
+        foreach ($items as $item) {
+            $active = in_array($item['name'], $selectedItems);
+            $color = $item['color'] ?: null;
+
+            $values[] = new FinFacetResult\ColorListItem($item['name'], $item['name'], $active, $color);
         }
 
-        return $response;
+        return $values;
     }
 
     /**
