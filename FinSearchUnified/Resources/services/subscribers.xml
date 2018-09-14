@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="fin_search_unified.subscriber.frontend" class="FinSearchUnified\Subscriber\Frontend">
+            <argument>%fin_search_unified.plugin_dir%</argument>
+            <argument type="service" id="template" />
+            <tag name="shopware.event_subscriber" />
+        </service>
+        <service id="fin_search_unified.service_subscriber" class="FinSearchUnified\Subscriber\ServiceSubscriber">
+            <argument type="service" id="service_container" />
+            <tag name="shopware.event_subscriber" />
+        </service>
+    </services>
+</container>

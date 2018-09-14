@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="fin_search_unified.view_dir">%fin_search_unified.plugin_dir%/Resources/views</parameter>
+    </parameters>
+
+    <services>
+        <service
+            id="fin_search_unified.color_picker_facet_result"
+            class="FinSearchUnified\Bundles\FacetResult\ColorPickerFacetResult"
+        />
+        <service id="fin_search_unified.shopware_process" class="FinSearchUnified\ShopwareProcess">
+            <argument type="service" id="cache" />
+            <argument type="service" id="shopware_product_stream.repository" />
+        </service>
+        <service
+            id="fin_search_unified.article_model_factory"
+            class="FinSearchUnified\BusinessLogic\FindologicArticleFactory"
+        />
+    </services>
+</container>
