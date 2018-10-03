@@ -18,6 +18,7 @@ class UrlBuilder
     const CDN_URL = 'https://cdn.findologic.com/static/';
     const JSON_CONFIG = '/config.json';
     const ALIVE_ENDPOINT = 'alivetest.php';
+    const SEARCH_ENDPOINT = 'index.php';
     const JSON_PATH = 'directIntegration';
 
     /**
@@ -327,16 +328,26 @@ class UrlBuilder
     private function callFindologicForXmlResponse()
     {
         $this->parameters['shopkey'] = $this->getShopkey();
-
-        $url = sprintf('%s%sindex.php?%s', self::BASE_URL, $this->shopUrl, http_build_query($this->parameters));
+        $url = sprintf(
+            '%s%s%s?shopkey=%s',
+            self::BASE_URL,
+            $this->shopUrl,
+            self::SEARCH_ENDPOINT,
+            http_build_query($this->parameters)
+        );
 
         try {
-            $request = $this->httpClient->setUri($url);
-
-            return $request->request();
+            if ($this->isAlive()) {
+                $request = $this->httpClient->setUri($url);
+                $response = $request->request();
+            } else {
+                $response = null;
+            }
         } catch (Zend_Http_Client_Exception $e) {
-            return;
+            $response = null;
         }
+
+        return $response;
     }
 
     /**
