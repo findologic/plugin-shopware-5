@@ -175,7 +175,8 @@ class ShopwareProcess
             if ($start === 0 || $lastModified === false) {
                 $this->warmUpCache();
             } else {
-                $this->cache->touch(Constants::CACHE_ID_PRODUCT_STREAMS, Constants::CACHE_LIFETIME_PRODUCT_STREAMS);
+                $extraLifetime = Constants::CACHE_LIFETIME_PRODUCT_STREAMS - (time() - $lastModified);
+                $this->cache->touch(Constants::CACHE_ID_PRODUCT_STREAMS, $extraLifetime);
             }
 
             $xmlArray = $this->getAllProductsAsXmlArray($lang, $start, $length);
