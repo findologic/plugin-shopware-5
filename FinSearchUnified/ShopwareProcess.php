@@ -169,8 +169,10 @@ class ShopwareProcess
         $exporter = Exporter::create(Exporter::TYPE_XML);
 
         try {
+            $lastModified = $this->cache->test(Constants::CACHE_ID_PRODUCT_STREAMS);
+
             // Make a type safe check since \Zend_Cache_Core::test might actually return zero.
-            if ($this->cache->test(Constants::CACHE_ID_PRODUCT_STREAMS) === false) {
+            if ($start === 0 || $lastModified === false) {
                 $this->warmUpCache();
             } else {
                 $this->cache->touch(Constants::CACHE_ID_PRODUCT_STREAMS, Constants::CACHE_LIFETIME_PRODUCT_STREAMS);
