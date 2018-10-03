@@ -356,4 +356,30 @@ class UrlBuilder
         $this->hashedKey = StaticHelper::calculateUsergroupHash($this->getShopkey(), $customerGroup->getKey());
         $this->parameters['group'] = [$this->hashedKey];
     }
+
+    /**
+     * Returns true if the service is reachable and alive. Will return false in any other case.
+     *
+     * @return bool
+     */
+    private function isAlive()
+    {
+        $url = sprintf(
+            '%s%s%s?shopkey=%s',
+            self::BASE_URL,
+            $this->shopUrl,
+            self::ALIVE_ENDPOINT,
+            $this->getShopkey()
+        );
+
+        try {
+            $request = $this->httpClient->setUri($url);
+            $response = $request->request();
+            $isAlive = $response->isSuccessful() && strpos($response->getBody(), 'alive') !== false;
+        } catch (Zend_Http_Client_Exception $e) {
+            $isAlive = false;
+        }
+
+        return $isAlive;
+    }
 }
