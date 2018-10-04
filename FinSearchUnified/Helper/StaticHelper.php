@@ -613,14 +613,14 @@ class StaticHelper
 
     public static function checkDirectIntegration()
     {
-        if ( ! isset( Shopware()->Session()->findologicApi ) ) {
-            // LOAD STATUS
-            $urlBuilder                          = new UrlBuilder();
-            $status                              = $urlBuilder->getConfigStatus();
-            Shopware()->Session()->findologicApi = ! $status;
+        $session = Shopware()->Session();
+
+        if ($session->offsetExists('findologicDI') === false) {
+            $urlBuilder = new UrlBuilder();
+            $session->offsetSet('findologicDI', $urlBuilder->getConfigStatus());
         }
 
-        return ! ( true == Shopware()->Session()->findologicApi );
+        return $session->offsetGet('findologicDI');
     }
 
     public static function cleanString( $string )
