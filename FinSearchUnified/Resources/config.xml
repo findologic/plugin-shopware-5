@@ -29,7 +29,8 @@
         </element>
         <element type="text" required="false" scope="shop">
             <name>IntegrationType</name>
-            <label>Integration</label>
+            <label lang="de">Integration (schreibgeschützt)</label>
+            <label lang="en">Integration (read-only)</label>
             <value></value>
             <description lang="en">Currently used integration type. Either one of DI or API.</description>
             <description lang="de">Die aktuell verwendete Integrationsart. Entweder DI oder API.</description>
