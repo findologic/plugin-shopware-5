@@ -6,8 +6,10 @@ use Exception;
 use SimpleXMLElement;
 use Zend_Http_Client;
 use Zend_Http_Response;
+use FinSearchUnified\Constants;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\StoreFrontBundle;
+use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Models\Search\CustomFacet;
 use FinSearchUnified\Bundles\FacetResult as FinFacetResult;
 
@@ -617,7 +619,11 @@ class StaticHelper
 
         if ($session->offsetExists('findologicDI') === false) {
             $urlBuilder = new UrlBuilder();
-            $session->offsetSet('findologicDI', $urlBuilder->getConfigStatus());
+            $isDI = $urlBuilder->getConfigStatus();
+            $session->offsetSet('findologicDI', $isDI);
+            $currentIntegrationType = $isDI ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API;
+
+            self::storeIntegrationType($currentIntegrationType);
         }
 
         return $session->offsetGet('findologicDI');
@@ -701,5 +707,25 @@ class StaticHelper
         $start = -1 * strlen($needle);
 
         return substr($haystack, $start) === $needle;
+    }
+
+    /**
+     * Saves the currently used integration type in the plugin configuration.
+     *
+     * @param string $currentIntegrationType
+     */
+    public static function storeIntegrationType($currentIntegrationType)
+    {
+        try {
+            /** @var InstallerService $pluginManager */
+            $pluginManager = Shopware()->Container()->get('shopware_plugininstaller.plugin_manager');
+            $plugin = $pluginManager->getPluginByName('FinSearchUnified');
+            $config = $pluginManager->getPluginConfig($plugin);
+
+            if (array_key_exists('IntegrationType', $config) && $config['IntegrationType'] !== $currentIntegrationType) {
+                $config['IntegrationType'] = $currentIntegrationType;
+                $pluginManager->savePluginConfig($plugin, $config);
+            }
+        } catch (Exception $exception) {}
     }
 }

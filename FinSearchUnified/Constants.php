@@ -16,4 +16,7 @@ class Constants
      * once the export is finished, aborted or triggered manually.
      */
     const CACHE_LIFETIME_PRODUCT_STREAMS = 660;
+
+    const INTEGRATION_TYPE_DI = 'DI';
+    const INTEGRATION_TYPE_API = 'API';
 }
