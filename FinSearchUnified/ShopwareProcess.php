@@ -15,7 +15,6 @@ use Zend_Cache_Core;
 use Shopware\Components\ProductStream\RepositoryInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Models\Category\Category;
-use FinSearchUnified\Constants;
 
 require __DIR__.'/vendor/autoload.php';
 
