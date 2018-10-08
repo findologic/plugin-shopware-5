@@ -435,7 +435,8 @@ class FindologicArticleModel
         /** @var Category[] $categories */
         $categories = $this->baseArticle->getCategories();
 
-        $productStreams = $this->cache->load(Constants::CACHE_ID_PRODUCT_STREAMS);
+        $id = sprintf('%s_%s', Constants::CACHE_ID_PRODUCT_STREAMS, $this->shopKey);
+        $productStreams = $this->cache->load($id);
 
         if ($productStreams != false && array_key_exists($this->baseArticle->getId(), $productStreams)) {
             foreach ($productStreams[$this->baseArticle->getId()] as $cat) {
