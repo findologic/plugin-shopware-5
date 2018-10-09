@@ -18,6 +18,7 @@ class UrlBuilder
     const CDN_URL = 'https://cdn.findologic.com/static/';
     const JSON_CONFIG = '/config.json';
     const ALIVE_ENDPOINT = 'alivetest.php';
+    const SEARCH_ENDPOINT = 'index.php';
     const JSON_PATH = 'directIntegration';
 
     /**
@@ -327,16 +328,26 @@ class UrlBuilder
     private function callFindologicForXmlResponse()
     {
         $this->parameters['shopkey'] = $this->getShopkey();
-
-        $url = sprintf('%s%sindex.php?%s', self::BASE_URL, $this->shopUrl, http_build_query($this->parameters));
+        $url = sprintf(
+            '%s%s%s?shopkey=%s',
+            self::BASE_URL,
+            $this->shopUrl,
+            self::SEARCH_ENDPOINT,
+            http_build_query($this->parameters)
+        );
 
         try {
-            $request = $this->httpClient->setUri($url);
-
-            return $request->request();
+            if ($this->isAlive()) {
+                $request = $this->httpClient->setUri($url);
+                $response = $request->request();
+            } else {
+                $response = null;
+            }
         } catch (Zend_Http_Client_Exception $e) {
-            return;
+            $response = null;
         }
+
+        return $response;
     }
 
     /**
@@ -355,5 +366,31 @@ class UrlBuilder
         $this->customerGroup = $customerGroup;
         $this->hashedKey = StaticHelper::calculateUsergroupHash($this->getShopkey(), $customerGroup->getKey());
         $this->parameters['group'] = [$this->hashedKey];
+    }
+
+    /**
+     * Returns true if the service is reachable and alive. Will return false in any other case.
+     *
+     * @return bool
+     */
+    private function isAlive()
+    {
+        $url = sprintf(
+            '%s%s%s?shopkey=%s',
+            self::BASE_URL,
+            $this->shopUrl,
+            self::ALIVE_ENDPOINT,
+            $this->getShopkey()
+        );
+
+        try {
+            $request = $this->httpClient->setUri($url);
+            $response = $request->request();
+            $isAlive = $response->isSuccessful() && strpos($response->getBody(), 'alive') !== false;
+        } catch (Zend_Http_Client_Exception $e) {
+            $isAlive = false;
+        }
+
+        return $isAlive;
     }
 }
