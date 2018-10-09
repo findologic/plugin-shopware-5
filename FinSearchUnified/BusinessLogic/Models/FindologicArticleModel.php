@@ -554,7 +554,8 @@ class FindologicArticleModel
 
         // Add sale
         $cheapestPrice = $this->productStruct->getListingPrice();
-        $onSale = $this->productStruct->isCloseouts() || $cheapestPrice->getCalculatedPseudoPrice() > $cheapestPrice->getCalculatedPrice();
+        $hasPseudoPrice = $cheapestPrice->getCalculatedPseudoPrice() > $cheapestPrice->getCalculatedPrice();
+        $onSale = $this->productStruct->isCloseouts() || $hasPseudoPrice;
         $allAttributes[] = new Attribute('sale', [(int)$onSale]);
         /** @var Attribute $attribute */
         foreach ($allAttributes as $attribute) {
