@@ -27,6 +27,17 @@
             <description lang="de">Aktiviert die FINDOLOGIC Suche für Kategorieseiten</description>
             <description lang="en">Activate the FINDOLOGIC search provider for category pages</description>
         </element>
+        <element type="text" required="false" scope="shop">
+            <name>IntegrationType</name>
+            <label lang="de">Integration (schreibgeschützt)</label>
+            <label lang="en">Integration (read-only)</label>
+            <value></value>
+            <description lang="en">Currently used integration type. Either one of DI or API.</description>
+            <description lang="de">Die aktuell verwendete Integrationsart. Entweder DI oder API.</description>
+            <options>
+                <readOnly>true</readOnly>
+            </options>
+        </element>
     </elements>
 
 </config>
