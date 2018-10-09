@@ -656,6 +656,12 @@ class FindologicArticleModel
             }
         }
 
+        $cheapestPrice = $this->productStruct->getListingPrice();
+
+        if ($cheapestPrice->getCalculatedPseudoPrice() > $cheapestPrice->getCalculatedPrice()) {
+            $allProperties[] = new Property('old_price', ['' => $cheapestPrice->getCalculatedPseudoPrice()]);
+        }
+
         /** @var Attribute $attribute */
         foreach ($allProperties as $attribute) {
             $this->xmlArticle->addProperty($attribute);
