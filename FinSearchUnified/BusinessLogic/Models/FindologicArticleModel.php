@@ -578,7 +578,10 @@ class FindologicArticleModel
         $allAttributes[] = new Attribute('free_shipping', [$this->baseVariant->getShippingFree() == '' ? 0 : $this->baseArticle->getMainDetail()->getShippingFree()]);
 
         // Add sale
-        $allAttributes[] = new Attribute('sale', [$this->baseArticle->getLastStock() == '' ? 0 : $this->baseArticle->getLastStock()]);
+        $cheapestPrice = $this->productStruct->getListingPrice();
+        $hasPseudoPrice = $cheapestPrice->getCalculatedPseudoPrice() > $cheapestPrice->getCalculatedPrice();
+        $onSale = $this->productStruct->isCloseouts() || $hasPseudoPrice;
+        $allAttributes[] = new Attribute('sale', [(int)$onSale]);
         /** @var Attribute $attribute */
         foreach ($allAttributes as $attribute) {
             $this->xmlArticle->addAttribute($attribute);
@@ -676,6 +679,12 @@ class FindologicArticleModel
             if (self::checkIfHasValue($brandImage)) {
                 $allProperties[] = new Property('brand_image', ['' => $brandImage]);
             }
+        }
+
+        $cheapestPrice = $this->productStruct->getListingPrice();
+
+        if ($cheapestPrice->getCalculatedPseudoPrice() > $cheapestPrice->getCalculatedPrice()) {
+            $allProperties[] = new Property('old_price', ['' => $cheapestPrice->getCalculatedPseudoPrice()]);
         }
 
         /** @var Attribute $attribute */
