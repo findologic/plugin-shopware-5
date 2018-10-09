@@ -553,7 +553,9 @@ class FindologicArticleModel
         $allAttributes[] = new Attribute('free_shipping', [$this->baseVariant->getShippingFree() == '' ? 0 : $this->baseArticle->getMainDetail()->getShippingFree()]);
 
         // Add sale
-        $allAttributes[] = new Attribute('sale', [$this->baseArticle->getLastStock() == '' ? 0 : $this->baseArticle->getLastStock()]);
+        $cheapestPrice = $this->productStruct->getListingPrice();
+        $onSale = $this->productStruct->isCloseouts() || $cheapestPrice->getCalculatedPseudoPrice() > $cheapestPrice->getCalculatedPrice();
+        $allAttributes[] = new Attribute('sale', [(int)$onSale]);
         /** @var Attribute $attribute */
         foreach ($allAttributes as $attribute) {
             $this->xmlArticle->addAttribute($attribute);
