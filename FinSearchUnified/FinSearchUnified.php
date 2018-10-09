@@ -38,13 +38,6 @@ class FinSearchUnified extends Plugin
         parent::uninstall($context);
     }
 
-    public function install(InstallContext $context)
-    {
-        $this->storeIntegrationType();
-
-        parent::install($context);
-    }
-
     public function update(UpdateContext $context)
     {
         $this->storeIntegrationType();
