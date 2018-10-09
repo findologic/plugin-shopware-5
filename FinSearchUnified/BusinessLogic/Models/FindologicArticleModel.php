@@ -512,6 +512,11 @@ class FindologicArticleModel
             }
         }
 
+        $variationFilters = [];
+        $storefrontContextService = Shopware()->Container()->get('shopware_storefront.context_service');
+        $context = $storefrontContextService->createShopContext(Shopware()->Shop()->getId());
+        $productService = Shopware()->Container()->get('shopware_storefront.product_service');
+
         // Variant configurator entries
         /** @var Detail $variant */
         foreach ($this->variantArticles as $variant) {
@@ -520,17 +525,36 @@ class FindologicArticleModel
                 continue;
             }
 
-            /* @var $configuratorOption \Shopware\Models\Article\Configurator\Option */
-            foreach ($variant->getConfiguratorOptions() as $configuratorOption) {
+            $variantStruct = $productService->get($variant->getNumber(), $context);
 
-                if (!self::checkIfHasValue($configuratorOption->getName())
-                    || !$configuratorOption->getGroup()) {
-                    continue;
+            foreach ($variantStruct->getConfiguration() as $group) {
+                $variationFilterValues = [];
+
+                foreach ($group->getOptions() as $option) {
+                    if (!self::checkIfHasValue($option->getName())) {
+                        continue;
+                    }
+
+                    $variationFilterValues[] = $option->getName();
                 }
 
-                $xmlConfig = new Attribute($configuratorOption->getGroup()->getName(), [$configuratorOption->getName()]);
-                $allAttributes[] = $xmlConfig;
+                if (array_key_exists($group->getName(), $variationFilters)) {
+                    $variationFilters[$group->getName()] = array_unique(array_merge(
+                        $variationFilters[$group->getName()],
+                        $variationFilterValues
+                    ));
+                } else {
+                    $variationFilters[$group->getName()] = $variationFilterValues;
+                }
             }
+        }
+
+        foreach ($variationFilters as $filter => $values) {
+            if (empty($values)) {
+                continue;
+            }
+
+            $allAttributes[] = new Attribute($filter, $values);
         }
 
         // Add is new
