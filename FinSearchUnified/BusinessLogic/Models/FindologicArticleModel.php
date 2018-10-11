@@ -527,6 +527,10 @@ class FindologicArticleModel
 
             $variantStruct = $productService->get($variant->getNumber(), $context);
 
+            if (($variantStruct instanceof Product) === false) {
+                continue;
+            }
+
             foreach ($variantStruct->getConfiguration() as $group) {
                 $variationFilterValues = [];
 
