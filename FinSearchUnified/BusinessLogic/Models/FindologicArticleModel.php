@@ -435,7 +435,8 @@ class FindologicArticleModel
         /** @var Category[] $categories */
         $categories = $this->baseArticle->getCategories();
 
-        $productStreams = $this->cache->load(Constants::CACHE_ID_PRODUCT_STREAMS);
+        $id = sprintf('%s_%s', Constants::CACHE_ID_PRODUCT_STREAMS, $this->shopKey);
+        $productStreams = $this->cache->load($id);
 
         if ($productStreams != false && array_key_exists($this->baseArticle->getId(), $productStreams)) {
             foreach ($productStreams[$this->baseArticle->getId()] as $cat) {
@@ -511,6 +512,11 @@ class FindologicArticleModel
             }
         }
 
+        $variationFilters = [];
+        $storefrontContextService = Shopware()->Container()->get('shopware_storefront.context_service');
+        $context = $storefrontContextService->createShopContext(Shopware()->Shop()->getId());
+        $productService = Shopware()->Container()->get('shopware_storefront.product_service');
+
         // Variant configurator entries
         /** @var Detail $variant */
         foreach ($this->variantArticles as $variant) {
@@ -519,17 +525,40 @@ class FindologicArticleModel
                 continue;
             }
 
-            /* @var $configuratorOption \Shopware\Models\Article\Configurator\Option */
-            foreach ($variant->getConfiguratorOptions() as $configuratorOption) {
+            $variantStruct = $productService->get($variant->getNumber(), $context);
 
-                if (!self::checkIfHasValue($configuratorOption->getName())
-                    || !$configuratorOption->getGroup()) {
-                    continue;
+            if (($variantStruct instanceof Product) === false) {
+                continue;
+            }
+
+            foreach ($variantStruct->getConfiguration() as $group) {
+                $variationFilterValues = [];
+
+                foreach ($group->getOptions() as $option) {
+                    if (!self::checkIfHasValue($option->getName())) {
+                        continue;
+                    }
+
+                    $variationFilterValues[] = $option->getName();
                 }
 
-                $xmlConfig = new Attribute($configuratorOption->getGroup()->getName(), [$configuratorOption->getName()]);
-                $allAttributes[] = $xmlConfig;
+                if (array_key_exists($group->getName(), $variationFilters)) {
+                    $variationFilters[$group->getName()] = array_unique(array_merge(
+                        $variationFilters[$group->getName()],
+                        $variationFilterValues
+                    ));
+                } else {
+                    $variationFilters[$group->getName()] = $variationFilterValues;
+                }
             }
+        }
+
+        foreach ($variationFilters as $filter => $values) {
+            if (empty($values)) {
+                continue;
+            }
+
+            $allAttributes[] = new Attribute($filter, $values);
         }
 
         // Add is new
@@ -553,7 +582,10 @@ class FindologicArticleModel
         $allAttributes[] = new Attribute('free_shipping', [$this->baseVariant->getShippingFree() == '' ? 0 : $this->baseArticle->getMainDetail()->getShippingFree()]);
 
         // Add sale
-        $allAttributes[] = new Attribute('sale', [$this->baseArticle->getLastStock() == '' ? 0 : $this->baseArticle->getLastStock()]);
+        $cheapestPrice = $this->productStruct->getListingPrice();
+        $hasPseudoPrice = $cheapestPrice->getCalculatedPseudoPrice() > $cheapestPrice->getCalculatedPrice();
+        $onSale = $this->productStruct->isCloseouts() || $hasPseudoPrice;
+        $allAttributes[] = new Attribute('sale', [(int)$onSale]);
         /** @var Attribute $attribute */
         foreach ($allAttributes as $attribute) {
             $this->xmlArticle->addAttribute($attribute);
@@ -651,6 +683,12 @@ class FindologicArticleModel
             if (self::checkIfHasValue($brandImage)) {
                 $allProperties[] = new Property('brand_image', ['' => $brandImage]);
             }
+        }
+
+        $cheapestPrice = $this->productStruct->getListingPrice();
+
+        if ($cheapestPrice->getCalculatedPseudoPrice() > $cheapestPrice->getCalculatedPrice()) {
+            $allProperties[] = new Property('old_price', ['' => $cheapestPrice->getCalculatedPseudoPrice()]);
         }
 
         /** @var Attribute $attribute */

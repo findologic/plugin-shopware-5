@@ -15,7 +15,6 @@ use Zend_Cache_Core;
 use Shopware\Components\ProductStream\RepositoryInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Models\Category\Category;
-use FinSearchUnified\Constants;
 
 require __DIR__.'/vendor/autoload.php';
 
@@ -169,11 +168,15 @@ class ShopwareProcess
         $exporter = Exporter::create(Exporter::TYPE_XML);
 
         try {
+            $id = sprintf('%s_%s', Constants::CACHE_ID_PRODUCT_STREAMS, $this->shopKey);
+            $lastModified = $this->cache->test($id);
+
             // Make a type safe check since \Zend_Cache_Core::test might actually return zero.
-            if ($this->cache->test(Constants::CACHE_ID_PRODUCT_STREAMS) === false) {
+            if ($start === 0 || $lastModified === false) {
                 $this->warmUpCache();
             } else {
-                $this->cache->touch(Constants::CACHE_ID_PRODUCT_STREAMS, Constants::CACHE_LIFETIME_PRODUCT_STREAMS);
+                $extraLifetime = Constants::CACHE_LIFETIME_PRODUCT_STREAMS - (time() - $lastModified);
+                $this->cache->touch($id, $extraLifetime);
             }
 
             $xmlArray = $this->getAllProductsAsXmlArray($lang, $start, $length);
@@ -222,9 +225,11 @@ class ShopwareProcess
 
     protected function warmUpCache()
     {
+        $id = sprintf('%s_%s', Constants::CACHE_ID_PRODUCT_STREAMS, $this->shopKey);
+
         $this->cache->save(
             $this->parseProductStreams($this->shop->getCategory()->getChildren()),
-            Constants::CACHE_ID_PRODUCT_STREAMS,
+            $id,
             ['FINDOLOGIC'],
             Constants::CACHE_LIFETIME_PRODUCT_STREAMS
         );
