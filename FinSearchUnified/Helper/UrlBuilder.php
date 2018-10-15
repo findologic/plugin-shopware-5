@@ -349,7 +349,7 @@ class UrlBuilder
 
         $this->parameters['shopkey'] = $this->getShopkey();
         $url = sprintf(
-            '%s%s%s?shopkey=%s',
+            '%s%s%s?%s',
             self::BASE_URL,
             $this->shopUrl,
             $endpoint,
