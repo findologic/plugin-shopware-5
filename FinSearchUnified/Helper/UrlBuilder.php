@@ -233,7 +233,14 @@ class UrlBuilder
         }
 
         $this->parameters['first'] = $offset;
-        $this->parameters['count'] = $itemsPerPage;
+
+        // Don't request any products in this case, since Shopware most probably only needs
+        // the total number of found products.
+        if ($offset === 0 && $itemsPerPage === 1) {
+            $this->parameters['count'] = 0;
+        } else {
+            $this->parameters['count'] = $itemsPerPage;
+        }
     }
 
     /**
