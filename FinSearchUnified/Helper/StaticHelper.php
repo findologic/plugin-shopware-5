@@ -429,32 +429,32 @@ class StaticHelper
      */
     public static function createFindologicFacet($label, $name, $type, $filter)
     {
-        $currentFacet = new CustomFacet();
-        $currentFacet->setName( $name );
-        $currentFacet->setUniqueKey( $name );
+        $formFieldName = self::escapeFilterName($name);
 
-        switch ( $type ) {
-            case 'select':
-                $facetType = new SearchBundle\Facet\ProductAttributeFacet( $name, SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT, $name, $label );
-                break;
-            case 'range-slider':
-                $facetType = new SearchBundle\Facet\ProductAttributeFacet( $name, SearchBundle\Facet\ProductAttributeFacet::MODE_RANGE_RESULT, $name, $label );
-                break;
+        switch ($type) {
             case 'label':
-                if ( $filter == 'single' ) {
-                    $facetType = new SearchBundle\Facet\ProductAttributeFacet( $name, SearchBundle\Facet\ProductAttributeFacet::MODE_RADIO_LIST_RESULT, $name, $label );
+                if ($filter === 'single') {
+                    $mode = SearchBundle\Facet\ProductAttributeFacet::MODE_RADIO_LIST_RESULT;
                 } else {
-                    $facetType = new SearchBundle\Facet\ProductAttributeFacet( $name, SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT, $name, $label );
+                    $mode = SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT;
                 }
                 break;
+            case 'range-slider':
+                $mode = SearchBundle\Facet\ProductAttributeFacet::MODE_RANGE_RESULT;
+                break;
             default:
-                $facetType = new SearchBundle\Facet\ProductAttributeFacet( $name, SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT, $name, $label );
+                $mode = SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT;
                 break;
         }
 
-        $currentFacet->setFacet( $facetType );
+        $customFacet = new CustomFacet();
+        $productAttributeFacet = new SearchBundle\Facet\ProductAttributeFacet($name, $mode, $formFieldName, $label);
 
-        return $currentFacet;
+        $customFacet->setName($name);
+        $customFacet->setUniqueKey($name);
+        $customFacet->setFacet($productAttributeFacet);
+
+        return $customFacet;
     }
 
     /**
