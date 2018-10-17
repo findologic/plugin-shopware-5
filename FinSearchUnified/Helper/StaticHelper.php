@@ -235,11 +235,7 @@ class StaticHelper
      */
     private static function createMediaListFacet(array $facetItem)
     {
-        $enabled = false;
-
-        if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
-            $enabled = true;
-        }
+        $enabled = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\MediaListFacetResult(
             $facetItem['name'],
@@ -259,11 +255,7 @@ class StaticHelper
      */
     private static function createColorListFacet(array $facetItem)
     {
-        $enabled = false;
-
-        if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
-            $enabled = true;
-        }
+        $enabled = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new FinFacetResult\ColorPickerFacetResult(
             $facetItem['name'],
@@ -301,11 +293,15 @@ class StaticHelper
      */
     private static function createRadioFacet(array $facetItem)
     {
-        $enabled = false;
-        if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
-            $enabled = true;
-        }
-        $facetResult = new SearchBundle\FacetResult\RadioFacetResult( $facetItem['name'], $enabled, $facetItem['display'], self::prepareValueItems( $facetItem['items'], $facetItem['name'] ), $facetItem['name'] );
+        $enabled = !empty(self::getSelectedItems($facetItem['name']));
+
+        $facetResult = new SearchBundle\FacetResult\RadioFacetResult(
+            $facetItem['name'],
+            $enabled,
+            $facetItem['display'],
+            self::prepareValueItems($facetItem['items'], $facetItem['name']),
+            $facetItem['name']
+        );
 
         return $facetResult;
     }
@@ -315,13 +311,9 @@ class StaticHelper
      *
      * @return SearchBundle\FacetResult\ValueListFacetResult
      */
-    private static function createValueListFacet(array $facetItem)
+    public static function createValueListFacet(array $facetItem)
     {
-        $enabled = false;
-
-        if (array_key_exists($facetItem['name'], $_REQUEST)) {
-            $enabled = true;
-        }
+        $enabled = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\ValueListFacetResult(
             $facetItem['name'],
@@ -378,11 +370,7 @@ class StaticHelper
      */
     private static function createTreeviewFacet(array $facetItem)
     {
-        $enabled = false;
-
-        if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
-            $enabled = true;
-        }
+        $enabled = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\TreeFacetResult(
             $facetItem['name'],
@@ -477,18 +465,13 @@ class StaticHelper
      */
     private static function prepareValueItems($items, $name)
     {
-        $response      = [];
-        $selectedItems = explode( '|', $_REQUEST[ $name ] );
+        $response = [];
+        $selectedItems = self::getSelectedItems($name);
 
-        foreach ( $items as $item ) {
-            if (in_array($item['name'], $selectedItems)) {
-                $enabled = true;
-            } else {
-                $enabled = false;
-            }
-
-            $valueListItem = new SearchBundle\FacetResult\ValueListItem( $item['name'], $item['name'], $enabled );
-            $response[]    = $valueListItem;
+        foreach ($items as $item) {
+            $enabled = in_array($item['name'], $selectedItems);
+            $valueListItem = new SearchBundle\FacetResult\ValueListItem($item['name'], $item['name'], $enabled);
+            $response[] = $valueListItem;
         }
 
         return $response;
@@ -503,7 +486,7 @@ class StaticHelper
     private static function prepareMediaItems($items, $name)
     {
         $values = [];
-        $selectedItems = explode('|', Shopware()->Front()->Request()->getParam($name, []));
+        $selectedItems = self::getSelectedItems($name);
 
         $httpClient = new Zend_Http_Client();
         $httpClient->setMethod(Zend_Http_Client::HEAD);
@@ -542,7 +525,7 @@ class StaticHelper
     private static function prepareColorItems($items, $name)
     {
         $values = [];
-        $selectedItems = explode('|', Shopware()->Front()->Request()->getParam($name, []));
+        $selectedItems = self::getSelectedItems($name);
 
         foreach ($items as $item) {
             $active = in_array($item['name'], $selectedItems);
@@ -586,7 +569,7 @@ class StaticHelper
     private static function prepareTreeView($items, $name, $recurseName = null)
     {
         $response = [];
-        $selectedItems = explode('|', $_REQUEST[$name]);
+        $selectedItems = self::getSelectedItems($name);
 
         foreach ( $items as $item ) {
             $treeName = $item['name'];
@@ -595,11 +578,7 @@ class StaticHelper
                 $treeName = $recurseName . '_' . $item['name'];
             }
 
-            if (in_array($treeName, $selectedItems)) {
-                $enabled = true;
-            } else {
-                $enabled = false;
-            }
+            $enabled = in_array($treeName, $selectedItems);
 
             $treeView = new SearchBundle\FacetResult\TreeItem(
                 $treeName,
@@ -727,5 +706,35 @@ class StaticHelper
                 $pluginManager->savePluginConfig($plugin, $config);
             }
         } catch (Exception $exception) {}
+    }
+
+    /**
+     * Gets the request values for the given parameter.
+     *
+     * @param string $filterName
+     * @return array
+     */
+    public static function getSelectedItems($filterName)
+    {
+        $escapedFilterName = self::escapeFilterName($filterName);
+
+        return explode('|', Shopware()->Front()->Request()->getParam($escapedFilterName, []));
+    }
+
+    /**
+     * Keeps umlauts and regular characters. Anything else will be replaced by an underscore according to the PHP
+     * documentation.
+     *
+     * @see http://php.net/manual/en/language.variables.external.php
+     *
+     * @param string $name
+     * @return string The escaped string or the original in case of an error.
+     */
+    public static function escapeFilterName($name)
+    {
+        $escapedName = preg_replace('/[^\xD6|\xDC|\xDF|\xE4|\xF6|\xFC|\x00-\x7F]|[\.\s\x5B]/', '_', $name);
+
+        // Fall back to the original name if it couldn't be escaped.
+        return $escapedName ?: $name;
     }
 }
