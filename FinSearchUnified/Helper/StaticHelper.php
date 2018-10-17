@@ -278,7 +278,7 @@ class StaticHelper
     {
         /** @var SearchBundle\FacetResultInterface $facet */
         foreach ($facetArray as $i => $facet) {
-            if ( $facet->getFacetName() === $facetName ) {
+            if ( $facet->getLabel() === $facetName ) {
                 return $i;
             }
         }
