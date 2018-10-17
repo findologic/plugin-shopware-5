@@ -24,7 +24,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         $this->urlBuilder = new UrlBuilder();
         $this->originalService = $service;
     }
-
+    
     /**
      * Creates a product search result for the passed criteria object.
      * The criteria object contains different core conditions and plugin conditions.
@@ -143,14 +143,28 @@ class ProductNumberSearch implements ProductNumberSearchInterface
                 $condition->getValue()
             );
 
-            if (count($tempFacet->getValues()) == 0){
+            if (count($tempFacet->getValues()) === 0) {
                 continue;
             }
 
-            $foundFacet = StaticHelper::arrayHasFacet($this->facets, $currentFacet->getFormFieldName());
+            $foundFacet = StaticHelper::arrayHasFacet($this->facets, $currentFacet->getLabel());
 
-            if (!$foundFacet) {
+            if ($foundFacet === false) {
                 $this->facets[] = $tempFacet;
+            } else {
+                $values = array_map(function ($value) {
+                    return ['name' => $value->getLabel()];
+                }, $this->facets[$foundFacet]->getValues());
+
+                $values = array_merge($values, array_map(function ($value) {
+                    return ['name' => $value];
+                }, $condition->getValue()));
+
+                $this->facets[$foundFacet] = StaticHelper::createValueListFacet([
+                    'name' => $currentFacet->getFormFieldName(),
+                    'display' => $currentFacet->getLabel(),
+                    'items' => $values
+                ]);
             }
         }
     }

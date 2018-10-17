@@ -272,14 +272,14 @@ class StaticHelper
      * @param SearchBundle\FacetResultInterface[] $facetArray
      * @param string $facetName
      *
-     * @return bool|SearchBundle\FacetResultInterface
+     * @return bool|int
      */
     public static function arrayHasFacet($facetArray, $facetName)
     {
         /** @var SearchBundle\FacetResultInterface $facet */
-        foreach ( $facetArray as $facet ) {
+        foreach ($facetArray as $i => $facet) {
             if ( $facet->getFacetName() === $facetName ) {
-                return $facet;
+                return $i;
             }
         }
 
