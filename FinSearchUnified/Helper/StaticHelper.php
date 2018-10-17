@@ -722,8 +722,9 @@ class StaticHelper
     public static function getSelectedItems($filterName)
     {
         $escapedFilterName = self::escapeFilterName($filterName);
+        $values = explode('|', Shopware()->Front()->Request()->getParam($escapedFilterName, []));
 
-        return explode('|', Shopware()->Front()->Request()->getParam($escapedFilterName, []));
+        return $values ?: [];
     }
 
     /**
