@@ -151,20 +151,6 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
             if ($foundFacet === false) {
                 $this->facets[] = $tempFacet;
-            } else {
-                $values = array_map(function ($value) {
-                    return ['name' => $value->getLabel()];
-                }, $this->facets[$foundFacet]->getValues());
-
-                $values = array_merge($values, array_map(function ($value) {
-                    return ['name' => $value];
-                }, $condition->getValue()));
-
-                $this->facets[$foundFacet] = StaticHelper::createValueListFacet([
-                    'name' => $currentFacet->getFormFieldName(),
-                    'display' => $currentFacet->getLabel(),
-                    'items' => $values
-                ]);
             }
         }
     }

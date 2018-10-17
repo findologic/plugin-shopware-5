@@ -467,10 +467,15 @@ class StaticHelper
     {
         $response = [];
         $selectedItems = self::getSelectedItems($name);
+        $itemNames = array_map(function ($item) {
+            return $item['name'];
+        }, $items);
 
-        foreach ($items as $item) {
-            $enabled = in_array($item['name'], $selectedItems);
-            $valueListItem = new SearchBundle\FacetResult\ValueListItem($item['name'], $item['name'], $enabled);
+        $lostItems = array_diff($selectedItems, $itemNames);
+
+        foreach (array_merge($itemNames, $lostItems) as $item) {
+            $enabled = in_array($item, $selectedItems);
+            $valueListItem = new SearchBundle\FacetResult\ValueListItem($item, $item, $enabled);
             $response[] = $valueListItem;
         }
 
