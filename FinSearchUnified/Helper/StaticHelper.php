@@ -242,7 +242,7 @@ class StaticHelper
             $enabled,
             $facetItem['display'],
             self::prepareMediaItems($facetItem['items'], $facetItem['name']),
-            $facetItem['name']
+            self::escapeFilterName($facetItem['name'])
         );
 
         return $facetResult;
@@ -262,7 +262,7 @@ class StaticHelper
             $enabled,
             $facetItem['display'],
             self::prepareColorItems( $facetItem['items'], $facetItem['name'] ),
-            $facetItem['name']
+            self::escapeFilterName($facetItem['name'])
         );
 
         return $facetResult;
@@ -300,7 +300,7 @@ class StaticHelper
             $enabled,
             $facetItem['display'],
             self::prepareValueItems($facetItem['items'], $facetItem['name']),
-            $facetItem['name']
+            self::escapeFilterName($facetItem['name'])
         );
 
         return $facetResult;
@@ -320,7 +320,7 @@ class StaticHelper
             $enabled,
             $facetItem['display'],
             self::prepareValueItems($facetItem['items'], $facetItem['name']),
-            $facetItem['name'],
+            self::escapeFilterName($facetItem['name']),
             $facetItem['name']
         );
 
@@ -374,7 +374,7 @@ class StaticHelper
 
         $facetResult = new SearchBundle\FacetResult\TreeFacetResult(
             $facetItem['name'],
-            $facetItem['name'],
+            self::escapeFilterName($facetItem['name']),
             $enabled,
             $facetItem['display'],
             self::prepareTreeView($facetItem['items'], $facetItem['name']),
