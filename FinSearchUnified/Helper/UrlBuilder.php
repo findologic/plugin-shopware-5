@@ -19,6 +19,7 @@ class UrlBuilder
     const JSON_CONFIG = '/config.json';
     const ALIVE_ENDPOINT = 'alivetest.php';
     const SEARCH_ENDPOINT = 'index.php';
+    const NAVIGATION_ENPOINT = 'selector.php';
     const JSON_PATH = 'directIntegration';
 
     /**
@@ -286,18 +287,24 @@ class UrlBuilder
      */
     private function buildCategoryAttribute($categoryId)
     {
-        $attribCat = [];
+        $categories = [];
+
+        if (Shopware()->Session()->offsetGet('isSearchPage')) {
+            $categoryParameterName = 'attrib';
+        } else {
+            $categoryParameterName = 'selected';
+        }
 
         foreach ($categoryId as $id) {
             $catString = StaticHelper::buildCategoryName($id);
 
             if ($catString !== null && $catString !== '') {
-                $attribCat[] = urldecode($catString);
+                $categories[] = urldecode($catString);
             }
         }
 
-        if ($attribCat) {
-            $this->parameters['attrib']['cat'] = $attribCat;
+        if ($categories) {
+            $this->parameters[$categoryParameterName]['cat'] = $categories;
         }
     }
 
@@ -334,12 +341,18 @@ class UrlBuilder
      */
     private function callFindologicForXmlResponse()
     {
+        if (Shopware()->Session()->offsetGet('isSearchPage')) {
+            $endpoint = self::SEARCH_ENDPOINT;
+        } else {
+            $endpoint = self::NAVIGATION_ENPOINT;
+        }
+
         $this->parameters['shopkey'] = $this->getShopkey();
         $url = sprintf(
-            '%s%s%s?shopkey=%s',
+            '%s%s%s?%s',
             self::BASE_URL,
             $this->shopUrl,
-            self::SEARCH_ENDPOINT,
+            $endpoint,
             http_build_query($this->parameters)
         );
 
