@@ -43,8 +43,13 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         $controllerName = Shopware()->Front()->Request()->getControllerName();
         $moduleName = Shopware()->Front()->Request()->getModuleName();
 
+        // Shopware sets fetchCount to false when the search is used for internal purposes, which we don't care about.
+        // Checking its value is the only way to tell if we should actually perform the search.
+        $fetchCount = $criteria->fetchCount();
+
         if (
             $moduleName !== 'backend' &&
+            $fetchCount &&
             ($controllerName === 'search' || $controllerName === 'listing') &&
             !StaticHelper::useShopSearch()
         ) {
