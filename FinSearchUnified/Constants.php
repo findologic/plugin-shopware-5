@@ -17,6 +17,6 @@ class Constants
      */
     const CACHE_LIFETIME_PRODUCT_STREAMS = 660;
 
-    const INTEGRATION_TYPE_DI = 'DI';
+    const INTEGRATION_TYPE_DI = 'Direct Integration';
     const INTEGRATION_TYPE_API = 'API';
 }

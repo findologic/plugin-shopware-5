@@ -29,5 +29,6 @@ class PluginTest extends TestCase
         $decrypted = StaticHelper::decryptUsergroupHash($shopkey, $hash);
 
         $this->assertEquals($usergroup, $decrypted);
+
     }
 }
