@@ -744,6 +744,9 @@ class StaticHelper
             $name
         );
 
+        // Reduces successive occurrences of an underscore to a single character.
+        $escapedName = preg_replace('/_{2,}/', '_', $escapedName);
+
         // Fall back to the original name if it couldn't be escaped.
         return $escapedName ?: $name;
     }
