@@ -107,7 +107,7 @@ class PluginTest extends TestCase
         try {
 
             $blController = Shopware()->Container()->get('fin_search_unified.shopware_process');
-            $blController->setShopKey('ABCD0815');
+            $blController->setShopKey(Shopware()->Config()->get('ShopKey'));
 
             $xmlDocument = $blController->getFindologicXml();
 
