@@ -8,8 +8,11 @@ use Shopware\Components\Test\Plugin\TestCase;
 
 class PluginTest extends TestCase
 {
+
     protected static $ensureLoadedPlugins = [
-        'FinSearchUnified' => [],
+        'FinSearchUnified' => [
+            'ShopKey' => 'ABCD0815'
+        ],
     ];
 
 
@@ -22,32 +25,6 @@ class PluginTest extends TestCase
 
         // reset articles data upon starting of test
         $this->sResetArticles();
-
-        echo "\nShopKey: " . Shopware()->Config()->get('ShopKey');
-
-        // set shopkey for running the export script
-        Shopware()->Db()->executeQuery(
-            "UPDATE s_core_config_elements SET value = ? WHERE name = 'ShopKey'",
-            [serialize('ABCD08152')]);
-
-        echo "\nShopKey Updated 1: " . Shopware()->Config()->get('ShopKey');
-
-        $isTravis = getenv('TRAVIS');
-
-        echo "\nis running on Travis? - " . ($isTravis ? 'YES' : 'NO');
-
-        if ($isTravis) {
-            $shell = 'php ${HOME}/shopware/bin/console sw:cache:clear';
-        } else {
-            $shell = 'php /app/bin/console sw:cache:clear';
-        }
-
-        // clear cache just to be sure that the update is implemented
-        $output = shell_exec($shell);
-
-        echo $output;
-
-        echo "\nShopKey Updated 2: " . Shopware()->Config()->get('ShopKey');
 
     }
 
@@ -157,8 +134,8 @@ class PluginTest extends TestCase
     {
         try {
 
-            $shopKey = Shopware()->Config()->get('ShopKey');
-            echo "\nShopKey Found: " . $shopKey;
+            $shopKey = 'ABCD0815';
+
             $blController = Shopware()->Container()->get('fin_search_unified.shopware_process');
             $blController->setShopKey($shopKey);
 
