@@ -20,7 +20,19 @@ class PluginTest extends TestCase
 
         $this->assertInstanceOf(Plugin::class, $plugin);
 
+        // reset articles data upon starting of test
         $this->sResetArticles();
+
+        // set shopkey for running the export script
+        Shopware()->Db()->executeQuery(
+            "UPDATE s_core_config_elements SET value = ? WHERE name = 'ShopKey'",
+            [serialize('ABCD08152')]);
+
+        // clear cache just to be sure that the update is implemented
+        $output = shell_exec('php /app/bin/console sw:cache:clear');
+
+        echo $output;
+
     }
 
     public function testCalculateGroupkey()
@@ -35,8 +47,16 @@ class PluginTest extends TestCase
 
     }
 
+    /**
+     * @param $number
+     * @param $isActive
+     * @return \Shopware\Models\Article\Article
+     * @throws \Shopware\Components\Api\Exception\CustomValidationException
+     * @throws \Shopware\Components\Api\Exception\ValidationException
+     */
     private function createTestProduct($number, $isActive)
     {
+        // create temporary test product for the export cases
         $testArticle = array(
             'name' => 'TestArticle' . $number,
             'active' => $isActive,
@@ -72,6 +92,10 @@ class PluginTest extends TestCase
         return $article;
     }
 
+    /**
+     * @throws \Shopware\Components\Api\Exception\CustomValidationException
+     * @throws \Shopware\Components\Api\Exception\ValidationException
+     */
     public function testBothActiveProductExported()
     {
 
@@ -82,6 +106,10 @@ class PluginTest extends TestCase
 
     }
 
+    /**
+     * @throws \Shopware\Components\Api\Exception\CustomValidationException
+     * @throws \Shopware\Components\Api\Exception\ValidationException
+     */
     public function testBothInActiveProductExported()
     {
 
@@ -92,6 +120,10 @@ class PluginTest extends TestCase
 
     }
 
+    /**
+     * @throws \Shopware\Components\Api\Exception\CustomValidationException
+     * @throws \Shopware\Components\Api\Exception\ValidationException
+     */
     public function testOneActiveOneInActiveProductExported()
     {
 
@@ -102,6 +134,9 @@ class PluginTest extends TestCase
 
     }
 
+    /**
+     * @return int
+     */
     private function runExportAndReturnCount()
     {
         try {
