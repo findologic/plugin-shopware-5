@@ -8,155 +8,146 @@ use Shopware\Components\Test\Plugin\TestCase;
 
 class PluginTest extends TestCase
 {
-
     protected static $ensureLoadedPlugins = [
         'FinSearchUnified' => [
             'ShopKey' => 'ABCD0815'
         ],
     ];
 
+    /**
+     * @throws \Zend_Db_Adapter_Exception
+     */
+    protected function tearDown()
+    {
+        // Reset articles data after each test execution
+        $this->sResetArticles();
+    }
 
     public function testCanCreateInstance()
     {
         /** @var Plugin $plugin */
         $plugin = Shopware()->Container()->get('kernel')->getPlugins()['FinSearchUnified'];
-
         $this->assertInstanceOf(Plugin::class, $plugin);
-
-        // reset articles data upon starting of test
-        $this->sResetArticles();
-
     }
 
     public function testCalculateGroupkey()
     {
         $shopkey = 'ABCD0815';
         $usergroup = 'at_rated';
-
         $hash = StaticHelper::calculateUsergroupHash($shopkey, $usergroup);
         $decrypted = StaticHelper::decryptUsergroupHash($shopkey, $hash);
-
         $this->assertEquals($usergroup, $decrypted);
-
     }
 
     /**
-     * @param $number
-     * @param $isActive
+     * Data provider for the export test cases:
+     * case 1: both products are active and both are returned
+     * case 2: one product is active and one is inactive, so active product is returned
+     * case 3: both products are inactive, so neither of them are returned in the export
+     *
+     * @return array
+     */
+    public function addDataProvider()
+    {
+        return [
+            [[true, true], 2],
+            [[true, false], 1],
+            [[false, false], 0],
+        ];
+    }
+
+    /**
+     * Method to run the export test cases using the data provider
+     *
+     * @dataProvider addDataProvider
+     * @param array $isActive
+     * @param int $expected
+     * @throws \Shopware\Components\Api\Exception\CustomValidationException
+     * @throws \Shopware\Components\Api\Exception\ValidationException
+     */
+    public function testArticleExport($isActive, $expected)
+    {
+        // Create two test articles with the provided data to test the export functionality
+        $this->createTestProduct(1, $isActive[0]);
+        $this->createTestProduct(2, $isActive[1]);
+
+        $this->assertEquals($expected, $this->runExportAndReturnCount());
+    }
+
+    /**
+     * @param int $number
+     * @param bool $isActive
      * @return \Shopware\Models\Article\Article
      * @throws \Shopware\Components\Api\Exception\CustomValidationException
      * @throws \Shopware\Components\Api\Exception\ValidationException
      */
     private function createTestProduct($number, $isActive)
     {
-        // create temporary test product for the export cases
-        $testArticle = array(
+        // Create temporary test product for the export cases
+        $testArticle = [
             'name' => 'TestArticle' . $number,
             'active' => $isActive,
             'tax' => 19,
             'supplier' => 'Test Supplier',
-
-            'categories' => array(
-                array('id' => 3),
-                array('id' => 5),
-            ),
-            'images' => array(
-                array('link' => 'https://via.placeholder.com/300/F00/fff.png'),
-                array('link' => 'https://via.placeholder.com/300/09f/000.png'),
-            ),
-
-            'mainDetail' => array(
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5],
+            ],
+            'images' => [
+                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+            ],
+            'mainDetail' => [
                 'number' => 'SW100' . $number,
                 'active' => $isActive,
                 'inStock' => 16,
-                'prices' => array(
-                    array(
+                'prices' => [
+                    [
                         'customerGroupKey' => 'EK',
                         'price' => 99.34,
-                    ),
-                )
-            ),
-        );
+                    ],
+                ]
+            ],
+        ];
         $manger = new \Shopware\Components\Api\Manager();
         $resource = $manger->getResource('Article');
         $article = $resource->create($testArticle);
+
+        // Assertion to make sure the test article is created properly
         $this->assertInstanceOf(\Shopware\Models\Article\Article::class, $article);
 
         return $article;
     }
 
     /**
-     * @throws \Shopware\Components\Api\Exception\CustomValidationException
-     * @throws \Shopware\Components\Api\Exception\ValidationException
-     */
-    public function testBothActiveProductExported()
-    {
-
-        $this->createTestProduct(1, true);
-        $this->createTestProduct(2, true);
-
-        $this->assertEquals(2, $this->runExportAndReturnCount());
-
-    }
-
-    /**
-     * @throws \Shopware\Components\Api\Exception\CustomValidationException
-     * @throws \Shopware\Components\Api\Exception\ValidationException
-     */
-    public function testBothInActiveProductExported()
-    {
-
-        $this->createTestProduct(3, false);
-        $this->createTestProduct(4, false);
-
-        $this->assertEquals(0, $this->runExportAndReturnCount());
-
-    }
-
-    /**
-     * @throws \Shopware\Components\Api\Exception\CustomValidationException
-     * @throws \Shopware\Components\Api\Exception\ValidationException
-     */
-    public function testOneActiveOneInActiveProductExported()
-    {
-
-        $this->createTestProduct(5, true);
-        $this->createTestProduct(6, false);
-
-        $this->assertEquals(1, $this->runExportAndReturnCount());
-
-    }
-
-    /**
+     * Method to run the actual export functionality and parse the xml to return the
+     * number of articles returned
+     *
      * @return int
      */
     private function runExportAndReturnCount()
     {
         try {
-
             $shopKey = 'ABCD0815';
-
             $blController = Shopware()->Container()->get('fin_search_unified.shopware_process');
             $blController->setShopKey($shopKey);
-
             $xmlDocument = $blController->getFindologicXml();
 
+            // Parse the xml and return the count of the products exported
             $xml = new \SimpleXMLElement($xmlDocument);
-
-            $this->sResetArticles();
-
-            $count = (int)$xml->items->attributes()->count;
-
-            return $count;
-
+            return (int)$xml->items->attributes()->count;
         } catch (\Exception $e) {
+            // Simply log the exception message in the console
             echo "\nException: " . $e->getMessage();
         }
 
+        return 0;
     }
 
     /**
-     * Truncate all article related tables
+     * Truncate all article related tables so we have a fresh database
+     *
+     * @throws \Zend_Db_Adapter_Exception
      */
     public function sResetArticles()
     {
@@ -211,7 +202,6 @@ class PluginTest extends TestCase
             Shopware()->Db()->query('TRUNCATE s_article_configurator_template_prices;');
             Shopware()->Db()->query('TRUNCATE s_article_configurator_price_variations;');
             Shopware()->Db()->query('TRUNCATE s_articles_categories_ro;');
-
             Shopware()->Db()->exec(
                 "
                         TRUNCATE s_articles_supplier;
@@ -221,9 +211,8 @@ class PluginTest extends TestCase
                         UPDATE s_articles SET supplierID=1 WHERE 1;
                     "
             );
-
-        } catch (\Exception $e) {
-            // if table does not exist - resume, it might be just an old SW version
+        } catch (\Exception $ignored) {
+            // If table does not exist - resume, it might be just an old SW version
         }
     }
 }
