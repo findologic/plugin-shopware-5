@@ -233,11 +233,11 @@ class StaticHelper
      */
     private static function createMediaListFacet(array $facetItem)
     {
-        $enabled = !empty(self::getSelectedItems($facetItem['name']));
+        $active = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\MediaListFacetResult(
             $facetItem['name'],
-            $enabled,
+            $active,
             $facetItem['display'],
             self::prepareMediaItems($facetItem['items'], $facetItem['name']),
             self::escapeFilterName($facetItem['name'])
@@ -253,11 +253,11 @@ class StaticHelper
      */
     private static function createColorListFacet(array $facetItem)
     {
-        $enabled = !empty(self::getSelectedItems($facetItem['name']));
+        $active = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new FinFacetResult\ColorPickerFacetResult(
             $facetItem['name'],
-            $enabled,
+            $active,
             $facetItem['display'],
             self::prepareColorItems( $facetItem['items'], $facetItem['name'] ),
             self::escapeFilterName($facetItem['name'])
@@ -291,11 +291,11 @@ class StaticHelper
      */
     private static function createRadioFacet(array $facetItem)
     {
-        $enabled = !empty(self::getSelectedItems($facetItem['name']));
+        $active = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\RadioFacetResult(
             $facetItem['name'],
-            $enabled,
+            $active,
             $facetItem['display'],
             self::prepareValueItems($facetItem['items'], $facetItem['name']),
             self::escapeFilterName($facetItem['name'])
@@ -311,11 +311,11 @@ class StaticHelper
      */
     public static function createValueListFacet(array $facetItem)
     {
-        $enabled = !empty(self::getSelectedItems($facetItem['name']));
+        $active = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\ValueListFacetResult(
             $facetItem['name'],
-            $enabled,
+            $active,
             $facetItem['display'],
             self::prepareValueItems($facetItem['items'], $facetItem['name']),
             self::escapeFilterName($facetItem['name']),
@@ -368,12 +368,12 @@ class StaticHelper
      */
     private static function createTreeviewFacet(array $facetItem)
     {
-        $enabled = !empty(self::getSelectedItems($facetItem['name']));
+        $active = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\TreeFacetResult(
             $facetItem['name'],
             self::escapeFilterName($facetItem['name']),
-            $enabled,
+            $active,
             $facetItem['display'],
             self::prepareTreeView($facetItem['items'], $facetItem['name']),
             $facetItem['name']
@@ -582,12 +582,12 @@ class StaticHelper
                 $treeName = $recurseName . '_' . $item['name'];
             }
 
-            $enabled = in_array($treeName, $selectedItems);
+            $active = in_array($treeName, $selectedItems);
 
             $treeView = new SearchBundle\FacetResult\TreeItem(
                 $treeName,
                 $item['name'],
-                $enabled,
+                $active,
                 self::prepareTreeView($item['items'], $name, $treeName)
             );
             $response[] = $treeView;
