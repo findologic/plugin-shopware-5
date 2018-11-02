@@ -541,11 +541,11 @@ class StaticHelper
     }
 
     /**
-     * @param $items
+     * @param SimpleXMLElement $items
      *
      * @return array
      */
-    private static function createFilterItems( $items )
+    private static function createFilterItems(SimpleXMLElement $items)
     {
         $response = [];
         $tempItem = [];
