@@ -5,7 +5,7 @@ php:
   - 7.0
   - 7.1
 
-sudo: false
+sudo: required
 
 services:
   - mysql
@@ -40,7 +40,3 @@ install:
 
 script:
   - composer test
-
-branches:
-  only:
-    - master

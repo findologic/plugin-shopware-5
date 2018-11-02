@@ -235,18 +235,14 @@ class StaticHelper
      */
     private static function createMediaListFacet(array $facetItem)
     {
-        $enabled = false;
-
-        if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
-            $enabled = true;
-        }
+        $enabled = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\MediaListFacetResult(
             $facetItem['name'],
             $enabled,
             $facetItem['display'],
             self::prepareMediaItems($facetItem['items'], $facetItem['name']),
-            $facetItem['name']
+            self::escapeFilterName($facetItem['name'])
         );
 
         return $facetResult;
@@ -259,18 +255,14 @@ class StaticHelper
      */
     private static function createColorListFacet(array $facetItem)
     {
-        $enabled = false;
-
-        if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
-            $enabled = true;
-        }
+        $enabled = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new FinFacetResult\ColorPickerFacetResult(
             $facetItem['name'],
             $enabled,
             $facetItem['display'],
             self::prepareColorItems( $facetItem['items'], $facetItem['name'] ),
-            $facetItem['name']
+            self::escapeFilterName($facetItem['name'])
         );
 
         return $facetResult;
@@ -280,14 +272,14 @@ class StaticHelper
      * @param SearchBundle\FacetResultInterface[] $facetArray
      * @param string $facetName
      *
-     * @return bool|SearchBundle\FacetResultInterface
+     * @return bool|int
      */
     public static function arrayHasFacet($facetArray, $facetName)
     {
         /** @var SearchBundle\FacetResultInterface $facet */
-        foreach ( $facetArray as $facet ) {
-            if ( $facet->getFacetName() === $facetName ) {
-                return $facet;
+        foreach ($facetArray as $i => $facet) {
+            if ( $facet->getLabel() === $facetName ) {
+                return $i;
             }
         }
 
@@ -301,11 +293,15 @@ class StaticHelper
      */
     private static function createRadioFacet(array $facetItem)
     {
-        $enabled = false;
-        if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
-            $enabled = true;
-        }
-        $facetResult = new SearchBundle\FacetResult\RadioFacetResult( $facetItem['name'], $enabled, $facetItem['display'], self::prepareValueItems( $facetItem['items'], $facetItem['name'] ), $facetItem['name'] );
+        $enabled = !empty(self::getSelectedItems($facetItem['name']));
+
+        $facetResult = new SearchBundle\FacetResult\RadioFacetResult(
+            $facetItem['name'],
+            $enabled,
+            $facetItem['display'],
+            self::prepareValueItems($facetItem['items'], $facetItem['name']),
+            self::escapeFilterName($facetItem['name'])
+        );
 
         return $facetResult;
     }
@@ -315,20 +311,16 @@ class StaticHelper
      *
      * @return SearchBundle\FacetResult\ValueListFacetResult
      */
-    private static function createValueListFacet(array $facetItem)
+    public static function createValueListFacet(array $facetItem)
     {
-        $enabled = false;
-
-        if (array_key_exists($facetItem['name'], $_REQUEST)) {
-            $enabled = true;
-        }
+        $enabled = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\ValueListFacetResult(
             $facetItem['name'],
             $enabled,
             $facetItem['display'],
             self::prepareValueItems($facetItem['items'], $facetItem['name']),
-            $facetItem['name'],
+            self::escapeFilterName($facetItem['name']),
             $facetItem['name']
         );
 
@@ -378,15 +370,11 @@ class StaticHelper
      */
     private static function createTreeviewFacet(array $facetItem)
     {
-        $enabled = false;
-
-        if ( array_key_exists( $facetItem['name'], $_REQUEST ) ) {
-            $enabled = true;
-        }
+        $enabled = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\TreeFacetResult(
             $facetItem['name'],
-            $facetItem['name'],
+            self::escapeFilterName($facetItem['name']),
             $enabled,
             $facetItem['display'],
             self::prepareTreeView($facetItem['items'], $facetItem['name']),
@@ -441,32 +429,32 @@ class StaticHelper
      */
     public static function createFindologicFacet($label, $name, $type, $filter)
     {
-        $currentFacet = new CustomFacet();
-        $currentFacet->setName( $name );
-        $currentFacet->setUniqueKey( $name );
+        $formFieldName = self::escapeFilterName($name);
 
-        switch ( $type ) {
-            case 'select':
-                $facetType = new SearchBundle\Facet\ProductAttributeFacet( $name, SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT, $name, $label );
-                break;
-            case 'range-slider':
-                $facetType = new SearchBundle\Facet\ProductAttributeFacet( $name, SearchBundle\Facet\ProductAttributeFacet::MODE_RANGE_RESULT, $name, $label );
-                break;
+        switch ($type) {
             case 'label':
-                if ( $filter == 'single' ) {
-                    $facetType = new SearchBundle\Facet\ProductAttributeFacet( $name, SearchBundle\Facet\ProductAttributeFacet::MODE_RADIO_LIST_RESULT, $name, $label );
+                if ($filter === 'single') {
+                    $mode = SearchBundle\Facet\ProductAttributeFacet::MODE_RADIO_LIST_RESULT;
                 } else {
-                    $facetType = new SearchBundle\Facet\ProductAttributeFacet( $name, SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT, $name, $label );
+                    $mode = SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT;
                 }
                 break;
+            case 'range-slider':
+                $mode = SearchBundle\Facet\ProductAttributeFacet::MODE_RANGE_RESULT;
+                break;
             default:
-                $facetType = new SearchBundle\Facet\ProductAttributeFacet( $name, SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT, $name, $label );
+                $mode = SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT;
                 break;
         }
 
-        $currentFacet->setFacet( $facetType );
+        $customFacet = new CustomFacet();
+        $productAttributeFacet = new SearchBundle\Facet\ProductAttributeFacet($name, $mode, $formFieldName, $label);
 
-        return $currentFacet;
+        $customFacet->setName($name);
+        $customFacet->setUniqueKey($name);
+        $customFacet->setFacet($productAttributeFacet);
+
+        return $customFacet;
     }
 
     /**
@@ -477,18 +465,18 @@ class StaticHelper
      */
     private static function prepareValueItems($items, $name)
     {
-        $response      = [];
-        $selectedItems = explode( '|', $_REQUEST[ $name ] );
+        $response = [];
+        $selectedItems = self::getSelectedItems($name);
+        $itemNames = array_map(function ($item) {
+            return $item['name'];
+        }, $items);
 
-        foreach ( $items as $item ) {
-            if (in_array($item['name'], $selectedItems)) {
-                $enabled = true;
-            } else {
-                $enabled = false;
-            }
+        $lostItems = array_diff($selectedItems, $itemNames);
 
-            $valueListItem = new SearchBundle\FacetResult\ValueListItem( $item['name'], $item['name'], $enabled );
-            $response[]    = $valueListItem;
+        foreach (array_merge($itemNames, $lostItems) as $item) {
+            $enabled = in_array($item, $selectedItems);
+            $valueListItem = new SearchBundle\FacetResult\ValueListItem($item, $item, $enabled);
+            $response[] = $valueListItem;
         }
 
         return $response;
@@ -503,7 +491,7 @@ class StaticHelper
     private static function prepareMediaItems($items, $name)
     {
         $values = [];
-        $selectedItems = explode('|', Shopware()->Front()->Request()->getParam($name, []));
+        $selectedItems = self::getSelectedItems($name);
 
         $httpClient = new Zend_Http_Client();
         $httpClient->setMethod(Zend_Http_Client::HEAD);
@@ -542,7 +530,7 @@ class StaticHelper
     private static function prepareColorItems($items, $name)
     {
         $values = [];
-        $selectedItems = explode('|', Shopware()->Front()->Request()->getParam($name, []));
+        $selectedItems = self::getSelectedItems($name);
 
         foreach ($items as $item) {
             $active = in_array($item['name'], $selectedItems);
@@ -586,7 +574,7 @@ class StaticHelper
     private static function prepareTreeView($items, $name, $recurseName = null)
     {
         $response = [];
-        $selectedItems = explode('|', $_REQUEST[$name]);
+        $selectedItems = self::getSelectedItems($name);
 
         foreach ( $items as $item ) {
             $treeName = $item['name'];
@@ -595,11 +583,7 @@ class StaticHelper
                 $treeName = $recurseName . '_' . $item['name'];
             }
 
-            if (in_array($treeName, $selectedItems)) {
-                $enabled = true;
-            } else {
-                $enabled = false;
-            }
+            $enabled = in_array($treeName, $selectedItems);
 
             $treeView = new SearchBundle\FacetResult\TreeItem(
                 $treeName,
@@ -727,5 +711,43 @@ class StaticHelper
                 $pluginManager->savePluginConfig($plugin, $config);
             }
         } catch (Exception $exception) {}
+    }
+
+    /**
+     * Gets the request values for the given parameter.
+     *
+     * @param string $filterName
+     * @return array
+     */
+    public static function getSelectedItems($filterName)
+    {
+        $escapedFilterName = self::escapeFilterName($filterName);
+        $values = explode('|', Shopware()->Front()->Request()->getParam($escapedFilterName, []));
+
+        return $values ?: [];
+    }
+
+    /**
+     * Keeps umlauts and regular characters. Anything else will be replaced by an underscore according to the PHP
+     * documentation.
+     *
+     * @see http://php.net/manual/en/language.variables.external.php
+     *
+     * @param string $name
+     * @return string The escaped string or the original in case of an error.
+     */
+    public static function escapeFilterName($name)
+    {
+        $escapedName = preg_replace(
+            '/[^\xC3\x96|\xC3\x9C|\xC3\x9F|\xC3\xA4|\xC3\xB6|\xC3\xBC|\x00-\x7F]|[\.\s\x5B]/',
+            '_',
+            $name
+        );
+
+        // Reduces successive occurrences of an underscore to a single character.
+        $escapedName = preg_replace('/_{2,}/', '_', $escapedName);
+
+        // Fall back to the original name if it couldn't be escaped.
+        return $escapedName ?: $name;
     }
 }
