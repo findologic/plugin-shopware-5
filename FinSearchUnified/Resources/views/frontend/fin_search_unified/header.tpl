@@ -20,4 +20,10 @@
         rel="stylesheet"
         href="{link file='custom/plugins/FinSearchUnified/Resources/views/frontend/_resources/css/smartsuggest.css'}"
     />
+    <link
+        type="text/css"
+        media="all"
+        rel="stylesheet"
+        href="{link file='custom/plugins/FinSearchUnified/Resources/views/frontend/_resources/css/findologic.css'}"
+    />
 {/block}
