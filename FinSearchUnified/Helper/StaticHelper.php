@@ -464,16 +464,27 @@ class StaticHelper
     private static function prepareValueItems($items, $name)
     {
         $response = [];
+        $itemNames = [];
         $selectedItems = self::getSelectedItems($name);
-        $itemNames = array_map(function ($item) {
-            return $item['name'];
-        }, $items);
+
+        foreach ($items as $item) {
+            $active = in_array($item['name'], $selectedItems);
+
+            if ($item['frequency']) {
+                $label = sprintf('%s (%d)', $item['name'], $item['frequency']);
+            } else {
+                $label = $item['name'];
+            }
+
+            $valueListItem = new SearchBundle\FacetResult\ValueListItem($item['name'], $label, $active);
+            $response[] = $valueListItem;
+            $itemNames[] = $item['name'];
+        }
 
         $lostItems = array_diff($selectedItems, $itemNames);
 
-        foreach (array_merge($itemNames, $lostItems) as $item) {
-            $enabled = in_array($item, $selectedItems);
-            $valueListItem = new SearchBundle\FacetResult\ValueListItem($item, $item, $enabled);
+        foreach ($lostItems as $item) {
+            $valueListItem = new SearchBundle\FacetResult\ValueListItem($item, $item, true);
             $response[] = $valueListItem;
         }
 
@@ -513,7 +524,13 @@ class StaticHelper
                 $media->setFile($item['image']);
             }
 
-            $values[] = new SearchBundle\FacetResult\MediaListItem($item['name'], $item['name'], $active, $media);
+            if ($item['frequency']) {
+                $label = sprintf('%s (%d)', $item['name'], $item['frequency']);
+            } else {
+                $label = $item['name'];
+            }
+
+            $values[] = new SearchBundle\FacetResult\MediaListItem($item['name'], $label, $active, $media);
         }
 
         return $values;
@@ -554,9 +571,12 @@ class StaticHelper
             $tempItem['name']  = (string) $subItem->name;
             $tempItem['image'] = (string) ( $subItem->image !== null ? $subItem->image[0] : '' );
             $tempItem['color'] = (string) ( $subItem->color !== null ? $subItem->color[0] : '' );
-            if ( $subItem->items->item ) {
-                $tempItem['items'] = self::createFilterItems( $subItem->items->item );
+            $tempItem['frequency'] = isset($subItem->frequency) ? (int) $subItem->frequency : null;
+
+            if ($subItem->items->item) {
+                $tempItem['items'] = self::createFilterItems($subItem->items->item);
             }
+
             $response[] = $tempItem;
         }
 
@@ -584,9 +604,15 @@ class StaticHelper
 
             $active = in_array($treeName, $selectedItems);
 
+            if ($item['frequency']) {
+                $label = sprintf('%s (%d)', $item['name'], $item['frequency']);
+            } else {
+                $label = $item['name'];
+            }
+
             $treeView = new SearchBundle\FacetResult\TreeItem(
                 $treeName,
-                $item['name'],
+                $label,
                 $active,
                 self::prepareTreeView($item['items'], $name, $treeName)
             );
