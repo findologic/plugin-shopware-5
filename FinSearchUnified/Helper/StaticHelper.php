@@ -156,38 +156,39 @@ class StaticHelper
     public static function getFacetResultsFromXml(SimpleXMLElement $xmlResponse)
     {
         $facets = [];
-        foreach ( $xmlResponse->filters->filter as $filter ) {
+
+        foreach ($xmlResponse->filters->filter as $filter) {
             $facetItem            = [];
             $facetItem['name']    = (string) $filter->name;
             $facetItem['select']  = (string) $filter->select;
             $facetItem['display'] = (string) $filter->display;
             $facetItem['type']    = (string) $filter->type;
-            $facetItem['items']   = self::createFilterItems( $filter->items->item );
+            $facetItem['items']   = self::createFilterItems($filter->items->item);
 
-            switch ( $facetItem['type'] ) {
+            switch ($facetItem['type']) {
                 case 'select':
-                    $facets[] = self::createTreeviewFacet( $facetItem );
+                    $facets[] = self::createTreeviewFacet($facetItem);
                     break;
                 case 'label':
-                    switch ( $facetItem['select'] ) {
+                    switch ($facetItem['select']) {
                         case 'single':
-                            $facets[] = self::createRadioFacet( $facetItem );
+                            $facets[] = self::createRadioFacet($facetItem);
                             break;
                         default:
-                            $facets[] = self::createValueListFacet( $facetItem );
+                            $facets[] = self::createValueListFacet($facetItem);
                             break;
                     }
                     break;
                 case 'color':
                     if ($facetItem['items'] && $facetItem['items'][0]['image']) {
-                        $facets[] = self::createMediaListFacet( $facetItem );
+                        $facets[] = self::createMediaListFacet($facetItem);
                     } else {
-                        $facets[] = self::createColorListFacet( $facetItem );
+                        $facets[] = self::createColorListFacet($facetItem);
                     }
 
                     break;
                 case 'image':
-                    $facets[] = self::createMediaListFacet( $facetItem );
+                    $facets[] = self::createMediaListFacet($facetItem);
                     break;
                 case 'range-slider':
                     $min = (float) $filter->attributes->totalRange->min;
@@ -548,7 +549,8 @@ class StaticHelper
     {
         $response = [];
         $tempItem = [];
-        foreach ( $items as $subItem ) {
+
+        foreach ($items as $subItem) {
             $tempItem['name']  = (string) $subItem->name;
             $tempItem['image'] = (string) ( $subItem->image !== null ? $subItem->image[0] : '' );
             $tempItem['color'] = (string) ( $subItem->color !== null ? $subItem->color[0] : '' );
