@@ -155,7 +155,6 @@ class StaticHelper
      */
     public static function getFacetResultsFromXml(SimpleXMLElement $xmlResponse)
     {
-        /* FACETS */
         $facets = [];
         foreach ( $xmlResponse->filters->filter as $filter ) {
             $facetItem            = [];
@@ -172,11 +171,9 @@ class StaticHelper
                 case 'label':
                     switch ( $facetItem['select'] ) {
                         case 'single':
-                            // RadioFacetResult
                             $facets[] = self::createRadioFacet( $facetItem );
                             break;
                         default:
-                            // ValueListFacetResult
                             $facets[] = self::createValueListFacet( $facetItem );
                             break;
                     }
