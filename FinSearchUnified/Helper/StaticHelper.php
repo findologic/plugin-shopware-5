@@ -155,42 +155,40 @@ class StaticHelper
      */
     public static function getFacetResultsFromXml(SimpleXMLElement $xmlResponse)
     {
-        /* FACETS */
         $facets = [];
-        foreach ( $xmlResponse->filters->filter as $filter ) {
+
+        foreach ($xmlResponse->filters->filter as $filter) {
             $facetItem            = [];
             $facetItem['name']    = (string) $filter->name;
             $facetItem['select']  = (string) $filter->select;
             $facetItem['display'] = (string) $filter->display;
             $facetItem['type']    = (string) $filter->type;
-            $facetItem['items']   = self::createFilterItems( $filter->items->item );
+            $facetItem['items']   = self::createFilterItems($filter->items->item);
 
-            switch ( $facetItem['type'] ) {
+            switch ($facetItem['type']) {
                 case 'select':
-                    $facets[] = self::createTreeviewFacet( $facetItem );
+                    $facets[] = self::createTreeviewFacet($facetItem);
                     break;
                 case 'label':
-                    switch ( $facetItem['select'] ) {
+                    switch ($facetItem['select']) {
                         case 'single':
-                            // RadioFacetResult
-                            $facets[] = self::createRadioFacet( $facetItem );
+                            $facets[] = self::createRadioFacet($facetItem);
                             break;
                         default:
-                            // ValueListFacetResult
-                            $facets[] = self::createValueListFacet( $facetItem );
+                            $facets[] = self::createValueListFacet($facetItem);
                             break;
                     }
                     break;
                 case 'color':
                     if ($facetItem['items'] && $facetItem['items'][0]['image']) {
-                        $facets[] = self::createMediaListFacet( $facetItem );
+                        $facets[] = self::createMediaListFacet($facetItem);
                     } else {
-                        $facets[] = self::createColorListFacet( $facetItem );
+                        $facets[] = self::createColorListFacet($facetItem);
                     }
 
                     break;
                 case 'image':
-                    $facets[] = self::createMediaListFacet( $facetItem );
+                    $facets[] = self::createMediaListFacet($facetItem);
                     break;
                 case 'range-slider':
                     $min = (float) $filter->attributes->totalRange->min;
@@ -235,11 +233,11 @@ class StaticHelper
      */
     private static function createMediaListFacet(array $facetItem)
     {
-        $enabled = !empty(self::getSelectedItems($facetItem['name']));
+        $active = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\MediaListFacetResult(
             $facetItem['name'],
-            $enabled,
+            $active,
             $facetItem['display'],
             self::prepareMediaItems($facetItem['items'], $facetItem['name']),
             self::escapeFilterName($facetItem['name'])
@@ -255,11 +253,11 @@ class StaticHelper
      */
     private static function createColorListFacet(array $facetItem)
     {
-        $enabled = !empty(self::getSelectedItems($facetItem['name']));
+        $active = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new FinFacetResult\ColorPickerFacetResult(
             $facetItem['name'],
-            $enabled,
+            $active,
             $facetItem['display'],
             self::prepareColorItems( $facetItem['items'], $facetItem['name'] ),
             self::escapeFilterName($facetItem['name'])
@@ -293,11 +291,11 @@ class StaticHelper
      */
     private static function createRadioFacet(array $facetItem)
     {
-        $enabled = !empty(self::getSelectedItems($facetItem['name']));
+        $active = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\RadioFacetResult(
             $facetItem['name'],
-            $enabled,
+            $active,
             $facetItem['display'],
             self::prepareValueItems($facetItem['items'], $facetItem['name']),
             self::escapeFilterName($facetItem['name'])
@@ -313,11 +311,11 @@ class StaticHelper
      */
     public static function createValueListFacet(array $facetItem)
     {
-        $enabled = !empty(self::getSelectedItems($facetItem['name']));
+        $active = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\ValueListFacetResult(
             $facetItem['name'],
-            $enabled,
+            $active,
             $facetItem['display'],
             self::prepareValueItems($facetItem['items'], $facetItem['name']),
             self::escapeFilterName($facetItem['name']),
@@ -370,12 +368,12 @@ class StaticHelper
      */
     private static function createTreeviewFacet(array $facetItem)
     {
-        $enabled = !empty(self::getSelectedItems($facetItem['name']));
+        $active = !empty(self::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\TreeFacetResult(
             $facetItem['name'],
             self::escapeFilterName($facetItem['name']),
-            $enabled,
+            $active,
             $facetItem['display'],
             self::prepareTreeView($facetItem['items'], $facetItem['name']),
             $facetItem['name']
@@ -466,16 +464,27 @@ class StaticHelper
     private static function prepareValueItems($items, $name)
     {
         $response = [];
+        $itemNames = [];
         $selectedItems = self::getSelectedItems($name);
-        $itemNames = array_map(function ($item) {
-            return $item['name'];
-        }, $items);
+
+        foreach ($items as $item) {
+            $active = in_array($item['name'], $selectedItems);
+
+            if ($item['frequency'] && !$active) {
+                $label = sprintf('%s (%d)', $item['name'], $item['frequency']);
+            } else {
+                $label = $item['name'];
+            }
+
+            $valueListItem = new SearchBundle\FacetResult\ValueListItem($item['name'], $label, $active);
+            $response[] = $valueListItem;
+            $itemNames[] = $item['name'];
+        }
 
         $lostItems = array_diff($selectedItems, $itemNames);
 
-        foreach (array_merge($itemNames, $lostItems) as $item) {
-            $enabled = in_array($item, $selectedItems);
-            $valueListItem = new SearchBundle\FacetResult\ValueListItem($item, $item, $enabled);
+        foreach ($lostItems as $item) {
+            $valueListItem = new SearchBundle\FacetResult\ValueListItem($item, $item, true);
             $response[] = $valueListItem;
         }
 
@@ -515,7 +524,13 @@ class StaticHelper
                 $media->setFile($item['image']);
             }
 
-            $values[] = new SearchBundle\FacetResult\MediaListItem($item['name'], $item['name'], $active, $media);
+            if ($item['frequency'] && !$active) {
+                $label = sprintf('%s (%d)', $item['name'], $item['frequency']);
+            } else {
+                $label = $item['name'];
+            }
+
+            $values[] = new SearchBundle\FacetResult\MediaListItem($item['name'], $label, $active, $media);
         }
 
         return $values;
@@ -543,21 +558,27 @@ class StaticHelper
     }
 
     /**
-     * @param $items
+     * @param SimpleXMLElement $items
      *
      * @return array
      */
-    private static function createFilterItems( $items )
+    private static function createFilterItems(SimpleXMLElement $items)
     {
         $response = [];
-        $tempItem = [];
-        foreach ( $items as $subItem ) {
-            $tempItem['name']  = (string) $subItem->name;
-            $tempItem['image'] = (string) ( $subItem->image !== null ? $subItem->image[0] : '' );
-            $tempItem['color'] = (string) ( $subItem->color !== null ? $subItem->color[0] : '' );
-            if ( $subItem->items->item ) {
-                $tempItem['items'] = self::createFilterItems( $subItem->items->item );
+
+        foreach ($items as $subItem) {
+            $tempItem = [
+                'name' => (string) $subItem->name,
+                'image' => (string) ( $subItem->image !== null ? $subItem->image[0] : '' ),
+                'color' => (string) ( $subItem->color !== null ? $subItem->color[0] : '' ),
+                'frequency' => isset($subItem->frequency) ? (int) $subItem->frequency : null,
+                'items' => []
+            ];
+
+            if ($subItem->items->item) {
+                $tempItem['items'] = self::createFilterItems($subItem->items->item);
             }
+
             $response[] = $tempItem;
         }
 
@@ -583,12 +604,18 @@ class StaticHelper
                 $treeName = $recurseName . '_' . $item['name'];
             }
 
-            $enabled = in_array($treeName, $selectedItems);
+            $active = in_array($treeName, $selectedItems);
+
+            if ($item['frequency'] && !$active) {
+                $label = sprintf('%s (%d)', $item['name'], $item['frequency']);
+            } else {
+                $label = $item['name'];
+            }
 
             $treeView = new SearchBundle\FacetResult\TreeItem(
                 $treeName,
-                $item['name'],
-                $enabled,
+                $label,
+                $active,
                 self::prepareTreeView($item['items'], $name, $treeName)
             );
             $response[] = $treeView;
@@ -749,5 +776,25 @@ class StaticHelper
 
         // Fall back to the original name if it couldn't be escaped.
         return $escapedName ?: $name;
+    }
+
+    /**
+     * @param SimpleXMLElement $xmlResponse
+     */
+    public static function setPromotion(SimpleXMLElement $xmlResponse)
+    {
+        /** @var SimpleXMLElement $promotion */
+        $promotion = $xmlResponse->promotion;
+
+        if (isset($promotion) && count($promotion->attributes()) > 0) {
+            /** @var \Enlight_View_Default $view */
+            $view = Shopware()->Container()->get('front')->Plugins()->ViewRenderer()->Action()->View();
+            $view->assign([
+                'finPromotion' => [
+                    'image' => $promotion->attributes()->image,
+                    'link' => $promotion->attributes()->link
+                ]
+            ]);
+        }
     }
 }

@@ -64,6 +64,8 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
                     self::redirectOnLandingpage($xmlResponse);
 
+                    StaticHelper::setPromotion($xmlResponse);
+
                     $this->facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
 
                     $facetsInterfaces = StaticHelper::getFindologicFacets($xmlResponse);

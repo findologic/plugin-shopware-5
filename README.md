@@ -48,6 +48,9 @@ $ php bin/console findologic:export SHOPKEY
 # Customization
 The plugin's search and export components are registered as services. If those do not meet your requirements, it is
 advised to implement a basic plugin which extends/decorates the mentioned services.
+FINDOLOGIC also provides an [extension plugin](https://github.com/findologic/extend-shopware-unified) which can be used
+to test customizations.
+
 See the official Shopware [documentation](https://developers.shopware.com/developers-guide/plugin-extension-by-plugin/) for more information.
 
 # License
