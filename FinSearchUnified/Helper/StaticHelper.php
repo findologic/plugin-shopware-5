@@ -547,17 +547,22 @@ class StaticHelper
      *
      * @return array
      */
-    private static function createFilterItems( $items )
+    private static function createFilterItems($items)
     {
         $response = [];
-        $tempItem = [];
-        foreach ( $items as $subItem ) {
-            $tempItem['name']  = (string) $subItem->name;
-            $tempItem['image'] = (string) ( $subItem->image !== null ? $subItem->image[0] : '' );
-            $tempItem['color'] = (string) ( $subItem->color !== null ? $subItem->color[0] : '' );
-            if ( $subItem->items->item ) {
-                $tempItem['items'] = self::createFilterItems( $subItem->items->item );
+
+        foreach ($items as $subItem) {
+            $tempItem = [
+                'name' => (string) $subItem->name,
+                'image' => (string) ( $subItem->image !== null ? $subItem->image[0] : '' ),
+                'color' => (string) ( $subItem->color !== null ? $subItem->color[0] : '' ),
+                'items' => []
+            ];
+
+            if ($subItem->items->item) {
+                $tempItem['items'] = self::createFilterItems($subItem->items->item);
             }
+
             $response[] = $tempItem;
         }
 
