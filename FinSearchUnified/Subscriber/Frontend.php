@@ -137,7 +137,6 @@ class Frontend implements SubscriberInterface
         try {
             /** @var \Enlight_Controller_ActionEventArgs $args */
             $view = $args->getSubject()->View();
-            $view->addTemplateDir($this->pluginDirectory.'/Resources/views/');
             $view->extendsTemplate('frontend/fin_search_unified/header.tpl');
             $view->assign('userGroupHash', $hash);
             $view->assign('hashedShopkey', strtoupper(md5($this->getShopKey())));
