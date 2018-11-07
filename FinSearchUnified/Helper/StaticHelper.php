@@ -470,7 +470,7 @@ class StaticHelper
         foreach ($items as $item) {
             $active = in_array($item['name'], $selectedItems);
 
-            if ($item['frequency']) {
+            if ($item['frequency'] && !$active) {
                 $label = sprintf('%s (%d)', $item['name'], $item['frequency']);
             } else {
                 $label = $item['name'];
@@ -524,7 +524,7 @@ class StaticHelper
                 $media->setFile($item['image']);
             }
 
-            if ($item['frequency']) {
+            if ($item['frequency'] && !$active) {
                 $label = sprintf('%s (%d)', $item['name'], $item['frequency']);
             } else {
                 $label = $item['name'];
@@ -604,7 +604,7 @@ class StaticHelper
 
             $active = in_array($treeName, $selectedItems);
 
-            if ($item['frequency']) {
+            if ($item['frequency'] && !$active) {
                 $label = sprintf('%s (%d)', $item['name'], $item['frequency']);
             } else {
                 $label = $item['name'];
