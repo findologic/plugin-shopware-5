@@ -750,4 +750,24 @@ class StaticHelper
         // Fall back to the original name if it couldn't be escaped.
         return $escapedName ?: $name;
     }
+
+    /**
+     * @param SimpleXMLElement $xmlResponse
+     */
+    public static function setPromotion(SimpleXMLElement $xmlResponse)
+    {
+        /** @var SimpleXMLElement $promotion */
+        $promotion = $xmlResponse->promotion;
+
+        if (isset($promotion) && count($promotion->attributes()) > 0) {
+            /** @var \Enlight_View_Default $view */
+            $view = Shopware()->Container()->get('front')->Plugins()->ViewRenderer()->Action()->View();
+            $view->assign([
+                'finPromotion' => [
+                    'image' => $promotion->attributes()->image,
+                    'link' => $promotion->attributes()->link
+                ]
+            ]);
+        }
+    }
 }
