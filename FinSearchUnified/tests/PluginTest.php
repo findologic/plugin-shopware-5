@@ -14,15 +14,6 @@ class PluginTest extends TestCase
         ],
     ];
 
-    /**
-     * @throws \Zend_Db_Adapter_Exception
-     */
-    protected function tearDown()
-    {
-        // Reset articles data after each test execution
-        $this->sResetArticles();
-    }
-
     public function testCanCreateInstance()
     {
         /** @var Plugin $plugin */
@@ -40,19 +31,24 @@ class PluginTest extends TestCase
     }
 
     /**
-     * Data provider for the export test cases:
-     * case 1: both products are active and both are returned
-     * case 2: one product is active and one is inactive, so active product is returned
-     * case 3: both products are inactive, so neither of them are returned in the export
+     * Data provider for the export test cases with corresponding assertion message
      *
      * @return array
      */
     public function addDataProvider()
     {
         return [
-            [[true, true], 2],
-            [[true, false], 1],
-            [[false, false], 0],
+            "2 active articles" => [[true, true], 2, "both products are active and both are returned"],
+            "1 active and 1 inactive article" => [
+                [true, false],
+                1,
+                "one product is active and one is inactive, so active product is returned"
+            ],
+            "2 inactive articles" => [
+                [false, false],
+                0,
+                "both products are inactive, so neither of them are returned in the export"
+            ],
         ];
     }
 
@@ -62,19 +58,23 @@ class PluginTest extends TestCase
      * @dataProvider addDataProvider
      * @param array $isActive
      * @param int $expected
+     * @param string $message
      * @throws \Shopware\Components\Api\Exception\CustomValidationException
      * @throws \Shopware\Components\Api\Exception\ValidationException
      */
-    public function testArticleExport($isActive, $expected)
+    public function testArticleExport($isActive, $expected, $message)
     {
-        // Create two test articles with the provided data to test the export functionality
-        $this->createTestProduct(1, $isActive[0]);
-        $this->createTestProduct(2, $isActive[1]);
+        // Create articles with the provided data to test the export functionality
+        for ($i = 0; $i < count($isActive); $i++) {
+            $this->createTestProduct($i, $isActive[$i]);
+        }
 
-        $this->assertEquals($expected, $this->runExportAndReturnCount());
+        $this->assertEquals($expected, $this->runExportAndReturnCount(), $message);
     }
 
     /**
+     * Method to create test products for the export
+     *
      * @param int $number
      * @param bool $isActive
      * @return \Shopware\Models\Article\Article
@@ -83,12 +83,11 @@ class PluginTest extends TestCase
      */
     private function createTestProduct($number, $isActive)
     {
-        // Create temporary test product for the export cases
         $testArticle = [
-            'name' => 'TestArticle' . $number,
+            'name' => 'FindologicArticle' . $number,
             'active' => $isActive,
             'tax' => 19,
-            'supplier' => 'Test Supplier',
+            'supplier' => 'Findologic',
             'categories' => [
                 ['id' => 3],
                 ['id' => 5],
@@ -98,7 +97,7 @@ class PluginTest extends TestCase
                 ['link' => 'https://via.placeholder.com/300/09f/000.png'],
             ],
             'mainDetail' => [
-                'number' => 'SW100' . $number,
+                'number' => 'FINDOLOGIC' . $number,
                 'active' => $isActive,
                 'inStock' => 16,
                 'prices' => [
@@ -114,7 +113,8 @@ class PluginTest extends TestCase
         $article = $resource->create($testArticle);
 
         // Assertion to make sure the test article is created properly
-        $this->assertInstanceOf(\Shopware\Models\Article\Article::class, $article);
+        $this->assertInstanceOf(\Shopware\Models\Article\Article::class, $article,
+            'FINDOLOGIC' . $number . ($isActive ? ": active " : " inactive ") . " article created");
 
         return $article;
     }
@@ -129,6 +129,7 @@ class PluginTest extends TestCase
     {
         try {
             $shopKey = 'ABCD0815';
+            /** @var \FinSearchUnified\ShopwareProcess $blController */
             $blController = Shopware()->Container()->get('fin_search_unified.shopware_process');
             $blController->setShopKey($shopKey);
             $xmlDocument = $blController->getFindologicXml();
@@ -142,6 +143,14 @@ class PluginTest extends TestCase
         }
 
         return 0;
+    }
+
+    /**
+     * Reset articles data after each test
+     */
+    protected function tearDown()
+    {
+        $this->sResetArticles();
     }
 
     /**
