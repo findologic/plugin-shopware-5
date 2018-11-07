@@ -16,24 +16,24 @@
             <label lang="de">Aktiv</label>
             <label lang="en">Active</label>
             <value>true</value>
-            <description lang="de">Aktiviert die FINDOLOGIC Suche</description>
-            <description lang="en">Activate the FINDOLOGIC search provider</description>
+            <description lang="de">Aktiviert die FINDOLOGIC Suche.</description>
+            <description lang="en">Activate the FINDOLOGIC search provider.</description>
         </element>
         <element type="boolean" required="true" scope="shop">
             <name>ActivateFindologicForCategoryPages</name>
             <label lang="de">Aktiv auf Kategorieseiten</label>
             <label lang="en">Active for category pages</label>
             <value>true</value>
-            <description lang="de">Aktiviert die FINDOLOGIC Suche für Kategorieseiten</description>
-            <description lang="en">Activate the FINDOLOGIC search provider for category pages</description>
+            <description lang="de">Aktiviert die FINDOLOGIC Suche für Kategorieseiten.</description>
+            <description lang="en">Activate the FINDOLOGIC search provider for category pages.</description>
         </element>
         <element type="text" required="false" scope="shop">
             <name>IntegrationType</name>
             <label lang="de">Integration (schreibgeschützt)</label>
             <label lang="en">Integration (read-only)</label>
             <value></value>
-            <description lang="en">Currently used integration type. Either one of DI or API.</description>
-            <description lang="de">Die aktuell verwendete Integrationsart. Entweder DI oder API.</description>
+            <description lang="en">Currently used integration type. Either one of Direct Integration or API.</description>
+            <description lang="de">Die aktuell verwendete Integrationsart. Entweder Direct Integration oder API.</description>
             <options>
                 <readOnly>true</readOnly>
             </options>
