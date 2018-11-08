@@ -35,19 +35,19 @@ class PluginTest extends TestCase
      *
      * @return array
      */
-    public function addDataProvider()
+    public function articleProvider()
     {
         return [
-            "2 active articles" => [[true, true], 2, "both products are active and both are returned"],
+            "2 active articles" => [[true, true], 2, "Two articles were expected but %d were returned"],
             "1 active and 1 inactive article" => [
                 [true, false],
                 1,
-                "one product is active and one is inactive, so active product is returned"
+                "Only one article was expected but %d were returned "
             ],
             "2 inactive articles" => [
                 [false, false],
                 0,
-                "both products are inactive, so neither of them are returned in the export"
+                "No articles were expected but %d were returned"
             ],
         ];
     }
@@ -55,21 +55,19 @@ class PluginTest extends TestCase
     /**
      * Method to run the export test cases using the data provider
      *
-     * @dataProvider addDataProvider
+     * @dataProvider articleProvider
      * @param array $isActive
      * @param int $expected
-     * @param string $message
-     * @throws \Shopware\Components\Api\Exception\CustomValidationException
-     * @throws \Shopware\Components\Api\Exception\ValidationException
+     * @param string $errorMessage
      */
-    public function testArticleExport($isActive, $expected, $message)
+    public function testArticleExport($isActive, $expected, $errorMessage)
     {
         // Create articles with the provided data to test the export functionality
         for ($i = 0; $i < count($isActive); $i++) {
             $this->createTestProduct($i, $isActive[$i]);
         }
-
-        $this->assertEquals($expected, $this->runExportAndReturnCount(), $message);
+        $actual = $this->runExportAndReturnCount();
+        $this->assertEquals($expected, $actual, sprintf($errorMessage, $actual));
     }
 
     /**
@@ -77,9 +75,7 @@ class PluginTest extends TestCase
      *
      * @param int $number
      * @param bool $isActive
-     * @return \Shopware\Models\Article\Article
-     * @throws \Shopware\Components\Api\Exception\CustomValidationException
-     * @throws \Shopware\Components\Api\Exception\ValidationException
+     * @return \Shopware\Models\Article\Article|null
      */
     private function createTestProduct($number, $isActive)
     {
@@ -108,15 +104,17 @@ class PluginTest extends TestCase
                 ]
             ],
         ];
-        $manger = new \Shopware\Components\Api\Manager();
-        $resource = $manger->getResource('Article');
-        $article = $resource->create($testArticle);
 
-        // Assertion to make sure the test article is created properly
-        $this->assertInstanceOf(\Shopware\Models\Article\Article::class, $article,
-            'FINDOLOGIC' . $number . ($isActive ? ": active " : " inactive ") . " article created");
+        try {
+            $manger = new \Shopware\Components\Api\Manager();
+            $resource = $manger->getResource('Article');
+            $article = $resource->create($testArticle);
+            return $article;
+        } catch (\Exception $e) {
+            echo sprintf("Exception: %s", $e->getMessage());
+        }
 
-        return $article;
+        return null;
     }
 
     /**
@@ -138,8 +136,7 @@ class PluginTest extends TestCase
             $xml = new \SimpleXMLElement($xmlDocument);
             return (int)$xml->items->attributes()->count;
         } catch (\Exception $e) {
-            // Simply log the exception message in the console
-            echo "\nException: " . $e->getMessage();
+            echo sprintf("Exception: %s", $e->getMessage());
         }
 
         return 0;
@@ -158,7 +155,7 @@ class PluginTest extends TestCase
      *
      * @throws \Zend_Db_Adapter_Exception
      */
-    public function sResetArticles()
+    private function sResetArticles()
     {
         $sql = '
             SET foreign_key_checks = 0;
