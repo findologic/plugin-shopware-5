@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\tests\Helper;
 
+use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Components\Test\Plugin\TestCase;
@@ -105,14 +106,25 @@ class StaticHelperTest extends TestCase
         $isCategoryPage,
         $expected
     ) {
-        $this->saveConfig('ActivateFindologic', (bool)$isActive);
+        $this->saveConfig('ActivateFindologic', $isActive);
         $this->saveConfig('ShopKey', $shopKey);
-        $this->saveConfig('ActivateFindologicForCategoryPages', (bool)$isActiveForCategory);
+        $this->saveConfig('ActivateFindologicForCategoryPages', $isActiveForCategory);
+        $this->saveConfig('IntegrationType',
+            $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API);
 
         if ($isSearchPage !== null) {
-            Shopware()->Session()->offsetSet('isSearchPage', $isSearchPage);
-            Shopware()->Session()->offsetSet('isCategoryPage', $isCategoryPage);
-            Shopware()->Session()->offsetSet('findologicDI', $checkIntegration);
+            $map = [
+                ['isSearchPage', $isSearchPage],
+                ['isCategoryPage', $isCategoryPage],
+                ['findologicDI', $checkIntegration]
+            ];
+            Shopware()->Session = $this->createMock('\Enlight_Components_Session_Namespace')
+                ->method('offsetGet')
+                ->willReturnMap($map);
+
+//            Shopware()->Session()->offsetSet('isSearchPage', $isSearchPage);
+//            Shopware()->Session()->offsetSet('isCategoryPage', $isCategoryPage);
+//            Shopware()->Session()->offsetSet('findologicDI', $checkIntegration);
         }
 
         $result = StaticHelper::useShopSearch();
@@ -130,15 +142,7 @@ class StaticHelperTest extends TestCase
         $plugin = $pluginManager->getPluginByName('FinSearchUnified');
         $config = $pluginManager->getPluginConfig($plugin);
 
-        if (!is_array($key) && array_key_exists($key, $config)) {
-            $config[$key] = $value;
-            $pluginManager->savePluginConfig($plugin, $config);
-        } else {
-            if (is_array($key)) {
-                foreach ($key as $singleKey => $val) {
-                    $this->saveConfig($singleKey, $val);
-                }
-            }
-        }
+        $config[$key] = $value;
+        $pluginManager->savePluginConfig($plugin, $config);
     }
 }
