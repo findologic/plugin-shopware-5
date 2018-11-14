@@ -23,17 +23,17 @@ class StaticHelper
      */
     public static function buildCategoryName($categoryId, $decode = true)
     {
-        $categories    = Shopware()->Modules()->Categories()->sGetCategoriesByParent( $categoryId );
+        $categories    = Shopware()->Modules()->Categories()->sGetCategoriesByParent($categoryId);
         $categoryNames = [];
-        foreach ( $categories as $category ) {
-            if ( $decode ) {
-                $categoryNames[] = rawurlencode( $category['name'] );
+        foreach ($categories as $category) {
+            if ($decode) {
+                $categoryNames[] = rawurlencode($category['name']);
             } else {
                 $categoryNames[] = $category['name'];
             }
         }
-        $categoryNames = array_reverse( $categoryNames );
-        $categoryName  = implode( '_', $categoryNames );
+        $categoryNames = array_reverse($categoryNames);
+        $categoryName  = implode('_', $categoryNames);
 
         return $categoryName;
     }
@@ -46,7 +46,7 @@ class StaticHelper
     {
         /** @var SimpleXMLElement $landingpage */
         $landingpage = $xmlResponse->landingPage;
-        if (isset($landingpage) && $landingpage != null && count($landingpage->attributes()) > 0){
+        if (isset($landingpage) && $landingpage != null && count($landingpage->attributes()) > 0) {
             /** @var string $redirect */
             $redirect = (string)$landingpage->attributes()->link;
             return $redirect;
@@ -64,7 +64,7 @@ class StaticHelper
         /* TLOAD XML RESPONSE */
         $responseText = (string) $response->getBody();
 
-        $xmlResponse = new SimpleXMLElement( $responseText );
+        $xmlResponse = new SimpleXMLElement($responseText);
 
         return $xmlResponse;
     }
@@ -81,28 +81,28 @@ class StaticHelper
         try {
             $container = Shopware()->Container();
             /** @var StoreFrontBundle\Service\ProductNumberServiceInterface $productService */
-            $productService = $container->get( 'shopware_storefront.product_number_service' );
+            $productService = $container->get('shopware_storefront.product_number_service');
             /* READ PRODUCT IDS */
-            foreach ( $xmlResponse->products->product as $product ) {
+            foreach ($xmlResponse->products->product as $product) {
                 try {
                     $articleId = (string) $product->attributes()['id'];
 
-                    $productCheck = $productService->getMainProductNumberById( $articleId );
+                    $productCheck = $productService->getMainProductNumberById($articleId);
 
-                    if ( $articleId === '' || $articleId === null ) {
+                    if ($articleId === '' || $articleId === null) {
                         continue;
                     }
                     /** @var array $baseArticle */
                     $baseArticle                 = [];
                     $baseArticle['orderNumber']  = $productCheck;
-                    $baseArticle['detailId']     = self::getDetailIdForOrdernumber( $productCheck );
+                    $baseArticle['detailId']     = self::getDetailIdForOrdernumber($productCheck);
                     $foundProducts[ $articleId ] = $baseArticle;
-                } catch ( Exception $ex ) {
+                } catch (Exception $ex) {
                     // No Mapping for Search Results
                     continue;
                 }
             }
-        } catch ( Exception $ex ) {
+        } catch (Exception $ex) {
             // Logging Function
         }
 
@@ -116,12 +116,12 @@ class StaticHelper
      */
     public static function getDetailIdForOrdernumber($ordernumber)
     {
-        $db              = Shopware()->Container()->get( 'db' );
-        $checkForArticle = $db->fetchRow( '
+        $db              = Shopware()->Container()->get('db');
+        $checkForArticle = $db->fetchRow('
         SELECT id AS id FROM s_articles_details WHERE ordernumber=?
-        ', [ $ordernumber ] );
+        ', [ $ordernumber ]);
 
-        if ( isset( $checkForArticle['id'] ) ) {
+        if (isset($checkForArticle['id'])) {
             return $checkForArticle['id'];
         }
 
@@ -137,7 +137,7 @@ class StaticHelper
     {
         /* PREPARE SHOPWARE ARRAY */
         $searchResult = [];
-        foreach ( $foundProducts as $productKey => $sProduct ) {
+        foreach ($foundProducts as $productKey => $sProduct) {
             $searchResult[ $sProduct['orderNumber'] ] = new StoreFrontBundle\Struct\BaseProduct(
                 $productKey,
                 $sProduct['detailId'],
@@ -214,7 +214,7 @@ class StaticHelper
     {
         $facets = [];
 
-        foreach ( $xmlResponse->filters->filter as $filter ) {
+        foreach ($xmlResponse->filters->filter as $filter) {
             $facets[] = self::createFindologicFacet(
                 (string) $filter->display,
                 (string) $filter->name,
@@ -259,7 +259,7 @@ class StaticHelper
             $facetItem['name'],
             $active,
             $facetItem['display'],
-            self::prepareColorItems( $facetItem['items'], $facetItem['name'] ),
+            self::prepareColorItems($facetItem['items'], $facetItem['name']),
             self::escapeFilterName($facetItem['name'])
         );
 
@@ -276,7 +276,7 @@ class StaticHelper
     {
         /** @var SearchBundle\FacetResultInterface $facet */
         foreach ($facetArray as $i => $facet) {
-            if ( $facet->getLabel() === $facetName ) {
+            if ($facet->getLabel() === $facetName) {
                 return $i;
             }
         }
@@ -354,8 +354,8 @@ class StaticHelper
     private static function createSelectValues($items)
     {
         $results = [];
-        foreach ( $items as $item ) {
-            $results[] = new SearchBundle\FacetResult\ValueListItem( $item, $item, true );
+        foreach ($items as $item) {
+            $results[] = new SearchBundle\FacetResult\ValueListItem($item, $item, true);
         }
 
         return $results;
@@ -597,7 +597,7 @@ class StaticHelper
         $response = [];
         $selectedItems = self::getSelectedItems($name);
 
-        foreach ( $items as $item ) {
+        foreach ($items as $item) {
             $treeName = $item['name'];
 
             if ($recurseName !== null) {
@@ -640,15 +640,15 @@ class StaticHelper
         return $session->offsetGet('findologicDI');
     }
 
-    public static function cleanString( $string )
+    public static function cleanString($string)
     {
-        $string = str_replace( '\\', '', addslashes( strip_tags( $string ) ) );
-        $string = str_replace( [ "\n", "\r", "\t" ], ' ', $string );
+        $string = str_replace('\\', '', addslashes(strip_tags($string)));
+        $string = str_replace([ "\n", "\r", "\t" ], ' ', $string);
 
         // Remove unprintable characters since they would cause an invalid XML.
-        $string = preg_replace( '/[[:^print:]]/', '', $string );
+        $string = preg_replace('/[[:^print:]]/', '', $string);
 
-        return trim( $string );
+        return trim($string);
     }
 
     /**
@@ -733,11 +733,14 @@ class StaticHelper
             $plugin = $pluginManager->getPluginByName('FinSearchUnified');
             $config = $pluginManager->getPluginConfig($plugin);
 
-            if (array_key_exists('IntegrationType', $config) && $config['IntegrationType'] !== $currentIntegrationType) {
+            if (array_key_exists('IntegrationType', $config) &&
+                $config['IntegrationType'] !== $currentIntegrationType
+            ) {
                 $config['IntegrationType'] = $currentIntegrationType;
                 $pluginManager->savePluginConfig($plugin, $config);
             }
-        } catch (Exception $exception) {}
+        } catch (Exception $exception) {
+        }
     }
 
     /**

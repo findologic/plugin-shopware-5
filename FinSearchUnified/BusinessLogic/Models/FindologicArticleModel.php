@@ -16,6 +16,7 @@ use FINDOLOGIC\Export\Data\SalesFrequency;
 use FINDOLOGIC\Export\Data\Summary;
 use FINDOLOGIC\Export\Data\Url;
 use FINDOLOGIC\Export\Data\Usergroup;
+use FINDOLOGIC\Export\Data\Image as ExportImage;
 use FINDOLOGIC\Export\Exporter;
 use FINDOLOGIC\Export\XML\XMLExporter;
 use FinSearchUnified\Helper\StaticHelper;
@@ -115,8 +116,13 @@ class FindologicArticleModel
      * @param array $salesFrequency
      * @param Category $baseCategory
      */
-    public function __construct(Article $shopwareArticle, $shopKey, array $allUserGroups, array $salesFrequency, Category $baseCategory)
-    {
+    public function __construct(
+        Article $shopwareArticle,
+        $shopKey,
+        array $allUserGroups,
+        array $salesFrequency,
+        Category $baseCategory
+    ) {
         $this->shouldBeExported = false;
         $this->exporter = Exporter::create(Exporter::TYPE_XML);
         $this->xmlArticle = $this->exporter->createItem($shopwareArticle->getId());
@@ -170,7 +176,9 @@ class FindologicArticleModel
         $this->productStruct = $productService->get($mainProductNumber, $context);
 
         if ($this->productStruct) {
-            $this->legacyStruct = Shopware()->Container()->get('legacy_struct_converter')->convertListProductStruct($this->productStruct);
+            $legacyStructConverter = Shopware()->Container()->get('legacy_struct_converter');
+
+            $this->legacyStruct = $legacyStructConverter->convertListProductStruct($this->productStruct);
         } else {
             $this->legacyStruct = [];
         }
@@ -194,7 +202,11 @@ class FindologicArticleModel
                 continue;
             }
 
-            $lastStock = method_exists($detail, 'getLastStock') ? $detail->getLastStock() : $detail->getArticle()->getLastStock();
+            if (method_exists($detail, 'getLastStock')) {
+                $lastStock = $detail->getLastStock();
+            } else {
+                $lastStock = $detail->getArticle()->getLastStock();
+            }
 
             if ($detail->getInStock() < 1 && $lastStock && Shopware()->Config()->get('hideNoInStock')) {
                 continue;
@@ -289,8 +301,9 @@ class FindologicArticleModel
             }
 
             $xmlPrice = new Price();
-            $xmlPrice->setValue(sprintf('%.2f', $price), StaticHelper::calculateUsergroupHash($userGroup->getKey(), $this->shopKey));
-            $this->xmlArticle->addPrice(sprintf('%.2f', $price), StaticHelper::calculateUsergroupHash($userGroup->getKey(), $this->shopKey));
+            $usergroupHash = StaticHelper::calculateUsergroupHash($userGroup->getKey(), $this->shopKey);
+            $xmlPrice->setValue(sprintf('%.2f', $price), $usergroupHash);
+            $this->xmlArticle->addPrice(sprintf('%.2f', $price), $usergroupHash);
 
             if ($userGroup->getKey() == 'EK') {
                 $basePrice = new Price();
@@ -392,9 +405,9 @@ class FindologicArticleModel
                     $imagePath = strtr($mediaService->getUrl($imageDefault), $replacements);
                     $imagePathThumb = strtr($mediaService->getUrl(array_values($imageDetails)[0]), $replacements);
                     if ($imagePathThumb != '') {
-                        $xmlImagePath = new \FINDOLOGIC\Export\Data\Image($imagePath, \FINDOLOGIC\Export\Data\Image::TYPE_DEFAULT);
+                        $xmlImagePath = new ExportImage($imagePath, ExportImage::TYPE_DEFAULT);
                         $imagesArray[] = $xmlImagePath;
-                        $xmlImageThumb = new \FINDOLOGIC\Export\Data\Image($imagePathThumb, \FINDOLOGIC\Export\Data\Image::TYPE_THUMBNAIL);
+                        $xmlImageThumb = new ExportImage($imagePathThumb, ExportImage::TYPE_THUMBNAIL);
                         $imagesArray[] = $xmlImageThumb;
                     }
                 }
@@ -404,7 +417,7 @@ class FindologicArticleModel
             $this->xmlArticle->setAllImages($imagesArray);
         } else {
             $noImage = $baseLink.'templates/_default/frontend/_resources/images/no_picture.jpg';
-            $xmlImage = new \FINDOLOGIC\Export\Data\Image($noImage);
+            $xmlImage = new ExportImage($noImage);
             $imagesArray[] = $xmlImage;
             $this->xmlArticle->setAllImages($imagesArray);
         }
@@ -451,7 +464,7 @@ class FindologicArticleModel
                 continue;
             }
 
-            if (!$category->isChildOf($this->baseCategory)){
+            if (!$category->isChildOf($this->baseCategory)) {
                 continue;
             }
 
@@ -569,17 +582,14 @@ class FindologicArticleModel
         $xmlNewFlag = new Attribute('new', [$newFlag]);
         $allAttributes[] = $xmlNewFlag;
 
-        //			// Add votes_rating
-        //			try {
-        //				$sArticle     = Shopware()->Modules()->Articles()->sGetArticleById( $this->baseArticle->getId() );
-        //				$votesAverage = (float) $sArticle['sVoteAverange']['averange'];
-        //				$this->xmlArticle->addAttribute( new Attribute( 'votes_rating', [round( $votesAverage / 2 ) ?? 0] ) );
-        //			} catch ( \Exception $e ) {
-        //				// LOG EXCEPTION
-        //			}
-//
         // Add free_shipping
-        $allAttributes[] = new Attribute('free_shipping', [$this->baseVariant->getShippingFree() == '' ? 0 : $this->baseArticle->getMainDetail()->getShippingFree()]);
+        if ($this->baseVariant->getShippingFree() == '') {
+            $freeShipping = 0;
+        } else {
+            $freeShipping = $this->baseArticle->getMainDetail()->getShippingFree();
+        }
+
+        $allAttributes[] = new Attribute('free_shipping', [$freeShipping]);
 
         // Add sale
         $cheapestPrice = $this->productStruct->getListingPrice();
@@ -601,7 +611,9 @@ class FindologicArticleModel
                 if (in_array($userGroup, $this->baseArticle->getCustomerGroups()->toArray(), true)) {
                     continue;
                 }
-                $userGroupAttribute = new Usergroup(StaticHelper::calculateUsergroupHash($this->shopKey, $userGroup->getKey()));
+
+                $usergroupHash = StaticHelper::calculateUsergroupHash($this->shopKey, $userGroup->getKey());
+                $userGroupAttribute = new Usergroup($usergroupHash);
                 $userGroupArray[] = $userGroupAttribute;
             }
             $this->xmlArticle->setAllUsergroups($userGroupArray);
@@ -646,7 +658,8 @@ class FindologicArticleModel
             $allProperties[] = new Property('length', ['' => $this->baseVariant->getLen()]);
         }
         if (self::checkIfHasValue($this->baseVariant->getReleaseDate())) {
-            $allProperties[] = new Property('release_date', ['' => $this->baseVariant->getReleaseDate()->format(DATE_ATOM)]);
+            $releaseDate = $this->baseVariant->getReleaseDate()->format(DATE_ATOM);
+            $allProperties[] = new Property('release_date', ['' => $releaseDate]);
         }
 
         /** @var \Shopware\Models\Attribute\Article $attributes */
@@ -670,9 +683,13 @@ class FindologicArticleModel
             }
         }
 
-        $allProperties[] = new Property('wishlistUrl', ['' => $rewrtieLink.self::WISHLIST_URL.$this->baseVariant->getNumber()]);
-        $allProperties[] = new Property('compareUrl', ['' => $rewrtieLink.self::COMPARE_URL.$this->baseArticle->getId()]);
-        $allProperties[] = new Property('addToCartUrl', ['' => $rewrtieLink.self::CART_URL.$this->baseVariant->getNumber()]);
+        $wishListUrl = $rewrtieLink . self::WISHLIST_URL . $this->baseVariant->getNumber();
+        $compareUrl = $rewrtieLink . self::COMPARE_URL . $this->baseArticle->getId();
+        $cartUrl = $rewrtieLink . self::CART_URL . $this->baseVariant->getNumber();
+
+        $allProperties[] = new Property('wishlistUrl', ['' => $wishListUrl]);
+        $allProperties[] = new Property('compareUrl', ['' => $compareUrl]);
+        $allProperties[] = new Property('addToCartUrl', ['' => $cartUrl]);
 
         // Supplier
         /** @var Product\Manufacturer $supplier */

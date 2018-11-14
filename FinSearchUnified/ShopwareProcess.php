@@ -16,8 +16,6 @@ use Shopware\Components\ProductStream\RepositoryInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Models\Category\Category;
 
-require __DIR__.'/vendor/autoload.php';
-
 class ShopwareProcess
 {
     /**
@@ -66,12 +64,12 @@ class ShopwareProcess
      * @param int $start
      * @param int $count
      *
-     * @return xmlInformation
+     * @return XmlInformation
      * @throws \Exception
      */
     public function getAllProductsAsXmlArray($selectedLanguage = 'de_DE', $start = 0, $count = 0)
     {
-        $response = new xmlInformation();
+        $response = new XmlInformation();
 
         $baseCategory = $this->shop->getCategory();
 
@@ -142,7 +140,13 @@ class ShopwareProcess
             }
 
             /** @var FindologicArticleFactory $findologicArticleFactory */
-            $findologicArticle = $findologicArticleFactory->create($article, $this->shopKey, $allUserGroups, [], $baseCategory);
+            $findologicArticle = $findologicArticleFactory->create(
+                $article,
+                $this->shopKey,
+                $allUserGroups,
+                [],
+                $baseCategory
+            );
 
             if ($findologicArticle->shouldBeExported) {
                 $findologicArticles[] = $findologicArticle->getXmlRepresentation();
@@ -277,14 +281,4 @@ class ShopwareProcess
 
         return $articles;
     }
-}
-
-class xmlInformation
-{
-    /** @var int */
-    public $count;
-    /** @var int */
-    public $total;
-    /** @var array */
-    public $items;
 }

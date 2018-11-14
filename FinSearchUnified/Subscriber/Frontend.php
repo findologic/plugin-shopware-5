@@ -9,6 +9,9 @@ use FinSearchUnified\Helper\StaticHelper;
 
 class Frontend implements SubscriberInterface
 {
+    /**
+     * @var string
+     */
     public $shopKey;
 
     /**
@@ -22,7 +25,7 @@ class Frontend implements SubscriberInterface
     private $templateManager;
 
     /**
-     * @param $pluginDirectory
+     * @param string $pluginDirectory
      * @param \Enlight_Template_Manager $templateManager
      */
     public function __construct($pluginDirectory, \Enlight_Template_Manager $templateManager)
@@ -68,8 +71,7 @@ class Frontend implements SubscriberInterface
         $params = $request->getParams();
         $mappedParams = [];
 
-        if (
-            (array_key_exists('sSearch', $params) && empty($params['sSearch'])) ||
+        if ((array_key_exists('sSearch', $params) && empty($params['sSearch'])) ||
             (Shopware()->Session()->offsetGet('isSearchPage') && !array_key_exists('sSearch', $params))
         ) {
             $request->setParam('sSearch', ' ');
@@ -160,7 +162,7 @@ class Frontend implements SubscriberInterface
 
     public function onFindologicController(\Enlight_Event_EventArgs $args)
     {
-        return $this->Path().'Controllers/Frontend/Findologic.php';
+        return $this->pluginDirectory . 'Controllers/Frontend/Findologic.php';
     }
 
     public function onAjaxSearchIndexAction()

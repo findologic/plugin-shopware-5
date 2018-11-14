@@ -20,8 +20,13 @@ class FindologicArticleFactory
      *
      * @throws \Exception
      */
-    public function create(Article $shopwareArticle, $shopKey, array $allUserGroups, array $salesFrequency, Category $baseCategory)
-    {
+    public function create(
+        Article $shopwareArticle,
+        $shopKey,
+        array $allUserGroups,
+        array $salesFrequency,
+        Category $baseCategory
+    ) {
         return new FindologicArticleModel($shopwareArticle, $shopKey, $allUserGroups, $salesFrequency, $baseCategory);
     }
 }
