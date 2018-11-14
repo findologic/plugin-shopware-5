@@ -42,7 +42,7 @@ jobs:
   include:
     - stage: Code style
       script:
-        - composer cs-check
+        - composer lint
     - stage: Test
       script:
         - composer test
