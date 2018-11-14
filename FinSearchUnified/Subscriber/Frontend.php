@@ -99,7 +99,7 @@ class Frontend implements SubscriberInterface
         }
 
         if ($mappedParams) {
-            $path = strstr($request->getRequestUri(), '?', true);
+            $path = sprintf('%s/%s', $request->getBaseUrl(), $params['controller']);
             $mappedParams = array_merge($params, $mappedParams);
 
             // Explicitly re-add this parameter only if there were parameters to be mapped.
