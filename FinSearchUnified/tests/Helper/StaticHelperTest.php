@@ -4,11 +4,15 @@ namespace FinSearchUnified\tests\Helper;
 
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
-use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Components\Test\Plugin\TestCase;
 
 class StaticHelperTest extends TestCase
 {
+    /**
+     * Data provider for test cases
+     *
+     * @return array
+     */
     public static function configDataProvider()
     {
         return [
@@ -57,7 +61,7 @@ class StaticHelperTest extends TestCase
                 'isCategoryPage' => false,
                 'expected' => true
             ],
-            'FINDOLOGIC is Active and CheckDirectIntegration is false; isCategoryPage is true and isSearchPage is false and Activate for Category is false' => [
+            'FINDOLOGIC is Active and CheckDirectIntegration is false; isCategoryPage is true and isSearchPage is false and ActivateFindologicForCategoryPages is false' => [
                 'ActivateFindologic' => true,
                 'ShopKey' => 'ABCD0815',
                 'ActivateFindologicForCategoryPages' => false,
@@ -69,13 +73,13 @@ class StaticHelperTest extends TestCase
             'FINDOLOGIC is Active and CheckDirectIntegration is false; IsCategoryPage is false and IsSearchPage is true' => [
                 'ActivateFindologic' => true,
                 'ShopKey' => 'ABCD0815',
-                'ActivateFindologicForCategoryPages' => true,
+                'ActivateFindologicForCategoryPages' => false,
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
                 'expected' => false
             ],
-            'FINDOLOGIC is Active and CheckDirectIntegration is false; isCategoryPage is true and isSearchPage is false and Active for Category Page is true' => [
+            'FINDOLOGIC is Active and CheckDirectIntegration is false; isCategoryPage is true and isSearchPage is false and ActivateFindologicForCategoryPages is true' => [
                 'ActivateFindologic' => true,
                 'ShopKey' => 'ABCD0815',
                 'ActivateFindologicForCategoryPages' => true,
@@ -88,6 +92,8 @@ class StaticHelperTest extends TestCase
     }
 
     /**
+     * Method for testing useShopSearch method in StaticHelper class
+     *
      * @dataProvider configDataProvider
      * @param bool $isActive
      * @param string $shopKey
@@ -95,7 +101,7 @@ class StaticHelperTest extends TestCase
      * @param bool $checkIntegration
      * @param bool $isSearchPage
      * @param bool $isCategoryPage
-     * @param bool $expected
+     * @param bool $expectedResult
      */
     function testUseShopSearch(
         $isActive,
@@ -104,45 +110,66 @@ class StaticHelperTest extends TestCase
         $checkIntegration,
         $isSearchPage,
         $isCategoryPage,
-        $expected
+        $expectedResult
     ) {
-        $this->saveConfig('ActivateFindologic', $isActive);
-        $this->saveConfig('ShopKey', $shopKey);
-        $this->saveConfig('ActivateFindologicForCategoryPages', $isActiveForCategory);
-        $this->saveConfig('IntegrationType',
-            $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API);
+        $configArray = [
+            'ActivateFindologic' => $isActive,
+            'ShopKey' => $shopKey,
+            'ActivateFindologicForCategoryPages' => $isActiveForCategory,
+            'IntegrationType' => $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API
+        ];
+
+        $sessionArray = [
+            'isSearchPage' => $isSearchPage,
+            'isCategoryPage' => $isCategoryPage,
+            'findologicDI' => $checkIntegration
+        ];
+
+        // Create Mock object for Shopware Session
+        Shopware()->Container()->set('session', $this->getMockBuilder('\Enlight_Components_Session_Namespace')
+            ->setMethods(null)
+            ->getMock());
+
+        // Create Mock object for Shopware Config
+        Shopware()->Container()->set('config', $this->getMockBuilder('\Shopware_Components_Config')
+            ->setMethods(null)
+            ->disableOriginalConstructor()
+            ->getMock());
 
         if ($isSearchPage !== null) {
-            $map = [
-                ['isSearchPage', $isSearchPage],
-                ['isCategoryPage', $isCategoryPage],
-                ['findologicDI', $checkIntegration]
-            ];
-            Shopware()->Session = $this->createMock('\Enlight_Components_Session_Namespace')
-                ->method('offsetGet')
-                ->willReturnMap($map);
-
-//            Shopware()->Session()->offsetSet('isSearchPage', $isSearchPage);
-//            Shopware()->Session()->offsetSet('isCategoryPage', $isCategoryPage);
-//            Shopware()->Session()->offsetSet('findologicDI', $checkIntegration);
+            $this->saveSession($sessionArray);
         }
+        $this->saveConfig($configArray);
 
         $result = StaticHelper::useShopSearch();
-        if ($expected === true) {
+        if ($expectedResult === true) {
             $this->assertTrue($result, "useShopSearch expected to return true, but false was returned");
         } else {
             $this->assertFalse($result, "useShopSearch expected to return false, but true was returned");
         }
     }
 
-    private function saveConfig($key, $value)
+    /**
+     * Helper method to save values in Shopware Session
+     *
+     * @param $values
+     */
+    private function saveSession($values)
     {
-        /** @var InstallerService $pluginManager */
-        $pluginManager = Shopware()->Container()->get('shopware_plugininstaller.plugin_manager');
-        $plugin = $pluginManager->getPluginByName('FinSearchUnified');
-        $config = $pluginManager->getPluginConfig($plugin);
+        foreach ($values as $key => $value) {
+            Shopware()->Session()->offsetSet($key, $value);
+        }
+    }
 
-        $config[$key] = $value;
-        $pluginManager->savePluginConfig($plugin, $config);
+    /**
+     * Helper method to save configurations in Shopware Config
+     *
+     * @param $configs
+     */
+    private function saveConfig($configs)
+    {
+        foreach ($configs as $key => $value) {
+            Shopware()->Config()->offsetSet($key, $value);
+        }
     }
 }
