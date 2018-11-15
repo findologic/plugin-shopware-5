@@ -3,9 +3,10 @@
 namespace FinSearchUnified\tests\Components\ProductStream;
 
 use FinSearchUnified\Constants;
+use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Models\ProductStream\ProductStream;
 
-class CriteriaFactory extends \Shopware\Components\Test\Plugin\TestCase
+class CriteriaFactoryTest extends TestCase
 {
     /**
      * @throws \Doctrine\ORM\OptimisticLockException
@@ -16,8 +17,8 @@ class CriteriaFactory extends \Shopware\Components\Test\Plugin\TestCase
         $productStream->setType(2);
         $productStream->setName('Test Stream');
         Shopware()->Models()->persist($productStream);
-        Shopware()->Shop()->getCategory()->setStream($productStream);
         Shopware()->Models()->flush();
+        Shopware()->Shop()->getCategory()->setStream($productStream);
     }
 
     /**
@@ -141,9 +142,8 @@ class CriteriaFactory extends \Shopware\Components\Test\Plugin\TestCase
         /** @var \Shopware\Bundle\SearchBundle\Criteria $criteria */
         $criteria = $factory->createCriteria($request, $context);
         /** @var \Shopware\Bundle\SearchBundle\Condition\CategoryCondition $baseCondition */
-        $baseCondition = $criteria->getBaseCondition('category');
-
-        $this->assertNotNull($baseCondition, "Base condition expected to be NOT NULL, but NULL was returned");
+        $baseCondition = $criteria->getCondition('category');
+        $this->assertNotNull($baseCondition, "Category Condition expected to be NOT NULL, but NULL was returned");
 
         $categories = $baseCondition->getCategoryIds();
         $this->assertSame($expected, $categories[0]);
