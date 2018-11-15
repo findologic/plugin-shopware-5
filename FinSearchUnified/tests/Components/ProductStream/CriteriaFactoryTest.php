@@ -4,33 +4,9 @@ namespace FinSearchUnified\tests\Components\ProductStream;
 
 use FinSearchUnified\Constants;
 use Shopware\Components\Test\Plugin\TestCase;
-use Shopware\Models\ProductStream\ProductStream;
 
 class CriteriaFactoryTest extends TestCase
 {
-    /**
-     * @throws \Doctrine\ORM\OptimisticLockException
-     */
-    public static function setUpBeforeClass()
-    {
-        $productStream = new ProductStream();
-        $productStream->setType(2);
-        $productStream->setName('Test Stream');
-        Shopware()->Models()->persist($productStream);
-        Shopware()->Models()->flush();
-        Shopware()->Shop()->getCategory()->setStream($productStream);
-    }
-
-    /**
-     * @throws \Zend_Db_Adapter_Exception
-     */
-    public static function tearDownAfterClass()
-    {
-        $sql = "SET foreign_key_checks = 0; TRUNCATE `s_product_streams`;";
-        Shopware()->Shop()->getCategory()->setStream(null);
-        Shopware()->Db()->exec($sql);
-    }
-
     /**
      * Provider for test cases to test CriteriaFactory
      *
@@ -101,27 +77,27 @@ class CriteriaFactoryTest extends TestCase
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
         $context = $contextService->getShopContext();
 
+        // Create a Request object and set the parameters accordingly and then assign it to the Application Container
         $request = new \Enlight_Controller_Request_RequestHttp();
         $request->setModuleName($module);
+        $request->setParam('sCategory', $expected);
         Shopware()->Front()->setRequest($request);
 
         $configArray = [
             ['ActivateFindologic', $isActive],
             ['ShopKey', $shopKey],
             ['ActivateFindologicForCategoryPages', $isActiveForCategory],
-            [
-                'IntegrationType',
-                $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API
-            ]
+            ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API]
         ];
 
-        // Create Mock object for Shopware Config
+        // Create mock object for Shopware Config and explicitly return the values
         $config = $this->getMockBuilder('\Shopware_Components_Config')
             ->setMethods(['offsetGet'])
             ->disableOriginalConstructor()
             ->getMock();
         $config->method('offsetGet')
             ->willReturnMap($configArray);
+
         // Assign mocked config variable to application container
         Shopware()->Container()->set('config', $config);
 
@@ -130,21 +106,24 @@ class CriteriaFactoryTest extends TestCase
             ['isCategoryPage', $isCategoryPage],
             ['findologicDI', $checkIntegration]
         ];
-        // Create Mock object for Shopware Session
+
+        // Create mock object for Shopware Session and explicitly return the values
         $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
             ->setMethods(['offsetGet'])
             ->getMock();
         $session->method('offsetGet')
             ->willReturnMap($sessionArray);
+
         // Assign mocked session variable to application container
         Shopware()->Container()->set('session', $session);
 
         /** @var \Shopware\Bundle\SearchBundle\Criteria $criteria */
         $criteria = $factory->createCriteria($request, $context);
+
         /** @var \Shopware\Bundle\SearchBundle\Condition\CategoryCondition $baseCondition */
         $baseCondition = $criteria->getCondition('category');
-        $this->assertNotNull($baseCondition, "Category Condition expected to be NOT NULL, but NULL was returned");
 
+        $this->assertNotNull($baseCondition, "Category Condition expected to be NOT NULL, but NULL was returned");
         $categories = $baseCondition->getCategoryIds();
         $this->assertSame($expected, $categories[0]);
     }
