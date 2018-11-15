@@ -25,7 +25,7 @@ class StaticHelperTest extends TestCase
                 'isCategoryPage' => null,
                 'expected' => true
             ],
-            'ShopKey is empty' => [
+            'Shopkey is empty' => [
                 'ActivateFindologic' => true,
                 'ShopKey' => '',
                 'ActivateFindologicForCategoryPages' => true,
@@ -34,7 +34,7 @@ class StaticHelperTest extends TestCase
                 'isCategoryPage' => null,
                 'expected' => true
             ],
-            'ShopKey is \'Findologic ShopKey\'' => [
+            "Shopkey is 'Findologic ShopKey'" => [
                 'ActivateFindologic' => true,
                 'ShopKey' => 'Findologic ShopKey',
                 'ActivateFindologicForCategoryPages' => true,
@@ -43,7 +43,7 @@ class StaticHelperTest extends TestCase
                 'isCategoryPage' => null,
                 'expected' => true
             ],
-            'FINDOLOGIC is Active and CheckDirectIntegration is true' => [
+            'FINDOLOGIC is active but integration type is DI' => [
                 'ActivateFindologic' => true,
                 'ShopKey' => 'ABCD0815',
                 'ActivateFindologicForCategoryPages' => true,
@@ -52,7 +52,7 @@ class StaticHelperTest extends TestCase
                 'isCategoryPage' => null,
                 'expected' => true
             ],
-            'FINDOLOGIC is Active and CheckDirectIntegration is false; isCategoryPage and isSearchPage is false' => [
+            'FINDOFINDOLOGIC is active but the current page is neither the search nor a category page' => [
                 'ActivateFindologic' => true,
                 'ShopKey' => 'ABCD0815',
                 'ActivateFindologicForCategoryPages' => true,
@@ -61,7 +61,7 @@ class StaticHelperTest extends TestCase
                 'isCategoryPage' => false,
                 'expected' => true
             ],
-            'FINDOLOGIC is Active and CheckDirectIntegration is false; isCategoryPage is true and isSearchPage is false and ActivateFindologicForCategoryPages is false' => [
+            'FINDOLOGIC is not active on category pages' => [
                 'ActivateFindologic' => true,
                 'ShopKey' => 'ABCD0815',
                 'ActivateFindologicForCategoryPages' => false,
@@ -70,7 +70,7 @@ class StaticHelperTest extends TestCase
                 'isCategoryPage' => true,
                 'expected' => true
             ],
-            'FINDOLOGIC is Active and CheckDirectIntegration is false; IsCategoryPage is false and IsSearchPage is true' => [
+            'FINDOLOGIC is active in search' => [
                 'ActivateFindologic' => true,
                 'ShopKey' => 'ABCD0815',
                 'ActivateFindologicForCategoryPages' => false,
@@ -79,7 +79,7 @@ class StaticHelperTest extends TestCase
                 'isCategoryPage' => false,
                 'expected' => false
             ],
-            'FINDOLOGIC is Active and CheckDirectIntegration is false; isCategoryPage is true and isSearchPage is false and ActivateFindologicForCategoryPages is true' => [
+            'FINDOLOGIC is active on category pages' => [
                 'ActivateFindologic' => true,
                 'ShopKey' => 'ABCD0815',
                 'ActivateFindologicForCategoryPages' => true,
@@ -92,8 +92,6 @@ class StaticHelperTest extends TestCase
     }
 
     /**
-     * Method for testing useShopSearch method in StaticHelper class
-     *
      * @dataProvider configDataProvider
      * @param bool $isActive
      * @param string $shopKey
@@ -113,63 +111,43 @@ class StaticHelperTest extends TestCase
         $expectedResult
     ) {
         $configArray = [
-            'ActivateFindologic' => $isActive,
-            'ShopKey' => $shopKey,
-            'ActivateFindologicForCategoryPages' => $isActiveForCategory,
-            'IntegrationType' => $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API
+            ['ActivateFindologic', $isActive],
+            ['ShopKey', $shopKey],
+            ['ActivateFindologicForCategoryPages', $isActiveForCategory],
+            ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API]
         ];
-
-        $sessionArray = [
-            'isSearchPage' => $isSearchPage,
-            'isCategoryPage' => $isCategoryPage,
-            'findologicDI' => $checkIntegration
-        ];
-
-        // Create Mock object for Shopware Session
-        Shopware()->Container()->set('session', $this->getMockBuilder('\Enlight_Components_Session_Namespace')
-            ->setMethods(null)
-            ->getMock());
-
-        // Create Mock object for Shopware Config
-        Shopware()->Container()->set('config', $this->getMockBuilder('\Shopware_Components_Config')
-            ->setMethods(null)
-            ->disableOriginalConstructor()
-            ->getMock());
 
         if ($isSearchPage !== null) {
-            $this->saveSession($sessionArray);
+            $sessionArray = [
+                ['isSearchPage', $isSearchPage],
+                ['isCategoryPage', $isCategoryPage],
+                ['findologicDI', $checkIntegration]
+            ];
+
+            // Create Mock object for Shopware Session
+            $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
+                ->setMethods(['offsetGet'])
+                ->getMock();
+            $session->method('offsetGet')
+                ->willReturnMap($sessionArray);
+
+            // Assign mocked session variable to application container
+            Shopware()->Container()->set('session', $session);
         }
-        $this->saveConfig($configArray);
+        // Create Mock object for Shopware Config
+        $config = $this->getMockBuilder('\Shopware_Components_Config')
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $config->method('offsetGet')
+            ->willReturnMap($configArray);
+
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $config);
 
         $result = StaticHelper::useShopSearch();
-        if ($expectedResult === true) {
-            $this->assertTrue($result, "useShopSearch expected to return true, but false was returned");
-        } else {
-            $this->assertFalse($result, "useShopSearch expected to return false, but true was returned");
-        }
-    }
-
-    /**
-     * Helper method to save values in Shopware Session
-     *
-     * @param $values
-     */
-    private function saveSession($values)
-    {
-        foreach ($values as $key => $value) {
-            Shopware()->Session()->offsetSet($key, $value);
-        }
-    }
-
-    /**
-     * Helper method to save configurations in Shopware Config
-     *
-     * @param $configs
-     */
-    private function saveConfig($configs)
-    {
-        foreach ($configs as $key => $value) {
-            Shopware()->Config()->offsetSet($key, $value);
-        }
+        $error = "Expected %s search to be triggered but it wasn't";
+        $shop = $expectedResult ? "shop" : "FINDOLOGIC";
+        $this->assertEquals($result, $expectedResult, sprintf($error, $shop));
     }
 }
