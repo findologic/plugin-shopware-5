@@ -52,7 +52,7 @@ class StaticHelperTest extends TestCase
                 'isCategoryPage' => null,
                 'expected' => true
             ],
-            'FINDOFINDOLOGIC is active but the current page is neither the search nor a category page' => [
+            'FINDOLOGIC is active but the current page is neither the search nor a category page' => [
                 'ActivateFindologic' => true,
                 'ShopKey' => 'ABCD0815',
                 'ActivateFindologicForCategoryPages' => true,
