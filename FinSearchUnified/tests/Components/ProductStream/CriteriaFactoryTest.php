@@ -2,7 +2,12 @@
 
 namespace FinSearchUnified\tests\Components\ProductStream;
 
+use Enlight_Controller_Request_RequestHttp as RequestHttp;
+use FinSearchUnified\Components\ProductStream\CriteriaFactory;
 use FinSearchUnified\Constants;
+use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
+use Shopware\Bundle\SearchBundle\Criteria;
+use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Components\Test\Plugin\TestCase;
 
 class CriteriaFactoryTest extends TestCase
@@ -12,10 +17,10 @@ class CriteriaFactoryTest extends TestCase
      *
      * @return array
      */
-    public function providers()
+    public function shopSearchSwitchProvider()
     {
         return [
-            "useShopSearch returns true" => [
+            'Uses the original implementation' => [
                 'ActivateFindologic' => true,
                 'ShopKey' => 'ABCD0815',
                 'ActivateFindologicForCategoryPages' => false,
@@ -25,7 +30,7 @@ class CriteriaFactoryTest extends TestCase
                 'module' => null,
                 'expected' => Shopware()->Shop()->getCategory()->getId()
             ],
-            "useShopSearch returns false but module is backend" => [
+            'Uses the original implementation for backend' => [
                 'ActivateFindologic' => true,
                 'ShopKey' => 'ABCD0815',
                 'ActivateFindologicForCategoryPages' => false,
@@ -35,7 +40,7 @@ class CriteriaFactoryTest extends TestCase
                 'module' => 'backend',
                 'expected' => Shopware()->Shop()->getCategory()->getId()
             ],
-            "useShopSearch is false and module is not backend" => [
+            'Uses the custom implementation' => [
                 'ActivateFindologic' => true,
                 'ShopKey' => 'ABCD0815',
                 'ActivateFindologicForCategoryPages' => false,
@@ -49,7 +54,7 @@ class CriteriaFactoryTest extends TestCase
     }
 
     /**
-     * @dataProvider providers
+     * @dataProvider shopSearchSwitchProvider
      * @param bool $isActive
      * @param string $shopKey
      * @param bool $isActiveForCategory
@@ -70,17 +75,17 @@ class CriteriaFactoryTest extends TestCase
         $module,
         $expected
     ) {
-        /** @var \FinSearchUnified\Components\ProductStream\CriteriaFactory $factory */
+        /** @var CriteriaFactory $factory */
         $factory = Shopware()->Container()->get('fin_search_unified.product_stream.criteria_factory');
 
-        /** @var \Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface $contextService */
+        /** @var ContextServiceInterface $contextService */
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
         $context = $contextService->getShopContext();
 
         // Create a Request object and set the parameters accordingly and then assign it to the Application Container
-        $request = new \Enlight_Controller_Request_RequestHttp();
-        $request->setModuleName($module);
-        $request->setParam('sCategory', $expected);
+        $request = new RequestHttp();
+        $request->setModuleName($module)
+            ->setParam('sCategory', $expected);
         Shopware()->Front()->setRequest($request);
 
         $configArray = [
@@ -95,7 +100,8 @@ class CriteriaFactoryTest extends TestCase
             ->setMethods(['offsetGet'])
             ->disableOriginalConstructor()
             ->getMock();
-        $config->method('offsetGet')
+        $config->expects($this->atLeastOnce())
+            ->method('offsetGet')
             ->willReturnMap($configArray);
 
         // Assign mocked config variable to application container
@@ -111,20 +117,21 @@ class CriteriaFactoryTest extends TestCase
         $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
             ->setMethods(['offsetGet'])
             ->getMock();
-        $session->method('offsetGet')
+        $session->expects($this->atLeastOnce())
+            ->method('offsetGet')
             ->willReturnMap($sessionArray);
 
         // Assign mocked session variable to application container
         Shopware()->Container()->set('session', $session);
 
-        /** @var \Shopware\Bundle\SearchBundle\Criteria $criteria */
+        /** @var Criteria $criteria */
         $criteria = $factory->createCriteria($request, $context);
 
-        /** @var \Shopware\Bundle\SearchBundle\Condition\CategoryCondition $baseCondition */
-        $baseCondition = $criteria->getCondition('category');
+        /** @var CategoryCondition $categoryCondition */
+        $categoryCondition = $criteria->getCondition('category');
 
-        $this->assertNotNull($baseCondition, "Category Condition expected to be NOT NULL, but NULL was returned");
-        $categories = $baseCondition->getCategoryIds();
+        $this->assertNotNull($categoryCondition, "Category Condition expected to be NOT NULL, but NULL was returned");
+        $categories = $categoryCondition->getCategoryIds();
         $this->assertSame($expected, $categories[0]);
     }
 }
