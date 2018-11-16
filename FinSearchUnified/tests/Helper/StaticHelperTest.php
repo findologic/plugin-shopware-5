@@ -128,7 +128,8 @@ class StaticHelperTest extends TestCase
             $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
                 ->setMethods(['offsetGet'])
                 ->getMock();
-            $session->method('offsetGet')
+            $session->expects($this->atLeastOnce())
+                ->method('offsetGet')
                 ->willReturnMap($sessionArray);
 
             // Assign mocked session variable to application container
@@ -139,7 +140,8 @@ class StaticHelperTest extends TestCase
             ->setMethods(['offsetGet'])
             ->disableOriginalConstructor()
             ->getMock();
-        $config->method('offsetGet')
+        $config->expects($this->atLeastOnce())
+            ->method('offsetGet')
             ->willReturnMap($configArray);
 
         // Assign mocked config variable to application container
