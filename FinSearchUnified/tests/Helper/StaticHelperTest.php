@@ -92,7 +92,45 @@ class StaticHelperTest extends TestCase
     }
 
     /**
+     * Data provider for testing removal of control characters
+     *
+     * @return array
+     */
+    public static function controlCharacterProvider()
+    {
+        return [
+            'Strings with only letters and numbers' => ['Findologic123', 'Findologic123'],
+            'String with control characters' => ["Findologic\n1\t2\r3", 'Findologic 1 2 3'],
+            'String with special characters' => ['Findologic&123', 'Findologic&123'],
+            'String with umlauts' => ['Findolögic123', 'Findolögic123']
+        ];
+    }
+
+    /**
+     * Data provider for testing cleanString method
+     *
+     * @return array
+     */
+    public static function cleanStringProvider()
+    {
+        return [
+            'String with HTML tags' => ["<span>Findologic Rocks</span>", 'Findologic Rocks'],
+            'String with single quotes' => ['Findologic\'s team rocks', addcslashes('Findologic\'s team rocks', "\\")],
+            'String with double quotes' => [
+                "Findologic\'s team says: \"We Rock!\"",
+                "Findologic's team says: \"We Rock!\"",
+            ],
+            'String with back slashes' => [
+                "Findologic\'s team\\ says: \"We Rock!\"",
+                addcslashes('Findologic\'s team says: "We Rock!"', "\\")
+            ],
+            'String with preceding space' => [' Findologic Rocks ', 'Findologic Rocks']
+        ];
+    }
+
+    /**
      * @dataProvider configDataProvider
+     *
      * @param bool $isActive
      * @param string $shopKey
      * @param bool $isActiveForCategory
@@ -151,5 +189,30 @@ class StaticHelperTest extends TestCase
         $error = "Expected %s search to be triggered but it wasn't";
         $shop = $expectedResult ? "shop" : "FINDOLOGIC";
         $this->assertEquals($result, $expectedResult, sprintf($error, $shop));
+    }
+
+    /**
+     * @dataProvider controlCharacterProvider
+     *
+     * @param string $text
+     * @param string $expected
+     */
+    public function testControlCharacterMethod($text, $expected)
+    {
+        $result = StaticHelper::removeControlCharacters($text);
+        $this->assertEquals($expected, $result, sprintf('%s was expected but %s was returned', $expected, $result));
+    }
+
+    /**
+     * @dataProvider cleanStringProvider
+     * @dataProvider controlCharacterProvider
+     *
+     * @param string $text
+     * @param string $expected
+     */
+    public function testCleanStringMethod($text, $expected)
+    {
+        $result = StaticHelper::cleanString($text);
+        $this->assertEquals($expected, $result, sprintf('%s was expected but %s was returned', $expected, $result));
     }
 }
