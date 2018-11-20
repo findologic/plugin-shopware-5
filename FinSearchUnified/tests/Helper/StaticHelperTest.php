@@ -99,10 +99,31 @@ class StaticHelperTest extends TestCase
     public static function controlCharacterProvider()
     {
         return [
-            'Strings with only letters and numbers' => ['Findologic123', 'Findologic123'],
-            'String with control characters' => ["Findologic\n1\t2\r3", 'Findologic 1 2 3'],
-            'String with special characters' => ['Findologic&123', 'Findologic&123'],
-            'String with umlauts' => ['Findolögic123', 'Findolögic123']
+            'Strings with only letters and numbers' => [
+                'Findologic123',
+                'Findologic123',
+                'Expected string to return unchanged'
+            ],
+            'String with control characters' => [
+                "Findologic\n1\t2\r3",
+                'Findologic123',
+                'Expected control characters to be stripped way'
+            ],
+            'String with another set of control characters' => [
+                "Findologic\xC2\x9F\xC2\x80 Rocks",
+                'Findologic Rocks',
+                'Expected control characters to be stripped way'
+            ],
+            'String with special characters' => [
+                'Findologic&123',
+                'Findologic&123',
+                'Expected special characters to be returned as they are'
+            ],
+            'String with umlauts' => [
+                'Findolögic123',
+                'Findolögic123',
+                'Expected umlauts to be left unaltered.'
+            ]
         ];
     }
 
@@ -114,17 +135,56 @@ class StaticHelperTest extends TestCase
     public static function cleanStringProvider()
     {
         return [
-            'String with HTML tags' => ["<span>Findologic Rocks</span>", 'Findologic Rocks'],
-            'String with single quotes' => ["Findologic's team rocks", 'Findologic\'s team rocks'],
+            'String with HTML tags' => [
+                "<span>Findologic Rocks</span>",
+                'Findologic Rocks',
+                'Expected HTML tags to be stripped away'
+            ],
+            'String with single quotes' => [
+                "Findologic's team rocks",
+                'Findologic\'s team rocks',
+                'Expected single quotes to be escaped with back slash'
+            ],
             'String with double quotes' => [
                 'Findologic "Rocks!"',
                 "Findologic \"Rocks!\"",
+                'Expected double quotes to be escaped with back slash'
             ],
             'String with back slashes' => [
                 "Findologic\ Rocks!\\",
-                "Findologic Rocks!"
+                'Findologic Rocks!',
+                'Expected back slashes to be stripped away'
             ],
-            'String with preceding space' => [' Findologic Rocks ', 'Findologic Rocks']
+            'String with preceding space' => [
+                ' Findologic Rocks ',
+                'Findologic Rocks',
+                'Expected preceding and succeeding spaces to be stripped away'
+            ],
+            'Strings with only letters and numbers' => [
+                'Findologic123',
+                'Findologic123',
+                'Expected string to return unchanged'
+            ],
+            'String with control characters' => [
+                "Findologic\n1\t2\r3",
+                'Findologic 1 2 3',
+                'Expected control characters to be stripped way'
+            ],
+            'String with another set of control characters' => [
+                "Findologic\xC2\x9F\xC2\x80 Rocks",
+                'Findologic Rocks',
+                'Expected control characters to be stripped way'
+            ],
+            'String with special characters' => [
+                'Findologic&123!',
+                'Findologic&123!',
+                'Expected special characters to be returned as they are'
+            ],
+            'String with umlauts' => [
+                'Findolögic123',
+                'Findolögic123',
+                'Expected umlauts to be left unaltered.'
+            ]
         ];
     }
 
@@ -186,8 +246,8 @@ class StaticHelperTest extends TestCase
         Shopware()->Container()->set('config', $config);
 
         $result = StaticHelper::useShopSearch();
-        $error = "Expected %s search to be triggered but it wasn't";
-        $shop = $expectedResult ? "shop" : "FINDOLOGIC";
+        $error = 'Expected %s search to be triggered but it was not';
+        $shop = $expectedResult ? 'shop' : 'FINDOLOGIC';
         $this->assertEquals($result, $expectedResult, sprintf($error, $shop));
     }
 
@@ -196,23 +256,24 @@ class StaticHelperTest extends TestCase
      *
      * @param string $text
      * @param string $expected
+     * @param string $errorMessage
      */
-    public function testControlCharacterMethod($text, $expected)
+    public function testControlCharacterMethod($text, $expected, $errorMessage)
     {
         $result = StaticHelper::removeControlCharacters($text);
-        $this->assertEquals($expected, $result, sprintf('%s was expected but %s was returned', $expected, $result));
+        $this->assertEquals($expected, $result, $errorMessage);
     }
 
     /**
      * @dataProvider cleanStringProvider
-     * @dataProvider controlCharacterProvider
      *
      * @param string $text
      * @param string $expected
+     * @param string $errorMessage
      */
-    public function testCleanStringMethod($text, $expected)
+    public function testCleanStringMethod($text, $expected, $errorMessage)
     {
         $result = StaticHelper::cleanString($text);
-        $this->assertEquals($expected, $result, sprintf('%s was expected but %s was returned', $expected, $result));
+        $this->assertEquals($expected, $result, $errorMessage);
     }
 }
