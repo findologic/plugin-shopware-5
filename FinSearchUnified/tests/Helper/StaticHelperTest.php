@@ -115,14 +115,14 @@ class StaticHelperTest extends TestCase
     {
         return [
             'String with HTML tags' => ["<span>Findologic Rocks</span>", 'Findologic Rocks'],
-            'String with single quotes' => ['Findologic\'s team rocks', addcslashes('Findologic\'s team rocks', "\\")],
+            'String with single quotes' => ["Findologic's team rocks", 'Findologic\'s team rocks'],
             'String with double quotes' => [
-                "Findologic\'s team says: \"We Rock!\"",
-                "Findologic's team says: \"We Rock!\"",
+                'Findologic "Rocks!"',
+                "Findologic \"Rocks!\"",
             ],
             'String with back slashes' => [
-                "Findologic\'s team\\ says: \"We Rock!\"",
-                addcslashes('Findologic\'s team says: "We Rock!"', "\\")
+                "Findologic\ Rocks!\\",
+                "Findologic Rocks!"
             ],
             'String with preceding space' => [' Findologic Rocks ', 'Findologic Rocks']
         ];
