@@ -544,8 +544,10 @@ class FindologicArticleModel
                     }
 
                     if ($filterValues) {
-                        $allAttributes[] = new Attribute(StaticHelper::removeControlCharacters($group->getName()),
-                            $filterValues);
+                        $allAttributes[] = new Attribute(
+                            StaticHelper::removeControlCharacters($group->getName()),
+                            $filterValues
+                        );
                     }
                 }
             }
