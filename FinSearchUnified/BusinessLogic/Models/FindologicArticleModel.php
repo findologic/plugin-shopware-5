@@ -16,6 +16,7 @@ use FINDOLOGIC\Export\Data\SalesFrequency;
 use FINDOLOGIC\Export\Data\Summary;
 use FINDOLOGIC\Export\Data\Url;
 use FINDOLOGIC\Export\Data\Usergroup;
+use FINDOLOGIC\Export\Data\Image as ExportImage;
 use FINDOLOGIC\Export\Exporter;
 use FINDOLOGIC\Export\XML\XMLExporter;
 use FinSearchUnified\Constants;
@@ -187,7 +188,9 @@ class FindologicArticleModel
         }
 
         if ($this->productStruct) {
-            $this->legacyStruct = Shopware()->Container()->get('legacy_struct_converter')->convertListProductStruct($this->productStruct);
+            $legacyStructConverter = Shopware()->Container()->get('legacy_struct_converter');
+
+            $this->legacyStruct = $legacyStructConverter->convertListProductStruct($this->productStruct);
         } else {
             $this->legacyStruct = [];
         }
@@ -199,6 +202,42 @@ class FindologicArticleModel
             $xmlName = new Name();
             $xmlName->setValue(StaticHelper::removeControlCharacters($this->productStruct->getName()));
             $this->xmlArticle->setName($xmlName);
+        }
+    }
+
+    protected function setVariantOrdernumbers()
+    {
+
+        /** @var Detail $detail */
+        foreach ($this->variantArticles as $detail) {
+            if (!($detail instanceof Detail)) {
+                continue;
+            }
+
+            if (method_exists($detail, 'getLastStock')) {
+                $lastStock = $detail->getLastStock();
+            } else {
+                $lastStock = $detail->getArticle()->getLastStock();
+            }
+
+            if ($detail->getInStock() < 1 && $lastStock && Shopware()->Config()->get('hideNoInStock')) {
+                continue;
+            }
+
+            $this->shouldBeExported = true;
+            // Remove inactive variants
+            if ($detail->getActive() === 0) {
+                continue;
+            }
+            $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getNumber()));
+
+            if ($detail->getEan()) {
+                $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getEan()));
+            }
+
+            if ($detail->getSupplierNumber()) {
+                $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getSupplierNumber()));
+            }
         }
     }
 
@@ -219,6 +258,70 @@ class FindologicArticleModel
             $description = new Description();
             $description->setValue($descriptionLong);
             $this->xmlArticle->setDescription($description);
+        }
+    }
+
+    protected function setPrices()
+    {
+        $priceArray = [];
+        // variant prices per customergroup
+        /** @var Detail $detail */
+        foreach ($this->variantArticles as $detail) {
+            if (!($detail instanceof Detail)) {
+                continue;
+            }
+            if ($detail->getInStock() < 1) {
+                continue;
+            }
+            if ($detail->getActive() == 1) {
+                /** @var \Shopware\Models\Article\Price $price */
+                foreach ($detail->getPrices() as $price) {
+                    /** @var \Shopware\Models\Customer\Group $customerGroup */
+                    $customerGroup = $price->getCustomerGroup();
+                    if ($customerGroup) {
+                        $priceArray[$customerGroup->getKey()][] = $price->getPrice();
+                    }
+                }
+            }
+        }
+
+        // main prices per customergroup
+        foreach ($this->baseVariant->getPrices() as $price) {
+            if ($price->getCustomerGroup()) {
+                /** @var \Shopware\Models\Customer\Group $customerGroup */
+                $customerGroup = $price->getCustomerGroup();
+                if ($customerGroup) {
+                    $priceArray[$customerGroup->getKey()][] = $price->getPrice();
+                }
+            }
+        }
+
+        $tax = $this->baseArticle->getTax();
+
+        // searching the loweset price for each customer group
+        /** @var Group $userGroup */
+        foreach ($this->allUserGroups as $userGroup) {
+            if (array_key_exists($userGroup->getKey(), $priceArray)) {
+                $price = min($priceArray[$userGroup->getKey()]);
+            } else {
+                $price = min($priceArray['EK']);
+            }
+
+            // Add taxes if needed
+            if ($userGroup->getTax()) {
+                $price *= (1 + (float) $tax->getTax() / 100);
+            }
+
+            $xmlPrice = new Price();
+            $usergroupHash = StaticHelper::calculateUsergroupHash($userGroup->getKey(), $this->shopKey);
+            $xmlPrice->setValue(sprintf('%.2f', $price), $usergroupHash);
+            $this->xmlArticle->addPrice(sprintf('%.2f', $price), $usergroupHash);
+
+            if ($userGroup->getKey() == 'EK') {
+                $basePrice = new Price();
+                $basePrice->setValue(sprintf('%.2f', $price));
+                $this->xmlArticle->addPrice(sprintf('%.2f', $price));
+            }
         }
     }
 
@@ -312,11 +415,9 @@ class FindologicArticleModel
                     $imagePath = strtr($mediaService->getUrl($imageDefault), $replacements);
                     $imagePathThumb = strtr($mediaService->getUrl(array_values($imageDetails)[0]), $replacements);
                     if ($imagePathThumb != '') {
-                        $xmlImagePath = new \FINDOLOGIC\Export\Data\Image($imagePath,
-                            \FINDOLOGIC\Export\Data\Image::TYPE_DEFAULT);
+                        $xmlImagePath = new ExportImage($imagePath, ExportImage::TYPE_DEFAULT);
                         $imagesArray[] = $xmlImagePath;
-                        $xmlImageThumb = new \FINDOLOGIC\Export\Data\Image($imagePathThumb,
-                            \FINDOLOGIC\Export\Data\Image::TYPE_THUMBNAIL);
+                        $xmlImageThumb = new ExportImage($imagePathThumb, ExportImage::TYPE_THUMBNAIL);
                         $imagesArray[] = $xmlImageThumb;
                     }
                 }
@@ -326,7 +427,7 @@ class FindologicArticleModel
             $this->xmlArticle->setAllImages($imagesArray);
         } else {
             $noImage = $baseLink . 'templates/_default/frontend/_resources/images/no_picture.jpg';
-            $xmlImage = new \FINDOLOGIC\Export\Data\Image($noImage);
+            $xmlImage = new ExportImage($noImage);
             $imagesArray[] = $xmlImage;
             $this->xmlArticle->setAllImages($imagesArray);
         }
@@ -443,8 +544,10 @@ class FindologicArticleModel
                     }
 
                     if ($filterValues) {
-                        $allAttributes[] = new Attribute(StaticHelper::removeControlCharacters($group->getName()),
-                            $filterValues);
+                        $allAttributes[] = new Attribute(
+                            StaticHelper::removeControlCharacters($group->getName()),
+                            $filterValues
+                        );
                     }
                 }
             }
@@ -509,18 +612,14 @@ class FindologicArticleModel
         $xmlNewFlag = new Attribute('new', [$newFlag]);
         $allAttributes[] = $xmlNewFlag;
 
-        //			// Add votes_rating
-        //			try {
-        //				$sArticle     = Shopware()->Modules()->Articles()->sGetArticleById( $this->baseArticle->getId() );
-        //				$votesAverage = (float) $sArticle['sVoteAverange']['averange'];
-        //				$this->xmlArticle->addAttribute( new Attribute( 'votes_rating', [round( $votesAverage / 2 ) ?? 0] ) );
-        //			} catch ( \Exception $e ) {
-        //				// LOG EXCEPTION
-        //			}
-//
         // Add free_shipping
-        $allAttributes[] = new Attribute('free_shipping',
-            [$this->baseVariant->getShippingFree() == '' ? 0 : $this->baseArticle->getMainDetail()->getShippingFree()]);
+        if ($this->baseVariant->getShippingFree() == '') {
+            $freeShipping = 0;
+        } else {
+            $freeShipping = $this->baseArticle->getMainDetail()->getShippingFree();
+        }
+
+        $allAttributes[] = new Attribute('free_shipping', [$freeShipping]);
 
         // Add sale
         $cheapestPrice = $this->productStruct->getListingPrice();
@@ -542,108 +641,12 @@ class FindologicArticleModel
                 if (in_array($userGroup, $this->baseArticle->getCustomerGroups()->toArray(), true)) {
                     continue;
                 }
-                $userGroupAttribute = new Usergroup(StaticHelper::calculateUsergroupHash($this->shopKey,
-                    $userGroup->getKey()));
+
+                $usergroupHash = StaticHelper::calculateUsergroupHash($this->shopKey, $userGroup->getKey());
+                $userGroupAttribute = new Usergroup($usergroupHash);
                 $userGroupArray[] = $userGroupAttribute;
             }
             $this->xmlArticle->setAllUsergroups($userGroupArray);
-        }
-    }
-
-    protected function setPrices()
-    {
-        $priceArray = [];
-        // variant prices per customergroup
-        /** @var Detail $detail */
-        foreach ($this->variantArticles as $detail) {
-            if (!($detail instanceof Detail)) {
-                continue;
-            }
-            if ($detail->getInStock() < 1) {
-                continue;
-            }
-            if ($detail->getActive() == 1) {
-                /** @var \Shopware\Models\Article\Price $price */
-                foreach ($detail->getPrices() as $price) {
-                    /** @var \Shopware\Models\Customer\Group $customerGroup */
-                    $customerGroup = $price->getCustomerGroup();
-                    if ($customerGroup) {
-                        $priceArray[$customerGroup->getKey()][] = $price->getPrice();
-                    }
-                }
-            }
-        }
-
-        // main prices per customergroup
-        foreach ($this->baseVariant->getPrices() as $price) {
-            if ($price->getCustomerGroup()) {
-                /** @var \Shopware\Models\Customer\Group $customerGroup */
-                $customerGroup = $price->getCustomerGroup();
-                if ($customerGroup) {
-                    $priceArray[$customerGroup->getKey()][] = $price->getPrice();
-                }
-            }
-        }
-
-        $tax = $this->baseArticle->getTax();
-
-        // searching the loweset price for each customer group
-        /** @var Group $userGroup */
-        foreach ($this->allUserGroups as $userGroup) {
-            if (array_key_exists($userGroup->getKey(), $priceArray)) {
-                $price = min($priceArray[$userGroup->getKey()]);
-            } else {
-                $price = min($priceArray['EK']);
-            }
-
-            // Add taxes if needed
-            if ($userGroup->getTax()) {
-                $price *= (1 + (float)$tax->getTax() / 100);
-            }
-
-            $xmlPrice = new Price();
-            $xmlPrice->setValue(sprintf('%.2f', $price),
-                StaticHelper::calculateUsergroupHash($userGroup->getKey(), $this->shopKey));
-            $this->xmlArticle->addPrice(sprintf('%.2f', $price),
-                StaticHelper::calculateUsergroupHash($userGroup->getKey(), $this->shopKey));
-
-            if ($userGroup->getKey() == 'EK') {
-                $basePrice = new Price();
-                $basePrice->setValue(sprintf('%.2f', $price));
-                $this->xmlArticle->addPrice(sprintf('%.2f', $price));
-            }
-        }
-    }
-
-    protected function setVariantOrdernumbers()
-    {
-        /** @var Detail $detail */
-        foreach ($this->variantArticles as $detail) {
-            if (!($detail instanceof Detail)) {
-                continue;
-            }
-
-            $lastStock = method_exists($detail,
-                'getLastStock') ? $detail->getLastStock() : $detail->getArticle()->getLastStock();
-
-            if ($detail->getInStock() < 1 && $lastStock && Shopware()->Config()->get('hideNoInStock')) {
-                continue;
-            }
-
-            $this->shouldBeExported = true;
-            // Remove inactive variants
-            if ($detail->getActive() === 0) {
-                continue;
-            }
-            $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getNumber()));
-
-            if ($detail->getEan()) {
-                $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getEan()));
-            }
-
-            if ($detail->getSupplierNumber()) {
-                $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getSupplierNumber()));
-            }
         }
     }
 
@@ -685,8 +688,8 @@ class FindologicArticleModel
             $allProperties[] = new Property('length', ['' => $this->baseVariant->getLen()]);
         }
         if (self::checkIfHasValue($this->baseVariant->getReleaseDate())) {
-            $allProperties[] = new Property('release_date',
-                ['' => $this->baseVariant->getReleaseDate()->format(DATE_ATOM)]);
+            $releaseDate = $this->baseVariant->getReleaseDate()->format(DATE_ATOM);
+            $allProperties[] = new Property('release_date', ['' => $releaseDate]);
         }
 
         /** @var \Shopware\Models\Attribute\Article $attributes */
@@ -710,12 +713,13 @@ class FindologicArticleModel
             }
         }
 
-        $allProperties[] = new Property('wishlistUrl',
-            ['' => $rewrtieLink . self::WISHLIST_URL . $this->baseVariant->getNumber()]);
-        $allProperties[] = new Property('compareUrl',
-            ['' => $rewrtieLink . self::COMPARE_URL . $this->baseArticle->getId()]);
-        $allProperties[] = new Property('addToCartUrl',
-            ['' => $rewrtieLink . self::CART_URL . $this->baseVariant->getNumber()]);
+        $wishListUrl = $rewrtieLink . self::WISHLIST_URL . $this->baseVariant->getNumber();
+        $compareUrl = $rewrtieLink . self::COMPARE_URL . $this->baseArticle->getId();
+        $cartUrl = $rewrtieLink . self::CART_URL . $this->baseVariant->getNumber();
+
+        $allProperties[] = new Property('wishlistUrl', ['' => $wishListUrl]);
+        $allProperties[] = new Property('compareUrl', ['' => $compareUrl]);
+        $allProperties[] = new Property('addToCartUrl', ['' => $cartUrl]);
 
         // Supplier
         /** @var Product\Manufacturer $supplier */

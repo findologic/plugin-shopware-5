@@ -199,7 +199,7 @@ class StaticHelperTest extends TestCase
      * @param bool $isCategoryPage
      * @param bool $expectedResult
      */
-    function testUseShopSearch(
+    public function testUseShopSearch(
         $isActive,
         $shopKey,
         $isActiveForCategory,

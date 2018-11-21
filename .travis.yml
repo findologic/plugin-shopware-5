@@ -24,6 +24,10 @@ cache:
    directories:
      - ${HOME}/.composer/cache/files
 
+install:
+  - cd ${PLUGIN_NAME}
+  - composer install
+
 before_script:
   - if [[ "$(php --version | grep -cim1 xdebug)" -ge 1 ]]; then phpenv config-rm xdebug.ini; fi
   - git clone https://github.com/shopware/shopware.git ${SHOPWARE_DIRECTORY} --branch ${SHOPWARE_VERSION}
@@ -34,9 +38,11 @@ before_script:
   - php ${HOME}/shopware/bin/console sw:plugin:activate ${PLUGIN_NAME}
   - cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
 
-install:
-  - cd ${PLUGIN_NAME}
-  - composer install
-
-script:
-  - composer test
+jobs:
+  include:
+    - stage: Code Style
+      script:
+        - composer lint
+    - stage: Test
+      script:
+        - composer test

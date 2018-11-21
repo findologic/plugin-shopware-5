@@ -120,9 +120,7 @@ class StaticHelper
     public static function getDetailIdForOrdernumber($ordernumber)
     {
         $db = Shopware()->Container()->get('db');
-        $checkForArticle = $db->fetchRow('
-        SELECT id AS id FROM s_articles_details WHERE ordernumber=?
-        ', [$ordernumber]);
+        $checkForArticle = $db->fetchRow('SELECT id AS id FROM s_articles_details WHERE ordernumber=?', [$ordernumber]);
 
         if (isset($checkForArticle['id'])) {
             return $checkForArticle['id'];
@@ -752,8 +750,9 @@ class StaticHelper
             $plugin = $pluginManager->getPluginByName('FinSearchUnified');
             $config = $pluginManager->getPluginConfig($plugin);
 
-            if (array_key_exists('IntegrationType',
-                    $config) && $config['IntegrationType'] !== $currentIntegrationType) {
+            if (array_key_exists('IntegrationType', $config) &&
+                $config['IntegrationType'] !== $currentIntegrationType
+            ) {
                 $config['IntegrationType'] = $currentIntegrationType;
                 $pluginManager->savePluginConfig($plugin, $config);
             }
