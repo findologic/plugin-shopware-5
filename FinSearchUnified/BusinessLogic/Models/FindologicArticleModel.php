@@ -20,6 +20,7 @@ use FINDOLOGIC\Export\Exporter;
 use FINDOLOGIC\Export\XML\XMLExporter;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
+use Shopware\Components\Logger;
 use Shopware\Bundle\StoreFrontBundle\Struct\Product;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Article\Detail;
@@ -109,6 +110,11 @@ class FindologicArticleModel
     protected $cache;
 
     /**
+     * @var Logger
+     */
+    protected $logger;
+
+    /**
      * FindologicArticleModel constructor.
      *
      * @param Article $shopwareArticle
@@ -135,6 +141,7 @@ class FindologicArticleModel
         $this->allUserGroups = $allUserGroups;
         $this->seoRouter = Shopware()->Container()->get('modules')->sRewriteTable();
         $this->cache = Shopware()->Container()->get('cache');
+        $this->logger = Shopware()->Container()->get('pluginlogger');
 
         $this->setUpStruct();
 
@@ -168,8 +175,16 @@ class FindologicArticleModel
         $productNumberService = Shopware()->Container()->get('shopware_storefront.product_number_service');
         $productService = Shopware()->Container()->get('shopware_storefront.product_service');
 
-        $mainProductNumber = $productNumberService->getMainProductNumberById($this->baseArticle->getId());
-        $this->productStruct = $productService->get($mainProductNumber, $context);
+        try {
+            $mainProductNumber = $productNumberService->getMainProductNumberById($this->baseArticle->getId());
+            $this->productStruct = $productService->get($mainProductNumber, $context);
+        } catch (\RuntimeException $exception) {
+            $this->logger->warn(sprintf(
+                'Skipped product with ID %d: %s',
+                $this->baseArticle->getId(),
+                $exception->getMessage()
+            ));
+        }
 
         if ($this->productStruct) {
             $this->legacyStruct = Shopware()->Container()->get('legacy_struct_converter')->convertListProductStruct($this->productStruct);
