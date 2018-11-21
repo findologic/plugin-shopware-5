@@ -5,6 +5,7 @@ namespace FinSearchUnified\Bundles;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\StoreFrontBundle\Gateway\CustomFacetGatewayInterface;
+use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
 class FindologicFacetGateway implements CustomFacetGatewayInterface
 {
@@ -20,11 +21,11 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
 
     /**
      * @param int[]                                                         $ids
-     * @param \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context
+     * @param ShopContextInterface $context
      *
      * @return \Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet indexed by id
      */
-    public function getList(array $ids, \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context)
+    public function getList(array $ids, ShopContextInterface $context)
     {
         if (StaticHelper::useShopSearch()) {
             return $this->originalService->getList($ids, $context);
@@ -45,11 +46,11 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
 
     /**
      * @param array                                                         $categoryIds
-     * @param \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context
+     * @param ShopContextInterface $context
      *
      * @return array indexed by category id, each element contains a list of CustomFacet
      */
-    public function getFacetsOfCategories(array $categoryIds, \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context)
+    public function getFacetsOfCategories(array $categoryIds, ShopContextInterface $context)
     {
         if (StaticHelper::useShopSearch()) {
             return $this->originalService->getFacetsOfCategories($categoryIds, $context);
@@ -71,11 +72,11 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
     }
 
     /**
-     * @param \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context
+     * @param ShopContextInterface $context
      *
      * @return \Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet
      */
-    public function getAllCategoryFacets(\Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context)
+    public function getAllCategoryFacets(ShopContextInterface $context)
     {
         // TODO: Implement getAllCategoryFacets() method.
         return $this->originalService->getAllCategoryFacets($context);

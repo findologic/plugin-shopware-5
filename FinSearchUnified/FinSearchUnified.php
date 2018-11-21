@@ -22,8 +22,6 @@ class FinSearchUnified extends Plugin
      */
     public function build(ContainerBuilder $container)
     {
-        require __DIR__.'/vendor/autoload.php';
-
         parent::build($container);
     }
 
