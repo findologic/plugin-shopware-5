@@ -6,6 +6,7 @@ use Enlight\Event\SubscriberInterface;
 use Enlight_Controller_ActionEventArgs;
 use Enlight_Event_EventArgs;
 use FinSearchUnified\Helper\StaticHelper;
+use Enlight_Controller_Request_Request as Request;
 
 class Frontend implements SubscriberInterface
 {
@@ -49,17 +50,21 @@ class Frontend implements SubscriberInterface
     public function onFrontendPreDispatch(Enlight_Event_EventArgs $args)
     {
         $subject = $args->getSubject();
-        $request = $subject->Request();
-        $params = $request->getParams();
 
-        if ($params['controller'] === 'search') {
+        /** @var Request $request */
+        $request = $subject->Request();
+
+        if ($this->isSearchPage($request)) {
             Shopware()->Session()->offsetSet('isSearchPage', true);
             Shopware()->Session()->offsetSet('isCategoryPage', false);
-        }
-
-        if (array_key_exists('sCategory', $params)) {
+        } elseif ($this->isCategoryPage($request)) {
             Shopware()->Session()->offsetSet('isCategoryPage', true);
             Shopware()->Session()->offsetSet('isSearchPage', false);
+        } elseif ($this->isManufacturerPage($request)) {
+            Shopware()->Session()->offsetSet('isCategoryPage', false);
+            Shopware()->Session()->offsetSet('isSearchPage', false);
+        } else {
+            // Keep the flags as they are since these might be subsequent requests from the same page.
         }
     }
 
@@ -101,7 +106,7 @@ class Frontend implements SubscriberInterface
         }
 
         if ($mappedParams) {
-            $path = strstr($request->getRequestUri(), '?', true);
+            $path = sprintf('%s/%s', $request->getBaseUrl(), $params['controller']);
             $mappedParams = array_merge($params, $mappedParams);
 
             // Explicitly re-add this parameter only if there were parameters to be mapped.
@@ -171,5 +176,33 @@ class Frontend implements SubscriberInterface
             Shopware()->Container()->get('front')->Plugins()->ViewRenderer()->setNoRender();
             return true;
         }
+    }
+
+    /**
+     * @param Request $request
+     * @return bool
+     */
+    private function isSearchPage(Request $request)
+    {
+        return array_key_exists('sSearch', $request->getParams());
+    }
+
+    /**
+     * @param Request $request
+     * @return bool
+     */
+    private function isCategoryPage(Request $request)
+    {
+        return $request->getControllerName() === 'listing' && $request->getActionName() !== 'manufacturer' &&
+            array_key_exists('sCategory', $request->getParams());
+    }
+
+    /**
+     * @param Request $request
+     * @return bool
+     */
+    private function isManufacturerPage(Request $request)
+    {
+        return $request->getControllerName() === 'listing' && $request->getActionName() === 'manufacturer';
     }
 }
