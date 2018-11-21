@@ -14,6 +14,14 @@
             <tag name="shopware.event_subscriber" />
         </service>
 
+        <service
+            id="fin_search_unified.subscriber.register_components"
+            class="FinSearchUnified\Subscriber\RegisterComponents"
+        >
+            <argument>%fin_search_unified.plugin_dir%</argument>
+            <tag name="shopware.event_subscriber" />
+        </service>
+
         <service decorates="shopware_storefront.custom_facet_gateway" class="FinSearchUnified\Bundles\FindologicFacetGateway" id="FinSearchUnified.findologic_facet_gateway">
             <argument type="service" id="FinSearchUnified.findologic_facet_gateway.inner"/>
             <argument type="service" id="dbal_connection" />
@@ -52,10 +60,6 @@
         <service id="fin_search_unified.commands.export_command"
                  class="FinSearchUnified\Commands\ExportCommand">
             <tag name="console.command"/>
-        </service>
-
-        <service id="shopware.api.findologic" class="FinSearchUnified\Components\Api\Resource\Findologic">
-
         </service>
 
         <service

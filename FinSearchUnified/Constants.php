@@ -2,7 +2,6 @@
 
 namespace FinSearchUnified;
 
-
 class Constants
 {
     /**

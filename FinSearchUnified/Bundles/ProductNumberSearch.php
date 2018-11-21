@@ -47,14 +47,12 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         // Checking its value is the only way to tell if we should actually perform the search.
         $fetchCount = $criteria->fetchCount();
 
-        if (
-            $moduleName !== 'backend' &&
+        if ($moduleName !== 'backend' &&
             $fetchCount &&
             ($controllerName === 'search' || $controllerName === 'listing') &&
             !StaticHelper::useShopSearch()
         ) {
             try {
-
                 $response = $this->sendRequestToFindologic($criteria, $context->getCurrentCustomerGroup());
 
                 if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {

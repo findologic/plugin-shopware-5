@@ -25,8 +25,10 @@ class ServiceSubscriber implements SubscriberInterface
      */
     public static function getSubscribedEvents()
     {
+        $handler = ['registerProductNumberSearch', -5000];
+
         return [
-            'Enlight_Bootstrap_AfterInitResource_shopware_search.product_number_search' => ['registerProductNumberSearch', -5000],
+            'Enlight_Bootstrap_AfterInitResource_shopware_search.product_number_search' => $handler
         ];
     }
 
