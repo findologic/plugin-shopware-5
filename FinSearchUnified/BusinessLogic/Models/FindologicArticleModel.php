@@ -302,9 +302,13 @@ class FindologicArticleModel
 
     protected function setAddDate()
     {
-        $dateAdded = new DateAdded();
-        $dateAdded->setDateValue($this->baseArticle->getAdded());
-        $this->xmlArticle->setDateAdded($dateAdded);
+        $dateAddedValue = $this->baseArticle->getAdded();
+
+        if ($dateAddedValue instanceof \DateTime) {
+            $dateAdded = new DateAdded();
+            $dateAdded->setDateValue($dateAddedValue);
+            $this->xmlArticle->setDateAdded($dateAdded);
+        }
     }
 
     protected function setSales()
