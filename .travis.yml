@@ -10,6 +10,10 @@ sudo: required
 services:
   - mysql
 
+stages:
+  - test
+  - lint
+
 env:
   matrix:
     - SHOPWARE_VERSION="5.3"
