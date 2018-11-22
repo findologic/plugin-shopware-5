@@ -11,8 +11,7 @@
   "scripts": {
     "lint": "phpcs --standard=shopware-phpcs.xml .",
     "fix": "phpcbf --standard=shopware-phpcs.xml .",
-    "test": "phpunit -c phpunit.xml.dist --colors=always",
-    "test-unit": "phpunit tests/ --colors=always"
+    "test": "phpunit -c phpunit.xml.dist --colors=always"
   },
   "autoload": {
     "psr-4": {
