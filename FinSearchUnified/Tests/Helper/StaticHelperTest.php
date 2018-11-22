@@ -1,6 +1,6 @@
 <?php
 
-namespace FinSearchUnified\tests\Helper;
+namespace FinSearchUnified\Tests\Helper;
 
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;

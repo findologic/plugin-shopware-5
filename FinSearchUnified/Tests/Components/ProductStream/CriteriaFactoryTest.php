@@ -1,6 +1,6 @@
 <?php
 
-namespace FinSearchUnified\tests\Components\ProductStream;
+namespace FinSearchUnified\Tests\Components\ProductStream;
 
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use FinSearchUnified\Components\ProductStream\CriteriaFactory;
