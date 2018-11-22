@@ -40,9 +40,11 @@ before_script:
 
 jobs:
   include:
-    - stage: Code Style
+    - stage: lint
+      name: "Code Style"
       script:
         - composer lint
-    - stage: Test
+    - stage: test
+      name: "Test"
       script:
         - composer test
