@@ -2,9 +2,9 @@
 
 namespace FinSearchUnified\Components\ProductStream;
 
+use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Components\ProductStream\RepositoryInterface;
-use FinSearchUnified\Helper\StaticHelper;
 
 class Repository implements RepositoryInterface
 {
@@ -27,9 +27,7 @@ class Repository implements RepositoryInterface
      */
     public function prepareCriteria(Criteria $criteria, $productStreamId)
     {
-        $module = Shopware()->Front()->Request()->getModuleName();
-
-        if ($module === 'backend' || StaticHelper::useShopSearch()) {
+        if (StaticHelper::useShopSearch()) {
             $this->originalRepository->prepareCriteria($criteria, $productStreamId);
         }
 

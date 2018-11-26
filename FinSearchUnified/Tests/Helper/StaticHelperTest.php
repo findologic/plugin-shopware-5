@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Tests\Helper;
 
+use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Components\Test\Plugin\TestCase;
@@ -23,6 +24,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
+                'Request' => new RequestHttp(),
                 'expected' => true
             ],
             'Shopkey is empty' => [
@@ -32,6 +34,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
+                'Request' => new RequestHttp(),
                 'expected' => true
             ],
             "Shopkey is 'Findologic ShopKey'" => [
@@ -41,6 +44,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
+                'Request' => new RequestHttp(),
                 'expected' => true
             ],
             'FINDOLOGIC is active but integration type is DI' => [
@@ -50,6 +54,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => true,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
+                'Request' => new RequestHttp(),
                 'expected' => true
             ],
             'FINDOLOGIC is active but the current page is neither the search nor a category page' => [
@@ -59,6 +64,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => false,
+                'Request' => new RequestHttp(),
                 'expected' => true
             ],
             'FINDOLOGIC is not active on category pages' => [
@@ -68,6 +74,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
+                'Request' => new RequestHttp(),
                 'expected' => true
             ],
             'FINDOLOGIC is active in search' => [
@@ -77,6 +84,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
+                'Request' => new RequestHttp(),
                 'expected' => false
             ],
             'FINDOLOGIC is active on category pages' => [
@@ -86,7 +94,18 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
+                'Request' => new RequestHttp(),
                 'expected' => false
+            ],
+            'FINDOLOGIC is active and Request is NULL' => [
+                'ActivateFindologic' => true,
+                'ShopKey' => 'ABCD0815',
+                'ActivateFindologicForCategoryPages' => true,
+                'findologicDI' => false,
+                'isSearchPage' => false,
+                'isCategoryPage' => true,
+                'Request' => null,
+                'expected' => true
             ]
         ];
     }
@@ -197,7 +216,8 @@ class StaticHelperTest extends TestCase
      * @param bool $checkIntegration
      * @param bool $isSearchPage
      * @param bool $isCategoryPage
-     * @param bool $expectedResult
+     * @param RequestHttp|null $request
+     * @param bool $expected
      */
     public function testUseShopSearch(
         $isActive,
@@ -206,7 +226,8 @@ class StaticHelperTest extends TestCase
         $checkIntegration,
         $isSearchPage,
         $isCategoryPage,
-        $expectedResult
+        $request,
+        $expected
     ) {
         $configArray = [
             ['ActivateFindologic', $isActive],
@@ -214,6 +235,18 @@ class StaticHelperTest extends TestCase
             ['ActivateFindologicForCategoryPages', $isActiveForCategory],
             ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API]
         ];
+
+        // Create Mock object for Shopware Front Request
+        $front = $this->getMockBuilder('\Enlight_Controller_Front')
+            ->setMethods(['Request'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $front->expects($this->any())
+            ->method('Request')
+            ->willReturn($request);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('front', $front);
 
         if ($isSearchPage !== null) {
             $sessionArray = [
@@ -247,8 +280,8 @@ class StaticHelperTest extends TestCase
 
         $result = StaticHelper::useShopSearch();
         $error = 'Expected %s search to be triggered but it was not';
-        $shop = $expectedResult ? 'shop' : 'FINDOLOGIC';
-        $this->assertEquals($result, $expectedResult, sprintf($error, $shop));
+        $shop = $expected ? 'shop' : 'FINDOLOGIC';
+        $this->assertEquals($expected, $result, sprintf($error, $shop));
     }
 
     /**
