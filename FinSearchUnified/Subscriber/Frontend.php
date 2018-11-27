@@ -62,7 +62,8 @@ class Frontend implements SubscriberInterface
         } elseif ($this->isCategoryPage($request)) {
             Shopware()->Session()->offsetSet('isCategoryPage', true);
             Shopware()->Session()->offsetSet('isSearchPage', false);
-        } elseif ($this->isManufacturerPage($request) || $moduleName == 'backend' || ($controllerName !== 'listing' && $controllerName !== 'search')) {
+        } elseif ($this->isManufacturerPage($request) || $moduleName == 'backend' || ($controllerName !== 'listing'
+                && $controllerName !== 'search')) {
             Shopware()->Session()->offsetSet('isCategoryPage', false);
             Shopware()->Session()->offsetSet('isSearchPage', false);
         } else {
