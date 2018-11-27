@@ -17,19 +17,19 @@ class StaticHelper
 {
     /**
      * @param int $categoryId
-     * @param bool $decode
+     * @param bool $encode
      *
      * @return string
      */
-    public static function buildCategoryName($categoryId, $decode = true)
+    public static function buildCategoryName($categoryId, $encode = true)
     {
         $categories = Shopware()->Modules()->Categories()->sGetCategoriesByParent($categoryId);
         $categoryNames = [];
         foreach ($categories as $category) {
-            if ($decode) {
-                $categoryNames[] = rawurlencode($category['name']);
+            if ($encode) {
+                $categoryNames[] = rawurlencode(trim($category['name']));
             } else {
-                $categoryNames[] = $category['name'];
+                $categoryNames[] = trim($category['name']);
             }
         }
         $categoryNames = array_reverse($categoryNames);
