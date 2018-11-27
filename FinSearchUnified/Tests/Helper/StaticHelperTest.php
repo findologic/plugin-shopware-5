@@ -10,7 +10,7 @@ use Shopware\Components\Test\Plugin\TestCase;
 class StaticHelperTest extends TestCase
 {
     /**
-     * Data provider for test cases
+     * Data provider for checking findologic behavior
      *
      * @return array
      */
@@ -96,16 +96,6 @@ class StaticHelperTest extends TestCase
                 'isCategoryPage' => true,
                 'Request' => new RequestHttp(),
                 'expected' => false
-            ],
-            'FINDOLOGIC is active and Request is NULL' => [
-                'ActivateFindologic' => true,
-                'ShopKey' => 'ABCD0815',
-                'ActivateFindologicForCategoryPages' => true,
-                'findologicDI' => false,
-                'isSearchPage' => false,
-                'isCategoryPage' => true,
-                'Request' => null,
-                'expected' => true
             ]
         ];
     }
@@ -282,6 +272,24 @@ class StaticHelperTest extends TestCase
         $error = 'Expected %s search to be triggered but it was not';
         $shop = $expected ? 'shop' : 'FINDOLOGIC';
         $this->assertEquals($expected, $result, sprintf($error, $shop));
+    }
+
+    public function testUseShopSearchWhenRequestIsNull()
+    {
+        // Create Mock object for Shopware Front Request
+        $front = $this->getMockBuilder('\Enlight_Controller_Front')
+            ->setMethods(['Request'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $front->expects($this->atLeastOnce())
+            ->method('Request')
+            ->willReturn(null);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('front', $front);
+
+        $result = StaticHelper::useShopSearch();
+        $this->assertEquals(true, $result, 'Expected shop search to be triggered but findologic was triggered instead');
     }
 
     /**
