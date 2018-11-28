@@ -17,21 +17,21 @@ class FrontendTest extends TestCase
                 'sCategory' => null,
                 'sController' => 'index',
                 'sAction' => 'index',
-                'sModule' => null
+                'sModule' => 'frontend'
             ],
             'Category Page' => [
                 'sSearch' => null,
-                'sCategory' => 3,
+                'sCategory' => 5,
                 'sController' => 'listing',
                 'sAction' => 'index',
-                'sModule' => null
+                'sModule' => 'frontend'
             ],
             'Manufacturer Page' => [
                 'sSearch' => null,
                 'sCategory' => null,
                 'sController' => 'listing',
                 'sAction' => 'manufacturer',
-                'sModule' => null
+                'sModule' => 'frontend'
             ],
             'Backend Module' => [
                 'sSearch' => null,
@@ -45,7 +45,7 @@ class FrontendTest extends TestCase
                 'sCategory' => null,
                 'sController' => 'index',
                 'sAction' => 'index',
-                'sModule' => null
+                'sModule' => 'frontend'
             ]
         ];
     }
@@ -81,6 +81,9 @@ class FrontendTest extends TestCase
      */
     public function testFrontendPreDispatchConditions($sSearch, $sCategory, $sController, $sAction, $sModule)
     {
+        $isSearch = isset($sSearch);
+        $isCategory = isset($sCategory);
+
         // Create Request object to be passed in the mocked Subject
         $request = new RequestHttp();
         $request->setControllerName($sController)
@@ -108,6 +111,21 @@ class FrontendTest extends TestCase
         $frontend = new \FinSearchUnified\Subscriber\Frontend($plugin->getPath(), new Enlight_Template_Manager());
 
         $frontend->onFrontendPreDispatch($args);
+
+        // Check session values after FrontendPreDispatch Call
+        $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
+        $isSearchPage = Shopware()->Session()->offsetGet('isSearchPage');
+
+        $this->assertEquals(
+            $isSearch,
+            $isSearchPage,
+            sprintf('Expected isSearchPage to be %s', $isSearch ? 'true' : 'false')
+        );
+        $this->assertEquals(
+            $isCategory,
+            $isCategoryPage,
+            sprintf('Expected isCategoryPage to be %s', $isCategory ? 'true' : 'false')
+        );
     }
 
     /**

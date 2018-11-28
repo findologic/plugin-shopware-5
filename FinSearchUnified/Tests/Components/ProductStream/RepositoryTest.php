@@ -49,14 +49,14 @@ class RepositoryTest extends TestCase
      *
      * @param bool $prepareCriteria
      */
-    public function testIfPrepareCriteriaIsCalled($prepareCriteria)
+    public function testUsesOriginalOrDecoratedImplementation($prepareCriteria)
     {
         $mockedRepository = $this->getMockBuilder('\Shopware\Components\ProductStream\Repository')
             ->setMethods(['prepareCriteria'])
             ->disableOriginalConstructor()
             ->getMock();
         if ($prepareCriteria) {
-            $mockedRepository->expects($this->atLeastOnce())
+            $mockedRepository->expects($this->once())
                 ->method('prepareCriteria');
         } else {
             $mockedRepository->expects($this->never())

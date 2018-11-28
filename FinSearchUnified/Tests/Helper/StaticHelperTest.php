@@ -289,7 +289,7 @@ class StaticHelperTest extends TestCase
         Shopware()->Container()->set('front', $front);
 
         $result = StaticHelper::useShopSearch();
-        $this->assertEquals(true, $result, 'Expected shop search to be triggered but findologic was triggered instead');
+        $this->assertTrue($result, 'Expected shop search to be triggered but findologic was triggered instead');
     }
 
     /**
