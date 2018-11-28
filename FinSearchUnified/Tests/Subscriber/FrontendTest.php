@@ -106,6 +106,14 @@ class FrontendTest extends TestCase
         $args->method('getSubject')->willReturn($subject);
         $args->method('getRequest')->willReturn($request);
 
+        // Create Mock object for Shopware Session
+        $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
+            ->setMethods(null)
+            ->getMock();
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('session', $session);
+
         /** @var Plugin $plugin */
         $plugin = Shopware()->Container()->get('kernel')->getPlugins()['FinSearchUnified'];
         $frontend = new \FinSearchUnified\Subscriber\Frontend($plugin->getPath(), new Enlight_Template_Manager());
