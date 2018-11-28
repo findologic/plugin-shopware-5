@@ -191,8 +191,8 @@ class StaticHelperTest extends TestCase
     public function categoryNamesProvider()
     {
         return [
-            'Root category name without children' => [1, ' Root '],
-            'Category name with parent' => [5, ' Genusswelten '],
+            'Root category name without children' => [1, ' Root ', 'Root'],
+            'Category name with parent' => [12, ' Tees ', 'Genusswelten_Tees%20und%20Zubeh%C3%B6r_Tees'],
         ];
     }
 
@@ -290,10 +290,11 @@ class StaticHelperTest extends TestCase
      *
      * @param int $categoryId
      * @param string $category
+     * @param string $expected
      *
      * @throws \Doctrine\ORM\OptimisticLockException
      */
-    public function testBuildCategoryName($categoryId, $category)
+    public function testBuildCategoryName($categoryId, $category, $expected)
     {
         $categoryModel = Shopware()->Models()->getRepository('Shopware\Models\Category\Category')
             ->find($categoryId);
@@ -301,16 +302,33 @@ class StaticHelperTest extends TestCase
 
         // Set category name with preceeding and succeeding spaces
         $categoryModel->setName($category);
-        Shopware()->Models()->persist($categoryModel);
+        $parent = $categoryModel->getParent();
+
+        // Set parent category name with preceeding and succeeding spaces
+        if ($parent !== null) {
+            $this->wrapParentsName($parent, $categoryModel);
+        }
+
         Shopware()->Models()->flush();
 
         $result = StaticHelper::buildCategoryName($categoryModel->getId());
 
-        // Revert category name back to correct state after test result
-        $categoryModel->setName(trim($category));
-        Shopware()->Models()->persist($categoryModel);
-        Shopware()->Models()->flush();
+        $this->assertSame($expected, $result, "Expected category name to be trimmed but was not");
+    }
 
-        $this->assertSame(trim($category), $result, "Expected category name to be trimmed but was not");
+    private function wrapParentsName($parent, $categoryModel)
+    {
+        $parentName = $parent->getName();
+        $parentName = str_pad($parentName, strlen($parentName) + 2, ' ', STR_PAD_BOTH);
+
+        $parent->setName($parentName);
+        Shopware()->Models()->persist($parent);
+
+        $categoryModel->setParent($parent);
+        Shopware()->Models()->persist($categoryModel);
+
+        if ($parent->getParent() !== null) {
+            $this->wrapParentsName($parent->getParent(), $parent);
+        }
     }
 }
