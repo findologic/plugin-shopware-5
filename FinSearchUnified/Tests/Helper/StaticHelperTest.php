@@ -312,26 +312,38 @@ class StaticHelperTest extends TestCase
 
         // Set parent category name with preceeding and succeeding spaces
         if ($parent !== null) {
-            $this->wrapParentsName($parent, $categoryModel);
+            $this->updateParentCategoryName($parent, $categoryModel);
         }
         // Persist changes to database
         Shopware()->Models()->flush();
         $result = StaticHelper::buildCategoryName($categoryModel->getId());
 
+        // Revert category name back to correct state after test result
+        $categoryModel->setName(trim($category));
+        if ($parent !== null) {
+            $this->updateParentCategoryName($parent, $categoryModel, true);
+        }
+        // Persist changes to database
+        Shopware()->Models()->flush();
         $this->assertSame($expected, $result, 'Expected category name to be trimmed but was not');
     }
 
     /**
-     * Helper method to add spaces to category name recursively
+     * Helper method to recursively update parent category name
      *
      * @param Category $parent
      * @param Category $categoryModel
+     * @param bool $restore
      */
-    private function wrapParentsName($parent, $categoryModel)
+    private function updateParentCategoryName($parent, $categoryModel, $restore = false)
     {
-        // Trim name here so it does not keep adding spaces on every run
+        // Trim name here for restoring
         $parentName = trim($parent->getName());
-        $parentName = str_pad($parentName, strlen($parentName) + 2, ' ', STR_PAD_BOTH);
+
+        // Add spaces to name for testing if restore is false
+        if (!$restore) {
+            $parentName = str_pad($parentName, strlen($parentName) + 2, ' ', STR_PAD_BOTH);
+        }
 
         $parent->setName($parentName);
         Shopware()->Models()->persist($parent);
@@ -340,7 +352,7 @@ class StaticHelperTest extends TestCase
         Shopware()->Models()->persist($categoryModel);
 
         if ($parent->getParent() !== null) {
-            $this->wrapParentsName($parent->getParent(), $parent);
+            $this->updateParentCategoryName($parent->getParent(), $parent, $restore);
         }
     }
 }
