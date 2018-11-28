@@ -318,7 +318,7 @@ class StaticHelperTest extends TestCase
         Shopware()->Models()->flush();
         $result = StaticHelper::buildCategoryName($categoryModel->getId());
 
-        $this->assertSame($expected, $result, "Expected category name to be trimmed but was not");
+        $this->assertSame($expected, $result, 'Expected category name to be trimmed but was not');
     }
 
     /**
