@@ -5,6 +5,7 @@ namespace FinSearchUnified\Tests\Helper;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Components\Test\Plugin\TestCase;
+use Shopware\Models\Category\Category;
 
 class StaticHelperTest extends TestCase
 {
@@ -188,6 +189,11 @@ class StaticHelperTest extends TestCase
         ];
     }
 
+    /**
+     * Data provider for testing category names
+     *
+     * @return array
+     */
     public function categoryNamesProvider()
     {
         return [
@@ -308,17 +314,23 @@ class StaticHelperTest extends TestCase
         if ($parent !== null) {
             $this->wrapParentsName($parent, $categoryModel);
         }
-
+        // Persist changes to database
         Shopware()->Models()->flush();
-
         $result = StaticHelper::buildCategoryName($categoryModel->getId());
 
         $this->assertSame($expected, $result, "Expected category name to be trimmed but was not");
     }
 
+    /**
+     * Helper method to add spaces to category name recursively
+     *
+     * @param Category $parent
+     * @param Category $categoryModel
+     */
     private function wrapParentsName($parent, $categoryModel)
     {
-        $parentName = $parent->getName();
+        // Trim name here so it does not keep adding spaces on every run
+        $parentName = trim($parent->getName());
         $parentName = str_pad($parentName, strlen($parentName) + 2, ' ', STR_PAD_BOTH);
 
         $parent->setName($parentName);
