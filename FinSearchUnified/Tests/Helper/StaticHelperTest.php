@@ -24,7 +24,6 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
-                'module' => 'frontend',
                 'expected' => true
             ],
             'Shopkey is empty' => [
@@ -34,7 +33,6 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
-                'module' => 'frontend',
                 'expected' => true
             ],
             "Shopkey is 'Findologic ShopKey'" => [
@@ -44,7 +42,6 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
-                'module' => 'frontend',
                 'expected' => true
             ],
             'FINDOLOGIC is active but integration type is DI' => [
@@ -54,7 +51,6 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => true,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
-                'module' => 'frontend',
                 'expected' => true
             ],
             'FINDOLOGIC is active but the current page is neither the search nor a category page' => [
@@ -64,7 +60,6 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => false,
-                'module' => 'frontend',
                 'expected' => true
             ],
             'FINDOLOGIC is not active on category pages' => [
@@ -74,7 +69,6 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
-                'module' => 'frontend',
                 'expected' => true
             ],
             'FINDOLOGIC is active in search' => [
@@ -84,7 +78,6 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
-                'module' => 'frontend',
                 'expected' => false
             ],
             'FINDOLOGIC is active on category pages' => [
@@ -94,18 +87,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
-                'module' => 'frontend',
                 'expected' => false
-            ],
-            'FINDOLOGIC is not active for backend requests' => [
-                'ActivateFindologic' => true,
-                'ShopKey' => 'ABCD0815',
-                'ActivateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
-                'isSearchPage' => null,
-                'isCategoryPage' => null,
-                'module' => 'backend',
-                'expected' => true
             ]
         ];
     }
@@ -216,7 +198,6 @@ class StaticHelperTest extends TestCase
      * @param bool $checkIntegration
      * @param bool $isSearchPage
      * @param bool $isCategoryPage
-     * @param string $module
      * @param bool $expected
      */
     public function testUseShopSearch(
@@ -226,7 +207,6 @@ class StaticHelperTest extends TestCase
         $checkIntegration,
         $isSearchPage,
         $isCategoryPage,
-        $module,
         $expected
     ) {
         $configArray = [
@@ -237,7 +217,7 @@ class StaticHelperTest extends TestCase
         ];
 
         $request = new RequestHttp();
-        $request->setModuleName($module);
+        $request->setModuleName('frontend');
 
         // Create Mock object for Shopware Front Request
         $front = $this->getMockBuilder('\Enlight_Controller_Front')
@@ -302,9 +282,51 @@ class StaticHelperTest extends TestCase
         Shopware()->Container()->set('front', $front);
 
         $result = StaticHelper::useShopSearch();
-        $this->assertTrue($result, 'Expected shop search to be triggered but findologic was triggered instead');
+        $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
     }
 
+
+    public function testUseShopSearchForBackendRequests()
+    {
+        $request = new RequestHttp();
+        $request->setModuleName('backend');
+
+        // Create Mock object for Shopware Front Request
+        $front = $this->getMockBuilder('\Enlight_Controller_Front')
+            ->setMethods(['Request'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $front->expects($this->atLeastOnce())
+            ->method('Request')
+            ->willReturn($request);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('front', $front);
+
+        // Create Mock object for Shopware Config
+        $config = $this->getMockBuilder('\Shopware_Components_Config')
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $config->expects($this->never())
+            ->method('offsetGet');
+
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $config);
+
+        // Create Mock object for Shopware Session
+        $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
+            ->setMethods(['offsetGet'])
+            ->getMock();
+        $session->expects($this->never())
+            ->method('offsetGet');
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('session', $session);
+
+        $result = StaticHelper::useShopSearch();
+        $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
+    }
     /**
      * @dataProvider controlCharacterProvider
      *
