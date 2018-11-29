@@ -699,7 +699,10 @@ class StaticHelper
     public static function useShopSearch()
     {
         return (
-            Shopware()->Front()->Request() === null || !self::isFindologicActive() || self::checkDirectIntegration() ||
+            Shopware()->Front()->Request() === null ||
+            Shopware()->Front()->Request()->getModuleName() === 'backend' ||
+            !self::isFindologicActive() ||
+            self::checkDirectIntegration() ||
             (
                 !Shopware()->Session()->offsetGet('isCategoryPage') &&
                 !Shopware()->Session()->offsetGet('isSearchPage')

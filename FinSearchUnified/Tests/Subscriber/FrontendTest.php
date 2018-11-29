@@ -16,36 +16,25 @@ class FrontendTest extends TestCase
                 'sSearch' => 'Yes',
                 'sCategory' => null,
                 'sController' => 'index',
-                'sAction' => 'index',
-                'sModule' => 'frontend'
+                'sAction' => 'index'
             ],
             'Category Page' => [
                 'sSearch' => null,
                 'sCategory' => 5,
                 'sController' => 'listing',
-                'sAction' => 'index',
-                'sModule' => 'frontend'
+                'sAction' => 'index'
             ],
             'Manufacturer Page' => [
                 'sSearch' => null,
                 'sCategory' => null,
                 'sController' => 'listing',
-                'sAction' => 'manufacturer',
-                'sModule' => 'frontend'
-            ],
-            'Backend Module' => [
-                'sSearch' => null,
-                'sCategory' => null,
-                'sController' => 'index',
-                'sAction' => 'index',
-                'sModule' => 'backend'
+                'sAction' => 'manufacturer'
             ],
             'Current Page is not Listing or Search' => [
                 'sSearch' => null,
                 'sCategory' => null,
                 'sController' => 'index',
-                'sAction' => 'index',
-                'sModule' => 'frontend'
+                'sAction' => 'index'
             ]
         ];
     }
@@ -57,15 +46,13 @@ class FrontendTest extends TestCase
                 'sSearch' => 'Yes',
                 'sCategory' => null,
                 'sController' => 'listing',
-                'sAction' => 'listingCount',
-                'sModule' => 'widgets'
+                'sAction' => 'listingCount'
             ],
             'Check values after listingCount call in Category Page' => [
                 'sSearch' => null,
                 'sCategory' => 3,
                 'sController' => 'listing',
-                'sAction' => 'listingCount',
-                'sModule' => 'widgets'
+                'sAction' => 'listingCount'
             ]
         ];
     }
@@ -77,9 +64,8 @@ class FrontendTest extends TestCase
      * @param int|null $sCategory
      * @param string $sController
      * @param string $sAction
-     * @param string $sModule
      */
-    public function testFrontendPreDispatchConditions($sSearch, $sCategory, $sController, $sAction, $sModule)
+    public function testFrontendPreDispatchConditions($sSearch, $sCategory, $sController, $sAction)
     {
         $isSearch = isset($sSearch);
         $isCategory = isset($sCategory);
@@ -88,7 +74,7 @@ class FrontendTest extends TestCase
         $request = new RequestHttp();
         $request->setControllerName($sController)
             ->setActionName($sAction)
-            ->setModuleName($sModule)
+            ->setModuleName('frontend')
             ->setParams(['sSearch' => $sSearch, 'sCategory' => $sCategory]);
 
         // Create mocked Subject to be passed in mocked args
@@ -143,15 +129,14 @@ class FrontendTest extends TestCase
      * @param int|null $sCategory
      * @param string $sController
      * @param string $sAction
-     * @param string $sModule
      */
-    public function testSessionValuesAfterListingCount($sSearch, $sCategory, $sController, $sAction, $sModule)
+    public function testSessionValuesAfterListingCount($sSearch, $sCategory, $sController, $sAction)
     {
         // Create Request object to be passed in the mocked Subject
         $request = new RequestHttp();
         $request->setControllerName($sController)
             ->setActionName($sAction)
-            ->setModuleName($sModule)
+            ->setModuleName('widgets')
             ->setParams(['sSearch' => $sSearch, 'sCategory' => $sCategory]);
 
         // Create mocked Subject to be passed in mocked args
