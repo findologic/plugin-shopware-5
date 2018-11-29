@@ -102,8 +102,8 @@ class StaticHelperTest extends TestCase
                 'ShopKey' => 'ABCD0815',
                 'ActivateFindologicForCategoryPages' => false,
                 'findologicDI' => false,
-                'isSearchPage' => true,
-                'isCategoryPage' => false,
+                'isSearchPage' => null,
+                'isCategoryPage' => null,
                 'module' => 'backend',
                 'expected' => true
             ]
