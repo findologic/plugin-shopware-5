@@ -335,7 +335,7 @@ class StaticHelperTest extends TestCase
      * @param Category $categoryModel
      * @param bool $restore
      */
-    private function updateParentCategoryName($parent, $categoryModel, $restore = false)
+    private function updateParentCategoryName(Category $parent, Category $categoryModel, $restore = false)
     {
         // Trim name here for restoring
         $parentName = trim($parent->getName());
