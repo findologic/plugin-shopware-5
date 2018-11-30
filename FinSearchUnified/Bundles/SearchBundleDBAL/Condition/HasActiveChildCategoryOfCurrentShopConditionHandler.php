@@ -43,8 +43,10 @@ class HasActiveChildCategoryOfCurrentShopConditionHandler implements ConditionHa
             'product_category_s_categories.id = product_s_articles_categories_ro.categoryID'
         )->andWhere('product_category_s_categories.active = true');
 
+        /* @var $condition HasActiveChildCategoryOfCurrentShopCondition */
         $query->setParameter(
-            ':category', Shopware()->Shop()->getCategory()->getId()
+            ':category',
+            $condition->getShopCategoryId()
         );
     }
 }

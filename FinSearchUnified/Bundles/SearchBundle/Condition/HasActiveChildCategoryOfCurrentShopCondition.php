@@ -6,6 +6,8 @@ use Shopware\Bundle\SearchBundle\ConditionInterface;
 
 class HasActiveChildCategoryOfCurrentShopCondition implements ConditionInterface, \JsonSerializable
 {
+    private $shopCategoryId;
+
     /**
      * {@inheritdoc}
      */
@@ -20,5 +22,23 @@ class HasActiveChildCategoryOfCurrentShopCondition implements ConditionInterface
     public function jsonSerialize()
     {
         return get_object_vars($this);
+    }
+
+    /**
+     * HasActiveCategoryCondition constructor.
+     *
+     * @param int $shopCategoryId
+     */
+    public function __construct($shopCategoryId)
+    {
+        $this->shopCategoryId = $shopCategoryId;
+    }
+
+    /**
+     * @return int
+     */
+    public function getShopCategoryId()
+    {
+        return $this->shopCategoryId;
     }
 }

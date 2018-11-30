@@ -84,10 +84,12 @@ class Export
         if (Shopware()->Config()->get('hideNoInStock')) {
             $criteria->addBaseCondition(new IsAvailableCondition());
         }
-        $criteria->addBaseCondition(new HasActiveChildCategoryOfCurrentShopCondition());
+        $criteria->addBaseCondition(new HasActiveChildCategoryOfCurrentShopCondition(
+            Shopware()->Shop()->getCategory()->getId()
+        ));
         $criteria->addBaseCondition(new HasActiveCategoryCondition());
 
-        if ($count > 0) {
+        if ($count) {
             $criteria->limit($count);
         }
         $criteria->offset($start);
