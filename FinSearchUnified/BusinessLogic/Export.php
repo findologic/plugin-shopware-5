@@ -75,6 +75,8 @@ class Export
             throw new \UnexpectedValueException('Provided shopkey not assigned to any shop!');
         }
 
+        $shopCategory = $this->shop->getCategory()->getId();
+
         /** @var ContextServiceInterface $contextService */
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
         $context = $contextService->getShopContext();
@@ -82,12 +84,10 @@ class Export
         $criteria = new Criteria();
 
         if (Shopware()->Config()->get('hideNoInStock')) {
-            $criteria->addBaseCondition(new IsAvailableCondition());
+            $criteria->addCondition(new IsAvailableCondition());
         }
-        $criteria->addBaseCondition(new HasActiveChildCategoryOfCurrentShopCondition(
-            Shopware()->Shop()->getCategory()->getId()
-        ));
-        $criteria->addBaseCondition(new HasActiveCategoryCondition());
+        $criteria->addCondition(new HasActiveChildCategoryOfCurrentShopCondition($shopCategory));
+        $criteria->addCondition(new HasActiveCategoryCondition());
 
         if ($count) {
             $criteria->limit($count);
