@@ -12,26 +12,8 @@ class HasActiveCategoryConditionTest extends TestCase
 {
     public function testGenerateCondition()
     {
-        // Create Mock object for Shopware Config
-        $config = $this->getMockBuilder('\Shopware_Components_Config')
-            ->setMethods(['offsetGet'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $config->expects($this->atLeastOnce())
-            ->method('offsetGet')
-            ->willReturnMap([
-                ['hideNoInStock', true],
-                ['ShopKey', 'ABCD0815']
-            ]);
-
-        // Assign mocked config variable to application container
-        Shopware()->Container()->set('config', $config);
-
-        /** @var ContextServiceInterface $contextService */
-        $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
-        $context = $contextService->getShopContext();
-
         $criteria = new Criteria();
+        $criteria->limit(10);
 
         if (Shopware()->Config()->get('hideNoInStock')) {
             $criteria->addCondition(new IsAvailableCondition());
@@ -40,5 +22,11 @@ class HasActiveCategoryConditionTest extends TestCase
             Shopware()->Shop()->getCategory()->getId()
         ));
         $criteria->addCondition(new HasActiveCategoryCondition());
+
+        $builder = Shopware()->Models()->createQueryBuilder();
+        $builder->addCriteria($criteria);
+
+        $query = $builder->getQuery();
+        // TODO implement the case to check if query is generated correctly
     }
 }
