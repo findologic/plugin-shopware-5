@@ -59,40 +59,45 @@ class UrlBuilder
 
     /**
      * UrlBuilder constructor.
+     *
+     * @param null|Zend_Http_Client $httpClient The Zend HTTP client to use.
+     * @throws \Exception
      */
-    public function __construct()
+    public function __construct($httpClient = null)
     {
-        $this->httpClient = new Zend_Http_Client();
+        $this->httpClient = $httpClient instanceof Zend_Http_Client ? $httpClient : new Zend_Http_Client();
         $this->shopUrl = explode('//', Shopware()->Modules()->Core()->sRewriteLink())[1];
 
         /** @var Plugin $plugin */
         $plugin = Shopware()->Container()->get('shopware.plugin_manager')->getPluginByName('FinSearchUnified');
 
         $this->parameters = [
-            'userip'   => self::getClientIpServer(),
+            'userip'   => $this->getClientIp(),
             'revision' => $plugin->getVersion(),
         ];
     }
 
-    public static function getClientIpServer()
+    private function getClientIp()
     {
         if ($_SERVER['HTTP_CLIENT_IP']) {
-            $ipaddress = $_SERVER['HTTP_CLIENT_IP'];
+            $ipAddress = $_SERVER['HTTP_CLIENT_IP'];
         } elseif ($_SERVER['HTTP_X_FORWARDED_FOR']) {
-            $ipaddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
+            $ipAddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
         } elseif ($_SERVER['HTTP_X_FORWARDED']) {
-            $ipaddress = $_SERVER['HTTP_X_FORWARDED'];
+            $ipAddress = $_SERVER['HTTP_X_FORWARDED'];
         } elseif ($_SERVER['HTTP_FORWARDED_FOR']) {
-            $ipaddress = $_SERVER['HTTP_FORWARDED_FOR'];
+            $ipAddress = $_SERVER['HTTP_FORWARDED_FOR'];
         } elseif ($_SERVER['HTTP_FORWARDED']) {
-            $ipaddress = $_SERVER['HTTP_FORWARDED'];
+            $ipAddress = $_SERVER['HTTP_FORWARDED'];
         } elseif ($_SERVER['REMOTE_ADDR']) {
-            $ipaddress = $_SERVER['REMOTE_ADDR'];
+            $ipAddress = $_SERVER['REMOTE_ADDR'];
         } else {
-            $ipaddress = 'UNKNOWN';
+            $ipAddress = 'UNKNOWN';
         }
 
-        return $ipaddress;
+        $ipAddress = implode(',', array_unique(array_map('trim', explode(',', $ipAddress))));
+
+        return $ipAddress;
     }
 
     /**
