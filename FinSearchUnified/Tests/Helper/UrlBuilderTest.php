@@ -5,17 +5,12 @@ namespace FinSearchUnified\Tests\Helper;
 use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Components\Test\Plugin\TestCase;
-use Shopware\Models\Plugin\Plugin;
 use \Zend_Http_Client;
 use \Zend_Http_Response;
 use \Zend_Uri_Http;
 
 class UrlBuilderTest extends TestCase
 {
-    /**
-     * @var UrlBuilder A mock of the used url builder.
-     */
-    private $urlBuilder;
 
     /**
      * @var Zend_Http_Client A mock of the used http client.
@@ -26,8 +21,6 @@ class UrlBuilderTest extends TestCase
      * @var Zend_Http_Response
      */
     private $httpResponse;
-
-    const SHOPKEY = 'ABCD12345';
 
     public function setUp()
     {
@@ -41,17 +34,6 @@ class UrlBuilderTest extends TestCase
             ->willReturn($this->httpResponse);
 
         $this->httpClient = $httpClientMock;
-        $this->urlBuilder = new UrlBuilder($this->httpClient);
-    }
-
-    public function testBuildQueryUrlAndGetResponseReturnsMockedResponse()
-    {
-        $criteria = new Criteria();
-        $criteria->offset(0)->limit(2);
-
-        $response = $this->urlBuilder->buildQueryUrlAndGetResponse($criteria);
-
-        $this->assertEquals($this->httpResponse, $response);
     }
 
     /**
