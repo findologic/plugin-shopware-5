@@ -41,7 +41,8 @@ class UrlBuilderTest extends TestCase
             ->getMock();
         $urlBuilderMock->expects($this->atLeastOnce())
             ->method('isAlive')
-            ->willReturn(true)
+            ->willReturn(true);
+        $urlBuilderMock->expects($this->atLeastOnce())
             ->method('getShopkey')
             ->willReturn(self::SHOPKEY);
 
@@ -78,7 +79,7 @@ class UrlBuilderTest extends TestCase
             'Same IP twice separated by comma' => ['192.168.0.1,192.168.0.1', '192.168.0.1'],
             'Same IP twice separated by comma and space' => ['192.168.0.1, 192.168.0.1', '192.168.0.1'],
             'Different IPs separated by comma' => ['192.168.0.1,10.10.0.200', '192.168.0.1,10.10.0.200'],
-            'Different Ips separated by comma and space' => ['192.168.0.1, 10.10.0.200, ', '192.168.0.1,10.10.0.200'],
+            'Different IPs separated by comma and space' => ['192.168.0.1, 10.10.0.200, ', '192.168.0.1,10.10.0.200'],
             'IP Unknown' => ['UNKNOWN', 'UNKNOWN']
         ];
     }
