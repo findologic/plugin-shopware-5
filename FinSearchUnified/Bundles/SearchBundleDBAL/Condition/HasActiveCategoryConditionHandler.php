@@ -24,6 +24,8 @@ class HasActiveCategoryConditionHandler implements ConditionHandlerInterface
      * @param ConditionInterface $condition
      * @param QueryBuilder $query
      * @param ShopContextInterface $context
+     *
+     * @return void
      */
     public function generateCondition(
         ConditionInterface $condition,
@@ -33,13 +35,13 @@ class HasActiveCategoryConditionHandler implements ConditionHandlerInterface
         $query->innerJoin(
             'product',
             's_articles_categories_ro',
-            'productCategory',
-            'productCategory.articleID = product.id'
+            'productSArticlesCategoriesRo',
+            'productSArticlesCategoriesRo.articleID = product.id'
         )->innerJoin(
-            'productCategory',
+            'productSArticlesCategoriesRo',
             's_categories',
             'category',
-            'category.id = productCategory.categoryID'
+            'category.id = productSArticlesCategoriesRo.categoryID'
         )->andWhere('category.active = true');
     }
 }

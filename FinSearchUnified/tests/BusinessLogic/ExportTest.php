@@ -7,6 +7,8 @@ use FinSearchUnified\XmlInformation;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Models\Article\Article;
+use Shopware\Models\Category\Category;
+use UnexpectedValueException;
 
 class ExportTest extends TestCase
 {
@@ -274,32 +276,20 @@ class ExportTest extends TestCase
             $this->createTestProduct($i, $isActive[$i], $laststock, $instock, $minpurchase, $categoryModel->getId());
         }
 
-        // Create Mock object for Shopware Config
-        $config = $this->getMockBuilder('\Shopware_Components_Config')
-            ->setMethods(['offsetGet'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $config->expects($this->atLeastOnce())
-            ->method('offsetGet')
-            ->willReturnMap([
-                ['hideNoInStock', $hideNoInStock],
-                ['ShopKey', 'ABCD0815']
-            ]);
-
-        // Assign mocked config variable to application container
-        Shopware()->Container()->set('config', $config);
+        Shopware()->Config()->offsetSet('hideNoInStock', $hideNoInStock);
+        Shopware()->Config()->offsetSet('ShopKey', 'ABCD0815');
 
         /** @var Export $exportService */
-        $exportService = Shopware()->Container()->get('fin_search_unified.business_logic.export');
+        $exportService = new Export(Shopware()->Container()->get('shopware_searchdbal.dbal_query_builder_factory'));
 
-        if (!isset($expected)) {
-            $this->expectException(\UnexpectedValueException::class);
+        if ($expected === null) {
+            $this->expectException(UnexpectedValueException::class);
         }
 
         /** @var XmlInformation $result */
         $result = $exportService->getXml($shopkey, $start, $count);
 
-        if (isset($expected)) {
+        if ($expected !== null) {
             $this->assertSame($expected, $result->count, $errorMessage);
         }
     }

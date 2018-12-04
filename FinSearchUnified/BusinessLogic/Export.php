@@ -9,8 +9,11 @@ use Shopware\Bundle\SearchBundle\Condition\IsAvailableCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilder;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactory;
+use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Models\Config\Value;
+use Shopware\Models\Shop\Repository;
 use Shopware\Models\Shop\Shop;
+use UnexpectedValueException;
 
 class Export
 {
@@ -72,7 +75,7 @@ class Export
         }
 
         if (!$this->shop) {
-            throw new \UnexpectedValueException('Provided shopkey not assigned to any shop!');
+            throw new UnexpectedValueException('Provided shopkey not assigned to any shop!');
         }
 
         $shopCategory = $this->shop->getCategory()->getId();
@@ -83,7 +86,7 @@ class Export
 
         $criteria = new Criteria();
 
-        if (Shopware()->Config()->get('hideNoInStock')) {
+        if (Shopware()->Config()->offsetGet('hideNoInStock') === true) {
             $criteria->addCondition(new IsAvailableCondition());
         }
         $criteria->addCondition(new HasActiveChildCategoryOfCurrentShopCondition($shopCategory));
