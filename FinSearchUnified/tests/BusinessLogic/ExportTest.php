@@ -312,6 +312,7 @@ class ExportTest extends TestCase
             'name' => 'FindologicArticle' . $number,
             'active' => $isActive,
             'tax' => 19,
+            'lastStock' => $laststock,
             'supplier' => 'Findologic',
             'categories' => [
                 ['id' => $categoryId]
