@@ -5,6 +5,7 @@ namespace FinSearchUnified\Tests\Helper;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Components\Test\Plugin\TestCase;
+use Shopware\Models\Category\Category;
 
 class StaticHelperTest extends TestCase
 {
@@ -189,6 +190,19 @@ class StaticHelperTest extends TestCase
     }
 
     /**
+     * Data provider for testing category names
+     *
+     * @return array
+     */
+    public function categoryNamesProvider()
+    {
+        return [
+            'Root category name without children' => [1, ' Root ', 'Root'],
+            'Category name with parent' => [12, ' Tees ', 'Genusswelten_Tees%20und%20Zubeh%C3%B6r_Tees'],
+        ];
+    }
+
+    /**
      * @dataProvider configDataProvider
      *
      * @param bool $isActive
@@ -275,5 +289,70 @@ class StaticHelperTest extends TestCase
     {
         $result = StaticHelper::cleanString($text);
         $this->assertEquals($expected, $result, $errorMessage);
+    }
+
+    /**
+     * @dataProvider categoryNamesProvider
+     *
+     * @param int $categoryId
+     * @param string $category
+     * @param string $expected
+     *
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function testBuildCategoryName($categoryId, $category, $expected)
+    {
+        $categoryModel = Shopware()->Models()->getRepository('Shopware\Models\Category\Category')
+            ->find($categoryId);
+        $this->assertInstanceOf('Shopware\Models\Category\Category', $categoryModel);
+
+        // Set category name with preceeding and succeeding spaces
+        $categoryModel->setName($category);
+        $parent = $categoryModel->getParent();
+
+        // Set parent category name with preceeding and succeeding spaces
+        if ($parent !== null) {
+            $this->updateParentCategoryName($parent, $categoryModel);
+        }
+        // Persist changes to database
+        Shopware()->Models()->flush();
+        $result = StaticHelper::buildCategoryName($categoryModel->getId());
+
+        // Revert category name back to correct state after test result
+        $categoryModel->setName(trim($category));
+        if ($parent !== null) {
+            $this->updateParentCategoryName($parent, $categoryModel, true);
+        }
+        // Persist changes to database
+        Shopware()->Models()->flush();
+        $this->assertSame($expected, $result, 'Expected category name to be trimmed but was not');
+    }
+
+    /**
+     * Helper method to recursively update parent category name
+     *
+     * @param Category $parent
+     * @param Category $categoryModel
+     * @param bool $restore
+     */
+    private function updateParentCategoryName(Category $parent, Category $categoryModel, $restore = false)
+    {
+        // Trim name here for restoring
+        $parentName = trim($parent->getName());
+
+        // Add spaces to name for testing if restore is false
+        if (!$restore) {
+            $parentName = str_pad($parentName, strlen($parentName) + 2, ' ', STR_PAD_BOTH);
+        }
+
+        $parent->setName($parentName);
+        Shopware()->Models()->persist($parent);
+
+        $categoryModel->setParent($parent);
+        Shopware()->Models()->persist($categoryModel);
+
+        if ($parent->getParent() !== null) {
+            $this->updateParentCategoryName($parent->getParent(), $parent, $restore);
+        }
     }
 }
