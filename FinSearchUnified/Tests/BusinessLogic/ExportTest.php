@@ -10,6 +10,7 @@ use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Category\Category;
 use UnexpectedValueException;
+use FinSearchUnified\BusinessLogic\Export;
 
 class ExportTest extends TestCase
 {
