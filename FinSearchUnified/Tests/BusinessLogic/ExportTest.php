@@ -3,7 +3,7 @@
 namespace FinSearchUnified\Tests\BusinessLogic;
 
 use Assert\AssertionFailedException;
-use FinSearchUnified\tests\Helper\Utility;
+use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\XmlInformation;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Test\Plugin\TestCase;
