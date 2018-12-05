@@ -5,9 +5,9 @@ namespace FinSearchUnified\Tests\Helper;
 use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Components\Test\Plugin\TestCase;
-use \Zend_Http_Client;
-use \Zend_Http_Response;
-use \Zend_Uri_Http;
+use Zend_Http_Client;
+use Zend_Http_Response;
+use Zend_Uri_Http;
 
 class UrlBuilderTest extends TestCase
 {
@@ -59,7 +59,7 @@ class UrlBuilderTest extends TestCase
      * @param string $unfilteredIp
      * @param string $expectedValue
      */
-    public function testIpFilterWorksAsExpected($unfilteredIp, $expectedValue)
+    public function testSendOnlyUniqueUserIps($unfilteredIp, $expectedValue)
     {
         $this->setClientIp($unfilteredIp);
 
