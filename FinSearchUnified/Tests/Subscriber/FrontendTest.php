@@ -5,6 +5,7 @@ namespace FinSearchUnified\Tests\Subscriber;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use FinSearchUnified\finSearchUnified as Plugin;
 use Shopware\Components\Test\Plugin\TestCase;
+use Enlight_Template_Manager;
 
 class FrontendTest extends TestCase
 {
@@ -104,7 +105,7 @@ class FrontendTest extends TestCase
 
         /** @var Plugin $plugin */
         $plugin = Shopware()->Container()->get('kernel')->getPlugins()['FinSearchUnified'];
-        $frontend = new \FinSearchUnified\Subscriber\Frontend($plugin->getPath(), new \Enlight_Template_Manager());
+        $frontend = new \FinSearchUnified\Subscriber\Frontend($plugin->getPath(), new Enlight_Template_Manager());
 
         $frontend->onFrontendPreDispatch($args);
 
