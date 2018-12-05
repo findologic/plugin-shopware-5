@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<phpunit bootstrap="./tests/Functional/Bootstrap.php">
+<phpunit bootstrap="./Tests/Functional/Bootstrap.php">
     <testsuite name="FinSearchUnified Test Suite">
-        <directory>tests</directory>
+        <directory>Tests</directory>
     </testsuite>
 </phpunit>

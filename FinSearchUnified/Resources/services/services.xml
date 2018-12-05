@@ -23,12 +23,12 @@
             <argument type="service" id="shopware_searchdbal.dbal_query_builder_factory"/>
         </service>
         <service
-            class="FinSearchUnified\Bundles\SearchBundleDBAL\Condition\HasActiveCategoryConditionHandler"
+            class="FinSearchUnified\Bundles\SearchBundleDBAL\ConditionHandler\HasActiveCategoryConditionHandler"
             id="fin_search_unified.search_bundle_dbal.condition.has_active_category_condition_handler">
             <tag name="condition_handler_dbal"/>
         </service>
         <service
-            class="FinSearchUnified\Bundles\SearchBundleDBAL\Condition\HasActiveChildOfShopCategoryConditionHandler"
+            class="FinSearchUnified\Bundles\SearchBundleDBAL\ConditionHandler\HasActiveChildOfShopCategoryConditionHandler"
             id="fin_search_unified.search_bundle_dbal.condition.has_active_child_of_shop_category_condition_handler">
             <tag name="condition_handler_dbal"/>
         </service>

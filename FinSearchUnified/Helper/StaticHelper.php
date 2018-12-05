@@ -17,19 +17,19 @@ class StaticHelper
 {
     /**
      * @param int $categoryId
-     * @param bool $decode
+     * @param bool $encode
      *
      * @return string
      */
-    public static function buildCategoryName($categoryId, $decode = true)
+    public static function buildCategoryName($categoryId, $encode = true)
     {
         $categories = Shopware()->Modules()->Categories()->sGetCategoriesByParent($categoryId);
         $categoryNames = [];
         foreach ($categories as $category) {
-            if ($decode) {
-                $categoryNames[] = rawurlencode($category['name']);
+            if ($encode) {
+                $categoryNames[] = rawurlencode(trim($category['name']));
             } else {
-                $categoryNames[] = $category['name'];
+                $categoryNames[] = trim($category['name']);
             }
         }
         $categoryNames = array_reverse($categoryNames);
@@ -153,6 +153,7 @@ class StaticHelper
      * @param SimpleXMLElement $xmlResponse
      *
      * @return array
+     * @throws \Zend_Http_Client_Exception
      */
     public static function getFacetResultsFromXml(SimpleXMLElement $xmlResponse)
     {
@@ -415,6 +416,7 @@ class StaticHelper
      * @param array $facetItem
      *
      * @return SearchBundle\FacetResult\MediaListFacetResult
+     * @throws \Zend_Http_Client_Exception
      */
     private static function createMediaListFacet(array $facetItem)
     {
@@ -436,6 +438,7 @@ class StaticHelper
      * @param string $name
      *
      * @return array
+     * @throws \Zend_Http_Client_Exception
      */
     private static function prepareMediaItems($items, $name)
     {
@@ -696,6 +699,8 @@ class StaticHelper
     public static function useShopSearch()
     {
         return (
+            Shopware()->Front()->Request() === null ||
+            Shopware()->Front()->Request()->getModuleName() === 'backend' ||
             !self::isFindologicActive() ||
             self::checkDirectIntegration() ||
             (

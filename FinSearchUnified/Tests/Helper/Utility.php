@@ -1,6 +1,6 @@
 <?php
 
-namespace FinSearchUnified\tests\Helper;
+namespace FinSearchUnified\Tests\Helper;
 
 class Utility
 {

@@ -1,10 +1,10 @@
 <?php
 
-namespace FinSearchUnified\tests\Bundles\SearchBundles\Condition;
+namespace FinSearchUnified\Tests\Bundles\SearchBundleDBAL\ConditionHandler;
 
 use Assert\AssertionFailedException;
 use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveChildOfShopCategoryCondition;
-use FinSearchUnified\Bundles\SearchBundleDBAL\Condition\HasActiveChildOfShopCategoryConditionHandler;
+use FinSearchUnified\Bundles\SearchBundleDBAL\ConditionHandler\HasActiveChildOfShopCategoryConditionHandler;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilder;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;

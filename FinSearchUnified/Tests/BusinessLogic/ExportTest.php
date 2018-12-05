@@ -1,6 +1,6 @@
 <?php
 
-namespace FinSearchUnified\BusinessLogic;
+namespace FinSearchUnified\Tests\BusinessLogic;
 
 use Assert\AssertionFailedException;
 use FinSearchUnified\tests\Helper\Utility;

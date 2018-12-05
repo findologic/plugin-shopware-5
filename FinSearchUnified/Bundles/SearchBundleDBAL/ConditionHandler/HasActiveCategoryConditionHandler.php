@@ -1,6 +1,6 @@
 <?php
 
-namespace FinSearchUnified\Bundles\SearchBundleDBAL\Condition;
+namespace FinSearchUnified\Bundles\SearchBundleDBAL\ConditionHandler;
 
 use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveCategoryCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;

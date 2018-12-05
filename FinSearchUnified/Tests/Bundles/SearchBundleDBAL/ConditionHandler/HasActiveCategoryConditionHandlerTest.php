@@ -1,9 +1,9 @@
 <?php
 
-namespace FinSearchUnified\tests\Bundles\SearchBundles\Condition;
+namespace FinSearchUnified\Tests\Bundles\SearchBundleDBAL\ConditionHandler;
 
 use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveCategoryCondition;
-use FinSearchUnified\Bundles\SearchBundleDBAL\Condition\HasActiveCategoryConditionHandler;
+use FinSearchUnified\Bundles\SearchBundleDBAL\ConditionHandler\HasActiveCategoryConditionHandler;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilder;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
