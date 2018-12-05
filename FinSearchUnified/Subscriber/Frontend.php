@@ -3,10 +3,9 @@
 namespace FinSearchUnified\Subscriber;
 
 use Enlight\Event\SubscriberInterface;
-use Enlight_Controller_ActionEventArgs;
+use Enlight_Controller_Request_Request as Request;
 use Enlight_Event_EventArgs;
 use FinSearchUnified\Helper\StaticHelper;
-use Enlight_Controller_Request_Request as Request;
 
 class Frontend implements SubscriberInterface
 {
@@ -39,11 +38,11 @@ class Frontend implements SubscriberInterface
     {
         return [
             'Shopware_Controllers_Frontend_Search::indexAction::before' => 'beforeSearchIndexAction',
-            'Enlight_Controller_Action_PreDispatch'                     => 'onPreDispatch',
-            'Enlight_Controller_Action_Frontend_AjaxSearch_Index'       => 'onAjaxSearchIndexAction',
-            'Enlight_Controller_Action_PostDispatchSecure_Frontend'     => 'onFrontendPostDispatch',
-            'Enlight_Controller_Dispatcher_ControllerPath_Findologic'   => 'onFindologicController',
-            'Enlight_Controller_Action_PreDispatch_Frontend'            => 'onFrontendPreDispatch'
+            'Enlight_Controller_Action_PreDispatch' => 'onPreDispatch',
+            'Enlight_Controller_Action_Frontend_AjaxSearch_Index' => 'onAjaxSearchIndexAction',
+            'Enlight_Controller_Action_PostDispatchSecure_Frontend' => 'onFrontendPostDispatch',
+            'Enlight_Controller_Dispatcher_ControllerPath_Findologic' => 'onFindologicController',
+            'Enlight_Controller_Action_PreDispatch_Frontend' => 'onFrontendPreDispatch'
         ];
     }
 
@@ -54,13 +53,17 @@ class Frontend implements SubscriberInterface
         /** @var Request $request */
         $request = $subject->Request();
 
+        $controllerName = $request->getControllerName();
+
         if ($this->isSearchPage($request)) {
             Shopware()->Session()->offsetSet('isSearchPage', true);
             Shopware()->Session()->offsetSet('isCategoryPage', false);
         } elseif ($this->isCategoryPage($request)) {
             Shopware()->Session()->offsetSet('isCategoryPage', true);
             Shopware()->Session()->offsetSet('isSearchPage', false);
-        } elseif ($this->isManufacturerPage($request)) {
+        } elseif ($this->isManufacturerPage($request) ||
+            ($controllerName !== 'listing' && $controllerName !== 'search')
+        ) {
             Shopware()->Session()->offsetSet('isCategoryPage', false);
             Shopware()->Session()->offsetSet('isSearchPage', false);
         } else {
@@ -130,12 +133,12 @@ class Frontend implements SubscriberInterface
 
     public function onPreDispatch()
     {
-        $this->templateManager->addTemplateDir($this->pluginDirectory.'/Resources/views');
+        $this->templateManager->addTemplateDir($this->pluginDirectory . '/Resources/views');
     }
 
     public function onFrontendPostDispatch(Enlight_Event_EventArgs $args)
     {
-        if (!(bool) Shopware()->Config()->get('ActivateFindologic')) {
+        if (!(bool)Shopware()->Config()->get('ActivateFindologic')) {
             return;
         }
 
@@ -145,7 +148,7 @@ class Frontend implements SubscriberInterface
         try {
             /** @var \Enlight_Controller_ActionEventArgs $args */
             $view = $args->getSubject()->View();
-            $view->addTemplateDir($this->pluginDirectory.'/Resources/views/');
+            $view->addTemplateDir($this->pluginDirectory . '/Resources/views/');
             $view->extendsTemplate('frontend/fin_search_unified/header.tpl');
             $view->assign('userGroupHash', $hash);
             $view->assign('hashedShopkey', strtoupper(md5($this->getShopKey())));
@@ -174,12 +177,14 @@ class Frontend implements SubscriberInterface
     {
         if (StaticHelper::isFindologicActive()) {
             Shopware()->Container()->get('front')->Plugins()->ViewRenderer()->setNoRender();
+
             return true;
         }
     }
 
     /**
      * @param Request $request
+     *
      * @return bool
      */
     private function isSearchPage(Request $request)
@@ -189,6 +194,7 @@ class Frontend implements SubscriberInterface
 
     /**
      * @param Request $request
+     *
      * @return bool
      */
     private function isCategoryPage(Request $request)
@@ -199,6 +205,7 @@ class Frontend implements SubscriberInterface
 
     /**
      * @param Request $request
+     *
      * @return bool
      */
     private function isManufacturerPage(Request $request)

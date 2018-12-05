@@ -3,10 +3,10 @@
 namespace FinSearchUnified\Components\ProductStream;
 
 use Enlight_Controller_Request_Request as Request;
-use Shopware\Components\ProductStream\CriteriaFactoryInterface;
-use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
-use Shopware\Bundle\SearchBundle\StoreFrontCriteriaFactoryInterface;
 use FinSearchUnified\Helper\StaticHelper;
+use Shopware\Bundle\SearchBundle\StoreFrontCriteriaFactoryInterface;
+use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
+use Shopware\Components\ProductStream\CriteriaFactoryInterface;
 
 class CriteriaFactory implements CriteriaFactoryInterface
 {
@@ -38,9 +38,7 @@ class CriteriaFactory implements CriteriaFactoryInterface
      */
     public function createCriteria(Request $request, ShopContextInterface $context)
     {
-        $module = $request->getModuleName();
-
-        if (StaticHelper::useShopSearch() || $module === 'backend') {
+        if (StaticHelper::useShopSearch()) {
             $criteria = $this->originalFactory->createCriteria($request, $context);
         } else {
             $criteria = $this->criteriaFactory->createListingCriteria($request, $context);

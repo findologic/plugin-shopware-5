@@ -2,15 +2,15 @@
 
 namespace FinSearchUnified\Helper;
 
-use Zend_Http_Client;
-use Zend_Http_Response;
-use Zend_Http_Client_Exception;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\Customer\Group;
 use Shopware\Models\Plugin\Plugin;
+use Zend_Http_Client;
+use Zend_Http_Client_Exception;
+use Zend_Http_Response;
 
 class UrlBuilder
 {
@@ -72,7 +72,7 @@ class UrlBuilder
         $plugin = Shopware()->Container()->get('shopware.plugin_manager')->getPluginByName('FinSearchUnified');
 
         $this->parameters = [
-            'userip'   => $this->getClientIp(),
+            'userip' => $this->getClientIp(),
             'revision' => $plugin->getVersion(),
         ];
     }
@@ -103,7 +103,6 @@ class UrlBuilder
     /**
      * Never call this method in any constructor since Shopware can't guarantee that the relevant shop is already
      * loaded at that point. Therefore the master shops shopkey would be returned.
-     *
      * Caches and returns the current shop's shopkey.
      *
      * @return string
@@ -143,7 +142,7 @@ class UrlBuilder
                 $response = $requestHandler->getBody();
                 $jsonResponse = json_decode($response, true);
 
-                return (bool) $jsonResponse[self::JSON_PATH]['enabled'];
+                return (bool)$jsonResponse[self::JSON_PATH]['enabled'];
             }
 
             return false;
@@ -190,8 +189,8 @@ class UrlBuilder
 
     /**
      * @param ConditionInterface[] $conditions
-     * @param int                  $offset
-     * @param int                  $itemsPerPage
+     * @param int $offset
+     * @param int $itemsPerPage
      */
     private function processQueryParameter($conditions, $offset, $itemsPerPage)
     {
@@ -259,13 +258,13 @@ class UrlBuilder
     private function buildSortingParameter(SortingInterface $sorting)
     {
         if ($sorting instanceof SearchBundle\Sorting\PopularitySorting) {
-            $this->parameters['order'] = urldecode('salesfrequency '.$sorting->getDirection());
+            $this->parameters['order'] = urldecode('salesfrequency ' . $sorting->getDirection());
         } elseif ($sorting instanceof SearchBundle\Sorting\PriceSorting) {
-            $this->parameters['order'] = urldecode('price '.$sorting->getDirection());
+            $this->parameters['order'] = urldecode('price ' . $sorting->getDirection());
         } elseif ($sorting instanceof SearchBundle\Sorting\ProductNameSorting) {
-            $this->parameters['order'] = urldecode('label '.$sorting->getDirection());
+            $this->parameters['order'] = urldecode('label ' . $sorting->getDirection());
         } elseif ($sorting instanceof SearchBundle\Sorting\ReleaseDateSorting) {
-            $this->parameters['order'] = urldecode('dateadded '.$sorting->getDirection());
+            $this->parameters['order'] = urldecode('dateadded ' . $sorting->getDirection());
         }
     }
 
@@ -283,10 +282,10 @@ class UrlBuilder
         }
 
         foreach ($categoryId as $id) {
-            $catString = StaticHelper::buildCategoryName($id);
+            $catString = StaticHelper::buildCategoryName($id, false);
 
             if ($catString !== null && $catString !== '') {
-                $categories[] = urldecode($catString);
+                $categories[] = $catString;
             }
         }
 
@@ -297,7 +296,7 @@ class UrlBuilder
 
     /**
      * @param string $key
-     * @param float  $value
+     * @param float $value
      */
     private function buildPriceAttribute($key, $value)
     {
@@ -306,7 +305,7 @@ class UrlBuilder
 
     /**
      * @param string $key
-     * @param array  $value
+     * @param array $value
      */
     private function buildAttribute($key, $value)
     {
