@@ -1,6 +1,6 @@
 <?php
 
-namespace FinSearchUnified\tests\Components\ProductStream;
+namespace FinSearchUnified\Tests\Components\ProductStream;
 
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use FinSearchUnified\Components\ProductStream\CriteriaFactory;
@@ -27,7 +27,6 @@ class CriteriaFactoryTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
-                'module' => null,
                 'expected' => Shopware()->Shop()->getCategory()->getId()
             ],
             'Uses the original implementation for backend' => [
@@ -37,7 +36,6 @@ class CriteriaFactoryTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
-                'module' => 'backend',
                 'expected' => Shopware()->Shop()->getCategory()->getId()
             ],
             'Uses the custom implementation' => [
@@ -47,7 +45,6 @@ class CriteriaFactoryTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
-                'module' => null,
                 'expected' => -1
             ]
         ];
@@ -55,14 +52,15 @@ class CriteriaFactoryTest extends TestCase
 
     /**
      * @dataProvider shopSearchSwitchProvider
+     *
      * @param bool $isActive
      * @param string $shopKey
      * @param bool $isActiveForCategory
      * @param bool $checkIntegration
      * @param bool $isSearchPage
      * @param bool $isCategoryPage
-     * @param int|null $module
      * @param int $expected
+     *
      * @throws \Enlight_Exception
      */
     public function testCreateCriteria(
@@ -72,7 +70,6 @@ class CriteriaFactoryTest extends TestCase
         $checkIntegration,
         $isSearchPage,
         $isCategoryPage,
-        $module,
         $expected
     ) {
         /** @var CriteriaFactory $factory */
@@ -84,8 +81,7 @@ class CriteriaFactoryTest extends TestCase
 
         // Create a Request object and set the parameters accordingly and then assign it to the Application Container
         $request = new RequestHttp();
-        $request->setModuleName($module)
-            ->setParam('sCategory', $expected);
+        $request->setParam('sCategory', $expected);
         Shopware()->Front()->setRequest($request);
 
         $configArray = [

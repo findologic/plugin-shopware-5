@@ -1,6 +1,6 @@
 <?php
 
-namespace FinSearchUnified\tests;
+namespace FinSearchUnified\Tests;
 
 use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
