@@ -7,9 +7,9 @@ use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
+use Shopware\Bundle\StoreFrontBundle\Struct\Customer\Group;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use Shopware\Models\Search\CustomFacet;
-use Shopware\Bundle\StoreFrontBundle\Struct\Customer\Group;
 
 class ProductNumberSearch implements ProductNumberSearchInterface
 {
@@ -24,7 +24,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         $this->urlBuilder = new UrlBuilder();
         $this->originalService = $service;
     }
-    
+
     /**
      * Creates a product search result for the passed criteria object.
      * The criteria object contains different core conditions and plugin conditions.
@@ -40,18 +40,11 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      */
     public function search(Criteria $criteria, ShopContextInterface $context)
     {
-        $controllerName = Shopware()->Front()->Request()->getControllerName();
-        $moduleName = Shopware()->Front()->Request()->getModuleName();
-
         // Shopware sets fetchCount to false when the search is used for internal purposes, which we don't care about.
         // Checking its value is the only way to tell if we should actually perform the search.
         $fetchCount = $criteria->fetchCount();
 
-        if ($moduleName !== 'backend' &&
-            $fetchCount &&
-            ($controllerName === 'search' || $controllerName === 'listing') &&
-            !StaticHelper::useShopSearch()
-        ) {
+        if ($fetchCount && !StaticHelper::useShopSearch()) {
             try {
                 $response = $this->sendRequestToFindologic($criteria, $context->getCurrentCustomerGroup());
 

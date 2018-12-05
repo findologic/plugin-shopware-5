@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Tests\Helper;
 
+use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Components\Test\Plugin\TestCase;
@@ -10,7 +11,7 @@ use Shopware\Models\Category\Category;
 class StaticHelperTest extends TestCase
 {
     /**
-     * Data provider for test cases
+     * Data provider for checking findologic behavior
      *
      * @return array
      */
@@ -211,7 +212,7 @@ class StaticHelperTest extends TestCase
      * @param bool $checkIntegration
      * @param bool $isSearchPage
      * @param bool $isCategoryPage
-     * @param bool $expectedResult
+     * @param bool $expected
      */
     public function testUseShopSearch(
         $isActive,
@@ -220,7 +221,7 @@ class StaticHelperTest extends TestCase
         $checkIntegration,
         $isSearchPage,
         $isCategoryPage,
-        $expectedResult
+        $expected
     ) {
         $configArray = [
             ['ActivateFindologic', $isActive],
@@ -228,6 +229,21 @@ class StaticHelperTest extends TestCase
             ['ActivateFindologicForCategoryPages', $isActiveForCategory],
             ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API]
         ];
+
+        $request = new RequestHttp();
+        $request->setModuleName('frontend');
+
+        // Create Mock object for Shopware Front Request
+        $front = $this->getMockBuilder('\Enlight_Controller_Front')
+            ->setMethods(['Request'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $front->expects($this->any())
+            ->method('Request')
+            ->willReturn($request);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('front', $front);
 
         if ($isSearchPage !== null) {
             $sessionArray = [
@@ -261,10 +277,70 @@ class StaticHelperTest extends TestCase
 
         $result = StaticHelper::useShopSearch();
         $error = 'Expected %s search to be triggered but it was not';
-        $shop = $expectedResult ? 'shop' : 'FINDOLOGIC';
-        $this->assertEquals($result, $expectedResult, sprintf($error, $shop));
+        $shop = $expected ? 'shop' : 'FINDOLOGIC';
+        $this->assertEquals($expected, $result, sprintf($error, $shop));
     }
 
+    public function testUseShopSearchWhenRequestIsNull()
+    {
+        // Create Mock object for Shopware Front Request
+        $front = $this->getMockBuilder('\Enlight_Controller_Front')
+            ->setMethods(['Request'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $front->expects($this->atLeastOnce())
+            ->method('Request')
+            ->willReturn(null);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('front', $front);
+
+        $result = StaticHelper::useShopSearch();
+        $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
+    }
+
+
+    public function testUseShopSearchForBackendRequests()
+    {
+        $request = new RequestHttp();
+        $request->setModuleName('backend');
+
+        // Create Mock object for Shopware Front Request
+        $front = $this->getMockBuilder('\Enlight_Controller_Front')
+            ->setMethods(['Request'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $front->expects($this->atLeastOnce())
+            ->method('Request')
+            ->willReturn($request);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('front', $front);
+
+        // Create Mock object for Shopware Config
+        $config = $this->getMockBuilder('\Shopware_Components_Config')
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $config->expects($this->never())
+            ->method('offsetGet');
+
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $config);
+
+        // Create Mock object for Shopware Session
+        $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
+            ->setMethods(['offsetGet'])
+            ->getMock();
+        $session->expects($this->never())
+            ->method('offsetGet');
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('session', $session);
+
+        $result = StaticHelper::useShopSearch();
+        $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
+    }
     /**
      * @dataProvider controlCharacterProvider
      *
