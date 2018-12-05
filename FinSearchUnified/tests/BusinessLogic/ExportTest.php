@@ -36,7 +36,9 @@ class ExportTest extends TestCase
         parent::setUp();
 
         /** @var Export $exportService */
-        $this->exportService = new Export(Shopware()->Container()->get('shopware_searchdbal.dbal_query_builder_factory'));
+        $this->exportService = new Export(
+            Shopware()->Container()->get('shopware_searchdbal.dbal_query_builder_factory')
+        );
     }
 
     protected function tearDown()
