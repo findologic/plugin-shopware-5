@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
 <container xmlns="http://symfony.com/schema/dic/services"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
         <service
@@ -10,12 +10,27 @@
             class="FinSearchUnified\Bundles\FacetResult\ColorPickerFacetResult"
         />
         <service id="fin_search_unified.shopware_process" class="FinSearchUnified\ShopwareProcess">
-            <argument type="service" id="cache" />
-            <argument type="service" id="shopware_product_stream.repository" />
+            <argument type="service" id="cache"/>
+            <argument type="service" id="shopware_product_stream.repository"/>
         </service>
         <service
             id="fin_search_unified.article_model_factory"
             class="FinSearchUnified\BusinessLogic\FindologicArticleFactory"
         />
+        <service
+            id="fin_search_unified.business_logic.export"
+            class="FinSearchUnified\BusinessLogic\Export">
+            <argument type="service" id="shopware_searchdbal.dbal_query_builder_factory"/>
+        </service>
+        <service
+            class="FinSearchUnified\Bundles\SearchBundleDBAL\Condition\HasActiveCategoryConditionHandler"
+            id="fin_search_unified.search_bundle_dbal.condition.has_active_category_condition_handler">
+            <tag name="condition_handler_dbal"/>
+        </service>
+        <service
+            class="FinSearchUnified\Bundles\SearchBundleDBAL\Condition\HasActiveChildOfShopCategoryConditionHandler"
+            id="fin_search_unified.search_bundle_dbal.condition.has_active_child_of_shop_category_condition_handler">
+            <tag name="condition_handler_dbal"/>
+        </service>
     </services>
 </container>
