@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\BusinessLogic;
 
+use Assert\AssertionFailedException;
 use FinSearchUnified\tests\Helper\Utility;
 use FinSearchUnified\XmlInformation;
 use Shopware\Components\Api\Manager;
@@ -18,15 +19,30 @@ class ExportTest extends TestCase
         ],
     ];
 
+    /**
+     * @var Export
+     */
+    private $exportService;
+
     public static function setUpBeforeClass()
     {
         parent::setUpBeforeClass();
+
         Utility::sResetArticles();
+    }
+
+    protected function setUp()
+    {
+        parent::setUp();
+
+        /** @var Export $exportService */
+        $this->exportService = new Export(Shopware()->Container()->get('shopware_searchdbal.dbal_query_builder_factory'));
     }
 
     protected function tearDown()
     {
         parent::tearDown();
+
         Utility::sResetArticles();
     }
 
@@ -243,9 +259,10 @@ class ExportTest extends TestCase
      * @param string $errorMessage
      *
      * @throws \Exception
+     * @throws AssertionFailedException
      */
     public function testArticleExport(
-        $isActive,
+        array $isActive,
         $shopkey,
         $start,
         $count,
@@ -253,7 +270,7 @@ class ExportTest extends TestCase
         $laststock,
         $instock,
         $minpurchase,
-        $category,
+        array $category,
         $expected,
         $errorMessage
     ) {
@@ -279,15 +296,12 @@ class ExportTest extends TestCase
         Shopware()->Config()->offsetSet('hideNoInStock', $hideNoInStock);
         Shopware()->Config()->offsetSet('ShopKey', 'ABCD0815');
 
-        /** @var Export $exportService */
-        $exportService = new Export(Shopware()->Container()->get('shopware_searchdbal.dbal_query_builder_factory'));
-
         if ($expected === null) {
             $this->expectException(UnexpectedValueException::class);
         }
 
         /** @var XmlInformation $result */
-        $result = $exportService->getXml($shopkey, $start, $count);
+        $result = $this->exportService->getXml($shopkey, $start, $count);
 
         if ($expected !== null) {
             $this->assertSame($expected, $result->count, $errorMessage);
@@ -333,8 +347,8 @@ class ExportTest extends TestCase
         ];
 
         try {
-            $manger = new Manager();
-            $resource = $manger->getResource('Article');
+            $manager = new Manager();
+            $resource = $manager->getResource('Article');
             $article = $resource->create($testArticle);
 
             return $article;

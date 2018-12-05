@@ -2,8 +2,9 @@
 
 namespace FinSearchUnified\BusinessLogic;
 
+use Assert\AssertionFailedException;
 use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveCategoryCondition;
-use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveChildCategoryOfCurrentShopCondition;
+use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveChildOfShopCategoryCondition;
 use FinSearchUnified\XmlInformation;
 use Shopware\Bundle\SearchBundle\Condition\IsAvailableCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -11,24 +12,23 @@ use Shopware\Bundle\SearchBundleDBAL\QueryBuilder;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactory;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Models\Config\Value;
-use Shopware\Models\Shop\Repository;
 use Shopware\Models\Shop\Shop;
 use UnexpectedValueException;
 
 class Export
 {
     /**
-     * @var Shop $shop
+     * @var Shop
      */
     private $shop;
 
     /**
-     * @var string $shopkey
+     * @var string
      */
     private $shopkey;
 
     /**
-     * @var QueryBuilderFactory $queryBuilderFactory
+     * @var QueryBuilderFactory
      */
     private $queryBuilderFactory;
 
@@ -48,30 +48,27 @@ class Export
      * @param int $count
      *
      * @return XmlInformation
+     * @throws AssertionFailedException
      * @throws \Exception
      */
     public function getXml($shopkey, $start = 0, $count = 0)
     {
         $response = new XmlInformation();
 
-        $configValue = Shopware()->Models()->getRepository(Value::class)->findOneBy(['value' => $shopkey]);
+        $this->shop = null;
+        $this->shopkey = null;
 
-        if ($configValue && $configValue->getShop()) {
-            $shopId = $configValue->getShop()->getId();
-
-            if (Shopware()->Container()->has('shop') && $shopId === Shopware()->Shop()->getId()) {
-                $this->shop = Shopware()->Shop();
-            } else {
-                /** @var Repository $shopRepository */
-                $shopRepository = Shopware()->Container()->get('models')->getRepository(Shop::class);
-                $this->shop = $shopRepository->getActiveById($shopId);
-
-                if ($this->shop) {
-                    $this->shop->registerResources();
-                }
-            }
-
+        if (Shopware()->Container()->has('shop') && Shopware()->Config()->offsetGet('ShopKey') === $shopkey) {
+            $this->shop = Shopware()->Shop();
             $this->shopkey = $shopkey;
+        } else {
+            $configValue = Shopware()->Models()->getRepository(Value::class)->findOneBy(['value' => $shopkey]);
+
+            if ($configValue && $configValue->getShop()) {
+                $this->shopkey = $shopkey;
+                $this->shop = $configValue->getShop();
+                $this->shop->registerResources();
+            }
         }
 
         if (!$this->shop) {
@@ -89,7 +86,7 @@ class Export
         if (Shopware()->Config()->offsetGet('hideNoInStock') === true) {
             $criteria->addCondition(new IsAvailableCondition());
         }
-        $criteria->addCondition(new HasActiveChildCategoryOfCurrentShopCondition($shopCategory));
+        $criteria->addCondition(new HasActiveChildOfShopCategoryCondition($shopCategory));
         $criteria->addCondition(new HasActiveCategoryCondition());
 
         if ($count) {
@@ -106,7 +103,7 @@ class Export
 
         $response->items = $products;
         $response->count = count($products);
-        $response->total = (int)$total;
+        $response->total = $total;
 
         return $response;
     }
@@ -118,8 +115,8 @@ class Export
      *
      * @return int
      */
-    private function getTotalCount($query)
+    private function getTotalCount(QueryBuilder $query)
     {
-        return $query->getConnection()->fetchColumn('SELECT FOUND_ROWS()');
+        return (int)$query->getConnection()->fetchColumn('SELECT FOUND_ROWS()');
     }
 }

@@ -2,15 +2,19 @@
 
 namespace FinSearchUnified\tests\Bundles\SearchBundles\Condition;
 
-use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveChildCategoryOfCurrentShopCondition;
-use FinSearchUnified\Bundles\SearchBundleDBAL\Condition\HasActiveChildCategoryOfCurrentShopConditionHandler;
+use Assert\AssertionFailedException;
+use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveChildOfShopCategoryCondition;
+use FinSearchUnified\Bundles\SearchBundleDBAL\Condition\HasActiveChildOfShopCategoryConditionHandler;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilder;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Components\Test\Plugin\TestCase;
 
-class HasActiveChildCategoryOfCurrentShopConditionHandlerTest extends TestCase
+class HasActiveChildOfShopCategoryConditionHandlerTest extends TestCase
 {
+    /**
+     * @throws AssertionFailedException
+     */
     public function testGenerateCondition()
     {
         $factory = Shopware()->Container()->get('shopware_searchdbal.dbal_query_builder_factory');
@@ -22,9 +26,9 @@ class HasActiveChildCategoryOfCurrentShopConditionHandlerTest extends TestCase
         /** @var QueryBuilder $query */
         $query = $factory->createProductQuery(new Criteria(), $context);
 
-        $handler = new HasActiveChildCategoryOfCurrentShopConditionHandler();
+        $handler = new HasActiveChildOfShopCategoryConditionHandler();
         $handler->generateCondition(
-            new HasActiveChildCategoryOfCurrentShopCondition(
+            new HasActiveChildOfShopCategoryCondition(
                 Shopware()->Shop()->getCategory()->getId()
             ),
             $query,

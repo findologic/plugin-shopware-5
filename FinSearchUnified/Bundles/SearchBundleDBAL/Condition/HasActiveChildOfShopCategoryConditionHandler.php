@@ -2,13 +2,13 @@
 
 namespace FinSearchUnified\Bundles\SearchBundleDBAL\Condition;
 
-use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveChildCategoryOfCurrentShopCondition;
+use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveChildOfShopCategoryCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundleDBAL\ConditionHandlerInterface;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilder;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
-class HasActiveChildCategoryOfCurrentShopConditionHandler implements ConditionHandlerInterface
+class HasActiveChildOfShopCategoryConditionHandler implements ConditionHandlerInterface
 {
     /**
      * @param ConditionInterface $condition
@@ -17,7 +17,7 @@ class HasActiveChildCategoryOfCurrentShopConditionHandler implements ConditionHa
      */
     public function supportsCondition(ConditionInterface $condition)
     {
-        return ($condition instanceof HasActiveChildCategoryOfCurrentShopCondition);
+        return ($condition instanceof HasActiveChildOfShopCategoryCondition);
     }
 
     /**
@@ -45,7 +45,7 @@ class HasActiveChildCategoryOfCurrentShopConditionHandler implements ConditionHa
             'product_category_s_categories.id = product_s_articles_categories_ro.categoryID'
         )->andWhere('product_category_s_categories.active = true');
 
-        /* @var $condition HasActiveChildCategoryOfCurrentShopCondition */
+        /* @var $condition HasActiveChildOfShopCategoryCondition */
         $query->setParameter(
             ':category',
             $condition->getShopCategoryId()
