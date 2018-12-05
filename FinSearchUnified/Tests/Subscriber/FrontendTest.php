@@ -1,8 +1,11 @@
 <?php
 
+namespace FinSearchUnified\Tests\Subscriber;
+
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
-use FinSearchUnified\finSearchUnified as Plugin;
+use FinSearchUnified\FinSearchUnified as Plugin;
 use Shopware\Components\Test\Plugin\TestCase;
+use Enlight_Template_Manager;
 
 class FrontendTest extends TestCase
 {
