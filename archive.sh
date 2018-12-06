@@ -16,13 +16,15 @@ echo "Copying files ... "
 cp -rf ./FinSearchUnified/ /tmp/FinSearchUnified
 
 # Get into the created directory for running the archive command
-cd "/tmp/FinSearchUnified/"
+cd /tmp/FinSearchUnified
 
 # Install dependencies
 composer install --no-dev
 
+cd /tmp
+
 # Run archive command to create the zip in the root directory
-composer archive --format=zip --file=FinSearchUnified-${VERSION} --dir=${ROOT_DIR}
+zip -r9 ${ROOT_DIR}/FinSearchUnified-${VERSION}.zip FinSearchUnified -x FinSearchUnified/phpunit.xml.dist FinSearchUnified/shopware-phpcs.xml FinSearchUnified/Tests/\*
 
 # Delete the directory after script execution
 rm -rf "/tmp/FinSearchUnified"
