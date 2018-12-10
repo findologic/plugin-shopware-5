@@ -3,12 +3,15 @@
 namespace FinSearchUnified\Helper;
 
 use Exception;
-use FinSearchUnified\Bundles\FacetResult as FinFacetResult;
+use FinSearchUnified\Bundle\FacetResult as FinFacetResult;
 use FinSearchUnified\Constants;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Bundle\SearchBundle;
+use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
+use Shopware\Bundle\SearchBundle\FacetResult\ValueListFacetResult;
+use Shopware\Bundle\SearchBundle\FacetResultInterface;
 use Shopware\Bundle\StoreFrontBundle;
-use Shopware\Models\Search\CustomFacet;
+use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use SimpleXMLElement;
 use Zend_Http_Client;
 use Zend_Http_Response;
@@ -400,7 +403,7 @@ class StaticHelper
     {
         $active = !empty(self::getSelectedItems($facetItem['name']));
 
-        $facetResult = new SearchBundle\FacetResult\ValueListFacetResult(
+        $facetResult = new ValueListFacetResult(
             $facetItem['name'],
             $active,
             $facetItem['display'],
@@ -591,21 +594,21 @@ class StaticHelper
         switch ($type) {
             case 'label':
                 if ($filter === 'single') {
-                    $mode = SearchBundle\Facet\ProductAttributeFacet::MODE_RADIO_LIST_RESULT;
+                    $mode = ProductAttributeFacet::MODE_RADIO_LIST_RESULT;
                 } else {
-                    $mode = SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT;
+                    $mode = ProductAttributeFacet::MODE_VALUE_LIST_RESULT;
                 }
                 break;
             case 'range-slider':
-                $mode = SearchBundle\Facet\ProductAttributeFacet::MODE_RANGE_RESULT;
+                $mode = ProductAttributeFacet::MODE_RANGE_RESULT;
                 break;
             default:
-                $mode = SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT;
+                $mode = ProductAttributeFacet::MODE_VALUE_LIST_RESULT;
                 break;
         }
 
         $customFacet = new CustomFacet();
-        $productAttributeFacet = new SearchBundle\Facet\ProductAttributeFacet($name, $mode, $formFieldName, $label);
+        $productAttributeFacet = new ProductAttributeFacet($name, $mode, $formFieldName, $label);
 
         $customFacet->setName($name);
         $customFacet->setUniqueKey($name);
@@ -615,14 +618,14 @@ class StaticHelper
     }
 
     /**
-     * @param SearchBundle\FacetResultInterface[] $facetArray
+     * @param FacetResultInterface[] $facetArray
      * @param string $facetName
      *
      * @return bool|int
      */
     public static function arrayHasFacet($facetArray, $facetName)
     {
-        /** @var SearchBundle\FacetResultInterface $facet */
+        /** @var FacetResultInterface $facet */
         foreach ($facetArray as $i => $facet) {
             if ($facet->getLabel() === $facetName) {
                 return $i;
@@ -637,11 +640,11 @@ class StaticHelper
      * @param string $label
      * @param array $itemValue
      *
-     * @return SearchBundle\FacetResult\ValueListFacetResult
+     * @return ValueListFacetResult
      */
     public static function createSelectedFacet($name, $label, $itemValue)
     {
-        $facetResult = new SearchBundle\FacetResult\ValueListFacetResult(
+        $facetResult = new ValueListFacetResult(
             $name,
             true,
             $label,

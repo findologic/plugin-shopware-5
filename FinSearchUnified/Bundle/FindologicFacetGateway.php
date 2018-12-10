@@ -1,6 +1,6 @@
 <?php
 
-namespace FinSearchUnified\Bundles;
+namespace FinSearchUnified\Bundle;
 
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Helper\UrlBuilder;
