@@ -2,8 +2,9 @@
 
 namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator;
 
+use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
-use Shopware\Models\Search\CustomFacet;
+use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use SimpleXMLElement;
 
 class CustomListingHydrator
@@ -29,9 +30,17 @@ class CustomListingHydrator
         return $facets;
     }
 
+    /**
+     * @param string $label
+     * @param string $name
+     * @param string $type
+     * @param string $filter
+     *
+     * @return CustomFacet
+     */
     private function createFindologicFacet($label, $name, $type, $filter)
     {
-        $formFieldName = self::escapeFilterName($name);
+        $formFieldName = StaticHelper::escapeFilterName($name);
 
         switch ($type) {
             case 'label':
@@ -57,30 +66,5 @@ class CustomListingHydrator
         $customFacet->setFacet($productAttributeFacet);
 
         return $customFacet;
-    }
-
-    /**
-     * Keeps umlauts and regular characters. Anything else will be replaced by an underscore according to the PHP
-     * documentation.
-     *
-     * @see http://php.net/manual/en/language.variables.external.php
-     *
-     * @param string $name
-     *
-     * @return string The escaped string or the original in case of an error.
-     */
-    public static function escapeFilterName($name)
-    {
-        $escapedName = preg_replace(
-            '/[^\xC3\x96|\xC3\x9C|\xC3\x9F|\xC3\xA4|\xC3\xB6|\xC3\xBC|\x00-\x7F]|[\.\s\x5B]/',
-            '_',
-            $name
-        );
-
-        // Reduces successive occurrences of an underscore to a single character.
-        $escapedName = preg_replace('/_{2,}/', '_', $escapedName);
-
-        // Fall back to the original name if it couldn't be escaped.
-        return $escapedName ?: $name;
     }
 }

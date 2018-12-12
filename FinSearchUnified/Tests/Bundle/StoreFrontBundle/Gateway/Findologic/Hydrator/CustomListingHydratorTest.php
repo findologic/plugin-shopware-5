@@ -30,7 +30,7 @@ class CustomListingHydratorTest extends TestCase
     public function facetFilterProvider()
     {
         return [
-            'Price' => [
+            'Price filter' => [
                 [
                     'type' => 'range-slider',
                     'name' => 'price',
@@ -44,7 +44,7 @@ class CustomListingHydratorTest extends TestCase
                 'Preis',
                 ProductAttributeFacet::MODE_RANGE_RESULT
             ],
-            'Color' => [
+            'Color filter' => [
                 [
                     'type' => 'color',
                     'name' => 'color',
@@ -58,7 +58,7 @@ class CustomListingHydratorTest extends TestCase
                 'Farbe',
                 ProductAttributeFacet::MODE_VALUE_LIST_RESULT
             ],
-            'Vendor' => [
+            'Image filter' => [
                 [
                     'type' => 'image',
                     'name' => 'vendor',
@@ -72,7 +72,7 @@ class CustomListingHydratorTest extends TestCase
                 'Marken',
                 ProductAttributeFacet::MODE_VALUE_LIST_RESULT
             ],
-            'Ingredients with multiple filter' => [
+            'Text filter supporting multiple values' => [
                 [
                     'type' => 'label',
                     'name' => 'ingredients',
@@ -86,7 +86,7 @@ class CustomListingHydratorTest extends TestCase
                 'Zutaten',
                 ProductAttributeFacet::MODE_VALUE_LIST_RESULT
             ],
-            'Ingredients with single filter' => [
+            'Text filter supporting only one value' => [
                 [
                     'type' => 'label',
                     'name' => 'ingredients',
@@ -100,7 +100,7 @@ class CustomListingHydratorTest extends TestCase
                 'Zutaten',
                 ProductAttributeFacet::MODE_RADIO_LIST_RESULT
             ],
-            'Category' => [
+            'Dropdown filter for category' => [
                 [
                     'type' => 'select',
                     'name' => 'cat',
@@ -114,7 +114,7 @@ class CustomListingHydratorTest extends TestCase
                 'Kategorie',
                 ProductAttributeFacet::MODE_VALUE_LIST_RESULT
             ],
-            'Zoom Factor' => [
+            'Filter with a single special character' => [
                 [
                     'type' => 'select',
                     'name' => 'zoom factor',
@@ -128,7 +128,7 @@ class CustomListingHydratorTest extends TestCase
                 'Zoom Faktor',
                 ProductAttributeFacet::MODE_VALUE_LIST_RESULT
             ],
-            'Special Characters' => [
+            'Filter with multiple special characters' => [
                 [
                     'type' => 'select',
                     'name' => 'special .characters',
@@ -149,21 +149,21 @@ class CustomListingHydratorTest extends TestCase
      * @dataProvider facetFilterProvider
      *
      * @param array $filterArray
-     * @param string $getName
-     * @param string $getUniqueKey
-     * @param string $attributeGetName
-     * @param string $attributeFormFieldName
-     * @param string $attributeLabel
-     * @param string $attributeMode
+     * @param string $expectedName
+     * @param string $expectedUniqueKey
+     * @param string $expectedAttributeName
+     * @param string $expectedAttributeFormFieldName
+     * @param string $expectedAttributeLabel
+     * @param string $expectedAttributeMode
      */
     public function testHydrateFacet(
         array $filterArray,
-        $getName,
-        $getUniqueKey,
-        $attributeGetName,
-        $attributeFormFieldName,
-        $attributeLabel,
-        $attributeMode
+        $expectedName,
+        $expectedUniqueKey,
+        $expectedAttributeName,
+        $expectedAttributeFormFieldName,
+        $expectedAttributeLabel,
+        $expectedAttributeMode
     ) {
         // Create custom XML object corresponding the xmlResponse
         $data = '<?xml version="1.0" encoding="utf-8"?><searchResult></searchResult>';
@@ -180,14 +180,14 @@ class CustomListingHydratorTest extends TestCase
         /** @var CustomFacet $customFacet */
         foreach ($customFacets as $customFacet) {
             $this->assertSame(
-                $getName,
+                $expectedName,
                 $customFacet->getName(),
-                sprintf('Expected getName to be %s', $getName)
+                sprintf("Expected custom facet's name to be %s", $expectedName)
             );
             $this->assertSame(
-                $getUniqueKey,
+                $expectedUniqueKey,
                 $customFacet->getUniqueKey(),
-                sprintf('Expected getUniqueKey to be %s', $getUniqueKey)
+                sprintf("Expected custom facet's unique key to be %s", $expectedUniqueKey)
             );
 
             /** @var ProductAttributeFacet $productAttributeFacet */
@@ -197,29 +197,29 @@ class CustomListingHydratorTest extends TestCase
                 ProductAttributeFacet::class,
                 $productAttributeFacet,
                 sprintf(
-                    'Expected getFacet to be an instance of %s',
+                    "Expected custom facet's facet to be of type %s",
                     ProductAttributeFacet::class
                 )
             );
             $this->assertSame(
-                $attributeGetName,
+                $expectedAttributeName,
                 $productAttributeFacet->getName(),
-                sprintf('Expected ProductAttributeFacet::getName to be %s', $attributeGetName)
+                sprintf("Expected product attribute facet's name to be %s", $expectedAttributeName)
             );
             $this->assertSame(
-                $attributeFormFieldName,
+                $expectedAttributeFormFieldName,
                 $productAttributeFacet->getFormFieldName(),
-                sprintf('Expected ProductAttributeFacet::getFormFieldName to be %s', $attributeFormFieldName)
+                sprintf("Expected product attribute facet's form field name to be %s", $expectedAttributeFormFieldName)
             );
             $this->assertSame(
-                $attributeLabel,
+                $expectedAttributeLabel,
                 $productAttributeFacet->getLabel(),
-                sprintf('Expected ProductAttributeFacet::getLabel to be %s', $attributeLabel)
+                sprintf("Expected product attribute facet's label to be %s", $expectedAttributeLabel)
             );
             $this->assertSame(
-                $attributeMode,
+                $expectedAttributeMode,
                 $productAttributeFacet->getMode(),
-                sprintf('Expected ProductAttributeFacet::getMode to be %s', $attributeMode)
+                sprintf("Expected product attribute facet's mode to be %s", $expectedAttributeMode)
             );
         }
     }
