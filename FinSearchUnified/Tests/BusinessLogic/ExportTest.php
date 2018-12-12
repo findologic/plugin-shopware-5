@@ -3,14 +3,15 @@
 namespace FinSearchUnified\Tests\BusinessLogic;
 
 use Assert\AssertionFailedException;
+use FinSearchUnified\BusinessLogic\Export;
 use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\XmlInformation;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Category\Category;
+use Shopware\Models\Category\Repository;
 use UnexpectedValueException;
-use FinSearchUnified\BusinessLogic\Export;
 
 class ExportTest extends TestCase
 {
@@ -24,6 +25,11 @@ class ExportTest extends TestCase
      * @var Export
      */
     private $exportService;
+
+    /**
+     * @var Repository
+     */
+    private $categoryRepository;
 
     public static function setUpBeforeClass()
     {
@@ -40,6 +46,8 @@ class ExportTest extends TestCase
         $this->exportService = new Export(
             Shopware()->Container()->get('shopware_searchdbal.dbal_query_builder_factory')
         );
+
+        $this->categoryRepository = Shopware()->Models()->getRepository('Shopware\Models\Category\Category');
     }
 
     protected function tearDown()
@@ -47,6 +55,26 @@ class ExportTest extends TestCase
         parent::tearDown();
 
         Utility::sResetArticles();
+    }
+
+    /**
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+
+        // Reset category active status which was used in the test cases
+        $categoryRepository = Shopware()->Models()->getRepository('Shopware\Models\Category\Category');
+
+        $categoryModels = $categoryRepository->findBy(['id' => [Shopware()->Shop()->getCategory()->getId(), 39]]);
+
+        /** @var Category $categoryModel */
+        foreach ($categoryModels as $categoryModel) {
+            $categoryModel->setActive(1);
+            Shopware()->Models()->persist($categoryModel);
+        }
+        Shopware()->Models()->flush();
     }
 
     /**
@@ -277,10 +305,8 @@ class ExportTest extends TestCase
         $expected,
         $errorMessage
     ) {
-        $categoryRepository = Shopware()->Models()->getRepository('Shopware\Models\Category\Category');
-
         /** @var Category $categoryModel */
-        $categoryModel = $categoryRepository->find($category[0]);
+        $categoryModel = $this->categoryRepository->find($category[0]);
         $this->assertInstanceOf(
             'Shopware\Models\Category\Category',
             $categoryModel,
