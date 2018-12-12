@@ -11,18 +11,27 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $count = (int)$this->request->get('count');
         $language = $this->request->get('language');
 
-        /** @var \FinSearchUnified\ShopwareProcess $blController */
-        $blController = $this->container->get('fin_search_unified.shopware_process');
-        $blController->setShopKey($shopKey);
-        if ($count !== null) {
-            $xmlDocument = $blController->getFindologicXml($language, $start, $count);
-        } else {
-            $xmlDocument = $blController->getFindologicXml($language);
-        }
+//        /** @var \FinSearchUnified\ShopwareProcess $blController */
+//        $blController = $this->container->get('fin_search_unified.shopware_process');
+//        $blController->setShopKey($shopKey);
+//        if ($count !== null) {
+//            $xmlDocument = $blController->getFindologicXml($language, $start, $count);
+//        } else {
+//            $xmlDocument = $blController->getFindologicXml($language);
+//        }
+//
+//        $this->response->setHeader('Content-Type', 'application/xml; charset=utf-8', true);
+//        $this->response->setBody($xmlDocument);
+//        $this->container->get('front')->Plugins()->ViewRenderer()->setNoRender();
+
+        $exporter = $this->container->get('fin_search_unified.business_logic.export');
+
+        $data = $exporter->getXml($shopKey, $start, $count);
 
         $this->response->setHeader('Content-Type', 'application/xml; charset=utf-8', true);
-        $this->response->setBody($xmlDocument);
         $this->container->get('front')->Plugins()->ViewRenderer()->setNoRender();
+
+        $this->response->setBody($data);
 
         return $this->response;
     }
