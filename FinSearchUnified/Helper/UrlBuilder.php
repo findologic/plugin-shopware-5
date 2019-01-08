@@ -61,6 +61,7 @@ class UrlBuilder
      * UrlBuilder constructor.
      *
      * @param null|Zend_Http_Client $httpClient The Zend HTTP client to use.
+     *
      * @throws \Exception
      */
     public function __construct($httpClient = null)
@@ -226,6 +227,13 @@ class UrlBuilder
             $this->parameters['count'] = 0;
         } else {
             $this->parameters['count'] = $itemsPerPage;
+        }
+
+        if (isset($_GET['forceOriginalQuery'])) {
+            Shopware()->Front()->Request()->setParam(
+                'forceOriginalQuery',
+                $_GET['forceOriginalQuery'] ? 1 : 0
+            );
         }
     }
 

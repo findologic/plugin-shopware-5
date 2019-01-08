@@ -823,4 +823,28 @@ class StaticHelper
             ]);
         }
     }
+
+    /**
+     * @param \SimpleXMLElement $xmlResponse
+     */
+    public static function setSmartDidYouMean(SimpleXMLElement $xmlResponse)
+    {
+        $originalQuery = $xmlResponse->originalQuery;
+        $didYouMeanQuery = $xmlResponse->didYouMeanQuery;
+        $queryString = $xmlResponse->queryString;
+
+        if ((isset($originalQuery) || isset($didYouMeanQuery))
+            && $queryString->attributes()->type !== 'forced') {
+            /** @var \Enlight_View_Default $view */
+            $view = Shopware()->Container()->get('front')->Plugins()->ViewRenderer()->Action()->View();
+            $type = isset($didYouMeanQuery) ? 'did-you-mean' : $queryString->attributes()->type;
+            $view->assign([
+                'finSmartDidYouMean' => [
+                    'type' => $type,
+                    'alternative_query' => $type === 'did-you-mean' ? $didYouMeanQuery : $queryString,
+                    'original_query' => $type === 'did-you-mean' ? '' : $originalQuery,
+                ]
+            ]);
+        }
+    }
 }

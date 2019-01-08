@@ -3,7 +3,10 @@
 namespace FinSearchUnified\Tests\Helper;
 
 use FinSearchUnified\Helper\UrlBuilder;
+use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
+use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
+use Shopware\Bundle\SearchBundle\Sorting\ProductNameSorting;
 use Shopware\Components\Test\Plugin\TestCase;
 use Zend_Http_Client;
 use Zend_Http_Response;
@@ -11,7 +14,6 @@ use Zend_Uri_Http;
 
 class UrlBuilderTest extends TestCase
 {
-
     /**
      * @var Zend_Http_Client A mock of the used http client.
      */
@@ -58,6 +60,8 @@ class UrlBuilderTest extends TestCase
      *
      * @param string $unfilteredIp
      * @param string $expectedValue
+     *
+     * @throws \Exception
      */
     public function testSendOnlyUniqueUserIps($unfilteredIp, $expectedValue)
     {
@@ -82,5 +86,37 @@ class UrlBuilderTest extends TestCase
     private function setClientIp($ipAddress)
     {
         $_SERVER['HTTP_CLIENT_IP'] = $ipAddress;
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function testBuildUrlAndResponse()
+    {
+        Shopware()->Session()->offsetSet('isSearchPage', true);
+        $urlBuilder = new UrlBuilder($this->httpClient);
+
+        $criteria = new Criteria();
+        $criteria->offset(0)->limit(2);
+        $criteria->addBaseCondition(new SearchTermCondition('findologic'));
+        $criteria->addBaseCondition(new CategoryCondition([Shopware()->Shop()->getCategory()->getId()]));
+        $criteria->addSorting(new ProductNameSorting());
+
+        $urlBuilder->buildQueryUrlAndGetResponse($criteria);
+
+        $requestedUrl = $this->httpClient->getUri()->getQueryAsArray();
+
+        $url = $this->httpClient->getUri();
+
+        $actualUrl = sprintf('%s://%s%s', $url->getScheme(), $url->getHost(), $url->getPath());
+
+        $this->assertSame(
+            'https://service.findologic.com/ps/xml_2.0/localhost/index.php',
+            $actualUrl,
+            'The resulting URL is not correct'
+        );
+        $this->assertArrayHasKey('userip', $requestedUrl, 'userip was not found in the query parameters');
+        $this->assertArrayHasKey('revision', $requestedUrl, 'revision was not found in the query parameters');
+        $this->assertArrayHasKey('shopkey', $requestedUrl, 'shopkey was not found in the query parameters');
     }
 }
