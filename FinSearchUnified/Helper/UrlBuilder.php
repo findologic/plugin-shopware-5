@@ -230,10 +230,7 @@ class UrlBuilder
         }
 
         if (isset($_GET['forceOriginalQuery'])) {
-            Shopware()->Front()->Request()->setParam(
-                'forceOriginalQuery',
-                $_GET['forceOriginalQuery'] ? 1 : 0
-            );
+            $this->parameters['forceOriginalQuery'] = $_GET['forceOriginalQuery'] ? 1 : 0;
         }
     }
 
