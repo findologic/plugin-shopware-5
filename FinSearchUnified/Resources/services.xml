@@ -47,13 +47,13 @@
 
         </service>
 
-        <service id="fin_search_unified.product_number_search" class="FinSearchUnified\Bundles\ProductNumberSearch" decorates="shopware_search.product_number_search"
-                 public="false">
+        <service id="fin_search_unified.product_number_search" class="FinSearchUnified\Bundles\ProductNumberSearch"
+            decorates="shopware_search.product_number_search">
             <argument type="service" id="fin_search_unified.product_number_search.inner"/>
         </service>
 
-        <service id="fin_search_unified_es.product_number_search" class="FinSearchUnified\Bundles\ProductNumberSearch" decorates="shopware_search_es.product_number_search"
-                 public="false">
+        <service id="fin_search_unified_es.product_number_search" class="FinSearchUnified\Bundles\ProductNumberSearch"
+            decorates="shopware_search_es.product_number_search">
             <argument type="service" id="fin_search_unified_es.product_number_search.inner"/>
         </service>
 

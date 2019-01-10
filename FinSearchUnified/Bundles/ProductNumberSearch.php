@@ -19,9 +19,17 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
     protected $facets = [];
 
-    public function __construct(ProductNumberSearchInterface $service)
+    /**
+     * ProductNumberSearch constructor.
+     *
+     * @param ProductNumberSearchInterface $service
+     * @param null $httpClient
+     *
+     * @throws \Exception
+     */
+    public function __construct(ProductNumberSearchInterface $service, $httpClient = null)
     {
-        $this->urlBuilder = new UrlBuilder();
+        $this->urlBuilder = new UrlBuilder($httpClient);
         $this->originalService = $service;
     }
 
