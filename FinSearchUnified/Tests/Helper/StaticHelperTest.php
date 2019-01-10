@@ -299,7 +299,6 @@ class StaticHelperTest extends TestCase
         $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
     }
 
-
     public function testUseShopSearchForBackendRequests()
     {
         $request = new RequestHttp();
@@ -341,6 +340,7 @@ class StaticHelperTest extends TestCase
         $result = StaticHelper::useShopSearch();
         $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
     }
+
     /**
      * @dataProvider controlCharacterProvider
      *
@@ -418,7 +418,12 @@ class StaticHelperTest extends TestCase
 
         // Add spaces to name for testing if restore is false
         if (!$restore) {
-            $parentName = str_pad($parentName, strlen($parentName) + 2, ' ', STR_PAD_BOTH);
+            $parentName = str_pad(
+                $parentName,
+                strlen($parentName) + 2,
+                ' ',
+                STR_PAD_BOTH
+            );
         }
 
         $parent->setName($parentName);
@@ -429,6 +434,145 @@ class StaticHelperTest extends TestCase
 
         if ($parent->getParent() !== null) {
             $this->updateParentCategoryName($parent->getParent(), $parent, $restore);
+        }
+    }
+
+    public function finSmartDidYouMeanProvider()
+    {
+        return [
+            'didYouMeanQuery and originalQuery are not present' => [null, null, null, null, null, null],
+            'Attribute type of queryString is forced' => [null, 'originalQuery', 'forced', null, null, null],
+            'didYouMeanQuery is present but has no value' => ['', null, 'improved', null, null, null],
+            'originalQuery is present but has no value' => [null, '', 'improved', null, null, null],
+            'didYouMeanQuery is present' => [
+                'didYouMeanQuery',
+                'originalQuery',
+                'improved',
+                'did-you-mean',
+                'didYouMeanQuery',
+                ''
+            ],
+            'queryString type is improved' => [
+                null,
+                'originalQuery',
+                'improved',
+                'improved',
+                'queryString',
+                'originalQuery'
+            ],
+            'queryString type is corrected' => [
+                null,
+                'originalQuery',
+                'corrected',
+                'corrected',
+                'queryString',
+                'originalQuery'
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider finSmartDidYouMeanProvider
+     *
+     * @param string $didYouMeanQuery
+     * @param string $originalQuery
+     * @param string $queryStringType
+     * @param string $expectedType
+     * @param string $expectedAlternativeQuery
+     * @param string $expectedOriginalQuery
+     */
+    public function testFinSmartDidYouMean(
+        $didYouMeanQuery,
+        $originalQuery,
+        $queryStringType,
+        $expectedType,
+        $expectedAlternativeQuery,
+        $expectedOriginalQuery
+    ) {
+        $finSmartDidYouMean = null;
+
+        // Replicate functionality of StaticHelper::setSmartDidYouMean
+        if (((isset($originalQuery) && $originalQuery !== '') || (isset($didYouMeanQuery) && $didYouMeanQuery !== ''))
+            && ($queryStringType && $queryStringType !== 'forced')) {
+            $type = isset($didYouMeanQuery) ? 'did-you-mean' : $queryStringType;
+            $finSmartDidYouMean = [
+                'type' => $type,
+                'alternative_query' => $type === 'did-you-mean' ? $didYouMeanQuery : 'queryString',
+                'original_query' => $type === 'did-you-mean' ? '' : $originalQuery
+            ];
+        }
+
+        // Create mocked view
+        $view = $this->getMockBuilder('\Enlight_View_Default')
+            ->setMethods(['getAssign'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        // Assign the finSmartDidYouMean variable to the mocked view
+        $view->method('getAssign')->willReturnMap([
+            ['finSmartDidYouMean', $finSmartDidYouMean]
+        ]);
+
+        $action = $this->getMockBuilder('\Enlight_Controller_Action')
+            ->setMethods(['View'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $action->method('View')
+            ->willReturn($view);
+
+        $renderer = $this->getMockBuilder('\Enlight_Controller_Plugins_ViewRenderer_Bootstrap')
+            ->setMethods(['Action'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $renderer->method('Action')
+            ->willReturn($action);
+
+        $plugin = $this->getMockBuilder('\Enlight_Plugin_Namespace_Loader')
+            ->setMethods(['ViewRenderer'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $plugin->method('ViewRenderer')
+            ->willReturn($renderer);
+
+        $front = $this->getMockBuilder('\Enlight_Controller_Front')
+            ->setMethods(['Plugins'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $front->method('Plugins')
+            ->willReturn($plugin);
+
+        Shopware()->Container()->set('front', $front);
+
+        // Get assigned variable from mocked view object
+        $finSmartDidYouMean = Shopware()
+            ->Front()
+            ->Plugins()
+            ->ViewRenderer()
+            ->Action()
+            ->View()
+            ->getAssign('finSmartDidYouMean');
+
+        if ($expectedType === null) {
+            $this->assertNull($finSmartDidYouMean);
+        } else {
+            $this->assertSame($expectedType, $finSmartDidYouMean['type'], sprintf(
+                'Type was expected to be %s',
+                $expectedType
+            ));
+            $this->assertSame(
+                $expectedAlternativeQuery,
+                $finSmartDidYouMean['alternative_query'],
+                sprintf("alternative_query does not have %s's value", $expectedAlternativeQuery)
+            );
+            if ($expectedOriginalQuery === '') {
+                $this->assertEmpty($finSmartDidYouMean['original_query'], 'original_query was not empty');
+            } else {
+                $this->assertSame(
+                    $expectedOriginalQuery,
+                    $finSmartDidYouMean['original_query'],
+                    sprintf("original_query does not have %s's value", $expectedOriginalQuery)
+                );
+            }
         }
     }
 }
