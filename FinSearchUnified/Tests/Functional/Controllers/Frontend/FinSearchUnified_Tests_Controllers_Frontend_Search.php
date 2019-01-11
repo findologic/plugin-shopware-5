@@ -1,6 +1,6 @@
 <?php
 
-class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Components_Test_Plugin_TestCase
+class FinSearchUnified_Tests_Controllers_Frontend_Search extends Enlight_Components_Test_Plugin_TestCase
 {
     public static function setUpBeforeClass()
     {
@@ -118,20 +118,6 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
      */
     public function testFindologicSearchResponse()
     {
-        $sessionArray = [
-            ['isSearchPage', true]
-        ];
-        // Create mock object for Shopware Session and explicitly return the values
-        $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
-            ->setMethods(['offsetGet'])
-            ->getMock();
-        $session->expects($this->atLeastOnce())
-            ->method('offsetGet')
-            ->willReturnMap($sessionArray);
-
-        // Assign mocked session variable to application container
-        Shopware()->Container()->set('session', $session);
-
         $httpResponse = new Zend_Http_Response(200, [], '
             <searchResult>
                 <query>
@@ -154,8 +140,39 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         Shopware()->Container()->set('fin_search_unified.product_number_search', $productNumberSearch);
 
+        $sessionArray = [
+            ['isSearchPage', true]
+        ];
+        // Create mock object for Shopware Session and explicitly return the values
+        $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
+            ->setMethods(['offsetGet'])
+            ->getMock();
+        $session->expects($this->atLeastOnce())
+            ->method('offsetGet')
+            ->willReturnMap($sessionArray);
+
+        /*$configArray = [
+            ['ActivateFindologic', true],
+            ['ShopKey', '8D6CA2E49FB7CD09889CC0E2929F86B0'],
+            ['ActivateFindologicForCategoryPages', false],
+            ['IntegrationType', Constants::INTEGRATION_TYPE_API]
+        ];
+
+        // Create Mock object for Shopware Config
+        $config = $this->getMockBuilder('\Shopware_Components_Config')
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $config->method('offsetGet')->willReturnMap($configArray);*/
+
+        // Assign mocked config variable to application container
+        //Shopware()->Container()->set('config', $config);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('session', $session);
+
         $this->Request()->setMethod('GET');
-        $response = $this->dispatch('/search?sSearch=originalQuery');
+        $response = $this->dispatch('/search?sSearch=find');
 
         $params = $this->View()->getAssign();
         $body = $response->getBody();
