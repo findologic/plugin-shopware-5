@@ -10,7 +10,7 @@ class PluginTest extends TestCase
 {
     protected static $ensureLoadedPlugins = [
         'FinSearchUnified' => [
-            'ShopKey' => 'ABCD0815'
+            'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0'
         ],
     ];
 
@@ -23,7 +23,7 @@ class PluginTest extends TestCase
 
     public function testCalculateGroupkey()
     {
-        $shopkey = 'ABCD0815';
+        $shopkey = '8D6CA2E49FB7CD09889CC0E2929F86B0';
         $usergroup = 'at_rated';
         $hash = StaticHelper::calculateUsergroupHash($shopkey, $usergroup);
         $decrypted = StaticHelper::decryptUsergroupHash($shopkey, $hash);
@@ -126,7 +126,7 @@ class PluginTest extends TestCase
     private function runExportAndReturnCount()
     {
         try {
-            $shopKey = 'ABCD0815';
+            $shopKey = '8D6CA2E49FB7CD09889CC0E2929F86B0';
             /** @var \FinSearchUnified\ShopwareProcess $blController */
             $blController = Shopware()->Container()->get('fin_search_unified.shopware_process');
             $blController->setShopKey($shopKey);

@@ -1,15 +1,11 @@
 <?php
 
-use FinSearchUnified\Components\ProductStream\CriteriaFactory;
-use Shopware\Bundle\SearchBundle\Criteria;
-use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
-
 class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Components_Test_Plugin_TestCase
 {
     public static function setUpBeforeClass()
     {
         parent::setUpBeforeClass();
-        for ($i = 0; $i < 2; $i++) {
+        for ($i = 0; $i < 5; $i++) {
             $id = uniqid();
             $testArticle = [
                 'name' => 'FindologicArticle' . $id,
@@ -122,6 +118,20 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
      */
     public function testFindologicSearchResponse()
     {
+        $sessionArray = [
+            ['isSearchPage', true]
+        ];
+        // Create mock object for Shopware Session and explicitly return the values
+        $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
+            ->setMethods(['offsetGet'])
+            ->getMock();
+        $session->expects($this->atLeastOnce())
+            ->method('offsetGet')
+            ->willReturnMap($sessionArray);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('session', $session);
+
         $httpResponse = new Zend_Http_Response(200, [], '
             <searchResult>
                 <query>
@@ -144,22 +154,8 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         Shopware()->Container()->set('fin_search_unified.product_number_search', $productNumberSearch);
 
-        /** @var CriteriaFactory $factory */
-        $factory = Shopware()->Container()->get('fin_search_unified.product_stream.criteria_factory');
-
-        /** @var ContextServiceInterface $contextService */
-        $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
-        $context = $contextService->getShopContext();
-
-        /** @var Criteria $criteria */
-        $criteria = $factory->createCriteria($this->Request(), $context);
-
-        $result = $productNumberSearch->search($criteria, $context);
-
-        // Request a variant that is not the default one
         $this->Request()->setMethod('GET');
-
-        $response = $this->dispatch('/search?sSearch=findologic');
+        $response = $this->dispatch('/search?sSearch=originalQuery');
 
         $params = $this->View()->getAssign();
         $body = $response->getBody();
