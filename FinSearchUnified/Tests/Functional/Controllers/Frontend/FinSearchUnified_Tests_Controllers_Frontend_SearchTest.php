@@ -1,10 +1,11 @@
 <?php
 
-class FinSearchUnified_Tests_Controllers_Frontend_Search extends Enlight_Components_Test_Plugin_TestCase
+class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Components_Test_Plugin_TestCase
 {
-    public static function setUpBeforeClass()
+    public function setUp()
     {
-        parent::setUpBeforeClass();
+        parent::setUp();
+
         for ($i = 0; $i < 5; $i++) {
             $id = uniqid();
             $testArticle = [
@@ -43,9 +44,9 @@ class FinSearchUnified_Tests_Controllers_Frontend_Search extends Enlight_Compone
         }
     }
 
-    public static function tearDownAfterClass()
+    public function tearDown()
     {
-        parent::tearDownAfterClass();
+        parent::tearDown();
 
         $sql = '
             SET foreign_key_checks = 0;
@@ -124,8 +125,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_Search extends Enlight_Compone
                     <originalQuery>originalQuery</originalQuery>
                     <didYouMeanQuery>didYouMeanQuery</didYouMeanQuery>
                 </query>
-            </searchResult>'
-        );
+            </searchResult>');
 
         $httpClient = $this->getMockBuilder(Zend_Http_Client::class)
             ->setMethods(['request'])
@@ -135,7 +135,8 @@ class FinSearchUnified_Tests_Controllers_Frontend_Search extends Enlight_Compone
             ->willReturn($httpResponse);
 
         $productNumberSearch = new \FinSearchUnified\Bundles\ProductNumberSearch(
-            Shopware()->Container()->get('fin_search_unified.product_number_search'), $httpClient
+            Shopware()->Container()->get('fin_search_unified.product_number_search'),
+            $httpClient
         );
 
         Shopware()->Container()->set('fin_search_unified.product_number_search', $productNumberSearch);
@@ -150,23 +151,6 @@ class FinSearchUnified_Tests_Controllers_Frontend_Search extends Enlight_Compone
         $session->expects($this->atLeastOnce())
             ->method('offsetGet')
             ->willReturnMap($sessionArray);
-
-        /*$configArray = [
-            ['ActivateFindologic', true],
-            ['ShopKey', '8D6CA2E49FB7CD09889CC0E2929F86B0'],
-            ['ActivateFindologicForCategoryPages', false],
-            ['IntegrationType', Constants::INTEGRATION_TYPE_API]
-        ];
-
-        // Create Mock object for Shopware Config
-        $config = $this->getMockBuilder('\Shopware_Components_Config')
-            ->setMethods(['offsetGet'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $config->method('offsetGet')->willReturnMap($configArray);*/
-
-        // Assign mocked config variable to application container
-        //Shopware()->Container()->set('config', $config);
 
         // Assign mocked session variable to application container
         Shopware()->Container()->set('session', $session);
