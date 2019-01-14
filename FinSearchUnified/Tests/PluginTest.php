@@ -91,6 +91,7 @@ class PluginTest extends TestCase
             'tax' => 19,
             'supplier' => 'Findologic',
             'categories' => [
+                ['id' => 3],
                 ['id' => 5],
             ],
             'images' => [
@@ -114,6 +115,7 @@ class PluginTest extends TestCase
             $manger = new \Shopware\Components\Api\Manager();
             $resource = $manger->getResource('Article');
             $article = $resource->create($testArticle);
+            Shopware()->Models()->flush();
 
             return $article;
         } catch (\Exception $e) {

@@ -141,7 +141,7 @@ class UrlBuilderTest extends TestCase
         $actualUrl = sprintf('%s://%s%s', $url->getScheme(), $url->getHost(), $url->getPath());
 
         $this->assertSame(
-            'https://service.findologic.com/ps/xml_2.0/localhost/index.php',
+            sprintf('https://service.findologic.com/ps/xml_2.0/%s/index.php', Shopware()->Shop()->getHost()),
             $actualUrl,
             'The resulting URL is not correct'
         );

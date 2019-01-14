@@ -50,9 +50,9 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         Shopware()->Container()->reset('fin_search_unified.product_number_search');
         Shopware()->Container()->reset('FinSearchUnified.findologic_facet_gateway');
-        Shopware()->Container()->reset('Config');
-        Shopware()->Container()->reset('Session');
-        Shopware()->Container()->reset('Front');
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->reset('session');
+        Shopware()->Container()->reset('front');
 
         $sql = '
             SET foreign_key_checks = 0;
@@ -119,11 +119,26 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         }
     }
 
+    public function findologicResponseProvider()
+    {
+        return [
+            'No smart-did-you-mean tags present' => [false, 'improved'],
+            'Type is did-you-mean' => [true, 'did-you-mean'],
+            'Type is improved' => [true, 'improved'],
+            'Type is corrected' => [true, 'corrected'],
+            'Type is forced' => [true, 'forced'],
+        ];
+    }
+
     /**
-     * @throws Zend_Http_Exception
-     * @throws Exception
+     * @dataProvider findologicResponseProvider
+     *
+     * @param bool $activateFindologic
+     * @param string $type
+     *
+     * @throws \Zend_Http_Exception
      */
-    public function testFindologicSearchResponse()
+    public function testFindologicSearchResponse($activateFindologic, $type)
     {
         $httpResponse = new Zend_Http_Response(200, [], '
             <searchResult>
@@ -141,18 +156,22 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
                   </properties>
               </products>
                 <query>
-                    <originalQuery>originalQuery</originalQuery>
-                    <didYouMeanQuery>didYouMeanQuery</didYouMeanQuery>
+                    <queryString type="' . $type . '">queryString</queryString>
+                    <originalQuery>originalQuery</originalQuery>' .
+            ($type === 'did-you-mean' ? '<didYouMeanQuery>didYouMeanQuery</didYouMeanQuery>' : '') . '
                 </query>
             </searchResult>');
 
         $httpClient = $this->getMockBuilder(Zend_Http_Client::class)
             ->setMethods(['request'])
             ->getMock();
-        $httpClient->expects($this->atLeast(2))
-            ->method('request')
-            ->willReturnOnConsecutiveCalls(new Zend_Http_Response(200, [], 'alive'), $httpResponse);
 
+        if ($activateFindologic) {
+            $httpClient->expects($this->exactly(4))
+                ->method('request')
+                ->willReturnOnConsecutiveCalls(new Zend_Http_Response(200, [], 'alive'), $httpResponse,
+                    new Zend_Http_Response(200, [], 'alive'), $httpResponse);
+        }
         $productNumberSearch = new \FinSearchUnified\Bundles\ProductNumberSearch(
             Shopware()->Container()->get('fin_search_unified.product_number_search'),
             $httpClient
@@ -182,7 +201,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         Shopware()->Container()->set('session', $session);
 
         $configArray = [
-            ['ActivateFindologic', true],
+            ['ActivateFindologic', $activateFindologic],
             ['ActivateFindologicForCategoryPages', false],
             ['findologicDI', false],
             ['isSearchPage', true],
@@ -213,6 +232,11 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         $params = $this->View()->getAssign();
         $body = $response->getBody();
 
-        $this->assertContains('<p id="fl-smart-did-you-mean">', $body, 'View not rendered');
+        if (!$activateFindologic) {
+            $this->assertNotContains('<p id="fl-smart-did-you-mean">', $body,
+                'Expected smart-did-you-mean-tags to not be rendered');
+        } else {
+            $this->assertContains('<p id="fl-smart-did-you-mean">', $body, 'View not rendered');
+        }
     }
 }
