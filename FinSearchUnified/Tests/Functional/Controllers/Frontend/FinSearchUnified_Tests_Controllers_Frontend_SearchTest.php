@@ -2,9 +2,9 @@
 
 class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Components_Test_Plugin_TestCase
 {
-    public function setUp()
+    public static function setUpBeforeClass()
     {
-        parent::setUp();
+        parent::setUpBeforeClass();
 
         for ($i = 0; $i < 5; $i++) {
             $id = uniqid();
@@ -44,9 +44,15 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         }
     }
 
-    public function tearDown()
+    public static function tearDownAfterClass()
     {
-        parent::tearDown();
+        parent::tearDownAfterClass();
+
+        Shopware()->Container()->reset('fin_search_unified.product_number_search');
+        Shopware()->Container()->reset('FinSearchUnified.findologic_facet_gateway');
+        Shopware()->Container()->reset('Config');
+        Shopware()->Container()->reset('Session');
+        Shopware()->Container()->reset('Front');
 
         $sql = '
             SET foreign_key_checks = 0;
@@ -121,6 +127,19 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
     {
         $httpResponse = new Zend_Http_Response(200, [], '
             <searchResult>
+                <results>
+                    <count>2</count>
+                </results>
+              <products>
+              <product id="1" direct="1"/>
+                  <properties>
+                    <property name="propertyName">propertyValue1</property>
+                  </properties>
+                <product id="2" direct="2"/>
+                  <properties>
+                    <property name="propertyName">propertyValue2</property>
+                  </properties>
+              </products>
                 <query>
                     <originalQuery>originalQuery</originalQuery>
                     <didYouMeanQuery>didYouMeanQuery</didYouMeanQuery>
@@ -130,9 +149,9 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         $httpClient = $this->getMockBuilder(Zend_Http_Client::class)
             ->setMethods(['request'])
             ->getMock();
-        $httpClient->expects($this->atLeastOnce())
+        $httpClient->expects($this->atLeast(2))
             ->method('request')
-            ->willReturn($httpResponse);
+            ->willReturnOnConsecutiveCalls(new Zend_Http_Response(200, [], 'alive'), $httpResponse);
 
         $productNumberSearch = new \FinSearchUnified\Bundles\ProductNumberSearch(
             Shopware()->Container()->get('fin_search_unified.product_number_search'),
@@ -140,6 +159,13 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         );
 
         Shopware()->Container()->set('fin_search_unified.product_number_search', $productNumberSearch);
+
+        $facetGateway = new \FinSearchUnified\Bundles\FindologicFacetGateway(
+            Shopware()->Container()->get('FinSearchUnified.findologic_facet_gateway'),
+            $httpClient
+        );
+
+        Shopware()->Container()->set('FinSearchUnified.findologic_facet_gateway', $facetGateway);
 
         $sessionArray = [
             ['isSearchPage', true]
