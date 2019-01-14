@@ -155,6 +155,32 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         // Assign mocked session variable to application container
         Shopware()->Container()->set('session', $session);
 
+        $configArray = [
+            ['ActivateFindologic', true],
+            ['ActivateFindologicForCategoryPages', false],
+            ['findologicDI', false],
+            ['isSearchPage', true],
+            ['isCategoryPage', false],
+            ['ShopKey', '8D6CA2E49FB7CD09889CC0E2929F86B0'],
+            ['host', Shopware()->Shop()->getHost()],
+            ['basePath', Shopware()->Shop()->getHost() . Shopware()->Shop()->getBasePath()]
+        ];
+
+        // Create Mock object for Shopware Config
+        $config = $this->getMockBuilder('\Shopware_Components_Config')
+            ->setMethods(['offsetGet', 'setShop'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $config->expects($this->atLeastOnce())
+            ->method('offsetGet')
+            ->willReturnMap($configArray);
+        $config->expects($this->atLeastOnce())
+            ->method('setShop')
+            ->willReturnSelf();
+
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $config);
+
         $this->Request()->setMethod('GET');
         $response = $this->dispatch('/search?sSearch=find');
 
