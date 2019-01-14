@@ -153,18 +153,18 @@ class FindologicArticleModel
             $this->orderDetailRepository = Shopware()->Container()->get('models')->getRepository(OrderDetail::class);
 
             // Fill out the Basedata
-            $this->setArticleName();
-            $this->setSummary();
-            $this->setDescription();
-            $this->setAddDate();
-            $this->setUrls();
-            $this->setKeywords();
-            $this->setImages();
-            $this->setSales();
+//            $this->setArticleName();
+//            $this->setSummary();
+//            $this->setDescription();
+//            $this->setAddDate();
+//            $this->setUrls();
+//            $this->setKeywords();
+//            $this->setImages();
+//            $this->setSales();
             $this->setAttributes();
             $this->setUserGroups();
-            $this->setPrices();
-            $this->setVariantOrdernumbers();
+//            $this->setPrices();
+//            $this->setVariantOrdernumbers();
             $this->setProperties();
         }
     }
