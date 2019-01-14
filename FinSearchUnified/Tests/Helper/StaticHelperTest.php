@@ -20,7 +20,7 @@ class StaticHelperTest extends TestCase
         return [
             'FINDOLOGIC is inactive' => [
                 'ActivateFindologic' => false,
-                'ShopKey' => 'ABCD0815',
+                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
                 'ActivateFindologicForCategoryPages' => true,
                 'findologicDI' => false,
                 'isSearchPage' => null,
@@ -47,7 +47,7 @@ class StaticHelperTest extends TestCase
             ],
             'FINDOLOGIC is active but integration type is DI' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => 'ABCD0815',
+                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
                 'ActivateFindologicForCategoryPages' => true,
                 'findologicDI' => true,
                 'isSearchPage' => null,
@@ -56,7 +56,7 @@ class StaticHelperTest extends TestCase
             ],
             'FINDOLOGIC is active but the current page is neither the search nor a category page' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => 'ABCD0815',
+                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
                 'ActivateFindologicForCategoryPages' => true,
                 'findologicDI' => false,
                 'isSearchPage' => false,
@@ -65,7 +65,7 @@ class StaticHelperTest extends TestCase
             ],
             'FINDOLOGIC is not active on category pages' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => 'ABCD0815',
+                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
                 'ActivateFindologicForCategoryPages' => false,
                 'findologicDI' => false,
                 'isSearchPage' => false,
@@ -74,7 +74,7 @@ class StaticHelperTest extends TestCase
             ],
             'FINDOLOGIC is active in search' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => 'ABCD0815',
+                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
                 'ActivateFindologicForCategoryPages' => false,
                 'findologicDI' => false,
                 'isSearchPage' => true,
@@ -83,7 +83,7 @@ class StaticHelperTest extends TestCase
             ],
             'FINDOLOGIC is active on category pages' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => 'ABCD0815',
+                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
                 'ActivateFindologicForCategoryPages' => true,
                 'findologicDI' => false,
                 'isSearchPage' => false,

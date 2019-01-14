@@ -10,7 +10,7 @@ class PluginTest extends TestCase
 {
     protected static $ensureLoadedPlugins = [
         'FinSearchUnified' => [
-            'ShopKey' => 'ABCD0815'
+            'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0'
         ],
     ];
 
@@ -23,7 +23,7 @@ class PluginTest extends TestCase
 
     public function testCalculateGroupkey()
     {
-        $shopkey = 'ABCD0815';
+        $shopkey = '8D6CA2E49FB7CD09889CC0E2929F86B0';
         $usergroup = 'at_rated';
         $hash = StaticHelper::calculateUsergroupHash($shopkey, $usergroup);
         $decrypted = StaticHelper::decryptUsergroupHash($shopkey, $hash);
@@ -38,16 +38,20 @@ class PluginTest extends TestCase
     public function articleProvider()
     {
         return [
-            "2 active articles" => [[true, true], 2, "Two articles were expected but %d were returned"],
+            '2 active articles' => [
+                [true, true],
+                2,
+                'Two articles were expected but %d were returned'
+            ],
             "1 active and 1 inactive article" => [
                 [true, false],
                 1,
-                "Only one article was expected but %d were returned "
+                'Only one article was expected but %d were returned'
             ],
-            "2 inactive articles" => [
+            '2 inactive articles' => [
                 [false, false],
                 0,
-                "No articles were expected but %d were returned"
+                'No articles were expected but %d were returned'
             ],
         ];
     }
@@ -56,6 +60,7 @@ class PluginTest extends TestCase
      * Method to run the export test cases using the data provider
      *
      * @dataProvider articleProvider
+     *
      * @param array $isActive
      * @param int $expected
      * @param string $errorMessage
@@ -75,6 +80,7 @@ class PluginTest extends TestCase
      *
      * @param int $number
      * @param bool $isActive
+     *
      * @return \Shopware\Models\Article\Article|null
      */
     private function createTestProduct($number, $isActive)
@@ -85,7 +91,6 @@ class PluginTest extends TestCase
             'tax' => 19,
             'supplier' => 'Findologic',
             'categories' => [
-                ['id' => 3],
                 ['id' => 5],
             ],
             'images' => [
@@ -109,6 +114,7 @@ class PluginTest extends TestCase
             $manger = new \Shopware\Components\Api\Manager();
             $resource = $manger->getResource('Article');
             $article = $resource->create($testArticle);
+
             return $article;
         } catch (\Exception $e) {
             echo sprintf("Exception: %s", $e->getMessage());
@@ -126,7 +132,7 @@ class PluginTest extends TestCase
     private function runExportAndReturnCount()
     {
         try {
-            $shopKey = 'ABCD0815';
+            $shopKey = '8D6CA2E49FB7CD09889CC0E2929F86B0';
             /** @var \FinSearchUnified\ShopwareProcess $blController */
             $blController = Shopware()->Container()->get('fin_search_unified.shopware_process');
             $blController->setShopKey($shopKey);
@@ -134,6 +140,7 @@ class PluginTest extends TestCase
 
             // Parse the xml and return the count of the products exported
             $xml = new \SimpleXMLElement($xmlDocument);
+
             return (int)$xml->items->attributes()->count;
         } catch (\Exception $e) {
             echo sprintf("Exception: %s", $e->getMessage());
