@@ -274,11 +274,11 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         $this->Request()->setMethod('GET');
 
-        $response = $this->dispatch(sprintf('/search?sSearch=%s', $originalQuery));
+        $this->dispatch(sprintf('/search?sSearch=%s', $originalQuery));
 
         \FinSearchUnified\Helper\StaticHelper::setSmartDidYouMean($xmlResponse);
 
-        $body = $response->getBody();
+        $body = $this->View()->render();
 
         if (!$activateFindologic) {
             $this->assertNotContains(
