@@ -26,13 +26,10 @@
 
         <service
             decorates="shopware_storefront.custom_facet_gateway"
-            class="FinSearchUnified\Bundle\FindologicFacetGateway"
+            class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGateway"
             id="FinSearchUnified.findologic_facet_gateway"
         >
             <argument type="service" id="FinSearchUnified.findologic_facet_gateway.inner" />
-            <argument type="service" id="dbal_connection" />
-            <argument type="service" id="shopware_storefront.field_helper_dbal" />
-            <argument type="service" id="shopware_storefront.custom_listing_hydrator" />
         </service>
 
         <service id="fin_search_unified.shopware_process" class="FinSearchUnified\ShopwareProcess">
