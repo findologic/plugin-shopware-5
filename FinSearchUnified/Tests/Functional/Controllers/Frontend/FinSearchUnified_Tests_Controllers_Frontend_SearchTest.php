@@ -202,6 +202,14 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             $query->addChild('originalQuery', $originalQuery);
         }
 
+        $results = $xmlResponse->addChild('results');
+        $results->addChild('count', 5);
+        $products = $xmlResponse->addChild('products');
+        for ($i = 1; $i <= 5; $i++) {
+            $product = $products->addChild('product');
+            $product->addAttribute('id', $i);
+        }
+
         $configArray = [
             ['ActivateFindologic', $activateFindologic],
             ['ActivateFindologicForCategoryPages', false],
@@ -274,11 +282,9 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         $this->Request()->setMethod('GET');
 
-        $this->dispatch(sprintf('/search?sSearch=%s', $originalQuery));
+        $response = $this->dispatch(sprintf('/search?sSearch=%s', $originalQuery));
 
-        \FinSearchUnified\Helper\StaticHelper::setSmartDidYouMean($xmlResponse);
-
-        $body = $this->View()->render();
+        $body = $response->getBody();
 
         if (!$activateFindologic) {
             $this->assertNotContains(

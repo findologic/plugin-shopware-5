@@ -65,6 +65,8 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
                     StaticHelper::setPromotion($xmlResponse);
 
+                    StaticHelper::setSmartDidYouMean($xmlResponse);
+
                     $this->facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
 
                     $facetsInterfaces = StaticHelper::getFindologicFacets($xmlResponse);
