@@ -25,11 +25,17 @@
         </service>
 
         <service
+            id="fin_search_unified.custom_listing_hydrator"
+            class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator"
+        />
+
+        <service
             decorates="shopware_storefront.custom_facet_gateway"
             class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGateway"
             id="FinSearchUnified.findologic_facet_gateway"
         >
             <argument type="service" id="FinSearchUnified.findologic_facet_gateway.inner" />
+            <argument type="service" id="fin_search_unified.custom_listing_hydrator" />
         </service>
 
         <service id="fin_search_unified.shopware_process" class="FinSearchUnified\ShopwareProcess">
