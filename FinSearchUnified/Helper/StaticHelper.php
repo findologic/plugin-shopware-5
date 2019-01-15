@@ -837,7 +837,7 @@ class StaticHelper
         if (((isset($originalQuery) && $originalQuery !== '') || (isset($didYouMeanQuery) && $didYouMeanQuery !== ''))
             && $queryString->attributes()->type !== 'forced') {
             /** @var \Enlight_View_Default $view */
-            $view = Shopware()->Front()->Plugins()->ViewRenderer()->Action()->View();
+            $view = Shopware()->Container()->get('front')->Plugins()->ViewRenderer()->Action()->View();
             $type = isset($didYouMeanQuery) ? 'did-you-mean' : $queryString->attributes()->type;
             $view->assign([
                 'finSmartDidYouMean' => [

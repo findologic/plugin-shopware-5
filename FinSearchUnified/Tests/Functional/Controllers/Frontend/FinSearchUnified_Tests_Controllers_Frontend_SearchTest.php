@@ -44,9 +44,9 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         }
     }
 
-    public static function tearDownAfterClass()
+    public function tearDown()
     {
-        parent::tearDownAfterClass();
+        parent::tearDown();
 
         Shopware()->Container()->reset('fin_search_unified.product_number_search');
         Shopware()->Container()->reset('FinSearchUnified.findologic_facet_gateway');
@@ -54,6 +54,11 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         Shopware()->Container()->reset('session');
         Shopware()->Container()->reset('front');
 
+        Shopware()->Container()->load('config');
+        Shopware()->Container()->load('session');
+        Shopware()->Container()->load('front');
+        Shopware()->Container()->load('FinSearchUnified.findologic_facet_gateway');
+        Shopware()->Container()->load('fin_search_unified.product_number_search');
         $sql = '
             SET foreign_key_checks = 0;
 			TRUNCATE s_articles;
@@ -122,11 +127,41 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
     public function findologicResponseProvider()
     {
         return [
-            'No smart-did-you-mean tags present' => [false, 'improved'],
-            'Type is did-you-mean' => [true, 'did-you-mean'],
-            'Type is improved' => [true, 'improved'],
-            'Type is corrected' => [true, 'corrected'],
-            'Type is forced' => [true, 'forced'],
+            'No smart-did-you-mean tags present' => [
+                false,
+                null,
+                null,
+                null,
+                null
+            ],
+            'Type is did-you-mean' => [
+                true,
+                'didYouMeanQuery',
+                'originalQuery',
+                'queryString',
+                null
+            ],
+            'Type is improved' => [
+                true,
+                null,
+                'originalQuery',
+                'queryString',
+                'improved'
+            ],
+            'Type is corrected' => [
+                true,
+                null,
+                'originalQuery',
+                'queryString',
+                'corrected'
+            ],
+            'Type is forced' => [
+                true,
+                null,
+                'originalQuery',
+                'queryString',
+                'forced'
+            ],
         ];
     }
 
@@ -134,19 +169,43 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
      * @dataProvider findologicResponseProvider
      *
      * @param bool $activateFindologic
-     * @param string $type
+     * @param string $didYouMeanQuery
+     * @param string $originalQuery
+     * @param string $queryString
+     * @param string $queryStringType
      *
-     * @throws \Zend_Http_Exception
+     * @throws Zend_Http_Exception
      * @throws Exception
      */
-    public function testFindologicSearchResponse($activateFindologic, $type)
-    {
+    public function testFindologicSearchResponse(
+        $activateFindologic,
+        $didYouMeanQuery,
+        $originalQuery,
+        $queryString,
+        $queryStringType
+    ) {
+        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
+        $xmlResponse = new SimpleXMLElement($data);
+        $query = $xmlResponse->addChild('query');
+
+        if ($queryString !== null) {
+            $queryString = $query->addChild('queryString', $queryString);
+
+            if ($queryStringType !== null) {
+                $queryString->addAttribute('type', $queryStringType);
+            }
+        }
+        if ($didYouMeanQuery !== null) {
+            $query->addChild('didYouMeanQuery', $didYouMeanQuery);
+        }
+        if ($originalQuery !== null) {
+            $query->addChild('originalQuery', $originalQuery);
+        }
+
         $configArray = [
             ['ActivateFindologic', $activateFindologic],
             ['ActivateFindologicForCategoryPages', false],
             ['findologicDI', false],
-            ['isSearchPage', true],
-            ['isCategoryPage', false],
             ['ShopKey', '8D6CA2E49FB7CD09889CC0E2929F86B0'],
             ['host', Shopware()->Shop()->getHost()],
             ['basePath', Shopware()->Shop()->getHost() . Shopware()->Shop()->getBasePath()]
@@ -182,27 +241,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         // Assign mocked session variable to application container
         Shopware()->Container()->set('session', $session);
 
-        $httpResponse = new Zend_Http_Response(200, [], '
-            <searchResult>
-                <results>
-                    <count>2</count>
-                </results>
-              <products>
-              <product id="1" direct="1"/>
-                  <properties>
-                    <property name="propertyName">propertyValue1</property>
-                  </properties>
-                <product id="2" direct="2"/>
-                  <properties>
-                    <property name="propertyName">propertyValue2</property>
-                  </properties>
-              </products>
-                <query>
-                    <queryString type="' . $type . '">queryString</queryString>
-                    <originalQuery>originalQuery</originalQuery>' .
-            ($type === 'did-you-mean' ? '<didYouMeanQuery>didYouMeanQuery</didYouMeanQuery>' : '') . '
-                </query>
-            </searchResult>');
+        $httpResponse = new Zend_Http_Response(200, [], $xmlResponse->asXML());
 
         $httpClient = $this->getMockBuilder(Zend_Http_Client::class)
             ->setMethods(['request'])
@@ -212,8 +251,11 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             $httpClient->expects($this->exactly(4))
                 ->method('request')
                 ->willReturnOnConsecutiveCalls(
-                    new Zend_Http_Response(200, [], 'alive'), $httpResponse,
-                    new Zend_Http_Response(200, [], 'alive'), $httpResponse);
+                    new Zend_Http_Response(200, [], 'alive'),
+                    $httpResponse,
+                    new Zend_Http_Response(200, [], 'alive'),
+                    $httpResponse
+                );
 
             $productNumberSearch = new \FinSearchUnified\Bundles\ProductNumberSearch(
                 Shopware()->Container()->get('fin_search_unified.product_number_search'),
@@ -229,17 +271,27 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
             Shopware()->Container()->set('FinSearchUnified.findologic_facet_gateway', $facetGateway);
         }
-        $this->Request()->setMethod('GET');
-        $response = $this->dispatch('/search?sSearch=find');
 
-        $params = $this->View()->getAssign();
+        $this->Request()->setMethod('GET');
+
+        $response = $this->dispatch(sprintf('/search?sSearch=%s', $originalQuery));
+
+        \FinSearchUnified\Helper\StaticHelper::setSmartDidYouMean($xmlResponse);
+
         $body = $response->getBody();
 
         if (!$activateFindologic) {
-            $this->assertNotContains('<p id="fl-smart-did-you-mean">', $body,
-                'Expected smart-did-you-mean-tags to not be rendered');
+            $this->assertNotContains(
+                '<p id="fl-smart-did-you-mean">',
+                $body,
+                'Expected smart-did-you-mean-tags to not be rendered'
+            );
         } else {
-            $this->assertContains('<p id="fl-smart-did-you-mean">', $body, 'View not rendered');
+            $this->assertContains(
+                '<p id="fl-smart-did-you-mean">',
+                $body,
+                'Expected smart-did-you-mean tags to be visible'
+            );
         }
     }
 }
