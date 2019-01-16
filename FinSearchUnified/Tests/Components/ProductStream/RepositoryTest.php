@@ -8,6 +8,13 @@ use Shopware\Components\Test\Plugin\TestCase;
 
 class RepositoryTest extends TestCase
 {
+    public static function setUpBeforeClass()
+    {
+        parent::setUpBeforeClass();
+        Shopware()->Container()->reset('front');
+        Shopware()->Container()->load('front');
+    }
+
     /**
      * @return array
      */

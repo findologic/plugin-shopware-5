@@ -11,6 +11,12 @@ use Zend_Uri_Http;
 
 class UrlBuilderTest extends TestCase
 {
+    public static function setUpBeforeClass()
+    {
+        parent::setUpBeforeClass();
+        Shopware()->Container()->reset('front');
+        Shopware()->Container()->load('front');
+    }
 
     /**
      * @var Zend_Http_Client A mock of the used http client.
@@ -58,6 +64,8 @@ class UrlBuilderTest extends TestCase
      *
      * @param string $unfilteredIp
      * @param string $expectedValue
+     *
+     * @throws \Exception
      */
     public function testSendOnlyUniqueUserIps($unfilteredIp, $expectedValue)
     {

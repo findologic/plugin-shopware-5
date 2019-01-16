@@ -43,7 +43,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
             $categoryFacets = [];
-            $categoryFacets[] = $this->hydrate($xmlResponse->filters->filter);
+            $categoryFacets = $this->hydrate($xmlResponse->filters->filter);
 
             return $categoryFacets[0];
         } else {
@@ -89,6 +89,11 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         return $this->originalService->getAllCategoryFacets($context);
     }
 
+    /**
+     * @param \SimpleXMLElement $filters
+     *
+     * @return array
+     */
     private function hydrate(\SimpleXMLElement $filters)
     {
         $facets = [];
@@ -98,5 +103,13 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         }
 
         return $facets;
+    }
+
+    /**
+     * @param UrlBuilder $urlBuilder
+     */
+    public function setUrlBuilder($urlBuilder)
+    {
+        $this->urlBuilder = $urlBuilder;
     }
 }

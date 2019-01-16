@@ -15,6 +15,13 @@ class CustomListingHydratorTest extends TestCase
      */
     private $hydrator;
 
+    public static function setUpBeforeClass()
+    {
+        parent::setUpBeforeClass();
+        Shopware()->Container()->reset('front');
+        Shopware()->Container()->load('front');
+    }
+
     protected function setUp()
     {
         parent::setUp();
@@ -175,7 +182,7 @@ class CustomListingHydratorTest extends TestCase
             $filter->addChild($name, $value);
         }
 
-        $customFacets = $this->hydrator->hydrateFacet($xmlResponse);
+        $customFacets = $this->hydrator->hydrateFacet($xmlResponse->filters->filter);
 
         /** @var CustomFacet $customFacet */
         foreach ($customFacets as $customFacet) {

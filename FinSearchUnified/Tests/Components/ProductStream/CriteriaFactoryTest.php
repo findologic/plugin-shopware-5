@@ -12,6 +12,13 @@ use Shopware\Components\Test\Plugin\TestCase;
 
 class CriteriaFactoryTest extends TestCase
 {
+    public static function setUpBeforeClass()
+    {
+        parent::setUpBeforeClass();
+        Shopware()->Container()->reset('front');
+        Shopware()->Container()->load('front');
+    }
+
     /**
      * Provider for test cases to test CriteriaFactory
      *
@@ -126,7 +133,10 @@ class CriteriaFactoryTest extends TestCase
         /** @var CategoryCondition $categoryCondition */
         $categoryCondition = $criteria->getCondition('category');
 
-        $this->assertNotNull($categoryCondition, "Category Condition expected to be NOT NULL, but NULL was returned");
+        $this->assertNotNull(
+            $categoryCondition,
+            "Category Condition expected to be NOT NULL, but NULL was returned"
+        );
         $categories = $categoryCondition->getCategoryIds();
         $this->assertSame($expected, $categories[0]);
     }
