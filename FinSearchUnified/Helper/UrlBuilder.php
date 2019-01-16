@@ -14,6 +14,14 @@ use Zend_Http_Response;
 
 class UrlBuilder
 {
+    const BASE_URL = 'https://service.findologic.com/ps/xml_2.0/';
+    const CDN_URL = 'https://cdn.findologic.com/static/';
+    const JSON_CONFIG = '/config.json';
+    const ALIVE_ENDPOINT = 'alivetest.php';
+    const SEARCH_ENDPOINT = 'index.php';
+    const NAVIGATION_ENPOINT = 'selector.php';
+    const JSON_PATH = 'directIntegration';
+
     /**
      * @var Zend_Http_Client
      */
@@ -59,7 +67,7 @@ class UrlBuilder
     public function __construct($httpClient = null)
     {
         $this->httpClient = $httpClient instanceof Zend_Http_Client ? $httpClient : new Zend_Http_Client();
-        $this->shopUrl = Shopware()->Shop()->getHost();
+        $this->shopUrl = rtrim(Shopware()->Shop()->getHost(), '/') . '/';
         //explode('//', Shopware()->Modules()->Core()->sRewriteLink())[1];
 
         /** @var Plugin $plugin */
@@ -70,14 +78,6 @@ class UrlBuilder
             'revision' => $plugin->getVersion(),
         ];
     }
-
-    const BASE_URL = 'https://service.findologic.com/ps/xml_2.0/';
-    const CDN_URL = 'https://cdn.findologic.com/static/';
-    const JSON_CONFIG = '/config.json';
-    const ALIVE_ENDPOINT = 'alivetest.php';
-    const SEARCH_ENDPOINT = 'index.php';
-    const NAVIGATION_ENPOINT = 'selector.php';
-    const JSON_PATH = 'directIntegration';
 
     private function getClientIp()
     {
