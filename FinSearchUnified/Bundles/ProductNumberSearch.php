@@ -13,6 +13,9 @@ use Shopware\Models\Search\CustomFacet;
 
 class ProductNumberSearch implements ProductNumberSearchInterface
 {
+    /**
+     * @var UrlBuilder
+     */
     protected $urlBuilder;
 
     protected $originalService;
@@ -27,9 +30,15 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      *
      * @throws \Exception
      */
-    public function __construct(ProductNumberSearchInterface $service, $httpClient = null)
+    public function __construct(ProductNumberSearchInterface $service, $urlBuilder = null)
     {
-        $this->urlBuilder = new UrlBuilder($httpClient);
+
+        if ($urlBuilder === null) {
+            $this->urlBuilder = new UrlBuilder();
+        } else {
+            $this->urlBuilder = $urlBuilder;
+        }
+
         $this->originalService = $service;
     }
 

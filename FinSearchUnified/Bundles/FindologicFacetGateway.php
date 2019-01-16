@@ -11,11 +11,19 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
 {
     private $originalService;
 
+    /**
+     * @var UrlBuilder
+     */
     private $urlBuilder;
 
-    public function __construct(CustomFacetGatewayInterface $service, $httpClient = null)
+    public function __construct(CustomFacetGatewayInterface $service, $urlBuilder = null)
     {
-        $this->urlBuilder = new UrlBuilder($httpClient);
+        if ($urlBuilder === null) {
+            $this->urlBuilder = new UrlBuilder();
+        } else {
+            $this->urlBuilder = $urlBuilder;
+        }
+
         $this->originalService = $service;
     }
 

@@ -117,17 +117,15 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
     {
         parent::tearDown();
 
-        Shopware()->Container()->reset('fin_search_unified.product_number_search');
-        Shopware()->Container()->reset('FinSearchUnified.findologic_facet_gateway');
-        Shopware()->Container()->reset('config');
-        Shopware()->Container()->reset('session');
-        Shopware()->Container()->reset('front');
+        $kernel = Shopware()->Container()->get('kernel');
+        $connection = Shopware()->Container()->get('db_connection');
+        $application = Shopware()->Container()->get('application');
 
-        Shopware()->Container()->load('config');
-        Shopware()->Container()->load('session');
-        Shopware()->Container()->load('front');
-        Shopware()->Container()->load('FinSearchUnified.findologic_facet_gateway');
-        Shopware()->Container()->load('fin_search_unified.product_number_search');
+        Shopware()->Container()->reset();
+
+        Shopware()->Container()->set('kernel', $kernel);
+        Shopware()->Container()->set('db_connection', $connection);
+        Shopware()->Container()->set('application', $application);
     }
 
     public function findologicResponseProvider()
@@ -307,5 +305,72 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
                 'Expected smart-did-you-mean tags to be visible'
             );
         }
+    }
+
+    public function testSmarDidYouMeanSuggestionsAreDisplayed()
+    {
+        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
+        $xmlResponse = new SimpleXMLElement($data);
+        $query = $xmlResponse->addChild('query');
+
+        $queryString = $query->addChild('queryString', 'queryString');
+
+        $query->addChild('didYouMeanQuery', 'didYouMeanQuery');
+        $query->addChild('originalQuery', 'originalQuery');
+
+        $results = $xmlResponse->addChild('results');
+        $results->addChild('count', 5);
+        $products = $xmlResponse->addChild('products');
+        for ($i = 1; $i <= 5; $i++) {
+            $product = $products->addChild('product');
+            $product->addAttribute('id', $i);
+        }
+
+        $httpResponse = new Zend_Http_Response(200, [], '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>');
+        $urlBuilderMock = $this->getMockBuilder(\FinSearchUnified\Helper\UrlBuilder::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['buildCompleteFilterList', 'buildCategoryUrlAndGetResponse', 'setCustomerGroup', 'buildQueryUrlAndGetResponse'])
+            ->getMock();
+        $urlBuilderMock->expects($this->exactly(1))->method('buildCompleteFilterList')->willReturn($httpResponse);
+        $urlBuilderMock->expects($this->never())->method('buildCategoryUrlAndGetResponse');
+        $urlBuilderMock->expects($this->exactly(2))->method('setCustomerGroup');
+        $urlBuilderMock->expects($this->once())->method('buildQueryUrlAndGetResponse')->willReturn(
+            new Zend_Http_Response(200, [], $xmlResponse->asXML())
+        );
+
+        $facetGateway = new \FinSearchUnified\Bundles\FindologicFacetGateway(
+            Shopware()->Container()->get('shopware_storefront.custom_facet_gateway'),
+            $urlBuilderMock
+        );
+
+        Shopware()->Container()->set('FinSearchUnified.findologic_facet_gateway', $facetGateway);
+
+        $productNumberSearch = new \FinSearchUnified\Bundles\ProductNumberSearch(
+            Shopware()->Container()->get('shopware_search.product_number_search'),
+            $urlBuilderMock
+        );
+
+        Shopware()->Container()->set('fin_search_unified.product_number_search', $productNumberSearch);
+
+        $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
+            ->setMethods(['offsetGet', 'offsetExists'])
+            ->getMock();
+        $session->expects($this->atLeastOnce())->method('offsetExists')->willReturnMap([
+            'findologicDI' => true
+        ]);
+        $session->expects($this->atLeastOnce())->method('offsetGet')->willReturnMap([
+            ['isSearchPage', true],
+            ['isCategoryPage', false],
+            ['findologicDI', false]
+        ]);
+        Shopware()->Container()->set('session', $session);
+
+        $response = $this->dispatch('/search?sSearch=blubbergurke');
+
+        $this->assertContains(
+            '<p id="fl-smart-did-you-mean">',
+            $response->getBody(),
+            'Expected smart-did-you-mean tags to be visible'
+        );
     }
 }
