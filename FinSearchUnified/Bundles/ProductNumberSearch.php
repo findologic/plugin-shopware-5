@@ -26,12 +26,13 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      * ProductNumberSearch constructor.
      *
      * @param ProductNumberSearchInterface $service
-     * @param UrlBuilder|null $urlBuilder
+     * @param null $httpClient
      *
      * @throws \Exception
      */
     public function __construct(ProductNumberSearchInterface $service, $urlBuilder = null)
     {
+
         if ($urlBuilder === null) {
             $this->urlBuilder = new UrlBuilder();
         } else {
@@ -45,10 +46,11 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      * Creates a product search result for the passed criteria object.
      * The criteria object contains different core conditions and plugin conditions.
      * This conditions has to be handled over the different condition handlers.
+     *
      * The search gateway has to implement an event which plugin can be listened to,
      * to add their own handler classes.
      *
-     * @param \Shopware\Bundle\SearchBundle\Criteria $criteria
+     * @param \Shopware\Bundle\SearchBundle\Criteria                        $criteria
      * @param \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context
      *
      * @return SearchBundle\ProductNumberSearchResult
@@ -173,7 +175,6 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     /**
      * @param Criteria $criteria
      * @param Group $customerGroup
-     *
      * @return null|\Zend_Http_Response
      */
     protected function sendRequestToFindologic(Criteria $criteria, Group $customerGroup)
