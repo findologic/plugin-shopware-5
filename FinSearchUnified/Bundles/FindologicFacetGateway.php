@@ -28,7 +28,7 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
     }
 
     /**
-     * @param int[]                                                         $ids
+     * @param int[] $ids
      * @param ShopContextInterface $context
      *
      * @return \Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet indexed by id
@@ -53,7 +53,7 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
     }
 
     /**
-     * @param array                                                         $categoryIds
+     * @param array $categoryIds
      * @param ShopContextInterface $context
      *
      * @return array indexed by category id, each element contains a list of CustomFacet
