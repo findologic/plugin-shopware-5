@@ -68,7 +68,6 @@ class UrlBuilder
     {
         $this->httpClient = $httpClient instanceof Zend_Http_Client ? $httpClient : new Zend_Http_Client();
         $this->shopUrl = rtrim(Shopware()->Shop()->getHost(), '/') . '/';
-        //explode('//', Shopware()->Modules()->Core()->sRewriteLink())[1];
 
         /** @var Plugin $plugin */
         $plugin = Shopware()->Container()->get('shopware.plugin_manager')->getPluginByName('FinSearchUnified');

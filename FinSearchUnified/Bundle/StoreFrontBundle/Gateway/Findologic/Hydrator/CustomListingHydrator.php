@@ -10,24 +10,18 @@ use SimpleXMLElement;
 class CustomListingHydrator
 {
     /**
-     * @param SimpleXMLElement|null $filters
+     * @param SimpleXMLElement $filter
      *
-     * @return array
+     * @return CustomFacet
      */
-    public function hydrateFacet(SimpleXMLElement $filters)
+    public function hydrateFacet(SimpleXMLElement $filter)
     {
-        $facets = [];
-
-        foreach ($filters as $filter) {
-            $facets[] = $this->createFindologicFacet(
-                (string)$filter->display,
-                (string)$filter->name,
-                (string)$filter->type,
-                (string)$filter->select
-            );
-        }
-
-        return $facets;
+        return $this->createFindologicFacet(
+            (string)$filter->display,
+            (string)$filter->name,
+            (string)$filter->type,
+            (string)$filter->select
+        );
     }
 
     /**

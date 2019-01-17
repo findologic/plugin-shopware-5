@@ -12,9 +12,9 @@ use Shopware\Components\Test\Plugin\TestCase;
 
 class CriteriaFactoryTest extends TestCase
 {
-    public static function setUpBeforeClass()
+    public function tearDown()
     {
-        parent::setUpBeforeClass();
+        parent::tearDown();
         Shopware()->Container()->reset('front');
         Shopware()->Container()->load('front');
     }

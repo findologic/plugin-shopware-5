@@ -9,153 +9,72 @@ use Shopware\Components\Test\Plugin\TestCase;
 
 class CustomFacetGatewayTest extends TestCase
 {
-    public static function setUpBeforeClass()
+    public function tearDown()
     {
-        parent::setUpBeforeClass();
+        parent::tearDown();
         Shopware()->Container()->reset('front');
         Shopware()->Container()->load('front');
     }
 
     /**
-     * Provider for testing getList method of CustomFacetGateway
-     *
-     * @return array
+     * @throws Exception
      */
-    public function getListProvider()
+    public function testGetListMethodWhenShopSearchIsTriggered()
+    {
+        /** @var ContextServiceInterface $contextService */
+        $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
+        $context = $contextService->getShopContext();
+
+        $mockOriginalService = $this->getMockBuilder(
+            '\Shopware\Bundle\StoreFrontBundle\Gateway\DBAL\CustomFacetGateway'
+        )
+            ->setMethods(['getList'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockOriginalService->expects($this->once())->method('getList');
+
+        $mockUrlBuilder = $this->getMockBuilder('\FinSearchUnified\Helper\UrlBuilder')->getMock();
+        $mockUrlBuilder->expects($this->never())->method('setCustomerGroup');
+        $mockUrlBuilder->expects($this->never())
+            ->method('buildCompleteFilterList');
+
+        $facetGateway = new CustomFacetGateway(
+            $mockOriginalService,
+            Shopware()->Container()->get('fin_search_unified.custom_listing_hydrator'),
+            $mockUrlBuilder
+        );
+
+        $facetGateway->getList([3], $context);
+    }
+
+    public function getListProviderForInvalidResponse()
     {
         return [
-            'Shop search is triggered' => [
-                $this->never(),
-                $this->never(),
-                $this->once(),
-                null,
-                null,
-                null,
-                null
-            ],
             'FINDOLOGIC search is triggered and response is null' => [
-                $this->once(),
-                $this->once(),
-                $this->once(),
-                $this->never(),
                 null,
-                [],
-                null
+                []
             ],
             'FINDOLOGIC search is triggered and response is not OK' => [
-                $this->once(),
-                $this->once(),
-                $this->once(),
-                $this->never(),
                 404,
                 [
                     ['name' => 'price', 'display' => 'Preis', 'select' => 'single', 'type' => 'range-slider']
-                ],
-                null
-            ],
-            'FINDOLOGIC search is triggered and response is OK' => [
-                $this->once(),
-                $this->once(),
-                $this->never(),
-                $this->once(),
-                200,
-                [
-                    ['name' => 'price', 'display' => 'Preis', 'select' => 'single', 'type' => 'range-slider']
-                ],
-                [
-                    [
-                        'name' => 'price',
-                        'uniqueKey' => 'price',
-                        'attribute_label' => 'Preis',
-                        'attribute_name' => 'product_attribute_price',
-                        'attribute_formfield_name' => 'price',
-                        'attribute_mode' => ProductAttributeFacet::MODE_RANGE_RESULT,
-                    ]
                 ]
             ],
-            'No facets are returned' => [
-                $this->once(),
-                $this->once(),
-                $this->never(),
-                $this->never(),
-                200,
-                [],
-                []
-            ],
-            'Single CustomFacet with Price' => [
-                $this->once(),
-                $this->once(),
-                $this->never(),
-                $this->once(),
-                200,
-                [
-                    ['name' => 'price', 'display' => 'Preis', 'select' => 'single', 'type' => 'range-slider']
-                ],
-                [
-                    [
-                        'name' => 'price',
-                        'uniqueKey' => 'price',
-                        'attribute_label' => 'Preis',
-                        'attribute_name' => 'product_attribute_price',
-                        'attribute_formfield_name' => 'price',
-                        'attribute_mode' => ProductAttributeFacet::MODE_RANGE_RESULT,
-                    ]
-                ]
-            ],
-            'Two CustomFacet with Price and Color' => [
-                $this->once(),
-                $this->once(),
-                $this->never(),
-                $this->exactly(2), // No of filters in the XML
-                200,
-                [
-                    ['name' => 'price', 'display' => 'Preis', 'select' => 'single', 'type' => 'range-slider'],
-                    ['name' => 'color', 'display' => 'Farbe', 'select' => 'multiple', 'type' => 'label'],
-                ],
-                [
-                    [
-                        'name' => 'price',
-                        'uniqueKey' => 'price',
-                        'attribute_label' => 'Preis',
-                        'attribute_name' => 'product_attribute_price',
-                        'attribute_formfield_name' => 'price',
-                        'attribute_mode' => ProductAttributeFacet::MODE_RANGE_RESULT,
-                    ],
-                    [
-                        'name' => 'color',
-                        'uniqueKey' => 'color',
-                        'attribute_label' => 'Farbe',
-                        'attribute_name' => 'product_attribute_color',
-                        'attribute_formfield_name' => 'color',
-                        'attribute_mode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
-                    ]
-                ]
-            ],
+
         ];
     }
 
     /**
-     * @dataProvider getListProvider
+     * @dataProvider getListProviderForInvalidResponse
      *
-     * @param $expectedCustomerGroupInvoke
-     * @param $expectedBuildCompleteFilterListInvoke
-     * @param $expectedOriginalServiceGetListInvoke
-     * @param $expectedHydrateFacetInvoke
-     * @param int|null $responseCode
+     * @param int $responseCode
      * @param array $filterData
-     * @param array $facetData
      *
      * @throws Zend_Http_Exception
+     * @throws Exception
      */
-    public function testGetListForShopSearch(
-        $expectedCustomerGroupInvoke,
-        $expectedBuildCompleteFilterListInvoke,
-        $expectedOriginalServiceGetListInvoke,
-        $expectedHydrateFacetInvoke,
-        $responseCode,
-        $filterData,
-        $facetData
-    ) {
+    public function testGetListMethodWhenResponseIsNullOrNotOK($responseCode, $filterData)
+    {
         /** @var ContextServiceInterface $contextService */
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
         $context = $contextService->getShopContext();
@@ -176,7 +95,7 @@ class CustomFacetGatewayTest extends TestCase
         Shopware()->Container()->set('front', $mockFront);
 
         $configArray = [
-            ['ActivateFindologic', $expectedHydrateFacetInvoke !== null],
+            ['ActivateFindologic', true],
             ['ShopKey', 'ABCD0815'],
             ['ActivateFindologicForCategoryPages', false],
             ['IntegrationType', Constants::INTEGRATION_TYPE_API]
@@ -216,29 +135,202 @@ class CustomFacetGatewayTest extends TestCase
             ->setMethods(['getList'])
             ->disableOriginalConstructor()
             ->getMock();
-        $mockOriginalService->expects($expectedOriginalServiceGetListInvoke)->method('getList')->willReturn(
+        $mockOriginalService->expects($this->once())->method('getList')->willReturn(
             $originalService->getList([3], $context)
         );
+        $xmlResponse = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>');
+
+        $results = $xmlResponse->addChild('results');
+        $results->addChild('count', 2);
+        $filters = $xmlResponse->addChild('filters');
+        foreach ($filterData as $data) {
+            $filter = $filters->addChild('filter');
+            foreach ($data as $key => $value) {
+                $filter->addChild($key, $value);
+            }
+        }
+        $mockUrlBuilder = $this->getMockBuilder('\FinSearchUnified\Helper\UrlBuilder')
+            ->setMethods(['setCustomerGroup', 'buildCompleteFilterList'])
+            ->getMock();
+        $mockUrlBuilder->expects($this->once())->method('setCustomerGroup');
+        $mockUrlBuilder->expects($this->once())->method('buildCompleteFilterList')
+            ->willReturn(
+                $responseCode !== null ? new \Zend_Http_Response(404, [], $xmlResponse->asXML()) : null
+            );
+
+        $mockHydrator = $this->getMockBuilder(
+            '\FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator'
+        )
+            ->setMethods(['hydrateFacet'])
+            ->getMock();
+        $mockHydrator->expects($this->never())
+            ->method('hydrateFacet');
+        $facetGateway = new CustomFacetGateway(
+            $mockOriginalService,
+            $mockHydrator,
+            $mockUrlBuilder
+        );
+
+        $facetGateway->getList([3], $context);
+    }
+
+    /**
+     * @return array
+     */
+    public function getListProviderForFindologicSearch()
+    {
+        return [
+            'FINDOLOGIC search is triggered and response is OK' => [
+                [
+                    ['name' => 'price', 'display' => 'Preis', 'select' => 'single', 'type' => 'range-slider']
+                ],
+                [
+                    [
+                        'name' => 'price',
+                        'uniqueKey' => 'price',
+                        'attribute_label' => 'Preis',
+                        'attribute_name' => 'product_attribute_price',
+                        'attribute_formfield_name' => 'price',
+                        'attribute_mode' => ProductAttributeFacet::MODE_RANGE_RESULT,
+                    ]
+                ]
+            ],
+            'No facets are returned' => [
+                [],
+                []
+            ],
+            'Single CustomFacet with Price' => [
+                [
+                    ['name' => 'price', 'display' => 'Preis', 'select' => 'single', 'type' => 'range-slider']
+                ],
+                [
+                    [
+                        'name' => 'price',
+                        'uniqueKey' => 'price',
+                        'attribute_label' => 'Preis',
+                        'attribute_name' => 'product_attribute_price',
+                        'attribute_formfield_name' => 'price',
+                        'attribute_mode' => ProductAttributeFacet::MODE_RANGE_RESULT,
+                    ]
+                ]
+            ],
+            'Two CustomFacet with Price and Color' => [
+                [
+                    ['name' => 'price', 'display' => 'Preis', 'select' => 'single', 'type' => 'range-slider'],
+                    ['name' => 'color', 'display' => 'Farbe', 'select' => 'multiple', 'type' => 'label'],
+                ],
+                [
+                    [
+                        'name' => 'price',
+                        'uniqueKey' => 'price',
+                        'attribute_label' => 'Preis',
+                        'attribute_name' => 'product_attribute_price',
+                        'attribute_formfield_name' => 'price',
+                        'attribute_mode' => ProductAttributeFacet::MODE_RANGE_RESULT,
+                    ],
+                    [
+                        'name' => 'color',
+                        'uniqueKey' => 'color',
+                        'attribute_label' => 'Farbe',
+                        'attribute_name' => 'product_attribute_color',
+                        'attribute_formfield_name' => 'color',
+                        'attribute_mode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
+                    ]
+                ]
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider getListProviderForFindologicSearch
+     *
+     * @param array $filterData
+     * @param array $facetData
+     *
+     * @throws Zend_Http_Exception
+     * @throws Exception
+     */
+    public function testGetListMethodForFindologicSearch(
+        $filterData,
+        $facetData
+    ) {
+        /** @var ContextServiceInterface $contextService */
+        $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
+        $context = $contextService->getShopContext();
+
+        // Custom request object to trigger findologic search
+        $request = new Enlight_Controller_Request_RequestHttp();
+        $request->setModuleName('frontend');
+
+        // Create Mock object for Shopware Front Request
+        $mockFront = $this->getMockBuilder('\Enlight_Controller_Front')
+            ->disableOriginalConstructor()
+            ->setMethods(['Request'])
+            ->getMock();
+
+        $mockFront->method('Request')->willReturn($request);
+
+        // Assign mocked variable to application container
+        Shopware()->Container()->set('front', $mockFront);
+
+        $configArray = [
+            ['ActivateFindologic', true],
+            ['ShopKey', 'ABCD0815'],
+            ['ActivateFindologicForCategoryPages', false],
+            ['IntegrationType', Constants::INTEGRATION_TYPE_API]
+        ];
+
+        // Create mock object for Shopware Config and explicitly return the values
+        $mockConfig = $this->getMockBuilder('\Shopware_Components_Config')
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig->method('offsetGet')
+            ->willReturnMap($configArray);
+
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $mockConfig);
+
+        $sessionArray = [
+            ['isSearchPage', true],
+            ['isCategoryPage', false],
+            ['findologicDI', false]
+        ];
+
+        // Create mock object for Shopware Session and explicitly return the values
+        $mockSession = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
+            ->setMethods(['offsetGet'])
+            ->getMock();
+        $mockSession->method('offsetGet')
+            ->willReturnMap($sessionArray);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('session', $mockSession);
+
+        $mockOriginalService = $this->getMockBuilder(
+            '\Shopware\Bundle\StoreFrontBundle\Gateway\DBAL\CustomFacetGateway'
+        )
+            ->setMethods(['getList'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockOriginalService->expects($this->never())->method('getList');
 
         $mockUrlBuilder = $this->getMockBuilder('\FinSearchUnified\Helper\UrlBuilder')->getMock();
-        $mockUrlBuilder->expects($expectedCustomerGroupInvoke)->method('setCustomerGroup');
+        $mockUrlBuilder->expects($this->once())->method('setCustomerGroup');
         $xmlResponse = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>');
-        if ($responseCode !== null) {
-            $results = $xmlResponse->addChild('results');
-            $results->addChild('count', 2);
-            $filters = $xmlResponse->addChild('filters');
-            if (!empty($filterData)) {
-                foreach ($filterData as $data) {
-                    $filter = $filters->addChild('filter');
-                    foreach ($data as $key => $value) {
-                        $filter->addChild($key, $value);
-                    }
-                }
+
+        $results = $xmlResponse->addChild('results');
+        $results->addChild('count', 2);
+        $filters = $xmlResponse->addChild('filters');
+        foreach ($filterData as $data) {
+            $filter = $filters->addChild('filter');
+            foreach ($data as $key => $value) {
+                $filter->addChild($key, $value);
             }
-            $mockUrlBuilder->expects($expectedBuildCompleteFilterListInvoke)
-                ->method('buildCompleteFilterList')
-                ->willReturn(new \Zend_Http_Response($responseCode, [], $xmlResponse->asXML()));
         }
+        $mockUrlBuilder->expects($this->once())
+            ->method('buildCompleteFilterList')
+            ->willReturn(new \Zend_Http_Response(200, [], $xmlResponse->asXML()));
 
         $originalHydrator = Shopware()->Container()->get('fin_search_unified.custom_listing_hydrator');
 
@@ -247,80 +339,78 @@ class CustomFacetGatewayTest extends TestCase
         )
             ->setMethods([])
             ->getMock();
-        if ($expectedHydrateFacetInvoke !== null) {
-            $mockHydrator->expects($expectedHydrateFacetInvoke)
-                ->method('hydrateFacet')
-                ->willReturn(
-                    $responseCode !== null ? $originalHydrator->hydrateFacet($xmlResponse->filters->filter) : []
-                );
+        $facetArray = [];
+        foreach ($xmlResponse->filters->filter as $filter) {
+            $facetArray[] = $originalHydrator->hydrateFacet($filter);
         }
+        $mockHydrator->expects($this->exactly(count($filterData)))
+            ->method('hydrateFacet')
+            ->willReturnOnConsecutiveCalls($facetArray);
 
         $facetGateway = new CustomFacetGateway(
             $mockOriginalService,
-            $mockHydrator
+            $mockHydrator,
+            $mockUrlBuilder
         );
 
-        $facetGateway->setUrlBuilder($mockUrlBuilder);
-
         $customFacets = $facetGateway->getList([3], $context);
-        if ($facetData !== null) {
-            /** @var CustomFacet $customFacet */
-            foreach ($customFacets as $key => $customFacet) {
-                $this->assertSame(
-                    $facetData[$key]['name'],
-                    $customFacet->getName(),
-                    sprintf("Expected custom facet's name to be %s", $facetData[$key]['name'])
-                );
-                $this->assertSame(
-                    $facetData[$key]['uniqueKey'],
-                    $customFacet->getUniqueKey(),
-                    sprintf("Expected custom facet's unique key to be %s", $facetData[$key]['uniqueKey'])
-                );
 
-                /** @var ProductAttributeFacet $productAttributeFacet */
-                $productAttributeFacet = $customFacet->getFacet();
+        /** @var CustomFacet $customFacet */
+        foreach ($customFacets[0] as $key => $customFacet) {
+            $this->assertSame(
+                $facetData[$key]['name'],
+                $customFacet->getName(),
+                sprintf("Expected custom facet's name to be %s", $facetData[$key]['name'])
+            );
+            $this->assertSame(
+                $facetData[$key]['uniqueKey'],
+                $customFacet->getUniqueKey(),
+                sprintf("Expected custom facet's unique key to be %s", $facetData[$key]['uniqueKey'])
+            );
 
-                $this->assertInstanceOf(
-                    ProductAttributeFacet::class,
-                    $productAttributeFacet,
-                    sprintf(
-                        "Expected custom facet's facet to be of type %s",
-                        ProductAttributeFacet::class
-                    )
-                );
-                $this->assertSame(
-                    $facetData[$key]['attribute_name'],
-                    $productAttributeFacet->getName(),
-                    sprintf(
-                        "Expected product attribute facet's name to be %s",
-                        $facetData[$key]['attribute_name']
-                    )
-                );
-                $this->assertSame(
-                    $facetData[$key]['attribute_formfield_name'],
-                    $productAttributeFacet->getFormFieldName(),
-                    sprintf(
-                        "Expected product attribute facet's form field name to be %s",
-                        $facetData[$key]['attribute_formfield_name']
-                    )
-                );
-                $this->assertSame(
-                    $facetData[$key]['attribute_label'],
-                    $productAttributeFacet->getLabel(),
-                    sprintf(
-                        "Expected product attribute facet's label to be %s",
-                        $facetData[$key]['attribute_label']
-                    )
-                );
-                $this->assertSame(
-                    $facetData[$key]['attribute_mode'],
-                    $productAttributeFacet->getMode(),
-                    sprintf(
-                        "Expected product attribute facet's mode to be %s",
-                        $facetData[$key]['attribute_mode']
-                    )
-                );
-            }
+            /** @var ProductAttributeFacet $productAttributeFacet */
+            $productAttributeFacet = $customFacet->getFacet();
+
+            $this->assertInstanceOf(
+                ProductAttributeFacet::class,
+                $productAttributeFacet,
+                sprintf(
+                    "Expected custom facet's facet to be of type %s",
+                    ProductAttributeFacet::class
+                )
+            );
+            $this->assertSame(
+                $facetData[$key]['attribute_name'],
+                $productAttributeFacet->getName(),
+                sprintf(
+                    "Expected product attribute facet's name to be %s",
+                    $facetData[$key]['attribute_name']
+                )
+            );
+            $this->assertSame(
+                $facetData[$key]['attribute_formfield_name'],
+                $productAttributeFacet->getFormFieldName(),
+                sprintf(
+                    "Expected product attribute facet's form field name to be %s",
+                    $facetData[$key]['attribute_formfield_name']
+                )
+            );
+            $this->assertSame(
+                $facetData[$key]['attribute_label'],
+                $productAttributeFacet->getLabel(),
+                sprintf(
+                    "Expected product attribute facet's label to be %s",
+                    $facetData[$key]['attribute_label']
+                )
+            );
+            $this->assertSame(
+                $facetData[$key]['attribute_mode'],
+                $productAttributeFacet->getMode(),
+                sprintf(
+                    "Expected product attribute facet's mode to be %s",
+                    $facetData[$key]['attribute_mode']
+                )
+            );
         }
     }
 }

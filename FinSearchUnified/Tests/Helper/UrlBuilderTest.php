@@ -11,13 +11,6 @@ use Zend_Uri_Http;
 
 class UrlBuilderTest extends TestCase
 {
-    public static function setUpBeforeClass()
-    {
-        parent::setUpBeforeClass();
-        Shopware()->Container()->reset('front');
-        Shopware()->Container()->load('front');
-    }
-
     /**
      * @var Zend_Http_Client A mock of the used http client.
      */
@@ -76,7 +69,7 @@ class UrlBuilderTest extends TestCase
         $criteria = new Criteria();
         $criteria->offset(0)->limit(2);
 
-        $response = $urlBuilder->buildQueryUrlAndGetResponse($criteria);
+        $urlBuilder->buildQueryUrlAndGetResponse($criteria);
         /** @var Zend_Uri_Http $requestedUrl */
         $requestedUrl = $this->httpClient->getUri()->getQueryAsArray();
         $usedIpInRequest = $requestedUrl['userip'];

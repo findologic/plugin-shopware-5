@@ -7,6 +7,7 @@ use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\StoreFrontBundle\Gateway\CustomFacetGatewayInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
+use SimpleXMLElement;
 
 class CustomFacetGateway implements CustomFacetGatewayInterface
 {
@@ -19,10 +20,26 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
 
     private $urlBuilder;
 
-    public function __construct(CustomFacetGatewayInterface $service, CustomListingHydrator $hydrator)
-    {
+    /**
+     * CustomFacetGateway constructor.
+     *
+     * @param CustomFacetGatewayInterface $service
+     * @param CustomListingHydrator $hydrator
+     * @param UrlBuilder|null $urlBuilder
+     *
+     * @throws \Exception
+     */
+    public function __construct(
+        CustomFacetGatewayInterface $service,
+        CustomListingHydrator $hydrator,
+        $urlBuilder = null
+    ) {
         $this->originalService = $service;
-        $this->urlBuilder = new UrlBuilder();
+        if ($urlBuilder === null) {
+            $this->urlBuilder = new UrlBuilder();
+        } else {
+            $this->urlBuilder = $urlBuilder;
+        }
         $this->hydrator = $hydrator;
     }
 
@@ -30,7 +47,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
      * @param int[] $ids
      * @param ShopContextInterface $context
      *
-     * @return \Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet indexed by id
+     * @return \Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet[]
      */
     public function getList(array $ids, ShopContextInterface $context)
     {
@@ -42,10 +59,10 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         $response = $this->urlBuilder->buildCompleteFilterList();
         if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
-            $categoryFacets = [];
-            $categoryFacets = $this->hydrate($xmlResponse->filters->filter);
+            $facets = [];
+            $facets[] = $this->hydrate($xmlResponse->filters->filter);
 
-            return $categoryFacets[0];
+            return $facets[0];
         } else {
             return $this->originalService->getList($ids, $context);
         }
@@ -90,11 +107,11 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
     }
 
     /**
-     * @param \SimpleXMLElement $filters
+     * @param SimpleXMLElement $filters
      *
      * @return array
      */
-    private function hydrate(\SimpleXMLElement $filters)
+    private function hydrate(SimpleXMLElement $filters)
     {
         $facets = [];
 
@@ -103,13 +120,5 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         }
 
         return $facets;
-    }
-
-    /**
-     * @param UrlBuilder $urlBuilder
-     */
-    public function setUrlBuilder($urlBuilder)
-    {
-        $this->urlBuilder = $urlBuilder;
     }
 }

@@ -9,11 +9,18 @@ use Shopware\Components\Test\Plugin\TestCase;
 
 class FrontendTest extends TestCase
 {
-    public static function setUpBeforeClass()
+    public function tearDown()
     {
-        parent::setUpBeforeClass();
-        Shopware()->Container()->reset('front');
-        Shopware()->Container()->load('front');
+        parent::tearDown();
+        $kernel = Shopware()->Container()->get('kernel');
+        $connection = Shopware()->Container()->get('db_connection');
+        $application = Shopware()->Container()->get('application');
+
+        Shopware()->Container()->reset();
+
+        Shopware()->Container()->set('kernel', $kernel);
+        Shopware()->Container()->set('db_connection', $connection);
+        Shopware()->Container()->set('application', $application);
     }
 
     /**
