@@ -1,5 +1,9 @@
 <?php
 
+use FinSearchUnified\Bundles\FindologicFacetGateway;
+use FinSearchUnified\Bundles\ProductNumberSearch;
+use FinSearchUnified\Helper\UrlBuilder;
+
 class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Components_Test_Plugin_TestCase
 {
     public static function setUpBeforeClass()
@@ -113,19 +117,30 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         }
     }
 
-    public function tearDown()
+    public function setUp()
     {
-        parent::tearDown();
+        parent::setUp();
 
         $kernel = Shopware()->Container()->get('kernel');
         $connection = Shopware()->Container()->get('db_connection');
+        $db = Shopware()->Container()->get('db');
         $application = Shopware()->Container()->get('application');
 
         Shopware()->Container()->reset();
 
         Shopware()->Container()->set('kernel', $kernel);
         Shopware()->Container()->set('db_connection', $connection);
+        Shopware()->Container()->set('db', $db);
         Shopware()->Container()->set('application', $application);
+        Shopware()->Container()->load('front');
+        Shopware()->Container()->load('config');
+    }
+
+    protected function tearDown()
+    {
+        parent::tearDown();
+        Shopware()->Container()->reset('front');
+        Shopware()->Container()->load('front');
     }
 
     public function findologicResponseProvider()
@@ -179,6 +194,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
      * @param string $expectedText
      *
      * @throws Zend_Http_Exception
+     * @throws Exception
      */
     public function testSmarDidYouMeanSuggestionsAreDisplayed(
         $didYouMeanQuery,
@@ -208,14 +224,18 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         $results = $xmlResponse->addChild('results');
         $results->addChild('count', 5);
         $products = $xmlResponse->addChild('products');
+
         for ($i = 1; $i <= 5; $i++) {
             $product = $products->addChild('product');
             $product->addAttribute('id', $i);
         }
 
-        $httpResponse = new Zend_Http_Response(200, [],
-            '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>');
-        $urlBuilderMock = $this->getMockBuilder(\FinSearchUnified\Helper\UrlBuilder::class)
+        $httpResponse = new Zend_Http_Response(
+            200,
+            [],
+            '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>'
+        );
+        $urlBuilderMock = $this->getMockBuilder(UrlBuilder::class)
             ->disableOriginalConstructor()
             ->setMethods([
                 'buildCompleteFilterList',
@@ -231,14 +251,14 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             new Zend_Http_Response(200, [], $xmlResponse->asXML())
         );
 
-        $facetGateway = new \FinSearchUnified\Bundles\FindologicFacetGateway(
+        $facetGateway = new FindologicFacetGateway(
             Shopware()->Container()->get('shopware_storefront.custom_facet_gateway'),
             $urlBuilderMock
         );
 
         Shopware()->Container()->set('FinSearchUnified.findologic_facet_gateway', $facetGateway);
 
-        $productNumberSearch = new \FinSearchUnified\Bundles\ProductNumberSearch(
+        $productNumberSearch = new ProductNumberSearch(
             Shopware()->Container()->get('shopware_search.product_number_search'),
             $urlBuilderMock
         );
@@ -256,19 +276,28 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             ['isCategoryPage', false],
             ['findologicDI', false]
         ]);
+
         Shopware()->Container()->set('session', $session);
 
         $response = $this->dispatch('/search?sSearch=blubbergurke');
 
-        $this->assertContains(
-            '<p id="fl-smart-did-you-mean">',
-            $response->getBody(),
-            'Expected smart-did-you-mean tags to be visible'
-        );
-//        $this->assertContains(
-//            $expectedText,
-//            $response->getBody(),
-//            'Incorrect text was displayed'
-//        );
+        if ($expectedText === '') {
+            $this->assertNotContains(
+                '<p id="fl-smart-did-you-mean">',
+                $response->getBody(),
+                'Expected smart-did-you-mean tags to NOT be rendered'
+            );
+        } else {
+            $this->assertContains(
+                '<p id="fl-smart-did-you-mean">',
+                $response->getBody(),
+                'Expected smart-did-you-mean tags to be visible'
+            );
+            $this->assertContains(
+                $expectedText,
+                $response->getBody(),
+                'Incorrect text was displayed'
+            );
+        }
     }
 }
