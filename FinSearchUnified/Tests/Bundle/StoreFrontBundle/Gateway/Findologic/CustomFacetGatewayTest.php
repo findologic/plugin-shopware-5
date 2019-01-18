@@ -59,8 +59,8 @@ class CustomFacetGatewayTest extends TestCase
     public function faultyResponseProvider()
     {
         return [
-            ['FINDOLOGIC search is triggered and response is null' => null],
-            ['FINDOLOGIC search is triggered and response is not OK' => 404]
+            'FINDOLOGIC search is triggered and response is null' => [null],
+            'FINDOLOGIC search is triggered and response is not OK' => [404]
 
         ];
     }
@@ -104,24 +104,26 @@ class CustomFacetGatewayTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $mockOriginalService->expects($this->once())->method('getList');
+
         $mockUrlBuilder = $this->getMockBuilder(UrlBuilder::class)
             ->setMethods(['setCustomerGroup', 'buildCompleteFilterList'])
             ->getMock();
         $mockUrlBuilder->expects($this->once())->method('setCustomerGroup');
 
         if ($responseCode) {
-            $request = new Zend_Http_Response($responseCode, []);
+            $response = new Zend_Http_Response($responseCode, []);
         } else {
-            $request = null;
+            $response = null;
         }
 
-        $mockUrlBuilder->expects($this->once())->method('buildCompleteFilterList')->willReturn($request);
+        $mockUrlBuilder->expects($this->once())->method('buildCompleteFilterList')->willReturn($response);
 
         $mockHydrator = $this->getMockBuilder(CustomListingHydrator::class)
             ->setMethods(['hydrateFacet'])
             ->getMock();
         $mockHydrator->expects($this->never())
             ->method('hydrateFacet');
+
         $facetGateway = new CustomFacetGateway(
             $mockOriginalService,
             $mockHydrator,
