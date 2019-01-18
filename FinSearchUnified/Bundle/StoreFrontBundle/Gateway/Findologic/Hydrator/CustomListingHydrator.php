@@ -16,24 +16,11 @@ class CustomListingHydrator
      */
     public function hydrateFacet(SimpleXMLElement $filter)
     {
-        return $this->createFindologicFacet(
-            (string)$filter->display,
-            (string)$filter->name,
-            (string)$filter->type,
-            (string)$filter->select
-        );
-    }
+        $name = (string)$filter->name;
+        $label = (string)$filter->display;
+        $type = (string)$filter->type;
+        $filter = (string)$filter->select;
 
-    /**
-     * @param string $label
-     * @param string $name
-     * @param string $type
-     * @param string $filter
-     *
-     * @return CustomFacet
-     */
-    private function createFindologicFacet($label, $name, $type, $filter)
-    {
         $formFieldName = StaticHelper::escapeFilterName($name);
 
         switch ($type) {

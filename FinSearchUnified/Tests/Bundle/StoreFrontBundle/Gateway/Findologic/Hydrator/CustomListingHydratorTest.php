@@ -173,7 +173,9 @@ class CustomListingHydratorTest extends TestCase
         foreach ($filterArray as $name => $value) {
             $filter->addChild($name, $value);
         }
+
         $customFacets = [];
+
         foreach ($xmlResponse->filters->filter as $filter) {
             $customFacets[] = $this->hydrator->hydrateFacet($filter);
         }
