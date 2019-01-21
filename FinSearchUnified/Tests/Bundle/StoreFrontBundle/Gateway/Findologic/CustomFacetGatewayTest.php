@@ -11,15 +11,6 @@ use Shopware\Components\Test\Plugin\TestCase;
 
 class CustomFacetGatewayTest extends TestCase
 {
-    protected static $ensureLoadedPlugins = [
-        'FinSearchUnified' => [
-            'ShopKey' => 'ABCD0815',
-            'ActivateFindologic' => true,
-            'ActivateFindologicForCategoryPages' => false,
-            'IntegrationType' => 'API'
-        ]
-    ];
-
     public function tearDown()
     {
         parent::tearDown();
@@ -96,6 +87,22 @@ class CustomFacetGatewayTest extends TestCase
 
         // Assign mocked variable to application container
         Shopware()->Container()->set('front', $mockFront);
+
+        $configArray = [
+            ['ActivateFindologic', true],
+            ['ShopKey', 'ABCD0815'],
+            ['ActivateFindologicForCategoryPages', false],
+            ['IntegrationType', Constants::INTEGRATION_TYPE_API]
+        ];
+        // Create mock object for Shopware Config and explicitly return the values
+        $mockConfig = $this->getMockBuilder('\Shopware_Components_Config')
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig->method('offsetGet')
+            ->willReturnMap($configArray);
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $mockConfig);
 
         Shopware()->Session()->offsetSet('isSearchPage', true);
         Shopware()->Session()->offsetSet('isCategoryPage', false);
@@ -196,6 +203,22 @@ class CustomFacetGatewayTest extends TestCase
 
         // Assign mocked variable to application container
         Shopware()->Container()->set('front', $mockFront);
+
+        $configArray = [
+            ['ActivateFindologic', true],
+            ['ShopKey', 'ABCD0815'],
+            ['ActivateFindologicForCategoryPages', false],
+            ['IntegrationType', Constants::INTEGRATION_TYPE_API]
+        ];
+        // Create mock object for Shopware Config and explicitly return the values
+        $mockConfig = $this->getMockBuilder('\Shopware_Components_Config')
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig->method('offsetGet')
+            ->willReturnMap($configArray);
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $mockConfig);
 
         Shopware()->Session()->offsetSet('isSearchPage', true);
         Shopware()->Session()->offsetSet('isCategoryPage', false);
