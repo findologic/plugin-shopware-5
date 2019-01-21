@@ -59,10 +59,8 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         $response = $this->urlBuilder->buildCompleteFilterList();
         if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
-            $facets = [];
-            $facets[] = $this->hydrate($xmlResponse->filters->filter);
 
-            return $facets[0];
+            return $this->hydrate($xmlResponse->filters->filter);
         } else {
             return $this->originalService->getList($ids, $context);
         }
