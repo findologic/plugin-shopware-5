@@ -2,14 +2,29 @@
 
 namespace FinSearchUnified\Tests\Helper;
 
+use Enlight_Components_Session_Namespace as Session;
+use Enlight_Controller_Action as Action;
+use Enlight_Controller_Front as Front;
+use Enlight_Controller_Plugins_ViewRenderer_Bootstrap as ViewRenderer;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
+use Enlight_Plugin_Namespace_Loader as Plugins;
+use Enlight_View_Default as View;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Models\Category\Category;
+use Shopware_Components_Config as Config;
 
 class StaticHelperTest extends TestCase
 {
+    protected function tearDown()
+    {
+        parent::tearDown();
+
+        Shopware()->Container()->reset('front');
+        Shopware()->Container()->load('front');
+    }
+
     /**
      * Data provider for checking findologic behavior
      *
@@ -234,7 +249,7 @@ class StaticHelperTest extends TestCase
         $request->setModuleName('frontend');
 
         // Create Mock object for Shopware Front Request
-        $front = $this->getMockBuilder('\Enlight_Controller_Front')
+        $front = $this->getMockBuilder(Front::class)
             ->setMethods(['Request'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -253,7 +268,7 @@ class StaticHelperTest extends TestCase
             ];
 
             // Create Mock object for Shopware Session
-            $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
+            $session = $this->getMockBuilder(Session::class)
                 ->setMethods(['offsetGet'])
                 ->getMock();
             $session->expects($this->atLeastOnce())
@@ -264,7 +279,7 @@ class StaticHelperTest extends TestCase
             Shopware()->Container()->set('session', $session);
         }
         // Create Mock object for Shopware Config
-        $config = $this->getMockBuilder('\Shopware_Components_Config')
+        $config = $this->getMockBuilder(Config::class)
             ->setMethods(['offsetGet'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -284,7 +299,7 @@ class StaticHelperTest extends TestCase
     public function testUseShopSearchWhenRequestIsNull()
     {
         // Create Mock object for Shopware Front Request
-        $front = $this->getMockBuilder('\Enlight_Controller_Front')
+        $front = $this->getMockBuilder(Front::class)
             ->setMethods(['Request'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -305,7 +320,7 @@ class StaticHelperTest extends TestCase
         $request->setModuleName('backend');
 
         // Create Mock object for Shopware Front Request
-        $front = $this->getMockBuilder('\Enlight_Controller_Front')
+        $front = $this->getMockBuilder(Front::class)
             ->setMethods(['Request'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -317,7 +332,7 @@ class StaticHelperTest extends TestCase
         Shopware()->Container()->set('front', $front);
 
         // Create Mock object for Shopware Config
-        $config = $this->getMockBuilder('\Shopware_Components_Config')
+        $config = $this->getMockBuilder(Config::class)
             ->setMethods(['offsetGet'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -328,7 +343,7 @@ class StaticHelperTest extends TestCase
         Shopware()->Container()->set('config', $config);
 
         // Create Mock object for Shopware Session
-        $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
+        $session = $this->getMockBuilder(Session::class)
             ->setMethods(['offsetGet'])
             ->getMock();
         $session->expects($this->never())
@@ -378,9 +393,8 @@ class StaticHelperTest extends TestCase
      */
     public function testBuildCategoryName($categoryId, $category, $expected)
     {
-        $categoryModel = Shopware()->Models()->getRepository('Shopware\Models\Category\Category')
-            ->find($categoryId);
-        $this->assertInstanceOf('Shopware\Models\Category\Category', $categoryModel);
+        $categoryModel = Shopware()->Models()->getRepository(Category::class)->find($categoryId);
+        $this->assertInstanceOf(Category::class, $categoryModel);
 
         // Set category name with preceeding and succeeding spaces
         $categoryModel->setName($category);
@@ -503,7 +517,7 @@ class StaticHelperTest extends TestCase
         }
 
         // Create mocked view
-        $view = $this->getMockBuilder('\Enlight_View_Default')
+        $view = $this->getMockBuilder(View::class)
             ->setMethods(['getAssign'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -513,28 +527,28 @@ class StaticHelperTest extends TestCase
             ['finSmartDidYouMean', $finSmartDidYouMean]
         ]);
 
-        $action = $this->getMockBuilder('\Enlight_Controller_Action')
+        $action = $this->getMockBuilder(Action::class)
             ->setMethods(['View'])
             ->disableOriginalConstructor()
             ->getMock();
         $action->method('View')
             ->willReturn($view);
 
-        $renderer = $this->getMockBuilder('\Enlight_Controller_Plugins_ViewRenderer_Bootstrap')
+        $renderer = $this->getMockBuilder(ViewRenderer::class)
             ->setMethods(['Action'])
             ->disableOriginalConstructor()
             ->getMock();
         $renderer->method('Action')
             ->willReturn($action);
 
-        $plugin = $this->getMockBuilder('\Enlight_Plugin_Namespace_Loader')
+        $plugin = $this->getMockBuilder(Plugins::class)
             ->setMethods(['ViewRenderer'])
             ->disableOriginalConstructor()
             ->getMock();
         $plugin->method('ViewRenderer')
             ->willReturn($renderer);
 
-        $front = $this->getMockBuilder('\Enlight_Controller_Front')
+        $front = $this->getMockBuilder(Front::class)
             ->setMethods(['Plugins'])
             ->disableOriginalConstructor()
             ->getMock();

@@ -5,6 +5,7 @@ namespace FinSearchUnified\Tests;
 use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Components\Test\Plugin\TestCase;
+use SimpleXMLElement;
 
 class PluginTest extends TestCase
 {
@@ -139,7 +140,7 @@ class PluginTest extends TestCase
             $xmlDocument = $blController->getFindologicXml();
 
             // Parse the xml and return the count of the products exported
-            $xml = new \SimpleXMLElement($xmlDocument);
+            $xml = new SimpleXMLElement($xmlDocument);
 
             return (int)$xml->items->attributes()->count;
         } catch (\Exception $e) {
@@ -154,6 +155,8 @@ class PluginTest extends TestCase
      */
     protected function tearDown()
     {
+        parent::tearDown();
+
         $this->sResetArticles();
     }
 

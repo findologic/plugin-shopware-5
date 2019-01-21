@@ -26,6 +26,8 @@ class UrlBuilderTest extends TestCase
 
     public function setUp()
     {
+        parent::setUp();
+
         $this->httpResponse = new Zend_Http_Response(200, [], 'alive');
 
         $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
@@ -36,6 +38,14 @@ class UrlBuilderTest extends TestCase
             ->willReturn($this->httpResponse);
 
         $this->httpClient = $httpClientMock;
+    }
+
+    protected function tearDown()
+    {
+        parent::tearDown();
+
+        Shopware()->Container()->reset('front');
+        Shopware()->Container()->load('front');
     }
 
     /**
