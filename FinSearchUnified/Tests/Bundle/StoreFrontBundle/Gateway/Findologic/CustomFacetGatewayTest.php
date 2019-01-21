@@ -15,7 +15,8 @@ class CustomFacetGatewayTest extends TestCase
         'FinSearchUnified' => [
             'ShopKey' => 'ABCD0815',
             'ActivateFindologic' => true,
-            'ActivateFindologicForCategoryPages' => false
+            'ActivateFindologicForCategoryPages' => false,
+            'IntegrationType' => 'API'
         ]
     ];
 
