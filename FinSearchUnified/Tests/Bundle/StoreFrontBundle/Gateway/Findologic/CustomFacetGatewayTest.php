@@ -2,7 +2,6 @@
 
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGateway;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
-use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\StoreFrontBundle\Gateway\DBAL;
@@ -12,11 +11,23 @@ use Shopware\Components\Test\Plugin\TestCase;
 
 class CustomFacetGatewayTest extends TestCase
 {
+    protected static $ensureLoadedPlugins = [
+        'FinSearchUnified' => [
+            'ShopKey' => 'ABCD0815',
+            'ActivateFindologic' => true,
+            'ActivateFindologicForCategoryPages' => false
+        ]
+    ];
+
     public function tearDown()
     {
         parent::tearDown();
+
         Shopware()->Container()->reset('front');
         Shopware()->Container()->load('front');
+        Shopware()->Session()->offsetUnset('isSearchPage');
+        Shopware()->Session()->offsetUnset('isCategoryPage');
+        Shopware()->Session()->offsetUnset('findologicDI');
     }
 
     /**
@@ -85,35 +96,9 @@ class CustomFacetGatewayTest extends TestCase
         // Assign mocked variable to application container
         Shopware()->Container()->set('front', $mockFront);
 
-        $configArray = [
-            ['ActivateFindologic', true],
-            ['ShopKey', 'ABCD0815'],
-            ['ActivateFindologicForCategoryPages', false],
-            ['IntegrationType', Constants::INTEGRATION_TYPE_API]
-        ];
-
-        // Create mock object for Shopware Config and explicitly return the values
-        $mockConfig = $this->getMockBuilder('\Shopware_Components_Config')
-            ->setMethods(['offsetGet'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $mockConfig->method('offsetGet')
-            ->willReturnMap($configArray);
-        // Assign mocked config variable to application container
-        Shopware()->Container()->set('config', $mockConfig);
-        $sessionArray = [
-            ['isSearchPage', true],
-            ['isCategoryPage', false],
-            ['findologicDI', false]
-        ];
-        // Create mock object for Shopware Session and explicitly return the values
-        $mockSession = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
-            ->setMethods(['offsetGet'])
-            ->getMock();
-        $mockSession->method('offsetGet')
-            ->willReturnMap($sessionArray);
-        // Assign mocked session variable to application container
-        Shopware()->Container()->set('session', $mockSession);
+        Shopware()->Session()->offsetSet('isSearchPage', true);
+        Shopware()->Session()->offsetSet('isCategoryPage', false);
+        Shopware()->Session()->offsetSet('findologicDI', false);
 
         //$originalService = Shopware()->Container()->get('shopware_storefront.custom_facet_gateway');
         $mockOriginalService = $this->getMockBuilder(DBAL\CustomFacetGateway::class)
@@ -190,10 +175,8 @@ class CustomFacetGatewayTest extends TestCase
      * @throws Zend_Http_Exception
      * @throws Exception
      */
-    public function testCreatesShopwareFacetsFromFindologicFilters(
-        array $filterData,
-        array $attributeMode
-    ) {
+    public function testCreatesShopwareFacetsFromFindologicFilters(array $filterData, array $attributeMode)
+    {
         /** @var ContextServiceInterface $contextService */
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
         $context = $contextService->getShopContext();
@@ -213,34 +196,9 @@ class CustomFacetGatewayTest extends TestCase
         // Assign mocked variable to application container
         Shopware()->Container()->set('front', $mockFront);
 
-        $configArray = [
-            ['ActivateFindologic', true],
-            ['ShopKey', 'ABCD0815'],
-            ['ActivateFindologicForCategoryPages', false],
-            ['IntegrationType', Constants::INTEGRATION_TYPE_API]
-        ];
-        // Create mock object for Shopware Config and explicitly return the values
-        $mockConfig = $this->getMockBuilder('\Shopware_Components_Config')
-            ->setMethods(['offsetGet'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $mockConfig->method('offsetGet')
-            ->willReturnMap($configArray);
-        // Assign mocked config variable to application container
-        Shopware()->Container()->set('config', $mockConfig);
-        $sessionArray = [
-            ['isSearchPage', true],
-            ['isCategoryPage', false],
-            ['findologicDI', false]
-        ];
-        // Create mock object for Shopware Session and explicitly return the values
-        $mockSession = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
-            ->setMethods(['offsetGet'])
-            ->getMock();
-        $mockSession->method('offsetGet')
-            ->willReturnMap($sessionArray);
-        // Assign mocked session variable to application container
-        Shopware()->Container()->set('session', $mockSession);
+        Shopware()->Session()->offsetSet('isSearchPage', true);
+        Shopware()->Session()->offsetSet('isCategoryPage', false);
+        Shopware()->Session()->offsetSet('findologicDI', false);
 
         $mockOriginalService = $this->getMockBuilder(DBAL\CustomFacetGateway::class)
             ->setMethods(['getList'])
