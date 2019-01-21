@@ -8,6 +8,7 @@ use Shopware\Bundle\StoreFrontBundle\Gateway\DBAL;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use Shopware\Components\Test\Plugin\TestCase;
+use Shopware_Components_Config;
 
 class CustomFacetGatewayTest extends TestCase
 {
@@ -94,7 +95,7 @@ class CustomFacetGatewayTest extends TestCase
             ['ActivateFindologicForCategoryPages', false]
         ];
         // Create mock object for Shopware Config and explicitly return the values
-        $mockConfig = $this->getMockBuilder('\Shopware_Components_Config')
+        $mockConfig = $this->getMockBuilder(Shopware_Components_Config::class)
             ->setMethods(['offsetGet'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -209,7 +210,7 @@ class CustomFacetGatewayTest extends TestCase
             ['ActivateFindologicForCategoryPages', false]
         ];
         // Create mock object for Shopware Config and explicitly return the values
-        $mockConfig = $this->getMockBuilder('\Shopware_Components_Config')
+        $mockConfig = $this->getMockBuilder(Shopware_Components_Config::class)
             ->setMethods(['offsetGet'])
             ->disableOriginalConstructor()
             ->getMock();
