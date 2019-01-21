@@ -91,8 +91,7 @@ class CustomFacetGatewayTest extends TestCase
         $configArray = [
             ['ActivateFindologic', true],
             ['ShopKey', 'ABCD0815'],
-            ['ActivateFindologicForCategoryPages', false],
-            ['IntegrationType', Constants::INTEGRATION_TYPE_API]
+            ['ActivateFindologicForCategoryPages', false]
         ];
         // Create mock object for Shopware Config and explicitly return the values
         $mockConfig = $this->getMockBuilder('\Shopware_Components_Config')
