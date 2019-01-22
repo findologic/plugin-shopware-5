@@ -4,7 +4,6 @@ namespace FinSearchUnified\Bundles\SearchBundleDBAL;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Connection;
-use IteratorAggregate;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundleDBAL\ConditionHandlerInterface;
@@ -34,7 +33,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     /**
      * @param Connection $connection
      * @param \Enlight_Event_EventManager $eventManager
-     * @param IteratorAggregate $conditionHandlers
+     * @param $conditionHandlers
      * @param ContainerInterface $container
      *
      * @throws \Enlight_Event_Exception
@@ -42,12 +41,20 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     public function __construct(
         Connection $connection,
         \Enlight_Event_EventManager $eventManager,
-        IteratorAggregate $conditionHandlers,
+        $conditionHandlers,
         ContainerInterface $container
     ) {
         $this->connection = $connection;
         $this->eventManager = $eventManager;
-        $this->conditionHandlers = iterator_to_array($conditionHandlers, false);
+
+        if (version_compare(
+            Shopware()->Container()->getParameter('shopware.release.version'),
+            '5.5.0',
+            '<')) {
+            $this->conditionHandlers = $conditionHandlers;
+        } else {
+            $this->conditionHandlers = iterator_to_array($conditionHandlers, false);
+        }
 
         $handlers = new ArrayCollection();
         $handlers = $this->eventManager->collect(
