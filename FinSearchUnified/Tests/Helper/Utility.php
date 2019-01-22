@@ -60,4 +60,15 @@ class Utility
         } catch (\Exception $ignored) {
         }
     }
+
+    public static function assertMinimumVersion($requiredVersion)
+    {
+        $version = Shopware()->Config()->version;
+
+        if ($version === '___VERSION___') {
+            return true;
+        }
+
+        return version_compare($version, $requiredVersion, '>=');
+    }
 }

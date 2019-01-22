@@ -4,6 +4,7 @@ namespace FinSearchUnified\Bundles\SearchBundleDBAL;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Connection;
+use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundleDBAL\ConditionHandlerInterface;
@@ -47,13 +48,10 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
         $this->connection = $connection;
         $this->eventManager = $eventManager;
 
-        if (version_compare(
-            Shopware()->Container()->getParameter('shopware.release.version'),
-            '5.5.0',
-            '<')) {
-            $this->conditionHandlers = $conditionHandlers;
-        } else {
+        if (Utility::assertMinimumVersion('5.5.0')) {
             $this->conditionHandlers = iterator_to_array($conditionHandlers, false);
+        } else {
+            $this->conditionHandlers = $conditionHandlers;
         }
 
         $handlers = new ArrayCollection();
