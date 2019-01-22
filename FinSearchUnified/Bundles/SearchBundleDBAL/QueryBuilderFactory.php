@@ -4,6 +4,7 @@ namespace FinSearchUnified\Bundles\SearchBundleDBAL;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Connection;
+use IteratorAggregate;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundleDBAL\ConditionHandlerInterface;
@@ -33,7 +34,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     /**
      * @param Connection $connection
      * @param \Enlight_Event_EventManager $eventManager
-     * @param ConditionHandlerInterface[] $conditionHandlers
+     * @param IteratorAggregate $conditionHandlers
      * @param ContainerInterface $container
      *
      * @throws \Enlight_Event_Exception
@@ -41,12 +42,12 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     public function __construct(
         Connection $connection,
         \Enlight_Event_EventManager $eventManager,
-        $conditionHandlers,
+        IteratorAggregate $conditionHandlers,
         ContainerInterface $container
     ) {
         $this->connection = $connection;
         $this->eventManager = $eventManager;
-        $this->conditionHandlers = $conditionHandlers;
+        $this->conditionHandlers = iterator_to_array($conditionHandlers, false);
 
         $handlers = new ArrayCollection();
         $handlers = $this->eventManager->collect(
@@ -114,6 +115,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
      * @param ShopContextInterface $context
      *
      * @return QueryBuilder
+     * @throws \Exception
      */
     public function createProductQuery(Criteria $criteria, ShopContextInterface $context)
     {
@@ -160,6 +162,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
 
     /**
      * {@inheritdoc}
+     * @throws \Exception
      */
     public function createQueryWithSorting(Criteria $criteria, ShopContextInterface $context)
     {

@@ -3,9 +3,9 @@
 namespace FinSearchUnified\Tests\Bundles\SearchBundleDBAL;
 
 use FinSearchUnified\Bundles\SearchBundleDBAL\QueryBuilderFactory;
-use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Bundle\SearchBundle\Condition\ProductIdCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
+use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Components\Test\Plugin\TestCase;
 
 class QueryBuilderFactoryTest extends TestCase
@@ -15,53 +15,6 @@ class QueryBuilderFactoryTest extends TestCase
 
     /** @var ContextServiceInterface $contextService */
     private $contextService;
-
-    public static function tearDownAfterClass()
-    {
-        parent::tearDownAfterClass();
-        Utility::sResetArticles();
-    }
-
-    public static function setUpBeforeClass()
-    {
-        parent::setUpBeforeClass();
-        $manager = new \Shopware\Components\Api\Manager();
-        $resource = $manager->getResource('Article');
-
-        for ($i = 0; $i < 10; $i++) {
-            $testArticle = [
-                'name' => 'FindologicArticle' . $i,
-                'active' => true,
-                'tax' => 19,
-                'lastStock' => true,
-                'supplier' => 'Findologic',
-                'categories' => [
-                    ['id' => 5]
-                ],
-                'mainDetail' => [
-                    'number' => 'FINDOLOGIC' . $i,
-                    'active' => true,
-                    'inStock' => 87,
-                    'lastStock' => true,
-                    'minPurchase' => 1,
-                    'prices' => [
-                        [
-                            'customerGroupKey' => 'EK',
-                            'price' => 99.34,
-                        ],
-                    ]
-                ],
-            ];
-
-            try {
-                $article = $resource->create($testArticle);
-
-                return $article;
-            } catch (\Exception $e) {
-                echo sprintf("Exception: %s", $e->getMessage());
-            }
-        }
-    }
 
     protected function setUp()
     {
@@ -84,29 +37,53 @@ class QueryBuilderFactoryTest extends TestCase
         $criteria = new Criteria();
         $query = $this->criteriaFactory->createQuery($criteria, $context);
         $parts = $query->getQueryParts();
-        // from, left join
-        $this->assertArrayHasKey('from', $parts);
-        $this->assertSame('s_articles', $parts['from'][0]['table']);
-        $this->assertSame('product', $parts['from'][0]['alias']);
 
-        $this->assertArrayHasKey('join', $parts);
-        $this->assertSame('left', $parts['join']['product'][0]['joinType']);
-        $this->assertSame('s_articles_details', $parts['join']['product'][0]['joinTable']);
+        // FROM
+        $this->assertArrayHasKey('from', $parts);
         $this->assertSame(
-            'mainDetail.id = product.main_detail_id',
-            $parts['join']['product'][0]['joinCondition']
+            's_articles',
+            $parts['from'][0]['table'],
+            'Expected table to be s_articles'
+        );
+        $this->assertSame(
+            'product',
+            $parts['from'][0]['alias'],
+            'Expected table alias to be product'
         );
 
+        // JOIN
+        $this->assertArrayHasKey('join', $parts);
+        $this->assertSame(
+            'left',
+            $parts['join']['product'][0]['joinType'],
+            'Expected join to be LEFT JOIN'
+        );
+        $this->assertSame(
+            's_articles_details',
+            $parts['join']['product'][0]['joinTable'],
+            'Expected join table to be s_article_details'
+        );
+        $this->assertSame(
+            'mainDetail.id = product.main_detail_id',
+            $parts['join']['product'][0]['joinCondition'],
+            'First join condition is incorrect'
+        );
         $this->assertSame('left', $parts['join']['product'][1]['joinType']);
         $this->assertSame('s_articles_details', $parts['join']['product'][1]['joinTable']);
         $this->assertSame(
             'variant.articleID = product.id AND variant.id != product.main_detail_id',
-            $parts['join']['product'][1]['joinCondition']
+            $parts['join']['product'][1]['joinCondition'],
+            'Second join condition is incorrect'
         );
 
-        $this->assertNull($parts['where']);
-        $this->assertEmpty($parts['groupBy']);
-        $this->assertEmpty($parts['orderBy']);
+        // WHERE
+        $this->assertNull($parts['where'], 'WHERE clause is expected to be missing');
+
+        // GROUP BY
+        $this->assertEmpty($parts['groupBy'], 'GROUP BY is expected to be empty');
+
+        // ORDER BY
+        $this->assertEmpty($parts['orderBy'], 'ORDER BY is expected to be empty');
     }
 
     /**
@@ -121,31 +98,62 @@ class QueryBuilderFactoryTest extends TestCase
         $query = $this->criteriaFactory->createQuery($criteria, $context);
         $parts = $query->getQueryParts();
 
-        // from, left join, where is ProductIdConditionalHandler
+        // FROM
         $this->assertArrayHasKey('from', $parts);
-        $this->assertSame('s_articles', $parts['from'][0]['table']);
-        $this->assertSame('product', $parts['from'][0]['alias']);
-
-        $this->assertArrayHasKey('join', $parts);
-        $this->assertSame('left', $parts['join']['product'][0]['joinType']);
-        $this->assertSame('s_articles_details', $parts['join']['product'][0]['joinTable']);
         $this->assertSame(
-            'mainDetail.id = product.main_detail_id',
-            $parts['join']['product'][0]['joinCondition']
+            's_articles',
+            $parts['from'][0]['table'],
+            'Expected table to be s_articles'
+        );
+        $this->assertSame(
+            'product',
+            $parts['from'][0]['alias'],
+            'Expected table alias to be product'
         );
 
+        // JOIN
+        $this->assertArrayHasKey('join', $parts);
+        $this->assertSame(
+            'left',
+            $parts['join']['product'][0]['joinType'],
+            'Expected join to be LEFT JOIN'
+        );
+        $this->assertSame(
+            's_articles_details',
+            $parts['join']['product'][0]['joinTable'],
+            'Expected join table to be s_article_details'
+        );
+        $this->assertSame(
+            'mainDetail.id = product.main_detail_id',
+            $parts['join']['product'][0]['joinCondition'],
+            'First join condition is incorrect'
+        );
         $this->assertSame('left', $parts['join']['product'][1]['joinType']);
         $this->assertSame('s_articles_details', $parts['join']['product'][1]['joinTable']);
         $this->assertSame(
             'variant.articleID = product.id AND variant.id != product.main_detail_id',
-            $parts['join']['product'][1]['joinCondition']
+            $parts['join']['product'][1]['joinCondition'],
+            'Second join condition is incorrect'
         );
 
-        $this->assertNull($parts['where']);
-        $this->assertEmpty($parts['groupBy']);
-        $this->assertEmpty($parts['orderBy']);
+        // WHERE
+        $this->assertNotNull($parts['where'], 'WHERE clause is expected to have expression');
+        $this->assertContains(
+            'variant.articleId IN',
+            $parts['where']->__toString(),
+            'WHERE clause is not correct'
+        );
+
+        // GROUP BY
+        $this->assertEmpty($parts['groupBy'], 'GROUP BY is expected to be empty');
+
+        // ORDER BY
+        $this->assertEmpty($parts['orderBy'], 'ORDER BY is expected to be empty');
     }
 
+    /**
+     * @throws \Exception
+     */
     public function testCreateQueryWithSorting()
     {
         $context = $this->contextService->getShopContext();
@@ -153,38 +161,65 @@ class QueryBuilderFactoryTest extends TestCase
         $criteria = new Criteria();
         $query = $this->criteriaFactory->createQueryWithSorting($criteria, $context);
         $parts = $query->getQueryParts();
-        // order by
-        $this->assertArrayHasKey('from', $parts);
-        $this->assertSame('s_articles', $parts['from'][0]['table']);
-        $this->assertSame('product', $parts['from'][0]['alias']);
 
-        $this->assertArrayHasKey('join', $parts);
-        $this->assertSame('left', $parts['join']['product'][0]['joinType']);
-        $this->assertSame('s_articles_details', $parts['join']['product'][0]['joinTable']);
+        // FROM
+        $this->assertArrayHasKey('from', $parts);
         $this->assertSame(
-            'mainDetail.id = product.main_detail_id',
-            $parts['join']['product'][0]['joinCondition']
+            's_articles',
+            $parts['from'][0]['table'],
+            'Expected table to be s_articles'
+        );
+        $this->assertSame(
+            'product',
+            $parts['from'][0]['alias'],
+            'Expected table alias to be product'
         );
 
+        // JOIN
+        $this->assertArrayHasKey('join', $parts);
+        $this->assertSame(
+            'left',
+            $parts['join']['product'][0]['joinType'],
+            'Expected join to be LEFT JOIN'
+        );
+        $this->assertSame(
+            's_articles_details',
+            $parts['join']['product'][0]['joinTable'],
+            'Expected join table to be s_article_details'
+        );
+        $this->assertSame(
+            'mainDetail.id = product.main_detail_id',
+            $parts['join']['product'][0]['joinCondition'],
+            'First join condition is incorrect'
+        );
         $this->assertSame('left', $parts['join']['product'][1]['joinType']);
         $this->assertSame('s_articles_details', $parts['join']['product'][1]['joinTable']);
         $this->assertSame(
             'variant.articleID = product.id AND variant.id != product.main_detail_id',
-            $parts['join']['product'][1]['joinCondition']
+            $parts['join']['product'][1]['joinCondition'],
+            'Second join condition is incorrect'
         );
 
-        $this->assertNull($parts['where']);
-        $this->assertEmpty($parts['groupBy']);
+        // WHERE
+        $this->assertNull($parts['where'], 'WHERE clause is expected to be missing');
 
-        $this->assertNotEmpty($parts['orderBy']);
-        $this->assertSame('product.id ASC', $parts['orderBy'][0]);
+        // GROUP BY
+        $this->assertEmpty($parts['groupBy'], 'GROUP BY is expected to be empty');
+
+        // ORDER BY
+        $this->assertNotEmpty($parts['orderBy'], 'ORDER BY is expected to be available');
+        $this->assertSame(
+            'product.id ASC',
+            $parts['orderBy'][0],
+            'Expected ORDER BY to have ascending product ID'
+        );
     }
 
     public function offsetAndLimitProvider()
     {
         return [
-            'with offset and limit' => [1, 5],
-            'without offset or limit' => [null, null],
+            'With offset and limit' => [1, 5],
+            'Without offset or limit' => [null, null],
         ];
     }
 
@@ -193,6 +228,8 @@ class QueryBuilderFactoryTest extends TestCase
      *
      * @param int $offset
      * @param int $limit
+     *
+     * @throws \Exception
      */
     public function testCreateProductQuery($offset, $limit)
     {
@@ -209,14 +246,27 @@ class QueryBuilderFactoryTest extends TestCase
         $query = $this->criteriaFactory->createProductQuery($criteria, $context);
         $parts = $query->getQueryParts();
 
+        // SELECT
         $this->assertNotEmpty($parts['select']);
         $this->assertSame('SQL_CALC_FOUND_ROWS product.id AS __product_id', $parts['select'][0]);
         $this->assertSame('mainDetail.ordernumber AS __main_detail_number', $parts['select'][1]);
-        $this->assertSame("GROUP_CONCAT(variant.ordernumber SEPARATOR ', ') AS __variant_numbers", $parts['select'][2]);
+        $this->assertSame(
+            "GROUP_CONCAT(variant.ordernumber SEPARATOR ', ') AS __variant_numbers",
+            $parts['select'][2]
+        );
 
-        $this->assertNotEmpty($parts['groupBy']);
-        $this->assertSame('product.id, mainDetail.ordernumber', $parts['groupBy'][0]);
+        // GROUP BY
+        $this->assertNotEmpty($parts['groupBy'], 'Expected GROUP BY to be applied');
+        $this->assertSame(
+            'product.id, mainDetail.ordernumber',
+            $parts['groupBy'][0],
+            'GROUP BY is expected to be on product ID and order number'
+        );
+
+        // OFFSET
         $this->assertEquals($offset, $query->getFirstResult());
+
+        // LIMIT
         $this->assertEquals($limit, $query->getMaxResults());
     }
 }
