@@ -151,6 +151,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
                 null,
                 null,
                 null,
+                [],
                 ''
             ],
             'Type is did-you-mean' => [
@@ -158,27 +159,31 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
                 'originalQuery',
                 'queryString',
                 null,
-                'Did you mean'
+                ['en_GB' => 'Did you mean', 'de_DE' => 'Meinten Sie'],
+                'sSearch=didYouMeanQuery&forceOriginalQuery=1'
             ],
             'Type is improved' => [
                 null,
                 'originalQuery',
                 'queryString',
                 'improved',
-                'Search instead'
+                ['en_GB' => 'Search instead', 'de_DE' => 'Alternativ nach'],
+                'sSearch=originalQuery&forceOriginalQuery=1'
             ],
             'Type is corrected' => [
                 null,
                 'originalQuery',
                 'queryString',
                 'corrected',
-                'No results for'
+                ['en_GB' => 'No results for', 'de_DE' => 'Keine Ergebnisse für'],
+                ''
             ],
             'Type is forced' => [
                 null,
                 'originalQuery',
                 'queryString',
                 'forced',
+                [],
                 ''
             ],
         ];
@@ -191,7 +196,8 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
      * @param string $originalQuery
      * @param string $queryString
      * @param string $queryStringType
-     * @param string $expectedText
+     * @param array $expectedText
+     * @param string $expectedLink
      *
      * @throws Zend_Http_Exception
      * @throws Exception
@@ -201,7 +207,8 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         $originalQuery,
         $queryString,
         $queryStringType,
-        $expectedText
+        array $expectedText,
+        $expectedLink
     ) {
         $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
         $xmlResponse = new SimpleXMLElement($data);
@@ -281,7 +288,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         $response = $this->dispatch('/search?sSearch=blubbergurke');
 
-        if ($expectedText === '') {
+        if (empty($expectedText)) {
             $this->assertNotContains(
                 '<p id="fl-smart-did-you-mean">',
                 $response->getBody(),
@@ -293,11 +300,20 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
                 $response->getBody(),
                 'Expected smart-did-you-mean tags to be visible'
             );
+            $locale = Shopware()->Shop()->getLocale()->getLocale();
+            $text = isset($expectedText[$locale]) ? $expectedText[$locale] : $expectedText['en_GB'];
             $this->assertContains(
-                $expectedText,
+                $text,
                 $response->getBody(),
                 'Incorrect text was displayed'
             );
+            if ($expectedLink !== '') {
+                $this->assertContains(
+                    $expectedLink,
+                    $response->getBody(),
+                    'Incorrect target link was generated'
+                );
+            }
         }
     }
 }
