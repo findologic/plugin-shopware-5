@@ -117,10 +117,8 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         }
     }
 
-    public function setUp()
+    protected function tearDown()
     {
-        parent::setUp();
-
         $kernel = Shopware()->Container()->get('kernel');
         $connection = Shopware()->Container()->get('db_connection');
         $db = Shopware()->Container()->get('db');
@@ -132,7 +130,6 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         Shopware()->Container()->set('db_connection', $connection);
         Shopware()->Container()->set('db', $db);
         Shopware()->Container()->set('application', $application);
-        Shopware()->Container()->load('front');
 
         /** @var $repository \Shopware\Models\Shop\Repository */
         $repository = Shopware()->Container()->get('models')->getRepository('Shopware\Models\Shop\Shop');
@@ -141,18 +138,8 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         $shop->registerResources();
 
         $_SERVER['HTTP_HOST'] = $shop->getHost();
-    }
 
-    protected function tearDown()
-    {
         parent::tearDown();
-        /** @var $repository \Shopware\Models\Shop\Repository */
-        $repository = Shopware()->Container()->get('models')->getRepository('Shopware\Models\Shop\Shop');
-
-        $shop = $repository->getActiveDefault();
-        $shop->registerResources();
-
-        $_SERVER['HTTP_HOST'] = $shop->getHost();
     }
 
     public function findologicResponseProvider()
@@ -214,7 +201,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
      * @throws Zend_Http_Exception
      * @throws Exception
      */
-    public function testSmarDidYouMeanSuggestionsAreDisplayed(
+    public function testSmartDidYouMeanSuggestionsAreDisplayed(
         $didYouMeanQuery,
         $originalQuery,
         $queryString,
@@ -263,17 +250,14 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
                 'buildQueryUrlAndGetResponse'
             ])
             ->getMock();
-        if (empty($expectedText)) {
-            $invoke = $this->never();
-        } else {
-            $invoke = $this->atLeastOnce();
+        if ($originalQuery !== null) {
+            $urlBuilderMock->expects($this->exactly(1))->method('buildCompleteFilterList')->willReturn($httpResponse);
+            $urlBuilderMock->expects($this->never())->method('buildCategoryUrlAndGetResponse');
+            $urlBuilderMock->expects($this->exactly(2))->method('setCustomerGroup');
+            $urlBuilderMock->expects($this->once())->method('buildQueryUrlAndGetResponse')->willReturn(
+                new Zend_Http_Response(200, [], $xmlResponse->asXML())
+            );
         }
-        $urlBuilderMock->expects($invoke)->method('buildCompleteFilterList')->willReturn($httpResponse);
-        $urlBuilderMock->expects($this->never())->method('buildCategoryUrlAndGetResponse');
-        $urlBuilderMock->expects($this->atLeastOnce())->method('setCustomerGroup');
-        $urlBuilderMock->expects($invoke)->method('buildQueryUrlAndGetResponse')->willReturn(
-            new Zend_Http_Response(200, [], $xmlResponse->asXML())
-        );
 
         $facetGateway = new FindologicFacetGateway(
             Shopware()->Container()->get('shopware_storefront.custom_facet_gateway'),
@@ -289,7 +273,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         Shopware()->Container()->set('fin_search_unified.product_number_search', $productNumberSearch);
 
-        $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
+        $session = $this->getMockBuilder(Enlight_Components_Session_Namespace::class)
             ->setMethods(['offsetGet', 'offsetExists'])
             ->getMock();
         $session->expects($this->atLeastOnce())->method('offsetExists')->willReturnMap([
@@ -302,6 +286,30 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         ]);
 
         Shopware()->Container()->set('session', $session);
+
+        $configArray = [
+            ['ActivateFindologic', true],
+            ['ActivateFindologicForCategoryPages', false],
+            ['findologicDI', false],
+            ['isSearchPage', true],
+            ['isCategoryPage', false],
+            ['ShopKey', '8D6CA2E49FB7CD09889CC0E2929F86B0'],
+            ['host', Shopware()->Shop()->getHost()],
+            ['basePath', Shopware()->Shop()->getHost() . Shopware()->Shop()->getBasePath()]
+        ];
+        // Create Mock object for Shopware Config
+        $config = $this->getMockBuilder(Shopware_Components_Config::class)
+            ->setMethods(['offsetGet', 'setShop'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $config->expects($this->atLeastOnce())
+            ->method('offsetGet')
+            ->willReturnMap($configArray);
+        $config->expects($this->atLeastOnce())
+            ->method('setShop')
+            ->willReturnSelf();
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $config);
 
         $response = $this->dispatch('/search?sSearch=blubbergurke');
 
