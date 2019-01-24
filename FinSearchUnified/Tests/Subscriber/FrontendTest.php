@@ -98,9 +98,7 @@ class FrontendTest extends TestCase
         $args->method('getRequest')->willReturn($request);
 
         // Create Mock object for Shopware Session
-        $session = $this->getMockBuilder(Enlight_Components_Session_Namespace::class)
-            ->setMethods(['offsetGet'])
-            ->getMock();
+        $session = $this->createMock(Enlight_Components_Session_Namespace::class);
         $session->expects($this->atLeastOnce())->method('offsetGet')->willReturnMap([
             ['isSearchPage', $isSearch],
             ['isCategoryPage', $isCategory],
@@ -118,10 +116,7 @@ class FrontendTest extends TestCase
             ['ShopKey', '8D6CA2E49FB7CD09889CC0E2929F86B0']
         ];
         // Create Mock object for Shopware Config
-        $config = $this->getMockBuilder(Shopware_Components_Config::class)
-            ->setMethods(['offsetGet'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $config = $this->createMock(Shopware_Components_Config::class);
         $config->method('offsetGet')->willReturnMap($configArray);
         // Assign mocked config variable to application container
         Shopware()->Container()->set('config', $config);
