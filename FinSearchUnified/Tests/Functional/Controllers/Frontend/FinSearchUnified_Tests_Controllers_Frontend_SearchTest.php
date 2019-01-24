@@ -133,14 +133,26 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         Shopware()->Container()->set('db', $db);
         Shopware()->Container()->set('application', $application);
         Shopware()->Container()->load('front');
-        Shopware()->Container()->load('config');
+
+        /** @var $repository \Shopware\Models\Shop\Repository */
+        $repository = Shopware()->Container()->get('models')->getRepository('Shopware\Models\Shop\Shop');
+
+        $shop = $repository->getActiveDefault();
+        $shop->registerResources();
+
+        $_SERVER['HTTP_HOST'] = $shop->getHost();
     }
 
     protected function tearDown()
     {
         parent::tearDown();
-        Shopware()->Container()->reset('front');
-        Shopware()->Container()->load('front');
+        /** @var $repository \Shopware\Models\Shop\Repository */
+        $repository = Shopware()->Container()->get('models')->getRepository('Shopware\Models\Shop\Shop');
+
+        $shop = $repository->getActiveDefault();
+        $shop->registerResources();
+
+        $_SERVER['HTTP_HOST'] = $shop->getHost();
     }
 
     public function findologicResponseProvider()

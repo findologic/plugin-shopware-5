@@ -82,7 +82,7 @@ class PluginTest extends TestCase
      * @param int $number
      * @param bool $isActive
      *
-     * @return \Shopware\Models\Article\Article|null
+     * @return void
      */
     private function createTestProduct($number, $isActive)
     {
@@ -114,14 +114,11 @@ class PluginTest extends TestCase
         try {
             $manger = new \Shopware\Components\Api\Manager();
             $resource = $manger->getResource('Article');
-            $article = $resource->create($testArticle);
+            $resource->create($testArticle);
 
-            return $article;
         } catch (\Exception $e) {
             echo sprintf("Exception: %s", $e->getMessage());
         }
-
-        return null;
     }
 
     /**
