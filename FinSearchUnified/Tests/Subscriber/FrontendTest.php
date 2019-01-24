@@ -2,10 +2,12 @@
 
 namespace FinSearchUnified\Tests\Subscriber;
 
+use Enlight_Components_Session_Namespace;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
+use Enlight_Template_Manager;
 use FinSearchUnified\FinSearchUnified as Plugin;
 use Shopware\Components\Test\Plugin\TestCase;
-use Enlight_Template_Manager;
+use Shopware_Components_Config;
 
 class FrontendTest extends TestCase
 {
@@ -96,12 +98,33 @@ class FrontendTest extends TestCase
         $args->method('getRequest')->willReturn($request);
 
         // Create Mock object for Shopware Session
-        $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
-            ->setMethods(null)
+        $session = $this->getMockBuilder(Enlight_Components_Session_Namespace::class)
+            ->setMethods(['offsetGet'])
             ->getMock();
+        $session->expects($this->atLeastOnce())->method('offsetGet')->willReturnMap([
+            ['isSearchPage', $isSearch],
+            ['isCategoryPage', $isCategory],
+            ['findologicDI', false]
+        ]);
 
-        // Assign mocked session variable to application container
         Shopware()->Container()->set('session', $session);
+
+        $configArray = [
+            ['ActivateFindologic', true],
+            ['ActivateFindologicForCategoryPages', false],
+            ['findologicDI', false],
+            ['isSearchPage', $isSearch],
+            ['isCategoryPage', $isCategory],
+            ['ShopKey', '8D6CA2E49FB7CD09889CC0E2929F86B0']
+        ];
+        // Create Mock object for Shopware Config
+        $config = $this->getMockBuilder(Shopware_Components_Config::class)
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $config->method('offsetGet')->willReturnMap($configArray);
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $config);
 
         /** @var Plugin $plugin */
         $plugin = Shopware()->Container()->get('kernel')->getPlugins()['FinSearchUnified'];
