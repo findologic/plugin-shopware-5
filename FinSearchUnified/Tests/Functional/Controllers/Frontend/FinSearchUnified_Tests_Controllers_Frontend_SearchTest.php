@@ -263,10 +263,15 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
                 'buildQueryUrlAndGetResponse'
             ])
             ->getMock();
-        $urlBuilderMock->expects($this->exactly(1))->method('buildCompleteFilterList')->willReturn($httpResponse);
+        if (empty($expectedText)) {
+            $invoke = $this->never();
+        } else {
+            $invoke = $this->atLeastOnce();
+        }
+        $urlBuilderMock->expects($invoke)->method('buildCompleteFilterList')->willReturn($httpResponse);
         $urlBuilderMock->expects($this->never())->method('buildCategoryUrlAndGetResponse');
-        $urlBuilderMock->expects($this->exactly(2))->method('setCustomerGroup');
-        $urlBuilderMock->expects($this->once())->method('buildQueryUrlAndGetResponse')->willReturn(
+        $urlBuilderMock->expects($this->atLeastOnce())->method('setCustomerGroup');
+        $urlBuilderMock->expects($invoke)->method('buildQueryUrlAndGetResponse')->willReturn(
             new Zend_Http_Response(200, [], $xmlResponse->asXML())
         );
 
