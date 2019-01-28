@@ -3,7 +3,7 @@
 namespace FinSearchUnified\Tests\Bundles\SearchBundleDBAL;
 
 use FinSearchUnified\Bundles\SearchBundleDBAL\QueryBuilderFactory;
-use Shopware\Bundle\SearchBundle\Condition\ProductIdCondition;
+use Shopware\Bundle\SearchBundle\Condition\CloseoutCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Components\Test\Plugin\TestCase;
@@ -89,12 +89,12 @@ class QueryBuilderFactoryTest extends TestCase
     /**
      * @throws \Exception
      */
-    public function testCreateQueryWithProductIDCondition()
+    public function testCreateQueryWithCondition()
     {
         $context = $this->contextService->getShopContext();
 
         $criteria = new Criteria();
-        $criteria->addCondition(new ProductIdCondition([1]));
+        $criteria->addCondition(new CloseoutCondition());
         $query = $this->criteriaFactory->createQuery($criteria, $context);
         $parts = $query->getQueryParts();
 
@@ -139,7 +139,7 @@ class QueryBuilderFactoryTest extends TestCase
         // WHERE
         $this->assertNotNull($parts['where'], 'WHERE clause is expected to have expression');
         $this->assertContains(
-            'variant.articleId IN',
+            '.laststock = 1',
             $parts['where']->__toString(),
             'WHERE clause is not correct'
         );
