@@ -44,7 +44,7 @@ class PluginTest extends TestCase
                 2,
                 'Two articles were expected but %d were returned'
             ],
-            "1 active and 1 inactive article" => [
+            '1 active and 1 inactive article' => [
                 [true, false],
                 1,
                 'Only one article was expected but %d were returned'
@@ -115,7 +115,6 @@ class PluginTest extends TestCase
             $manger = new \Shopware\Components\Api\Manager();
             $resource = $manger->getResource('Article');
             $resource->create($testArticle);
-
         } catch (\Exception $e) {
             echo sprintf("Exception: %s", $e->getMessage());
         }

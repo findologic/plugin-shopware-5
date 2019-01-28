@@ -42,10 +42,27 @@ class UrlBuilderTest extends TestCase
 
     protected function tearDown()
     {
-        parent::tearDown();
+        $kernel = Shopware()->Container()->get('kernel');
+        $connection = Shopware()->Container()->get('db_connection');
+        $db = Shopware()->Container()->get('db');
+        $application = Shopware()->Container()->get('application');
 
-        Shopware()->Container()->reset('front');
-        Shopware()->Container()->load('front');
+        Shopware()->Container()->reset();
+
+        Shopware()->Container()->set('kernel', $kernel);
+        Shopware()->Container()->set('db_connection', $connection);
+        Shopware()->Container()->set('db', $db);
+        Shopware()->Container()->set('application', $application);
+
+        /** @var $repository \Shopware\Models\Shop\Repository */
+        $repository = Shopware()->Container()->get('models')->getRepository('Shopware\Models\Shop\Shop');
+
+        $shop = $repository->getActiveDefault();
+        $shop->registerResources();
+
+        $_SERVER['HTTP_HOST'] = $shop->getHost();
+
+        parent::tearDown();
     }
 
     /**

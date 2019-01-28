@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Tests\Components\ProductStream;
 
+use Enlight_Components_Session_Namespace;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use FinSearchUnified\Components\ProductStream\CriteriaFactory;
 use FinSearchUnified\Constants;
@@ -9,6 +10,7 @@ use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Components\Test\Plugin\TestCase;
+use Shopware_Components_Config;
 
 class CriteriaFactoryTest extends TestCase
 {
@@ -92,7 +94,7 @@ class CriteriaFactoryTest extends TestCase
         ];
 
         // Create mock object for Shopware Config and explicitly return the values
-        $config = $this->getMockBuilder('\Shopware_Components_Config')
+        $config = $this->getMockBuilder(Shopware_Components_Config::class)
             ->setMethods(['offsetGet'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -110,7 +112,7 @@ class CriteriaFactoryTest extends TestCase
         ];
 
         // Create mock object for Shopware Session and explicitly return the values
-        $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
+        $session = $this->getMockBuilder(Enlight_Components_Session_Namespace::class)
             ->setMethods(['offsetGet'])
             ->getMock();
         $session->expects($this->atLeastOnce())

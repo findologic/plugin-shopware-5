@@ -19,10 +19,27 @@ class StaticHelperTest extends TestCase
 {
     protected function tearDown()
     {
-        parent::tearDown();
+        $kernel = Shopware()->Container()->get('kernel');
+        $connection = Shopware()->Container()->get('db_connection');
+        $db = Shopware()->Container()->get('db');
+        $application = Shopware()->Container()->get('application');
 
-        Shopware()->Container()->reset('front');
-        Shopware()->Container()->load('front');
+        Shopware()->Container()->reset();
+
+        Shopware()->Container()->set('kernel', $kernel);
+        Shopware()->Container()->set('db_connection', $connection);
+        Shopware()->Container()->set('db', $db);
+        Shopware()->Container()->set('application', $application);
+
+        /** @var $repository \Shopware\Models\Shop\Repository */
+        $repository = Shopware()->Container()->get('models')->getRepository('Shopware\Models\Shop\Shop');
+
+        $shop = $repository->getActiveDefault();
+        $shop->registerResources();
+
+        $_SERVER['HTTP_HOST'] = $shop->getHost();
+
+        parent::tearDown();
     }
 
     /**
@@ -398,11 +415,12 @@ class StaticHelperTest extends TestCase
 
         // Set category name with preceeding and succeeding spaces
         $categoryModel->setName($category);
-        $parent = $categoryModel->getParent();
+        $parentModel = $categoryModel->getParent();
 
         // Set parent category name with preceeding and succeeding spaces
-        if ($parent !== null) {
-            $this->updateParentCategoryName($parent, $categoryModel);
+        if ($parentModel !== null) {
+            $this->assertInstanceOf(Category::class, $parentModel);
+            $this->updateParentCategoryName($parentModel, $categoryModel);
         }
         // Persist changes to database
         Shopware()->Models()->flush();
@@ -410,8 +428,9 @@ class StaticHelperTest extends TestCase
 
         // Revert category name back to correct state after test result
         $categoryModel->setName(trim($category));
-        if ($parent !== null) {
-            $this->updateParentCategoryName($parent, $categoryModel, true);
+        if ($parentModel !== null) {
+            $this->assertInstanceOf(Category::class, $parentModel);
+            $this->updateParentCategoryName($parentModel, $categoryModel, true);
         }
         // Persist changes to database
         Shopware()->Models()->flush();
@@ -449,6 +468,8 @@ class StaticHelperTest extends TestCase
         if ($parent->getParent() !== null) {
             $this->updateParentCategoryName($parent->getParent(), $parent, $restore);
         }
+
+        Shopware()->Models()->flush();
     }
 
     public function finSmartDidYouMeanProvider()
