@@ -37,12 +37,8 @@
             class="FinSearchUnified\Bundles\SearchBundleDBAL\QueryBuilderFactory"
         >
             <argument type="service" id="dbal_connection" />
-            <argument type="service" id="events" />
-
-            <!--condition handlers-->
-            <argument type="tagged" tag="condition_handler_dbal" />
-
             <argument type="service" id="service_container" />
+            <argument type="service" id="shopware_searchdbal.dbal_query_builder_factory" />
         </service>
     </services>
 </container>

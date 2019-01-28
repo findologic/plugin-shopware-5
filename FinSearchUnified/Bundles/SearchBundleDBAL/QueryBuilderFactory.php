@@ -2,9 +2,7 @@
 
 namespace FinSearchUnified\Bundles\SearchBundleDBAL;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Connection;
-use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundleDBAL\ConditionHandlerInterface;
@@ -32,37 +30,23 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     private $conditionHandlers;
 
     /**
+     * Note that $originalService is loaded via DI but isn't used/assigned on purpose, so Shopware is forced to load
+     * pre-existing condition handlers.
+     * This needs to be done to circumvent a breaking change introduced in Shopware 5.5.x
+     *
      * @param Connection $connection
-     * @param \Enlight_Event_EventManager $eventManager
-     * @param $conditionHandlers
      * @param ContainerInterface $container
+     * @param QueryBuilderFactoryInterface $originalService
      *
      * @throws \Enlight_Event_Exception
      */
     public function __construct(
         Connection $connection,
-        \Enlight_Event_EventManager $eventManager,
-        $conditionHandlers,
-        ContainerInterface $container
+        ContainerInterface $container,
+        QueryBuilderFactoryInterface $originalService
     ) {
         $this->connection = $connection;
-        $this->eventManager = $eventManager;
-
-        if (Utility::assertMinimumVersion('5.5.0')) {
-            $this->conditionHandlers = iterator_to_array($conditionHandlers, false);
-        } else {
-            $this->conditionHandlers = $conditionHandlers;
-        }
-
-        $handlers = new ArrayCollection();
-        $handlers = $this->eventManager->collect(
-            'Shopware_SearchBundleDBAL_Collect_Condition_Handlers',
-            $handlers
-        );
-
-        $this->conditionHandlers = array_merge($handlers->toArray(), $this->conditionHandlers);
-
-        $container->set('shopware_searchdbal.condition_handlers', $this->conditionHandlers);
+        $this->conditionHandlers = $container->get('shopware_searchdbal.condition_handlers');
     }
 
     /**
