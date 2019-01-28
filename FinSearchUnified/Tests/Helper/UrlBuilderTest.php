@@ -77,10 +77,62 @@ class UrlBuilderTest extends TestCase
     }
 
     /**
+     * Scenarios of IPs which should be filtered
+     *
+     * @return array Cases with the value to be filtered and the expected return value.
+     */
+    public function reverseProxyIpAddressProvider()
+    {
+        return [
+            'Single IP' => ['192.168.0.1', '192.168.0.1'],
+            'Same IP twice separated by comma' => ['192.168.0.1,192.168.0.1', '192.168.0.1'],
+            'Same IP twice separated by comma and space' => ['192.168.0.1, 192.168.0.1', '192.168.0.1'],
+            'Reverse Proxy IPs separated by comma' => ['192.168.0.1,10.10.0.200', '192.168.0.1'],
+            'Reverse Proxy IPs separated by comma and space' => ['192.168.0.1, 10.10.0.200', '192.168.0.1'],
+            'Reverse Proxy IPs separated by comma and space with three elements' => [
+                '192.168.0.1, 10.10.0.200, 10.10.2.50',
+                '192.168.0.1'
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider reverseProxyIpAddressProvider
+     *
+     * @param string $unfilteredIp
+     * @param string $expectedValue
+     */
+    public function testSendOnlyClientIpFromReverseProxy($unfilteredIp, $expectedValue)
+    {
+        unset($_SERVER['HTTP_CLIENT_IP']);
+        $this->setForwardedForIp($unfilteredIp);
+
+        $urlBuilder = new UrlBuilder($this->httpClient);
+
+        $criteria = new Criteria();
+        $criteria->offset(0)->limit(2);
+
+        $response = $urlBuilder->buildQueryUrlAndGetResponse($criteria);
+        /** @var Zend_Uri_Http $requestedUrl */
+        $requestedUrl = $this->httpClient->getUri()->getQueryAsArray();
+        $usedIpInRequest = $requestedUrl['userip'];
+
+        $this->assertEquals($expectedValue, $usedIpInRequest);
+    }
+
+    /**
      * @param string $ipAddress The ip address to set.
      */
     private function setClientIp($ipAddress)
     {
         $_SERVER['HTTP_CLIENT_IP'] = $ipAddress;
+    }
+
+    /**
+     * @param string $ipAddress The ip address to set.
+     */
+    private function setForwardedForIp($ipAddress)
+    {
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = $ipAddress;
     }
 }

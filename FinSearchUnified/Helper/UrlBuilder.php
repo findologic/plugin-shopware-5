@@ -82,7 +82,7 @@ class UrlBuilder
         if ($_SERVER['HTTP_CLIENT_IP']) {
             $ipAddress = $_SERVER['HTTP_CLIENT_IP'];
         } elseif ($_SERVER['HTTP_X_FORWARDED_FOR']) {
-            $ipAddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
+            $ipAddress = $this->getForwardedClientIp($_SERVER['HTTP_X_FORWARDED_FOR']);
         } elseif ($_SERVER['HTTP_X_FORWARDED']) {
             $ipAddress = $_SERVER['HTTP_X_FORWARDED'];
         } elseif ($_SERVER['HTTP_FORWARDED_FOR']) {
@@ -398,5 +398,17 @@ class UrlBuilder
         }
 
         return $isAlive;
+    }
+
+    /**
+     * @see https://en.wikipedia.org/wiki/X-Forwarded-For
+     * @param string $forwaredIps The forwarded IP address of the reverse proxy.
+     * @return string
+     */
+    private function getForwardedClientIp($forwaredIps)
+    {
+        $forwaredIpsMap = array_map('trim', explode(',', $forwaredIps));
+
+        return $forwaredIpsMap[0];
     }
 }
