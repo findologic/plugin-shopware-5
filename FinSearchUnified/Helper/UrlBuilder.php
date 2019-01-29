@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Helper;
 
+use FinSearchUnified\Constants;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -67,7 +68,7 @@ class UrlBuilder
     public function __construct($httpClient = null)
     {
         $this->httpClient = $httpClient instanceof Zend_Http_Client ? $httpClient : new Zend_Http_Client();
-        $this->shopUrl = Shopware()->Shop()->getHost() . '/';
+        $this->shopUrl = rtrim(Shopware()->Shop()->getHost()) . '/';
 
         /** @var Plugin $plugin */
         $plugin = Shopware()->Container()->get('shopware.plugin_manager')->getPluginByName('FinSearchUnified');
@@ -229,8 +230,8 @@ class UrlBuilder
             $this->parameters['count'] = $itemsPerPage;
         }
 
-        if (isset($_GET['forceOriginalQuery'])) {
-            $this->parameters['forceOriginalQuery'] = $_GET['forceOriginalQuery'] ? 1 : 0;
+        if (isset($_GET[Constants::SDYM_PARAM_FORCE_QUERY])) {
+            $this->parameters[Constants::SDYM_PARAM_FORCE_QUERY] = $_GET[Constants::SDYM_PARAM_FORCE_QUERY] ? 1 : 0;
         }
     }
 

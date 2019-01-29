@@ -825,7 +825,7 @@ class StaticHelper
     }
 
     /**
-     * @param \SimpleXMLElement $xmlResponse
+     * @param SimpleXMLElement $xmlResponse
      */
     public static function setSmartDidYouMean(SimpleXMLElement $xmlResponse)
     {
@@ -835,16 +835,15 @@ class StaticHelper
         $queryString = $query->queryString;
         $queryStringType = (string)$queryString->attributes()->type;
 
-        if (((isset($originalQuery) && $originalQuery !== '') || (isset($didYouMeanQuery) && $didYouMeanQuery !== ''))
-            && $queryStringType !== 'forced') {
+        if ((!empty($originalQuery) || !empty($didYouMeanQuery)) && $queryStringType !== 'forced') {
             /** @var \Enlight_View_Default $view */
             $view = Shopware()->Front()->Plugins()->ViewRenderer()->Action()->View();
-            $type = isset($didYouMeanQuery) && !empty($didYouMeanQuery) ? 'did-you-mean' : $queryStringType;
+            $type = !empty($didYouMeanQuery) ? 'did-you-mean' : $queryStringType;
             $view->assign([
                 'finSmartDidYouMean' => [
                     'type' => $type,
                     'alternative_query' => $type === 'did-you-mean' ? $didYouMeanQuery : $queryString,
-                    'original_query' => $type === 'did-you-mean' ? '' : $originalQuery,
+                    'original_query' => $type === 'did-you-mean' ? '' : $originalQuery
                 ]
             ]);
         }

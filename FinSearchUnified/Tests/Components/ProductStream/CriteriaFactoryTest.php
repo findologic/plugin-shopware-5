@@ -6,6 +6,7 @@ use Enlight_Components_Session_Namespace;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use FinSearchUnified\Components\ProductStream\CriteriaFactory;
 use FinSearchUnified\Constants;
+use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
@@ -24,7 +25,7 @@ class CriteriaFactoryTest extends TestCase
         return [
             'Uses the original implementation' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => false,
                 'findologicDI' => false,
                 'isSearchPage' => false,
@@ -33,7 +34,7 @@ class CriteriaFactoryTest extends TestCase
             ],
             'Uses the original implementation for backend' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => false,
                 'findologicDI' => false,
                 'isSearchPage' => true,
@@ -42,7 +43,7 @@ class CriteriaFactoryTest extends TestCase
             ],
             'Uses the custom implementation' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => false,
                 'findologicDI' => false,
                 'isSearchPage' => true,
@@ -131,5 +132,11 @@ class CriteriaFactoryTest extends TestCase
         $this->assertNotNull($categoryCondition, "Category Condition expected to be NOT NULL, but NULL was returned");
         $categories = $categoryCondition->getCategoryIds();
         $this->assertSame($expected, $categories[0]);
+    }
+
+    protected function tearDown()
+    {
+        Utility::resetContainer();
+        parent::tearDown();
     }
 }

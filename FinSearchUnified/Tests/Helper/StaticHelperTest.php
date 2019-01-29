@@ -14,31 +14,13 @@ use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Models\Category\Category;
 use Shopware_Components_Config as Config;
+use SimpleXMLElement;
 
 class StaticHelperTest extends TestCase
 {
     protected function tearDown()
     {
-        $kernel = Shopware()->Container()->get('kernel');
-        $connection = Shopware()->Container()->get('db_connection');
-        $db = Shopware()->Container()->get('db');
-        $application = Shopware()->Container()->get('application');
-
-        Shopware()->Container()->reset();
-
-        Shopware()->Container()->set('kernel', $kernel);
-        Shopware()->Container()->set('db_connection', $connection);
-        Shopware()->Container()->set('db', $db);
-        Shopware()->Container()->set('application', $application);
-
-        /** @var $repository \Shopware\Models\Shop\Repository */
-        $repository = Shopware()->Container()->get('models')->getRepository('Shopware\Models\Shop\Shop');
-
-        $shop = $repository->getActiveDefault();
-        $shop->registerResources();
-
-        $_SERVER['HTTP_HOST'] = $shop->getHost();
-
+        Utility::resetContainer();
         parent::tearDown();
     }
 
@@ -52,7 +34,7 @@ class StaticHelperTest extends TestCase
         return [
             'FINDOLOGIC is inactive' => [
                 'ActivateFindologic' => false,
-                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => true,
                 'findologicDI' => false,
                 'isSearchPage' => null,
@@ -79,7 +61,7 @@ class StaticHelperTest extends TestCase
             ],
             'FINDOLOGIC is active but integration type is DI' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => true,
                 'findologicDI' => true,
                 'isSearchPage' => null,
@@ -88,7 +70,7 @@ class StaticHelperTest extends TestCase
             ],
             'FINDOLOGIC is active but the current page is neither the search nor a category page' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => true,
                 'findologicDI' => false,
                 'isSearchPage' => false,
@@ -97,7 +79,7 @@ class StaticHelperTest extends TestCase
             ],
             'FINDOLOGIC is not active on category pages' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => false,
                 'findologicDI' => false,
                 'isSearchPage' => false,
@@ -106,7 +88,7 @@ class StaticHelperTest extends TestCase
             ],
             'FINDOLOGIC is active in search' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => false,
                 'findologicDI' => false,
                 'isSearchPage' => true,
@@ -115,7 +97,7 @@ class StaticHelperTest extends TestCase
             ],
             'FINDOLOGIC is active on category pages' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => true,
                 'findologicDI' => false,
                 'isSearchPage' => false,
@@ -443,6 +425,8 @@ class StaticHelperTest extends TestCase
      * @param Category $parent
      * @param Category $categoryModel
      * @param bool $restore
+     *
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     private function updateParentCategoryName(Category $parent, Category $categoryModel, $restore = false)
     {
@@ -472,7 +456,7 @@ class StaticHelperTest extends TestCase
         Shopware()->Models()->flush();
     }
 
-    public function finSmartDidYouMeanProvider()
+    public function smartDidYouMeanProvider()
     {
         return [
             'didYouMeanQuery and originalQuery are not present' => [null, null, null, null, null, null],
@@ -507,7 +491,7 @@ class StaticHelperTest extends TestCase
     }
 
     /**
-     * @dataProvider finSmartDidYouMeanProvider
+     * @dataProvider smartDidYouMeanProvider
      *
      * @param string $didYouMeanQuery
      * @param string $originalQuery
@@ -516,7 +500,7 @@ class StaticHelperTest extends TestCase
      * @param string $expectedAlternativeQuery
      * @param string $expectedOriginalQuery
      */
-    public function testFinSmartDidYouMean(
+    public function testParsesSmartDidYouMeanData(
         $didYouMeanQuery,
         $originalQuery,
         $queryStringType,
@@ -524,59 +508,56 @@ class StaticHelperTest extends TestCase
         $expectedAlternativeQuery,
         $expectedOriginalQuery
     ) {
-        $finSmartDidYouMean = null;
+        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
+        $xmlResponse = new SimpleXMLElement($data);
 
-        // Replicate functionality of StaticHelper::setSmartDidYouMean
-        if (((isset($originalQuery) && $originalQuery !== '') || (isset($didYouMeanQuery) && $didYouMeanQuery !== ''))
-            && ($queryStringType && $queryStringType !== 'forced')) {
-            $type = isset($didYouMeanQuery) ? 'did-you-mean' : $queryStringType;
-            $finSmartDidYouMean = [
-                'type' => $type,
-                'alternative_query' => $type === 'did-you-mean' ? $didYouMeanQuery : 'queryString',
-                'original_query' => $type === 'did-you-mean' ? '' : $originalQuery
-            ];
+        $query = $xmlResponse->addChild('query');
+        $queryString = $query->addChild('queryString', 'queryString');
+
+        if ($queryStringType !== null) {
+            $queryString->addAttribute('type', $queryStringType);
+        }
+
+        if ($didYouMeanQuery !== null) {
+            $query->addChild('didYouMeanQuery', $didYouMeanQuery);
+        }
+        if ($originalQuery !== null) {
+            $query->addChild('originalQuery', $originalQuery);
+        }
+
+        $results = $xmlResponse->addChild('results');
+        $results->addChild('count', 5);
+        $products = $xmlResponse->addChild('products');
+
+        for ($i = 1; $i <= 5; $i++) {
+            $product = $products->addChild('product');
+            $product->addAttribute('id', $i);
         }
 
         // Create mocked view
-        $view = $this->getMockBuilder(View::class)
-            ->setMethods(['getAssign'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $view = $this->createMock(View::class);
 
-        // Assign the finSmartDidYouMean variable to the mocked view
-        $view->method('getAssign')->willReturnMap([
-            ['finSmartDidYouMean', $finSmartDidYouMean]
-        ]);
+        $view->expects($this->once())->method('assign')->with('finSmartDidYouMean');
 
-        $action = $this->getMockBuilder(Action::class)
-            ->setMethods(['View'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $action = $this->createMock(Action::class);
         $action->method('View')
             ->willReturn($view);
 
-        $renderer = $this->getMockBuilder(ViewRenderer::class)
-            ->setMethods(['Action'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $renderer = $this->createMock(ViewRenderer::class);
         $renderer->method('Action')
             ->willReturn($action);
 
-        $plugin = $this->getMockBuilder(Plugins::class)
-            ->setMethods(['ViewRenderer'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $plugin = $this->createMock(Plugins::class);
         $plugin->method('ViewRenderer')
             ->willReturn($renderer);
 
-        $front = $this->getMockBuilder(Front::class)
-            ->setMethods(['Plugins'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $front = $this->createMock(Front::class);
         $front->method('Plugins')
             ->willReturn($plugin);
 
         Shopware()->Container()->set('front', $front);
+
+        StaticHelper::setSmartDidYouMean($xmlResponse);
 
         // Get assigned variable from mocked view object
         $finSmartDidYouMean = Shopware()

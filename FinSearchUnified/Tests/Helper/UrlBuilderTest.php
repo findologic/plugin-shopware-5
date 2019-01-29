@@ -2,6 +2,8 @@
 
 namespace FinSearchUnified\Tests\Helper;
 
+use Enlight_Components_Session_Namespace;
+use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
@@ -9,6 +11,7 @@ use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Sorting\ProductNameSorting;
 use Shopware\Components\Test\Plugin\TestCase;
 use Zend_Http_Client;
+use Zend_Http_Exception;
 use Zend_Http_Response;
 use Zend_Uri_Http;
 
@@ -24,6 +27,9 @@ class UrlBuilderTest extends TestCase
      */
     private $httpResponse;
 
+    /**
+     * @throws Zend_Http_Exception
+     */
     public function setUp()
     {
         parent::setUp();
@@ -42,26 +48,7 @@ class UrlBuilderTest extends TestCase
 
     protected function tearDown()
     {
-        $kernel = Shopware()->Container()->get('kernel');
-        $connection = Shopware()->Container()->get('db_connection');
-        $db = Shopware()->Container()->get('db');
-        $application = Shopware()->Container()->get('application');
-
-        Shopware()->Container()->reset();
-
-        Shopware()->Container()->set('kernel', $kernel);
-        Shopware()->Container()->set('db_connection', $connection);
-        Shopware()->Container()->set('db', $db);
-        Shopware()->Container()->set('application', $application);
-
-        /** @var $repository \Shopware\Models\Shop\Repository */
-        $repository = Shopware()->Container()->get('models')->getRepository('Shopware\Models\Shop\Shop');
-
-        $shop = $repository->getActiveDefault();
-        $shop->registerResources();
-
-        $_SERVER['HTTP_HOST'] = $shop->getHost();
-
+        Utility::resetContainer();
         parent::tearDown();
     }
 
@@ -99,7 +86,7 @@ class UrlBuilderTest extends TestCase
         $criteria = new Criteria();
         $criteria->offset(0)->limit(2);
 
-        $response = $urlBuilder->buildQueryUrlAndGetResponse($criteria);
+        $urlBuilder->buildQueryUrlAndGetResponse($criteria);
         /** @var Zend_Uri_Http $requestedUrl */
         $requestedUrl = $this->httpClient->getUri()->getQueryAsArray();
         $usedIpInRequest = $requestedUrl['userip'];
@@ -140,7 +127,7 @@ class UrlBuilderTest extends TestCase
             ['isSearchPage', true]
         ];
         // Create mock object for Shopware Session and explicitly return the values
-        $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
+        $session = $this->getMockBuilder(Enlight_Components_Session_Namespace::class)
             ->setMethods(['offsetGet'])
             ->getMock();
         $session->expects($this->atLeastOnce())
@@ -150,7 +137,7 @@ class UrlBuilderTest extends TestCase
         // Assign mocked session variable to application container
         Shopware()->Container()->set('session', $session);
 
-        $_GET['forceOriginalQuery'] = $forceOriginalQuery;
+        $_GET[Constants::SDYM_PARAM_FORCE_QUERY] = $forceOriginalQuery;
 
         $urlBuilder = new UrlBuilder($this->httpClient);
 
@@ -173,24 +160,35 @@ class UrlBuilderTest extends TestCase
             'The resulting URL is not correct'
         );
         $this->assertArrayHasKey(
-            'userip',
+            "userip",
             $requestedUrl,
             'userip was not found in the query parameters'
         );
         $this->assertArrayHasKey(
-            'revision',
+            "revision",
             $requestedUrl,
             'revision was not found in the query parameters'
         );
         $this->assertArrayHasKey(
-            'shopkey',
+            "shopkey",
             $requestedUrl,
             'shopkey was not found in the query parameters'
         );
+        if ($forceOriginalQuery === null) {
+            $this->assertArrayNotHasKey(
+                Constants::SDYM_PARAM_FORCE_QUERY, $requestedUrl,
+                'Expected forceOriginalQuery parameter to NOT be present'
+            );
+        } else {
+            $this->assertArrayHasKey(
+                Constants::SDYM_PARAM_FORCE_QUERY, $requestedUrl,
+                'Expected forceOriginalQuery parameter to be present'
+            );
+        }
         $this->assertEquals(
             $forceOriginalQuery,
-            $requestedUrl['forceOriginalQuery'],
-            'forceOriginalQuery was not processed correctly '
+            $requestedUrl[Constants::SDYM_PARAM_FORCE_QUERY],
+            'forceOriginalQuery was not processed correctly'
         );
         $this->assertTrue($criteria->hasBaseCondition('search'));
         $this->assertTrue($criteria->hasBaseCondition('category'));

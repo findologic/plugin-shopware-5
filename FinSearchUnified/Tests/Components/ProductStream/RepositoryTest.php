@@ -4,13 +4,19 @@ namespace FinSearchUnified\Tests\Components\ProductStream;
 
 use Enlight_Components_Session_Namespace;
 use FinSearchUnified\Components\ProductStream\Repository;
-use FinSearchUnified\Constants;
+use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Components_Config;
 
 class RepositoryTest extends TestCase
 {
+    protected function tearDown()
+    {
+        Utility::resetContainer();
+        parent::tearDown();
+    }
+
     /**
      * @return array
      */
@@ -19,27 +25,24 @@ class RepositoryTest extends TestCase
         return [
             'Uses the original implementation' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
                 'prepareCriteria' => true
             ],
             'Uses the original implementation for backend' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
                 'prepareCriteria' => false
             ],
             'Uses the custom implementation' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
                 'prepareCriteria' => false,
@@ -53,7 +56,6 @@ class RepositoryTest extends TestCase
      * @param bool $isActive
      * @param string $shopKey
      * @param bool $isActiveForCategory
-     * @param bool $checkIntegration
      * @param bool $isSearchPage
      * @param bool $isCategoryPage
      * @param bool $prepareCriteria
@@ -64,7 +66,6 @@ class RepositoryTest extends TestCase
         $isActive,
         $shopKey,
         $isActiveForCategory,
-        $checkIntegration,
         $isSearchPage,
         $isCategoryPage,
         $prepareCriteria
@@ -78,8 +79,7 @@ class RepositoryTest extends TestCase
         $configArray = [
             ['ActivateFindologic', $isActive],
             ['ShopKey', $shopKey],
-            ['ActivateFindologicForCategoryPages', $isActiveForCategory],
-            ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API]
+            ['ActivateFindologicForCategoryPages', $isActiveForCategory]
         ];
 
         // Create mock object for Shopware Config and explicitly return the values
@@ -96,14 +96,15 @@ class RepositoryTest extends TestCase
         $sessionArray = [
             ['isSearchPage', $isSearchPage],
             ['isCategoryPage', $isCategoryPage],
-            ['findologicDI', $checkIntegration]
+            ['findologicDI', false]
         ];
 
         // Create mock object for Shopware Session and explicitly return the values
         $session = $this->getMockBuilder(Enlight_Components_Session_Namespace::class)
-            ->setMethods(['offsetGet'])
+            ->setMethods(['offsetGet', 'offsetExists'])
             ->getMock();
         $session->method('offsetGet')->willReturnMap($sessionArray);
+        $session->method('offsetExists')->with('findologicDI')->willReturn(true);
 
         // Assign mocked session variable to application container
         Shopware()->Container()->set('session', $session);
