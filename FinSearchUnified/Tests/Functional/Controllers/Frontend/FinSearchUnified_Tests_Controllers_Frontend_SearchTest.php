@@ -9,7 +9,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 {
     protected static $ensureLoadedPlugins = [
         'FinSearchUnified' => [
-            'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+            'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
             'ActivateFindologicForCategoryPages' => false
         ],
     ];
@@ -217,6 +217,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
                 $response->getBody(),
                 'Expected smart-did-you-mean tags to be visible'
             );
+            // Get shop locale to check for text in relevant language
             $locale = Shopware()->Shop()->getLocale()->getLocale();
             $text = isset($expectedText[$locale]) ? $expectedText[$locale] : $expectedText['en_GB'];
             $this->assertContains(

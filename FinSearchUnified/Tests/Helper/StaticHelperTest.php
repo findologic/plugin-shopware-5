@@ -537,8 +537,6 @@ class StaticHelperTest extends TestCase
         // Create mocked view
         $view = $this->createMock(View::class);
 
-        $view->expects($this->once())->method('assign')->with('finSmartDidYouMean');
-
         $action = $this->createMock(Action::class);
         $action->method('View')
             ->willReturn($view);
@@ -548,7 +546,8 @@ class StaticHelperTest extends TestCase
             ->willReturn($action);
 
         $plugin = $this->createMock(Plugins::class);
-        $plugin->method('ViewRenderer')
+        $plugin->method('get')
+            ->with('ViewRenderer')
             ->willReturn($renderer);
 
         $front = $this->createMock(Front::class);
@@ -563,7 +562,7 @@ class StaticHelperTest extends TestCase
         $finSmartDidYouMean = Shopware()
             ->Front()
             ->Plugins()
-            ->ViewRenderer()
+            ->get('ViewRenderer')
             ->Action()
             ->View()
             ->getAssign('finSmartDidYouMean');

@@ -814,7 +814,7 @@ class StaticHelper
 
         if (isset($promotion) && count($promotion->attributes()) > 0) {
             /** @var \Enlight_View_Default $view */
-            $view = Shopware()->Container()->get('front')->Plugins()->ViewRenderer()->Action()->View();
+            $view = Shopware()->Container()->get('front')->Plugins()->get('ViewRenderer')->Action()->View();
             $view->assign([
                 'finPromotion' => [
                     'image' => $promotion->attributes()->image,
@@ -837,7 +837,7 @@ class StaticHelper
 
         if ((!empty($originalQuery) || !empty($didYouMeanQuery)) && $queryStringType !== 'forced') {
             /** @var \Enlight_View_Default $view */
-            $view = Shopware()->Front()->Plugins()->ViewRenderer()->Action()->View();
+            $view = Shopware()->Front()->Plugins()->get('ViewRenderer')->Action()->View();
             $type = !empty($didYouMeanQuery) ? 'did-you-mean' : $queryStringType;
             $view->assign([
                 'finSmartDidYouMean' => [
