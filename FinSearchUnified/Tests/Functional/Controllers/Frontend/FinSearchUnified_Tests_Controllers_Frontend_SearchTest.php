@@ -7,13 +7,6 @@ use FinSearchUnified\Tests\Helper\Utility;
 
 class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Components_Test_Plugin_TestCase
 {
-    protected static $ensureLoadedPlugins = [
-        'FinSearchUnified' => [
-            'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0',
-            'ActivateFindologicForCategoryPages' => false
-        ],
-    ];
-
     public static function setUpBeforeClass()
     {
         parent::setUpBeforeClass();
@@ -199,9 +192,38 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         Shopware()->Container()->set('fin_search_unified.product_number_search', $productNumberSearch);
 
-        Shopware()->Session()->offsetSet('isSearchPage', true);
-        Shopware()->Session()->offsetSet('isCategoryPage', false);
-        Shopware()->Session()->offsetSet('findologicDI', false);
+        $session = $this->getMockBuilder(Enlight_Components_Session_Namespace::class)
+            ->setMethods(['offsetGet', 'offsetExists'])
+            ->getMock();
+        $session->expects($this->atLeastOnce())->method('offsetExists')->willReturnMap([
+            'findologicDI' => true
+        ]);
+        $session->expects($this->atLeastOnce())->method('offsetGet')->willReturnMap([
+            ['isSearchPage', true],
+            ['isCategoryPage', false],
+            ['findologicDI', false]
+        ]);
+        // Assign mocked session to container
+        Shopware()->Container()->set('session', $session);
+
+        $configArray = [
+            ['ActivateFindologic', true],
+            ['ActivateFindologicForCategoryPages', false],
+            ['ShopKey', '8D6CA2E49FB7CD09889CC0E2929F86B0'],
+        ];
+        // Create Mock object for Shopware Config
+        $config = $this->getMockBuilder(Shopware_Components_Config::class)
+            ->setMethods(['offsetGet', 'setShop'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $config->expects($this->atLeastOnce())
+            ->method('offsetGet')
+            ->willReturnMap($configArray);
+        $config->expects($this->atLeastOnce())
+            ->method('setShop')
+            ->willReturnSelf();
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $config);
 
         $response = $this->dispatch('/search?sSearch=blubbergurke');
 

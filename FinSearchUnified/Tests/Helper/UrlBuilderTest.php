@@ -176,12 +176,14 @@ class UrlBuilderTest extends TestCase
         );
         if ($forceOriginalQuery === null) {
             $this->assertArrayNotHasKey(
-                Constants::SDYM_PARAM_FORCE_QUERY, $requestedUrl,
+                Constants::SDYM_PARAM_FORCE_QUERY,
+                $requestedUrl,
                 'Expected forceOriginalQuery parameter to NOT be present'
             );
         } else {
             $this->assertArrayHasKey(
-                Constants::SDYM_PARAM_FORCE_QUERY, $requestedUrl,
+                Constants::SDYM_PARAM_FORCE_QUERY,
+                $requestedUrl,
                 'Expected forceOriginalQuery parameter to be present'
             );
         }

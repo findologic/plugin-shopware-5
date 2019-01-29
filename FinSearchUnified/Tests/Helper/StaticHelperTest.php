@@ -536,7 +536,28 @@ class StaticHelperTest extends TestCase
 
         // Create mocked view
         $view = $this->createMock(View::class);
+        if ($expectedType === null) {
+            $view->expects($this->never())->method('assign');
+        } else {
+            $view->expects($this->once())
+                ->method('assign')
+                ->with($this->callback(function ($data) use (
+                    $expectedType,
+                    $expectedAlternativeQuery,
+                    $expectedOriginalQuery
+                ) {
+                    \PHPUnit_Framework_Assert::assertEquals(
+                        [
+                            'type' => $expectedType,
+                            'alternative_query' => $expectedAlternativeQuery,
+                            'original_query' => $expectedOriginalQuery
+                        ],
+                        $data['finSmartDidYouMean']
+                    );
 
+                    return true;
+                }));
+        }
         $action = $this->createMock(Action::class);
         $action->method('View')
             ->willReturn($view);
@@ -557,37 +578,5 @@ class StaticHelperTest extends TestCase
         Shopware()->Container()->set('front', $front);
 
         StaticHelper::setSmartDidYouMean($xmlResponse);
-
-        // Get assigned variable from mocked view object
-        $finSmartDidYouMean = Shopware()
-            ->Front()
-            ->Plugins()
-            ->get('ViewRenderer')
-            ->Action()
-            ->View()
-            ->getAssign('finSmartDidYouMean');
-
-        if ($expectedType === null) {
-            $this->assertNull($finSmartDidYouMean);
-        } else {
-            $this->assertSame($expectedType, $finSmartDidYouMean['type'], sprintf(
-                'Type was expected to be %s',
-                $expectedType
-            ));
-            $this->assertSame(
-                $expectedAlternativeQuery,
-                $finSmartDidYouMean['alternative_query'],
-                sprintf("alternative_query does not have %s's value", $expectedAlternativeQuery)
-            );
-            if ($expectedOriginalQuery === '') {
-                $this->assertEmpty($finSmartDidYouMean['original_query'], 'original_query was not empty');
-            } else {
-                $this->assertSame(
-                    $expectedOriginalQuery,
-                    $finSmartDidYouMean['original_query'],
-                    sprintf("original_query does not have %s's value", $expectedOriginalQuery)
-                );
-            }
-        }
     }
 }
