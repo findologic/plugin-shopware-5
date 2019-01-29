@@ -150,6 +150,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
 
     /**
      * {@inheritdoc}
+     *
      * @throws \Exception
      */
     public function createQueryWithSorting(Criteria $criteria, ShopContextInterface $context)
