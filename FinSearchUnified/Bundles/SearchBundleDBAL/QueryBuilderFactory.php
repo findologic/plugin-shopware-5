@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Bundles\SearchBundleDBAL;
 
 use Doctrine\DBAL\Connection;
+use Enlight_Event_EventManager;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundleDBAL\ConditionHandlerInterface;
@@ -15,7 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class QueryBuilderFactory implements QueryBuilderFactoryInterface
 {
     /**
-     * @var \Enlight_Event_EventManager
+     * @var Enlight_Event_EventManager
      */
     protected $eventManager;
 
@@ -37,8 +38,6 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
      * @param Connection $connection
      * @param ContainerInterface $container
      * @param QueryBuilderFactoryInterface $originalService
-     *
-     * @throws \Enlight_Event_Exception
      */
     public function __construct(
         Connection $connection,
@@ -165,7 +164,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     /**
      * @param Criteria $criteria
      */
-    private function prepareConditionHandlers($criteria)
+    private function prepareConditionHandlers(Criteria $criteria)
     {
         foreach ($this->conditionHandlers as $handler) {
             if ($handler instanceof CriteriaAwareInterface) {

@@ -2,6 +2,8 @@
 
 namespace FinSearchUnified\Tests\Helper;
 
+use Exception;
+
 class Utility
 {
     /**
@@ -57,18 +59,7 @@ class Utility
                 TRUNCATE `s_article_img_mapping_rules`;
                 TRUNCATE `s_filter_articles`;'
             );
-        } catch (\Exception $ignored) {
+        } catch (Exception $ignored) {
         }
-    }
-
-    public static function assertMinimumVersion($requiredVersion)
-    {
-        $version = Shopware()->Config()->version;
-
-        if ($version === '___VERSION___') {
-            return true;
-        }
-
-        return version_compare($version, $requiredVersion, '>=');
     }
 }

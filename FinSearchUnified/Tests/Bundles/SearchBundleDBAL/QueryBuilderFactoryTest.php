@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Tests\Bundles\SearchBundleDBAL;
 
+use Exception;
 use FinSearchUnified\Bundles\SearchBundleDBAL\QueryBuilderFactory;
 use Shopware\Bundle\SearchBundle\Condition\CloseoutCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -10,10 +11,14 @@ use Shopware\Components\Test\Plugin\TestCase;
 
 class QueryBuilderFactoryTest extends TestCase
 {
-    /** @var QueryBuilderFactory */
+    /**
+     * @var QueryBuilderFactory
+     */
     private $criteriaFactory;
 
-    /** @var ContextServiceInterface $contextService */
+    /**
+     * @var ContextServiceInterface
+     */
     private $contextService;
 
     protected function setUp()
@@ -28,7 +33,7 @@ class QueryBuilderFactoryTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testCreateQueryWithoutConditions()
     {
@@ -87,7 +92,7 @@ class QueryBuilderFactoryTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testCreateQueryWithCondition()
     {
@@ -152,7 +157,7 @@ class QueryBuilderFactoryTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testCreateQueryWithSorting()
     {
@@ -229,7 +234,7 @@ class QueryBuilderFactoryTest extends TestCase
      * @param int $offset
      * @param int $limit
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function testCreateProductQuery($offset, $limit)
     {
