@@ -6,7 +6,6 @@
     {if $finSmartDidYouMean}
         <p id="fl-smart-did-you-mean">
             {if $finSmartDidYouMean.type == 'did-you-mean'}
-
                 {s name='frontend/search/fuzzy/did_you_mean_query'}
                     Did you mean "
                     <a href="{url controller='search'}?sSearch={$finSmartDidYouMean.alternative_query}&forceOriginalQuery=1">{$finSmartDidYouMean.alternative_query}</a>
@@ -22,9 +21,9 @@
                 {s name='frontend/search/fuzzy/corrected_query'}
                     No results for "{$finSmartDidYouMean.original_query}". Showing results for "{$finSmartDidYouMean.alternative_query}" instead
                 {/s}
-        {/if}
+            {else}
+                {* Nothing to render here *}
+            {/if}
         </p>
-    {else}
-        <p></p>
     {/if}
 {/block}

@@ -71,9 +71,6 @@ class RepositoryTest extends TestCase
         $prepareCriteria
     ) {
         $request = new \Enlight_Controller_Request_RequestHttp();
-        if ($isCategoryPage) {
-            $request->setParam('sCategory', 3);
-        }
         Shopware()->Front()->setRequest($request);
 
         $configArray = [

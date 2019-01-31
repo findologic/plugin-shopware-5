@@ -3,7 +3,6 @@
 namespace FinSearchUnified\Tests\Helper;
 
 use Enlight_Components_Session_Namespace;
-use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
@@ -137,7 +136,7 @@ class UrlBuilderTest extends TestCase
         // Assign mocked session variable to application container
         Shopware()->Container()->set('session', $session);
 
-        $_GET[Constants::SDYM_PARAM_FORCE_QUERY] = $forceOriginalQuery;
+        $_GET['forceOriginalQuery'] = $forceOriginalQuery;
 
         $urlBuilder = new UrlBuilder($this->httpClient);
 
@@ -160,36 +159,36 @@ class UrlBuilderTest extends TestCase
             'The resulting URL is not correct'
         );
         $this->assertArrayHasKey(
-            "userip",
+            'userip',
             $requestedUrl,
-            'userip was not found in the query parameters'
+            '"userip" was not found in the query parameters'
         );
         $this->assertArrayHasKey(
-            "revision",
+            'revision',
             $requestedUrl,
-            'revision was not found in the query parameters'
+            '"revision" was not found in the query parameters'
         );
         $this->assertArrayHasKey(
-            "shopkey",
+            'shopkey',
             $requestedUrl,
-            'shopkey was not found in the query parameters'
+            '"shopkey" was not found in the query parameters'
         );
         if ($forceOriginalQuery === null) {
             $this->assertArrayNotHasKey(
-                Constants::SDYM_PARAM_FORCE_QUERY,
+                'forceOriginalQuery',
                 $requestedUrl,
-                'Expected forceOriginalQuery parameter to NOT be present'
+                'Expected "forceOriginalQuery" parameter to NOT be present'
             );
         } else {
             $this->assertArrayHasKey(
-                Constants::SDYM_PARAM_FORCE_QUERY,
+                'forceOriginalQuery',
                 $requestedUrl,
-                'Expected forceOriginalQuery parameter to be present'
+                'Expected "forceOriginalQuery" parameter to be present'
             );
         }
         $this->assertEquals(
             $forceOriginalQuery,
-            $requestedUrl[Constants::SDYM_PARAM_FORCE_QUERY],
+            $requestedUrl['forceOriginalQuery'],
             'forceOriginalQuery was not processed correctly'
         );
         $this->assertTrue($criteria->hasBaseCondition('search'));

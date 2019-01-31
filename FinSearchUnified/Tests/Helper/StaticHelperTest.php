@@ -546,6 +546,12 @@ class StaticHelperTest extends TestCase
                     $expectedAlternativeQuery,
                     $expectedOriginalQuery
                 ) {
+                    \PHPUnit_Framework_Assert::assertArrayHasKey(
+                        'finSmartDidYouMean',
+                        $data,
+                        '"finSmartDidYouMean" was not assigned to the view'
+                    );
+
                     \PHPUnit_Framework_Assert::assertEquals(
                         [
                             'type' => $expectedType,
