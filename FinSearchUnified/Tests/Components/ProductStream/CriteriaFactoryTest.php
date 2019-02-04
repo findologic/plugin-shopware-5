@@ -114,11 +114,14 @@ class CriteriaFactoryTest extends TestCase
 
         // Create mock object for Shopware Session and explicitly return the values
         $session = $this->getMockBuilder(Enlight_Components_Session_Namespace::class)
-            ->setMethods(['offsetGet'])
+            ->setMethods(['offsetGet', 'offsetExists'])
             ->getMock();
         $session->expects($this->atLeastOnce())
             ->method('offsetGet')
             ->willReturnMap($sessionArray);
+        $session->expects($this->any())
+            ->method('offsetExists')
+            ->willReturn(true);
 
         // Assign mocked session variable to application container
         Shopware()->Container()->set('session', $session);
@@ -136,7 +139,11 @@ class CriteriaFactoryTest extends TestCase
 
     protected function tearDown()
     {
-        Utility::resetContainer();
         parent::tearDown();
+
+        Shopware()->Container()->reset('session');
+        Shopware()->Container()->load('session');
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->load('config');
     }
 }

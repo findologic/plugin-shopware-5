@@ -63,34 +63,4 @@ class Utility
         } catch (Exception $ignored) {
         }
     }
-
-    /**
-     * Helper method to reset container after modification in any service
-     */
-    public static function resetContainer()
-    {
-        $kernel = Shopware()->Container()->get('kernel');
-        $connection = Shopware()->Container()->get('db_connection');
-        $db = Shopware()->Container()->get('db');
-        $application = Shopware()->Container()->get('application');
-
-        Shopware()->Container()->reset();
-
-        Shopware()->Container()->set('kernel', $kernel);
-        Shopware()->Container()->set('db_connection', $connection);
-        Shopware()->Container()->set('db', $db);
-        Shopware()->Container()->set('application', $application);
-
-        /** @var $repository \Shopware\Models\Shop\Repository */
-        $repository = Shopware()->Container()->get('models')->getRepository('Shopware\Models\Shop\Shop');
-
-        $shop = $repository->getActiveDefault();
-        try {
-            $shop->registerResources();
-        } catch (Exception $e) {
-            echo sprintf('Exception found when resetting container: %s', $e->getMessage());
-        }
-
-        $_SERVER['HTTP_HOST'] = $shop->getHost();
-    }
 }

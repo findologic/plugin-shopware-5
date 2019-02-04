@@ -13,8 +13,12 @@ class RepositoryTest extends TestCase
 {
     protected function tearDown()
     {
-        Utility::resetContainer();
         parent::tearDown();
+
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->load('config');
+        Shopware()->Container()->reset('session');
+        Shopware()->Container()->load('session');
     }
 
     /**

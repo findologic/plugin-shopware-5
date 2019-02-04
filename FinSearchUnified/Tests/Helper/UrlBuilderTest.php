@@ -47,8 +47,10 @@ class UrlBuilderTest extends TestCase
 
     protected function tearDown()
     {
-        Utility::resetContainer();
         parent::tearDown();
+
+        Shopware()->Container()->reset('session');
+        Shopware()->Container()->load('session');
     }
 
     /**

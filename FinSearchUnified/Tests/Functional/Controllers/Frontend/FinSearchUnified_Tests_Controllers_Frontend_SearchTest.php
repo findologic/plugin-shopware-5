@@ -54,11 +54,37 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         parent::tearDownAfterClass();
         Utility::sResetArticles();
     }
+    
+    public function setUp()
+    {
+        parent::setUp();
+
+        $this->setConfig('ActivateFindologic', true);
+        $this->setConfig('ActivateFindologicForCategoryPages', false);
+        $this->setConfig('ShopKey', '0000000000000000ZZZZZZZZZZZZZZZZ');
+    }
 
     protected function tearDown()
     {
-        Utility::resetContainer();
         parent::tearDown();
+
+        Shopware()->Session()->offsetUnset('isSearchPage');
+        Shopware()->Session()->offsetUnset('isCategoryPage');
+        Shopware()->Session()->offsetUnset('findologicDI');
+
+        Shopware()->Container()->reset('FinSearchUnified.findologic_facet_gateway');
+        Shopware()->Container()->load('FinSearchUnified.findologic_facet_gateway');
+        Shopware()->Container()->reset('shopware_storefront.custom_facet_service');
+        Shopware()->Container()->load('shopware_storefront.custom_facet_service');
+        Shopware()->Container()->reset('shopware_search.custom_facet_criteria_request_handler');
+        Shopware()->Container()->load('shopware_search.custom_facet_criteria_request_handler');
+        Shopware()->Container()->reset('shopware_search.store_front_criteria_factory');
+        Shopware()->Container()->load('shopware_search.store_front_criteria_factory');
+
+        Shopware()->Container()->reset('fin_search_unified.product_number_search');
+        Shopware()->Container()->load('fin_search_unified.product_number_search');
+        Shopware()->Container()->reset('shopware_search.product_search');
+        Shopware()->Container()->load('shopware_search.product_search');
     }
 
     public function findologicResponseProvider()
@@ -155,35 +181,38 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             $product->addAttribute('id', $i);
         }
 
-        $httpResponse = new Zend_Http_Response(
-            200,
-            [],
-            '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>'
-        );
+        Shopware()->Session()->offsetSet('isSearchPage', true);
+        Shopware()->Session()->offsetSet('isCategoryPage', false);
+        Shopware()->Session()->offsetSet('findologicDI', false);
+
+        $facetGatewayMock = $this->getMockBuilder(FindologicFacetGateway::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getList'])
+            ->getMock();
+        $facetGatewayMock->expects($this->once())->method('getList')->willReturn([]);
+
+        Shopware()->Container()->set('FinSearchUnified.findologic_facet_gateway', $facetGatewayMock);
+        Shopware()->Container()->reset('shopware_storefront.custom_facet_service');
+        Shopware()->Container()->load('shopware_storefront.custom_facet_service');
+        Shopware()->Container()->reset('shopware_search.custom_facet_criteria_request_handler');
+        Shopware()->Container()->load('shopware_search.custom_facet_criteria_request_handler');
+        Shopware()->Container()->reset('shopware_search.store_front_criteria_factory');
+        Shopware()->Container()->load('shopware_search.store_front_criteria_factory');
+
         $urlBuilderMock = $this->getMockBuilder(UrlBuilder::class)
             ->disableOriginalConstructor()
             ->setMethods([
-                'buildCompleteFilterList',
-                'buildCategoryUrlAndGetResponse',
                 'setCustomerGroup',
                 'buildQueryUrlAndGetResponse'
             ])
             ->getMock();
+
         if ($originalQuery !== null) {
-            $urlBuilderMock->expects($this->exactly(1))->method('buildCompleteFilterList')->willReturn($httpResponse);
-            $urlBuilderMock->expects($this->never())->method('buildCategoryUrlAndGetResponse');
-            $urlBuilderMock->expects($this->exactly(2))->method('setCustomerGroup');
+            $urlBuilderMock->expects($this->once())->method('setCustomerGroup');
             $urlBuilderMock->expects($this->once())->method('buildQueryUrlAndGetResponse')->willReturn(
                 new Zend_Http_Response(200, [], $xmlResponse->asXML())
             );
         }
-
-        $facetGateway = new FindologicFacetGateway(
-            Shopware()->Container()->get('shopware_storefront.custom_facet_gateway'),
-            $urlBuilderMock
-        );
-
-        Shopware()->Container()->set('FinSearchUnified.findologic_facet_gateway', $facetGateway);
 
         $productNumberSearch = new ProductNumberSearch(
             Shopware()->Container()->get('shopware_search.product_number_search'),
@@ -191,39 +220,8 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         );
 
         Shopware()->Container()->set('fin_search_unified.product_number_search', $productNumberSearch);
-
-        $session = $this->getMockBuilder(Enlight_Components_Session_Namespace::class)
-            ->setMethods(['offsetGet', 'offsetExists'])
-            ->getMock();
-        $session->expects($this->atLeastOnce())->method('offsetExists')->willReturnMap([
-            'findologicDI' => true
-        ]);
-        $session->expects($this->atLeastOnce())->method('offsetGet')->willReturnMap([
-            ['isSearchPage', true],
-            ['isCategoryPage', false],
-            ['findologicDI', false]
-        ]);
-        // Assign mocked session to container
-        Shopware()->Container()->set('session', $session);
-
-        $configArray = [
-            ['ActivateFindologic', true],
-            ['ActivateFindologicForCategoryPages', false],
-            ['ShopKey', '8D6CA2E49FB7CD09889CC0E2929F86B0'],
-        ];
-        // Create Mock object for Shopware Config
-        $config = $this->getMockBuilder(Shopware_Components_Config::class)
-            ->setMethods(['offsetGet', 'setShop'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $config->expects($this->atLeastOnce())
-            ->method('offsetGet')
-            ->willReturnMap($configArray);
-        $config->expects($this->atLeastOnce())
-            ->method('setShop')
-            ->willReturnSelf();
-        // Assign mocked config variable to application container
-        Shopware()->Container()->set('config', $config);
+        Shopware()->Container()->reset('shopware_search.product_search');
+        Shopware()->Container()->load('shopware_search.product_search');
 
         $response = $this->dispatch('/search?sSearch=blubbergurke');
 

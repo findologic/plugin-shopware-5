@@ -13,15 +13,35 @@ use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Models\Category\Category;
+use Shopware\Components\Api\Resource;
 use Shopware_Components_Config as Config;
 use SimpleXMLElement;
 
 class StaticHelperTest extends TestCase
 {
+    /**
+     * @var Resource\Category
+     */
+    private $categoryResource;
+
+    protected function setUp()
+    {
+        parent::setUp();
+
+        $manager = new \Shopware\Components\Api\Manager();
+        $this->categoryResource = $manager->getResource('Category');
+    }
+
     protected function tearDown()
     {
-        Utility::resetContainer();
         parent::tearDown();
+
+        Shopware()->Container()->reset('front');
+        Shopware()->Container()->load('front');
+        Shopware()->Container()->reset('session');
+        Shopware()->Container()->load('session');
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->load('config');
     }
 
     /**
@@ -212,7 +232,7 @@ class StaticHelperTest extends TestCase
     public function categoryNamesProvider()
     {
         return [
-            'Root category name without children' => [1, ' Root ', 'Root'],
+            'Root category name without children' => [5, ' Genusswelten ', 'Genusswelten'],
             'Category name with parent' => [12, ' Tees ', 'Genusswelten_Tees%20und%20Zubeh%C3%B6r_Tees'],
         ];
     }
@@ -279,12 +299,15 @@ class StaticHelperTest extends TestCase
         }
         // Create Mock object for Shopware Config
         $config = $this->getMockBuilder(Config::class)
-            ->setMethods(['offsetGet'])
+            ->setMethods(['offsetGet', 'offsetExists'])
             ->disableOriginalConstructor()
             ->getMock();
         $config->expects($this->atLeastOnce())
             ->method('offsetGet')
             ->willReturnMap($configArray);
+        $config->expects($this->any())
+            ->method('offsetExists')
+            ->willReturn(true);
 
         // Assign mocked config variable to application container
         Shopware()->Container()->set('config', $config);
@@ -392,30 +415,21 @@ class StaticHelperTest extends TestCase
      */
     public function testBuildCategoryName($categoryId, $category, $expected)
     {
-        $categoryModel = Shopware()->Models()->getRepository(Category::class)->find($categoryId);
+        $categoryModel = $this->categoryResource->update($categoryId, [
+            'name' => $category
+        ]);
         $this->assertInstanceOf(Category::class, $categoryModel);
 
-        // Set category name with preceeding and succeeding spaces
-        $categoryModel->setName($category);
-        $parentModel = $categoryModel->getParent();
+        $this->updateParentCategoryName($categoryModel->getParent(), false);
 
-        // Set parent category name with preceeding and succeeding spaces
-        if ($parentModel !== null) {
-            $this->assertInstanceOf(Category::class, $parentModel);
-            $this->updateParentCategoryName($parentModel, $categoryModel);
-        }
-        // Persist changes to database
-        Shopware()->Models()->flush();
         $result = StaticHelper::buildCategoryName($categoryModel->getId());
 
-        // Revert category name back to correct state after test result
-        $categoryModel->setName(trim($category));
-        if ($parentModel !== null) {
-            $this->assertInstanceOf(Category::class, $parentModel);
-            $this->updateParentCategoryName($parentModel, $categoryModel, true);
-        }
-        // Persist changes to database
-        Shopware()->Models()->flush();
+        $this->categoryResource->update($categoryId, [
+            'name' => trim($category)
+        ]);
+
+        $this->updateParentCategoryName($categoryModel->getParent());
+
         $this->assertSame($expected, $result, 'Expected category name to be trimmed but was not');
     }
 
@@ -423,37 +437,31 @@ class StaticHelperTest extends TestCase
      * Helper method to recursively update parent category name
      *
      * @param Category $parent
-     * @param Category $categoryModel
      * @param bool $restore
-     *
-     * @throws \Doctrine\ORM\OptimisticLockException
      */
-    private function updateParentCategoryName(Category $parent, Category $categoryModel, $restore = false)
+    private function updateParentCategoryName(Category $parent, $restore = true)
     {
-        // Trim name here for restoring
-        $parentName = trim($parent->getName());
+        // Stop when Shopware's root category is reached. Changing it can and will break unrelated tests.
+        if ($parent->getId() === 1) {
+            return;
+        }
 
-        // Add spaces to name for testing if restore is false
-        if (!$restore) {
-            $parentName = str_pad(
-                $parentName,
-                strlen($parentName) + 2,
+        if ($restore) {
+            $name = trim($parent->getName());
+        } else {
+            $name = str_pad(
+                $parent->getName(),
+                strlen($parent->getName()) + 2,
                 ' ',
                 STR_PAD_BOTH
             );
         }
 
-        $parent->setName($parentName);
-        Shopware()->Models()->persist($parent);
+        $this->categoryResource->update($parent->getId(), [
+            'name' => $name
+        ]);
 
-        $categoryModel->setParent($parent);
-        Shopware()->Models()->persist($categoryModel);
-
-        if ($parent->getParent() !== null) {
-            $this->updateParentCategoryName($parent->getParent(), $parent, $restore);
-        }
-
-        Shopware()->Models()->flush();
+        $this->updateParentCategoryName($parent->getParent(), $restore);
     }
 
     public function smartDidYouMeanProvider()

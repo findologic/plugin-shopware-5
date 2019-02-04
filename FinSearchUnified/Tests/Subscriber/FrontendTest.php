@@ -16,8 +16,12 @@ class FrontendTest extends TestCase
 {
     protected function tearDown()
     {
-        Utility::resetContainer();
         parent::tearDown();
+
+        Shopware()->Container()->reset('session');
+        Shopware()->Container()->load('session');
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->load('config');
     }
 
     /**
@@ -113,6 +117,7 @@ class FrontendTest extends TestCase
             ['isCategoryPage', $isCategory],
             ['findologicDI', false]
         ]);
+        $session->expects($this->any())->method('offsetExists')->willReturn(true);
 
         Shopware()->Container()->set('session', $session);
 
