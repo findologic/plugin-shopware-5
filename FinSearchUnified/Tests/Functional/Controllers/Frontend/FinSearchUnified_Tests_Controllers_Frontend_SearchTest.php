@@ -254,4 +254,17 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             }
         }
     }
+
+    /**
+     * Allows to set a Shopware config
+     *
+     * @param string $name
+     * @param mixed  $value
+     */
+    protected function setConfig($name, $value)
+    {
+        Shopware()->Container()->get('config_writer')->save($name, $value);
+        Shopware()->Container()->get('cache')->clean();
+        Shopware()->Container()->get('config')->setShop(Shopware()->Shop());
+    }
 }
