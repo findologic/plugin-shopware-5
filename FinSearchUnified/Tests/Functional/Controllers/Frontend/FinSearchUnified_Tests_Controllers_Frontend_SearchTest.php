@@ -1,9 +1,12 @@
 <?php
 
-use FinSearchUnified\Bundles\FindologicFacetGateway;
 use FinSearchUnified\Bundles\ProductNumberSearch;
 use FinSearchUnified\Helper\UrlBuilder;
 use FinSearchUnified\Tests\Helper\Utility;
+use Shopware\Bundle\SearchBundle\Criteria;
+use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
+use Shopware\Bundle\SearchBundle\StoreFrontCriteriaFactory;
+use Shopware\Bundle\SearchBundle\ProductSearch;
 
 class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Components_Test_Plugin_TestCase
 {
@@ -62,27 +65,19 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         $this->setConfig('ActivateFindologic', true);
         $this->setConfig('ActivateFindologicForCategoryPages', false);
         $this->setConfig('ShopKey', '0000000000000000ZZZZZZZZZZZZZZZZ');
+
+        Shopware()->Container()->reset('fin_search_unified.subscriber.frontend');
     }
 
     protected function tearDown()
     {
         parent::tearDown();
 
-        Shopware()->Session()->offsetUnset('isSearchPage');
-        Shopware()->Session()->offsetUnset('isCategoryPage');
         Shopware()->Session()->offsetUnset('findologicDI');
 
-        Shopware()->Container()->reset('FinSearchUnified.findologic_facet_gateway');
-        Shopware()->Container()->load('FinSearchUnified.findologic_facet_gateway');
-        Shopware()->Container()->reset('shopware_storefront.custom_facet_service');
-        Shopware()->Container()->load('shopware_storefront.custom_facet_service');
-        Shopware()->Container()->reset('shopware_search.custom_facet_criteria_request_handler');
-        Shopware()->Container()->load('shopware_search.custom_facet_criteria_request_handler');
         Shopware()->Container()->reset('shopware_search.store_front_criteria_factory');
         Shopware()->Container()->load('shopware_search.store_front_criteria_factory');
 
-        Shopware()->Container()->reset('fin_search_unified.product_number_search');
-        Shopware()->Container()->load('fin_search_unified.product_number_search');
         Shopware()->Container()->reset('shopware_search.product_search');
         Shopware()->Container()->load('shopware_search.product_search');
     }
@@ -181,23 +176,20 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             $product->addAttribute('id', $i);
         }
 
-        Shopware()->Session()->offsetSet('isSearchPage', true);
-        Shopware()->Session()->offsetSet('isCategoryPage', false);
         Shopware()->Session()->offsetSet('findologicDI', false);
 
-        $facetGatewayMock = $this->getMockBuilder(FindologicFacetGateway::class)
+        $criteria = new Criteria();
+        $criteria->addBaseCondition(new SearchTermCondition('blubbergurke'));
+        $storeFrontCriteriaFactoryMock = $this->getMockBuilder(StoreFrontCriteriaFactory::class)
             ->disableOriginalConstructor()
-            ->setMethods(['getList'])
+            ->setMethods(['createSearchCriteria'])
             ->getMock();
-        $facetGatewayMock->expects($this->once())->method('getList')->willReturn([]);
+        $storeFrontCriteriaFactoryMock->expects($this->once())->method('createSearchCriteria')->willReturn($criteria);
 
-        Shopware()->Container()->set('FinSearchUnified.findologic_facet_gateway', $facetGatewayMock);
-        Shopware()->Container()->reset('shopware_storefront.custom_facet_service');
-        Shopware()->Container()->load('shopware_storefront.custom_facet_service');
-        Shopware()->Container()->reset('shopware_search.custom_facet_criteria_request_handler');
-        Shopware()->Container()->load('shopware_search.custom_facet_criteria_request_handler');
-        Shopware()->Container()->reset('shopware_search.store_front_criteria_factory');
-        Shopware()->Container()->load('shopware_search.store_front_criteria_factory');
+        Shopware()->Container()->set(
+            'shopware_search.store_front_criteria_factory',
+            $storeFrontCriteriaFactoryMock
+        );
 
         $urlBuilderMock = $this->getMockBuilder(UrlBuilder::class)
             ->disableOriginalConstructor()
@@ -219,9 +211,12 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             $urlBuilderMock
         );
 
-        Shopware()->Container()->set('fin_search_unified.product_number_search', $productNumberSearch);
-        Shopware()->Container()->reset('shopware_search.product_search');
-        Shopware()->Container()->load('shopware_search.product_search');
+        $productSearch = new ProductSearch(
+            Shopware()->Container()->get('shopware_storefront.list_product_service'),
+            $productNumberSearch
+        );
+
+        Shopware()->Container()->set('shopware_search.product_search', $productSearch);
 
         $response = $this->dispatch('/search?sSearch=blubbergurke');
 

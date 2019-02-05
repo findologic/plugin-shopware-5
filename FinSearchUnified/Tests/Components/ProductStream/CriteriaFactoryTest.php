@@ -75,8 +75,11 @@ class CriteriaFactoryTest extends TestCase
         $isCategoryPage,
         $expected
     ) {
-        /** @var CriteriaFactory $factory */
-        $factory = Shopware()->Container()->get('fin_search_unified.product_stream.criteria_factory');
+        $factory = new CriteriaFactory(
+            Shopware()->Container()->get('shopware_search.store_front_criteria_factory'),
+            Shopware()->Container()->get('shopware_product_stream.criteria_factory')
+        );
+
 
         /** @var ContextServiceInterface $contextService */
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
