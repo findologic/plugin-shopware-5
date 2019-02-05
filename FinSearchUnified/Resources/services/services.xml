@@ -32,5 +32,13 @@
             id="fin_search_unified.search_bundle_dbal.condition.has_active_child_of_shop_category_condition_handler">
             <tag name="condition_handler_dbal"/>
         </service>
+        <service
+            id="fin_search_unified.searchdbal.query_builder_factory"
+            class="FinSearchUnified\Bundles\SearchBundleDBAL\QueryBuilderFactory"
+        >
+            <argument type="service" id="dbal_connection" />
+            <argument type="service" id="service_container" />
+            <argument type="service" id="shopware_searchdbal.dbal_query_builder_factory" />
+        </service>
     </services>
 </container>
