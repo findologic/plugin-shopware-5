@@ -107,11 +107,11 @@ class UrlBuilderTest extends TestCase
     /**
      * @dataProvider reverseProxyIpAddressProvider
      *
-     * @param $unfilteredIp
+     * @param string $unfilteredIp
      *
      * @throws \Exception
      */
-    public function testSendsOnlyClientIpFromReverseProxy($unfilteredIp)
+    public function testSendsOnlyClientIpFromReverseProxy(string $unfilteredIp)
     {
         $this->setIpHeader('HTTP_X_FORWARDED_FOR', $unfilteredIp);
 
@@ -144,7 +144,7 @@ class UrlBuilderTest extends TestCase
     }
 
     /**
-     * @param $field
+     * @param string $field
      * @param string $ipAddress The ip address to set.
      */
     private function setIpHeader($field, $ipAddress)
