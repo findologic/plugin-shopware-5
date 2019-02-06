@@ -2,13 +2,13 @@
 
 namespace FinSearchUnified\Bundles\SearchBundleDBAL\ConditionHandler;
 
-use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveCategoryCondition;
+use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveMainDetailCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundleDBAL\ConditionHandlerInterface;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilder;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
-class HasActiveCategoryConditionHandler implements ConditionHandlerInterface
+class HasActiveMainDetailConditionHandler implements ConditionHandlerInterface
 {
     /**
      * @param ConditionInterface $condition
@@ -17,7 +17,7 @@ class HasActiveCategoryConditionHandler implements ConditionHandlerInterface
      */
     public function supportsCondition(ConditionInterface $condition)
     {
-        return ($condition instanceof HasActiveCategoryCondition);
+        return ($condition instanceof HasActiveMainDetailCondition);
     }
 
     /**
@@ -30,16 +30,11 @@ class HasActiveCategoryConditionHandler implements ConditionHandlerInterface
         QueryBuilder $query,
         ShopContextInterface $context
     ) {
-        $query->innerJoin(
-            'product',
-            's_articles_categories_ro',
-            'productSArticlesCategoriesRo',
-            'productSArticlesCategoriesRo.articleID = product.id'
-        )->innerJoin(
-            'productSArticlesCategoriesRo',
-            's_categories',
-            'category',
-            'category.id = productSArticlesCategoriesRo.categoryID'
-        )->andWhere('category.active = true');
+        $query->andWhere(
+            '(SELECT COUNT(*) 
+            FROM s_articles_details 
+            WHERE s_articles_details.id = product.main_detail_id 
+            AND s_articles_details.active = 1) > 0'
+        );
     }
 }

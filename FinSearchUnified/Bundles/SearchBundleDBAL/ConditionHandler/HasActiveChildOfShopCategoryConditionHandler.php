@@ -24,8 +24,6 @@ class HasActiveChildOfShopCategoryConditionHandler implements ConditionHandlerIn
      * @param ConditionInterface $condition
      * @param QueryBuilder $query
      * @param ShopContextInterface $context
-     *
-     * @return void
      */
     public function generateCondition(
         ConditionInterface $condition,
