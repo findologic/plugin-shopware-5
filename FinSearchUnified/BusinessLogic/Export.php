@@ -4,7 +4,7 @@ namespace FinSearchUnified\BusinessLogic;
 
 use Assert\AssertionFailedException;
 use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveCategoryCondition;
-use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveChildOfShopCategoryCondition;
+use FinSearchUnified\Bundles\SearchBundle\Condition\IsChildOfShopCategoryCondition;
 use FinSearchUnified\XmlInformation;
 use Shopware\Bundle\SearchBundle\Condition\IsAvailableCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -86,8 +86,8 @@ class Export
         if (Shopware()->Config()->offsetGet('hideNoInStock') === true) {
             $criteria->addCondition(new IsAvailableCondition());
         }
-        $criteria->addCondition(new HasActiveChildOfShopCategoryCondition($shopCategory));
-        $criteria->addCondition(new HasActiveCategoryCondition());
+        $criteria->addCondition(new IsChildOfShopCategoryCondition($shopCategory));
+        $criteria->addCondition(new HasActiveCategoryCondition($shopCategory));
 
         if ($count) {
             $criteria->limit($count);
