@@ -97,7 +97,6 @@ class UrlBuilderTest extends TestCase
         $criteria->offset(0)->limit(2);
 
         $urlBuilder->buildQueryUrlAndGetResponse($criteria);
-        /** @var Zend_Uri_Http $requestedUrl */
         $requestedUrl = $this->httpClient->getUri()->getQueryAsArray();
         $usedIpInRequest = $requestedUrl['userip'];
 
@@ -111,7 +110,7 @@ class UrlBuilderTest extends TestCase
      *
      * @throws \Exception
      */
-    public function testSendsOnlyClientIpFromReverseProxy(string $unfilteredIp)
+    public function testSendsOnlyClientIpFromReverseProxy($unfilteredIp)
     {
         $this->setIpHeader('HTTP_X_FORWARDED_FOR', $unfilteredIp);
 
@@ -121,7 +120,6 @@ class UrlBuilderTest extends TestCase
         $criteria->offset(0)->limit(2);
 
         $urlBuilder->buildQueryUrlAndGetResponse($criteria);
-        /** @var Zend_Uri_Http $requestedUrl */
         $requestedUrl = $this->httpClient->getUri()->getQueryAsArray();
         $usedIpInRequest = $requestedUrl['userip'];
 
