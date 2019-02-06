@@ -2,13 +2,13 @@
 
 namespace FinSearchUnified\Bundles\SearchBundleDBAL\ConditionHandler;
 
-use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveCategoryCondition;
+use FinSearchUnified\Bundles\SearchBundle\Condition\IsChildOfShopCategoryCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundleDBAL\ConditionHandlerInterface;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilder;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
-class HasActiveCategoryConditionHandler implements ConditionHandlerInterface
+class IsChildOfShopCategoryConditionHandler implements ConditionHandlerInterface
 {
     /**
      * @param ConditionInterface $condition
@@ -17,7 +17,7 @@ class HasActiveCategoryConditionHandler implements ConditionHandlerInterface
      */
     public function supportsCondition(ConditionInterface $condition)
     {
-        return ($condition instanceof HasActiveCategoryCondition);
+        return ($condition instanceof IsChildOfShopCategoryCondition);
     }
 
     /**
@@ -30,16 +30,13 @@ class HasActiveCategoryConditionHandler implements ConditionHandlerInterface
         QueryBuilder $query,
         ShopContextInterface $context
     ) {
-        $query->andWhere(
-            '(SELECT COUNT(*) 
+        $query->andWhere('
+            (SELECT COUNT(*) 
             FROM s_articles_categories_ro 
-            LEFT JOIN s_categories ON s_categories.id = s_articles_categories_ro.categoryID 
             WHERE s_articles_categories_ro.articleID = product.id 
-            AND s_categories.active = 1 
-            AND s_articles_categories_ro.categoryID != :shopCategoryId) > 0'
-        );
+            AND s_articles_categories_ro.categoryID = :shopCategoryId) > 0');
 
-        /* @var $condition HasActiveCategoryCondition */
+        /* @var $condition IsChildOfShopCategoryCondition */
         $query->setParameter(
             ':shopCategoryId',
             $condition->getShopCategoryId()

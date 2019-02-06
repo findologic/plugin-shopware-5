@@ -6,7 +6,7 @@ use Assert\Assertion;
 use Assert\AssertionFailedException;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 
-class HasActiveChildOfShopCategoryCondition implements ConditionInterface, \JsonSerializable
+class IsChildOfShopCategoryCondition implements ConditionInterface, \JsonSerializable
 {
     /**
      * @var int
@@ -32,7 +32,7 @@ class HasActiveChildOfShopCategoryCondition implements ConditionInterface, \Json
      */
     public function getName()
     {
-        return 'has_active_child_of_shop_category_condition';
+        return 'is_child_of_shop_category_condition';
     }
 
     /**

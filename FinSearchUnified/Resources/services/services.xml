@@ -28,8 +28,8 @@
             <tag name="condition_handler_dbal"/>
         </service>
         <service
-            class="FinSearchUnified\Bundles\SearchBundleDBAL\ConditionHandler\HasActiveChildOfShopCategoryConditionHandler"
-            id="fin_search_unified.search_bundle_dbal.condition.has_active_child_of_shop_category_condition_handler">
+            class="FinSearchUnified\Bundles\SearchBundleDBAL\ConditionHandler\IsChildOfShopCategoryConditionHandler"
+            id="fin_search_unified.search_bundle_dbal.condition.is_child_of_shop_category_condition_handler">
             <tag name="condition_handler_dbal"/>
         </service>
         <service

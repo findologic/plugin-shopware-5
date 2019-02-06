@@ -84,7 +84,7 @@ class ExportTest extends TestCase
      */
     public function articleProvider()
     {
-        $shopCategoryId = Shopware()->Shop()->getCategory()->getId();
+        $shopCategoryId = 5;
 
         return [
             'All active articles' => [
@@ -252,7 +252,7 @@ class ExportTest extends TestCase
                 'laststock' => 1,
                 'instock' => 5,
                 'minpurchase' => 3,
-                'categories' => [39, true],
+                'categories' => [42, true],
                 'expected' => 0,
                 'Expected that variation are not returned'
             ],
@@ -308,7 +308,7 @@ class ExportTest extends TestCase
         /** @var Category $categoryModel */
         $categoryModel = $this->categoryRepository->find($category[0]);
         $this->assertInstanceOf(
-            'Shopware\Models\Category\Category',
+            Category::class,
             $categoryModel,
             sprintf('Could not find category for given ID %d', $category[0])
         );
