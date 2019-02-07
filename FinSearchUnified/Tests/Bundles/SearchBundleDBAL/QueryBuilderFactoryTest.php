@@ -2,7 +2,10 @@
 
 namespace FinSearchUnified\Tests\Bundles\SearchBundleDBAL;
 
+use Assert\AssertionFailedException;
 use Exception;
+use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveCategoryCondition;
+use FinSearchUnified\Bundles\SearchBundle\Condition\IsChildOfShopCategoryCondition;
 use FinSearchUnified\Bundles\SearchBundleDBAL\QueryBuilderFactory;
 use Shopware\Bundle\SearchBundle\Condition\CloseoutCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -14,7 +17,7 @@ class QueryBuilderFactoryTest extends TestCase
     /**
      * @var QueryBuilderFactory
      */
-    private $criteriaFactory;
+    private $queryBuilderFactory;
 
     /**
      * @var ContextServiceInterface
@@ -25,7 +28,7 @@ class QueryBuilderFactoryTest extends TestCase
     {
         parent::setUp();
 
-        $this->criteriaFactory = Shopware()->Container()->get(
+        $this->queryBuilderFactory = Shopware()->Container()->get(
             'fin_search_unified.searchdbal.query_builder_factory'
         );
 
@@ -40,7 +43,7 @@ class QueryBuilderFactoryTest extends TestCase
         $context = $this->contextService->getShopContext();
 
         $criteria = new Criteria();
-        $query = $this->criteriaFactory->createQuery($criteria, $context);
+        $query = $this->queryBuilderFactory->createQuery($criteria, $context);
         $parts = $query->getQueryParts();
 
         // FROM
@@ -94,13 +97,13 @@ class QueryBuilderFactoryTest extends TestCase
     /**
      * @throws Exception
      */
-    public function testCreateQueryWithCondition()
+    public function testCreateQueryWithCloseoutCondition()
     {
         $context = $this->contextService->getShopContext();
 
         $criteria = new Criteria();
         $criteria->addCondition(new CloseoutCondition());
-        $query = $this->criteriaFactory->createQuery($criteria, $context);
+        $query = $this->queryBuilderFactory->createQuery($criteria, $context);
         $parts = $query->getQueryParts();
 
         // FROM
@@ -157,6 +160,145 @@ class QueryBuilderFactoryTest extends TestCase
     }
 
     /**
+     * @throws AssertionFailedException
+     * @throws Exception
+     */
+    public function testCreateQueryWithHasActiveCategoryCondition()
+    {
+        $shopCategoryId = 5;
+
+        $context = $this->contextService->getShopContext();
+
+        $criteria = new Criteria();
+        $criteria->addCondition(new HasActiveCategoryCondition($shopCategoryId));
+        $query = $this->queryBuilderFactory->createQuery($criteria, $context);
+        $parts = $query->getQueryParts();
+
+        // FROM
+        $this->assertArrayHasKey('from', $parts);
+        $this->assertSame(
+            's_articles',
+            $parts['from'][0]['table'],
+            'Expected table to be s_articles'
+        );
+        $this->assertSame(
+            'product',
+            $parts['from'][0]['alias'],
+            'Expected table alias to be product'
+        );
+
+        // JOIN
+        $this->assertArrayHasKey('join', $parts);
+        $this->assertSame(
+            'left',
+            $parts['join']['product'][0]['joinType'],
+            'Expected join to be LEFT JOIN'
+        );
+        $this->assertSame(
+            's_articles_details',
+            $parts['join']['product'][0]['joinTable'],
+            'Expected join table to be s_article_details'
+        );
+        $this->assertSame(
+            'mainDetail.id = product.main_detail_id',
+            $parts['join']['product'][0]['joinCondition'],
+            'First join condition is incorrect'
+        );
+        $this->assertSame('left', $parts['join']['product'][1]['joinType']);
+        $this->assertSame('s_articles_details', $parts['join']['product'][1]['joinTable']);
+        $this->assertSame(
+            'variant.articleID = product.id AND variant.id != product.main_detail_id',
+            $parts['join']['product'][1]['joinCondition'],
+            'Second join condition is incorrect'
+        );
+
+        // WHERE
+        $this->assertNotNull($parts['where'], 'WHERE clause is expected to have expression');
+        $this->assertContains(
+            'WHERE s_articles_categories_ro.articleID = product.id 
+            AND s_categories.active = 1 
+            AND s_articles_categories_ro.categoryID != :shopCategoryId',
+            $parts['where']->__toString(),
+            '"HasActiveCategoryCondition" is not applied correctly'
+        );
+
+        // GROUP BY
+        $this->assertEmpty($parts['groupBy'], 'GROUP BY is expected to be empty');
+
+        // ORDER BY
+        $this->assertEmpty($parts['orderBy'], 'ORDER BY is expected to be empty');
+    }
+
+    /**
+     * @throws AssertionFailedException
+     * @throws Exception
+     */
+    public function testCreateQueryWithIsChildOfShopCategoryCondition()
+    {
+        $shopCategoryId = 5;
+
+        $context = $this->contextService->getShopContext();
+
+        $criteria = new Criteria();
+        $criteria->addCondition(new IsChildOfShopCategoryCondition($shopCategoryId));
+        $query = $this->queryBuilderFactory->createQuery($criteria, $context);
+        $parts = $query->getQueryParts();
+
+        // FROM
+        $this->assertArrayHasKey('from', $parts);
+        $this->assertSame(
+            's_articles',
+            $parts['from'][0]['table'],
+            'Expected table to be s_articles'
+        );
+        $this->assertSame(
+            'product',
+            $parts['from'][0]['alias'],
+            'Expected table alias to be product'
+        );
+
+        // JOIN
+        $this->assertArrayHasKey('join', $parts);
+        $this->assertSame(
+            'left',
+            $parts['join']['product'][0]['joinType'],
+            'Expected join to be LEFT JOIN'
+        );
+        $this->assertSame(
+            's_articles_details',
+            $parts['join']['product'][0]['joinTable'],
+            'Expected join table to be s_article_details'
+        );
+        $this->assertSame(
+            'mainDetail.id = product.main_detail_id',
+            $parts['join']['product'][0]['joinCondition'],
+            'First join condition is incorrect'
+        );
+        $this->assertSame('left', $parts['join']['product'][1]['joinType']);
+        $this->assertSame('s_articles_details', $parts['join']['product'][1]['joinTable']);
+        $this->assertSame(
+            'variant.articleID = product.id AND variant.id != product.main_detail_id',
+            $parts['join']['product'][1]['joinCondition'],
+            'Second join condition is incorrect'
+        );
+
+        // WHERE
+        $this->assertNotNull($parts['where'], 'WHERE clause is expected to have expression');
+        $this->assertContains(
+            'WHERE s_articles_categories_ro.articleID = product.id 
+            AND s_articles_categories_ro.categoryID = :shopCategoryId',
+            $parts['where']->__toString(),
+            '"IsChildOfShopCategoryCondition" is not applied correctly'
+        );
+
+        // GROUP BY
+        $this->assertEmpty($parts['groupBy'], 'GROUP BY is expected to be empty');
+
+        // ORDER BY
+        $this->assertEmpty($parts['orderBy'], 'ORDER BY is expected to be empty');
+    }
+
+    /**
      * @throws Exception
      */
     public function testCreateQueryWithSorting()
@@ -164,7 +306,7 @@ class QueryBuilderFactoryTest extends TestCase
         $context = $this->contextService->getShopContext();
 
         $criteria = new Criteria();
-        $query = $this->criteriaFactory->createQueryWithSorting($criteria, $context);
+        $query = $this->queryBuilderFactory->createQueryWithSorting($criteria, $context);
         $parts = $query->getQueryParts();
 
         // FROM
@@ -248,7 +390,7 @@ class QueryBuilderFactoryTest extends TestCase
             $criteria->limit($limit);
         }
 
-        $query = $this->criteriaFactory->createProductQuery($criteria, $context);
+        $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
         $parts = $query->getQueryParts();
 
         // SELECT
