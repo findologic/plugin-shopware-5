@@ -1,7 +1,15 @@
 {extends file='parent:frontend/search/fuzzy.tpl'}
 
 {block name="frontend_search_headline"}
-    {$smarty.block.parent}
+    <h1 class="search--headline">
+        {if $finSmartDidYouMean == false || $finSmartDidYouMean.type == 'did-you-mean'}
+            {s name='SearchHeadline'}{/s}
+        {else}
+            {s name='frontend/search/fuzzy/search_head_line'}
+                The following products have been found matching your search "{$finSmartDidYouMean.alternative_query}": <span class="headline--product-count">{$sSearchResults.sArticlesCount}</span>
+            {/s}
+        {/if}
+    </h1>
 
     {if $finSmartDidYouMean}
         <p id="fl-smart-did-you-mean">
