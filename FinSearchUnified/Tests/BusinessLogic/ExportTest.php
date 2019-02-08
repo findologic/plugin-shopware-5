@@ -11,11 +11,16 @@ use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Category\Category;
 use Shopware\Models\Category\Repository;
-use Shopware_Components_Config;
 use UnexpectedValueException;
 
 class ExportTest extends TestCase
 {
+    protected static $ensureLoadedPlugins = [
+        'FinSearchUnified' => [
+            'ShopKey' => 'ABCD0815'
+        ],
+    ];
+
     /**
      * @var Export
      */
@@ -29,7 +34,6 @@ class ExportTest extends TestCase
     public static function setUpBeforeClass()
     {
         parent::setUpBeforeClass();
-
         Utility::sResetArticles();
     }
 
@@ -38,22 +42,13 @@ class ExportTest extends TestCase
         parent::setUp();
 
         /** @var Export $exportService */
-        $this->exportService = new Export(
-            Shopware()->Container()->get('fin_search_unified.searchdbal.query_builder_factory'),
-            Shopware()->Container()->get('shopware_storefront.product_service'),
-            Shopware()->Container()->get('legacy_struct_converter'),
-            Shopware()->Container()->get('shopware_storefront.context_service')
-        );
-
+        $this->exportService = Shopware()->Container()->get('fin_search_unified.business_logic.export');
         $this->categoryRepository = Shopware()->Models()->getRepository(Category::class);
     }
 
     protected function tearDown()
     {
         parent::tearDown();
-        Shopware()->Container()->reset('config');
-        Shopware()->Container()->load('config');
-
         Utility::sResetArticles();
     }
 
@@ -67,7 +62,7 @@ class ExportTest extends TestCase
         // Reset category active status which was used in the test cases
         $categoryRepository = Shopware()->Models()->getRepository(Category::class);
 
-        $categoryModels = $categoryRepository->findBy(['id' => [Shopware()->Shop()->getCategory()->getId(), 39]]);
+        $categoryModels = $categoryRepository->findBy(['id' => [5, 42]]);
 
         /** @var Category $categoryModel */
         foreach ($categoryModels as $categoryModel) {
@@ -96,9 +91,9 @@ class ExportTest extends TestCase
                 'laststock' => 0,
                 'instock' => 10,
                 'minpuchase' => 10,
-                'categories' => [$shopCategoryId, true],
-                'name' => true,
-                'main_detail' => true,
+                'category_status' => [$shopCategoryId, true],
+                'name' => [true, true],
+                'main_detail' => [true, true],
                 'expected' => 2,
                 'Two articles were expected'
             ],
@@ -111,9 +106,9 @@ class ExportTest extends TestCase
                 'laststock' => 0,
                 'instock' => 10,
                 'minpuchase' => 10,
-                'categories' => [$shopCategoryId, true],
-                'name' => false,
-                'main_detail' => true,
+                'category_status' => [$shopCategoryId, true],
+                'name' => [true, false],
+                'main_detail' => [true, true],
                 'expected' => 1,
                 'Article without name was not expected to be returned'
             ],
@@ -126,9 +121,9 @@ class ExportTest extends TestCase
                 'laststock' => 0,
                 'instock' => 10,
                 'minpuchase' => 10,
-                'categories' => [$shopCategoryId, true],
-                'name' => true,
-                'main_detail' => false,
+                'category_status' => [$shopCategoryId, true],
+                'name' => [true, true],
+                'main_detail' => [true, false],
                 'expected' => 1,
                 'Article without name was not expected to be returned'
             ],
@@ -141,9 +136,9 @@ class ExportTest extends TestCase
                 'laststock' => 0,
                 'instock' => 10,
                 'minpuchase' => 10,
-                'categories' => [$shopCategoryId, true],
-                'name' => true,
-                'main_detail' => true,
+                'category_status' => [$shopCategoryId, true],
+                'name' => [true, true],
+                'main_detail' => [true, true],
                 'expected' => 1,
                 'Only one article was expected'
             ],
@@ -156,9 +151,9 @@ class ExportTest extends TestCase
                 'laststock' => 0,
                 'instock' => 10,
                 'minpuchase' => 10,
-                'categories' => [$shopCategoryId, true],
-                'name' => true,
-                'main_detail' => true,
+                'category_status' => [$shopCategoryId, true],
+                'name' => [true, true],
+                'main_detail' => [true, true],
                 'expected' => 0,
                 'No articles were expected but %d were returned'
             ],
@@ -171,9 +166,9 @@ class ExportTest extends TestCase
                 'laststock' => 0,
                 'instock' => 10,
                 'minpuchase' => 10,
-                'categories' => [$shopCategoryId, true],
-                'name' => true,
-                'main_detail' => true,
+                'category_status' => [$shopCategoryId, true],
+                'name' => [true, true],
+                'main_detail' => [true, true],
                 'expected' => null,
                 'UnexpectedValueException was expected but was not thrown'
             ],
@@ -186,9 +181,9 @@ class ExportTest extends TestCase
                 'laststock' => 0,
                 'instock' => 10,
                 'minpuchase' => 10,
-                'categories' => [$shopCategoryId, true],
-                'name' => true,
-                'main_detail' => true,
+                'category_status' => [$shopCategoryId, true],
+                'name' => [true, true],
+                'main_detail' => [true, true],
                 'expected' => 1,
                 '1 out of 2 valid articles were expected to be exported'
             ],
@@ -201,9 +196,9 @@ class ExportTest extends TestCase
                 'laststock' => 0,
                 'instock' => 10,
                 'minpuchase' => 10,
-                'categories' => [$shopCategoryId, true],
-                'name' => true,
-                'main_detail' => true,
+                'category_status' => [$shopCategoryId, true],
+                'name' => [true, true],
+                'main_detail' => [true, true],
                 'expected' => 1,
                 'All except the first article were expected to be exported'
             ],
@@ -216,9 +211,9 @@ class ExportTest extends TestCase
                 'laststock' => 0,
                 'instock' => 10,
                 'minpuchase' => 10,
-                'categories' => [$shopCategoryId, true],
-                'name' => true,
-                'main_detail' => true,
+                'category_status' => [$shopCategoryId, true],
+                'name' => [true, true],
+                'main_detail' => [true, true],
                 'expected' => 1,
                 'Only one article was expected to be exported'
             ],
@@ -231,9 +226,9 @@ class ExportTest extends TestCase
                 'laststock' => 0,
                 'instock' => 10,
                 'minpuchase' => 10,
-                'categories' => [$shopCategoryId, true],
-                'name' => true,
-                'main_detail' => true,
+                'category_status' => [$shopCategoryId, true],
+                'name' => [true, true],
+                'main_detail' => [true, true],
                 'expected' => 2,
                 'Expected variation to be returned but was not'
             ],
@@ -246,9 +241,9 @@ class ExportTest extends TestCase
                 'laststock' => 1,
                 'instock' => 5,
                 'minpurchase' => 3,
-                'categories' => [$shopCategoryId, true],
-                'name' => true,
-                'main_detail' => true,
+                'category_status' => [$shopCategoryId, true],
+                'name' => [true, true],
+                'main_detail' => [true, true],
                 'expected' => 2,
                 'Expected variation to be returned but was not'
             ],
@@ -261,9 +256,9 @@ class ExportTest extends TestCase
                 'laststock' => 1,
                 'instock' => 3,
                 'minpurchase' => 5,
-                'categories' => [$shopCategoryId, true],
-                'name' => true,
-                'main_detail' => true,
+                'category_status' => [$shopCategoryId, true],
+                'name' => [true, true],
+                'main_detail' => [true, true],
                 'expected' => 0,
                 'Expected that variation is not returned'
             ],
@@ -276,9 +271,9 @@ class ExportTest extends TestCase
                 'laststock' => 1,
                 'instock' => 3,
                 'minpurchase' => 5,
-                'categories' => [$shopCategoryId, true],
-                'name' => true,
-                'main_detail' => true,
+                'category_status' => [$shopCategoryId, true],
+                'name' => [true, true],
+                'main_detail' => [true, true],
                 'expected' => 2,
                 'Expected that variation is returned'
             ],
@@ -291,9 +286,9 @@ class ExportTest extends TestCase
                 'laststock' => 1,
                 'instock' => 5,
                 'minpurchase' => 3,
-                'categories' => [$shopCategoryId, true],
-                'name' => true,
-                'main_detail' => true,
+                'category_status' => [$shopCategoryId, true],
+                'name' => [true, true],
+                'main_detail' => [true, true],
                 'expected' => 2,
                 'Expected that variation is returned'
             ],
@@ -306,9 +301,9 @@ class ExportTest extends TestCase
                 'laststock' => 1,
                 'instock' => 5,
                 'minpurchase' => 3,
-                'categories' => [42, true],
-                'name' => true,
-                'main_detail' => true,
+                'category_status' => [42, true],
+                'name' => [true, true],
+                'main_detail' => [true, true],
                 'expected' => 0,
                 'Expected that variation are not returned'
             ],
@@ -321,100 +316,13 @@ class ExportTest extends TestCase
                 'laststock' => 1,
                 'instock' => 5,
                 'minpurchase' => 3,
-                'categories' => [$shopCategoryId, false],
-                'name' => true,
-                'main_detail' => true,
+                'category_status' => [$shopCategoryId, false],
+                'name' => [true, true],
+                'main_detail' => [true, true],
                 'expected' => 0,
                 'Expected that variation is not returned'
             ]
         ];
-    }
-
-    /**
-     * Method to run the export test cases using the data provider
-     *
-     * @dataProvider articleProvider
-     *
-     * @param array $isActive
-     * @param string $shopkey
-     * @param int $start
-     * @param int $count
-     * @param bool $hideNoInStock
-     * @param int $laststock
-     * @param int $instock
-     * @param int $minpurchase
-     * @param array $category
-     * @param int|null $expected
-     * @param bool $hasName
-     * @param bool $mainDetailActive
-     * @param string $errorMessage
-     *
-     * @throws \Exception
-     * @throws AssertionFailedException
-     */
-    public function testArticleExport(
-        array $isActive,
-        $shopkey,
-        $start,
-        $count,
-        $hideNoInStock,
-        $laststock,
-        $instock,
-        $minpurchase,
-        array $category,
-        $hasName,
-        $mainDetailActive,
-        $expected,
-        $errorMessage
-    ) {
-        /** @var Category $categoryModel */
-        $categoryModel = $this->categoryRepository->find($category[0]);
-        $this->assertInstanceOf(
-            Category::class,
-            $categoryModel,
-            sprintf('Could not find category for given ID: %d', $category[0])
-        );
-
-        $categoryModel->setActive($category[1]);
-        Shopware()->Models()->persist($categoryModel);
-        Shopware()->Models()->flush();
-
-        // Create articles with the provided data to test the export functionality
-        for ($i = 0; $i < count($isActive); $i++) {
-            $this->createTestProduct(
-                $i,
-                $isActive[$i],
-                $hasName,
-                $mainDetailActive,
-                $laststock,
-                $instock,
-                $minpurchase,
-                $categoryModel->getId()
-            );
-        }
-
-        // Create Mock object for Shopware Config
-        $config = $this->createMock(Shopware_Components_Config::class);
-        $config->expects($this->atLeastOnce())
-            ->method('offsetGet')
-            ->willReturnMap([
-                ['hideNoInStock', $hideNoInStock],
-                ['ShopKey', 'ABCD0815'],
-            ]);
-
-        // Assign mocked config variable to application container
-        Shopware()->Container()->set('config', $config);
-
-        if ($expected === null) {
-            $this->expectException(UnexpectedValueException::class);
-        }
-
-        /** @var XmlInformation $result */
-        $result = $this->exportService->getXml($shopkey, $start, $count);
-
-        if ($expected !== null) {
-            $this->assertSame($expected, $result->count, $errorMessage);
-        }
     }
 
     /**
@@ -462,7 +370,7 @@ class ExportTest extends TestCase
                         'price' => 99.34,
                     ],
                 ]
-            ],
+            ]
         ];
 
         try {
@@ -476,5 +384,82 @@ class ExportTest extends TestCase
         }
 
         return null;
+    }
+
+    /**
+     * Method to run the export test cases using the data provider
+     *
+     * @dataProvider articleProvider
+     *
+     * @param array $isActive
+     * @param string $shopkey
+     * @param int $start
+     * @param int $count
+     * @param bool $hideNoInStock
+     * @param int $laststock
+     * @param int $instock
+     * @param int $minpurchase
+     * @param array $category
+     * @param array $hasName
+     * @param array $mainDetailActive
+     * @param int|null $expected
+     * @param string $errorMessage
+     *
+     * @throws \Exception
+     * @throws AssertionFailedException
+     */
+    public function testArticleExport(
+        array $isActive,
+        $shopkey,
+        $start,
+        $count,
+        $hideNoInStock,
+        $laststock,
+        $instock,
+        $minpurchase,
+        array $category,
+        array $hasName,
+        array $mainDetailActive,
+        $expected,
+        $errorMessage
+    ) {
+        /** @var Category $categoryModel */
+        $categoryModel = $this->categoryRepository->find($category[0]);
+        $this->assertInstanceOf(
+            Category::class,
+            $categoryModel,
+            sprintf('Could not find category for given ID: %d', $category[0])
+        );
+
+        $categoryModel->setActive($category[1]);
+        Shopware()->Models()->persist($categoryModel);
+        Shopware()->Models()->flush();
+
+        // Create articles with the provided data to test the export functionality
+        for ($i = 0; $i < count($isActive); $i++) {
+            $this->createTestProduct(
+                $i,
+                $isActive[$i],
+                $hasName[$i],
+                $mainDetailActive[$i],
+                $laststock,
+                $instock,
+                $minpurchase,
+                $categoryModel->getId()
+            );
+        }
+
+        Utility::setConfig('hideNoInStock', $hideNoInStock);
+
+        if ($expected === null) {
+            $this->expectException(UnexpectedValueException::class);
+        }
+
+        /** @var XmlInformation $result */
+        $result = $this->exportService->getXml($shopkey, $start, $count);
+
+        if ($expected !== null) {
+            $this->assertSame($expected, $result->count, $errorMessage);
+        }
     }
 }
