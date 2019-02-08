@@ -222,13 +222,13 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         if (empty($expectedText)) {
             $this->assertNotContains(
-                '<p id="fl-smart-did-you-mean">',
+                '<p id="fl-smart-did-you-mean" class="search--headline">',
                 $response->getBody(),
                 'Expected smart-did-you-mean tags to NOT be rendered'
             );
         } else {
             $this->assertContains(
-                '<p id="fl-smart-did-you-mean">',
+                '<p id="fl-smart-did-you-mean" class="search--headline">',
                 $response->getBody(),
                 'Expected smart-did-you-mean tags to be visible'
             );
