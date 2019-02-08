@@ -12,7 +12,7 @@
     </h1>
 
     {if $finSmartDidYouMean}
-        <p id="fl-smart-did-you-mean" class="serch--headline">
+        <p id="fl-smart-did-you-mean" class="search--headline">
             {if $finSmartDidYouMean.type == 'did-you-mean'}
                 {s name='frontend/search/fuzzy/did_you_mean_query'}
                     Did you mean "
