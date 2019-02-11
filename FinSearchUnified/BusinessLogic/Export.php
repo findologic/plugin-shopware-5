@@ -13,8 +13,8 @@ use FinSearchUnified\XmlInformation;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilder;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
-use Shopware\Bundle\StoreFrontBundle\Service\Core\ContextService;
-use Shopware\Bundle\StoreFrontBundle\Service\Core\ProductService;
+use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
+use Shopware\Bundle\StoreFrontBundle\Service\ProductServiceInterface;
 use Shopware\Components\Compatibility\LegacyStructConverter;
 use Shopware\Models\Config\Value;
 use Shopware\Models\Shop\Shop;
@@ -23,7 +23,7 @@ use UnexpectedValueException;
 class Export
 {
     /**
-     * @var ProductService
+     * @var ProductServiceInterface
      */
     protected $productService;
 
@@ -33,7 +33,7 @@ class Export
     protected $legacyStructConverter;
 
     /**
-     * @var ContextService
+     * @var ContextServiceInterface
      */
     protected $contextService;
 
@@ -56,15 +56,15 @@ class Export
      * Export constructor.
      *
      * @param QueryBuilderFactoryInterface $queryBuilderFactory
-     * @param ProductService $productService
+     * @param ProductServiceInterface $productService
      * @param LegacyStructConverter $legacyStructConverter
-     * @param ContextService $contextService
+     * @param ContextServiceInterface $contextService
      */
     public function __construct(
         QueryBuilderFactoryInterface $queryBuilderFactory,
-        ProductService $productService,
+        ProductServiceInterface $productService,
         LegacyStructConverter $legacyStructConverter,
-        ContextService $contextService
+        ContextServiceInterface $contextService
     ) {
         $this->queryBuilderFactory = $queryBuilderFactory;
         $this->productService = $productService;

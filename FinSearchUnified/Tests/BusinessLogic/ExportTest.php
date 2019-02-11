@@ -5,15 +5,15 @@ namespace FinSearchUnified\Tests\BusinessLogic;
 use Assert\AssertionFailedException;
 use FinSearchUnified\BusinessLogic\Export;
 use FinSearchUnified\Tests\Helper\Utility;
+use FinSearchUnified\Tests\TestBase;
 use FinSearchUnified\XmlInformation;
 use Shopware\Components\Api\Manager;
-use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Category\Category;
 use Shopware\Models\Category\Repository;
 use UnexpectedValueException;
 
-class ExportTest extends TestCase
+class ExportTest extends TestBase
 {
     protected static $ensureLoadedPlugins = [
         'FinSearchUnified' => [
@@ -449,7 +449,7 @@ class ExportTest extends TestCase
             );
         }
 
-        Utility::setConfig('hideNoInStock', $hideNoInStock);
+        $this->setConfig('hideNoInStock', $hideNoInStock);
 
         if ($expected === null) {
             $this->expectException(UnexpectedValueException::class);
