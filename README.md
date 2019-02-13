@@ -36,7 +36,7 @@ Each export method supports three parameters:
 ## Frontend
 FINDOLOGIC starts the export by calling an appropriate URL e.g.:
 ```url
-http://192.168.33.10/shopware/findologic/?shopkey=SHOPKEY
+<SHOPURL>/findologic?shopkey=SHOPKEY
 ```
 
 ## Console command
