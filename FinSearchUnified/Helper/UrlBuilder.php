@@ -91,11 +91,7 @@ class UrlBuilder
 
             // If multiple IPs are passed, extract the first one
             if ($position !== false) {
-                $ipAddress = substr(
-                    $_SERVER['HTTP_X_FORWARDED_FOR'],
-                    0,
-                    $position
-                );
+                $ipAddress = substr($_SERVER['HTTP_X_FORWARDED_FOR'], 0, $position);
             } else {
                 $ipAddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
             }
