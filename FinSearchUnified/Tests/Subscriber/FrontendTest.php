@@ -2,25 +2,26 @@
 
 namespace FinSearchUnified\Tests\Subscriber;
 
+use Enlight_Components_Session_Namespace;
+use Enlight_Controller_Action;
+use Enlight_Controller_ActionEventArgs;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use Enlight_Template_Manager;
 use FinSearchUnified\FinSearchUnified as Plugin;
+use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Components\Test\Plugin\TestCase;
+use Shopware_Components_Config;
 
 class FrontendTest extends TestCase
 {
-    public function tearDown()
+    protected function tearDown()
     {
         parent::tearDown();
-        $kernel = Shopware()->Container()->get('kernel');
-        $connection = Shopware()->Container()->get('db_connection');
-        $application = Shopware()->Container()->get('application');
 
-        Shopware()->Container()->reset();
-
-        Shopware()->Container()->set('kernel', $kernel);
-        Shopware()->Container()->set('db_connection', $connection);
-        Shopware()->Container()->set('application', $application);
+        Shopware()->Container()->reset('session');
+        Shopware()->Container()->load('session');
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->load('config');
     }
 
     /**
@@ -95,7 +96,7 @@ class FrontendTest extends TestCase
             ->setParams(['sSearch' => $sSearch, 'sCategory' => $sCategory]);
 
         // Create mocked Subject to be passed in mocked args
-        $subject = $this->getMockBuilder('\Enlight_Controller_Action')
+        $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
             ->setMethods(['Request'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -103,19 +104,33 @@ class FrontendTest extends TestCase
             ->willReturn($request);
 
         // Create mocked args for getting Subject and Request
-        $args = $this->getMockBuilder('\Enlight_Controller_ActionEventArgs')
+        $args = $this->getMockBuilder(Enlight_Controller_ActionEventArgs::class)
             ->setMethods(['getSubject', 'getRequest'])
             ->getMock();
         $args->method('getSubject')->willReturn($subject);
         $args->method('getRequest')->willReturn($request);
 
         // Create Mock object for Shopware Session
-        $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
-            ->setMethods(null)
-            ->getMock();
+        $session = $this->createMock(Enlight_Components_Session_Namespace::class);
+        $session->expects($this->atLeastOnce())->method('offsetGet')->willReturnMap([
+            ['isSearchPage', $isSearch],
+            ['isCategoryPage', $isCategory],
+            ['findologicDI', false]
+        ]);
+        $session->expects($this->any())->method('offsetExists')->willReturn(true);
 
-        // Assign mocked session variable to application container
         Shopware()->Container()->set('session', $session);
+
+        $configArray = [
+            ['ActivateFindologic', true],
+            ['ActivateFindologicForCategoryPages', false],
+            ['ShopKey', '0000000000000000ZZZZZZZZZZZZZZZZ']
+        ];
+        // Create Mock object for Shopware Config
+        $config = $this->createMock(Shopware_Components_Config::class);
+        $config->method('offsetGet')->willReturnMap($configArray);
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $config);
 
         /** @var Plugin $plugin */
         $plugin = Shopware()->Container()->get('kernel')->getPlugins()['FinSearchUnified'];
@@ -157,7 +172,7 @@ class FrontendTest extends TestCase
             ->setParams(['sSearch' => $sSearch, 'sCategory' => $sCategory]);
 
         // Create mocked Subject to be passed in mocked args
-        $subject = $this->getMockBuilder('\Enlight_Controller_Action')
+        $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
             ->setMethods(['Request'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -165,7 +180,7 @@ class FrontendTest extends TestCase
             ->willReturn($request);
 
         // Create mocked args for getting Subject and Request
-        $args = $this->getMockBuilder('\Enlight_Controller_ActionEventArgs')
+        $args = $this->getMockBuilder(Enlight_Controller_ActionEventArgs::class)
             ->setMethods(['getSubject', 'getRequest'])
             ->getMock();
         $args->method('getSubject')->willReturn($subject);
@@ -177,7 +192,7 @@ class FrontendTest extends TestCase
         ];
 
         // Create Mock object for Shopware Session
-        $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
+        $session = $this->getMockBuilder(Enlight_Components_Session_Namespace::class)
             ->setMethods(['offsetGet'])
             ->getMock();
         $session->expects($this->atLeastOnce())
