@@ -45,7 +45,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
         QueryBuilderFactoryInterface $originalService
     ) {
         $this->connection = $connection;
-        $this->conditionHandlers = $container->get('shopware_searchdbal.condition_handlers');
+        $this->conditionHandlers = $this->registerConditionHandlers($container);
     }
 
     /**
@@ -150,7 +150,6 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
 
     /**
      * {@inheritdoc}
-     *
      * @throws \Exception
      */
     public function createQueryWithSorting(Criteria $criteria, ShopContextInterface $context)
@@ -189,5 +188,22 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
         }
 
         throw new \Exception(sprintf('Condition %s not supported', get_class($condition)));
+    }
+
+    /**
+     * @param ContainerInterface $container
+     *
+     * @return array
+     */
+    private function registerConditionHandlers(ContainerInterface $container)
+    {
+        $conditionHandlers = $container->get('shopware_searchdbal.condition_handlers');
+        $conditionHandlers[] = new ConditionHandler\HasActiveCategoryConditionHandler();
+        $conditionHandlers[] = new ConditionHandler\HasActiveMainDetailConditionHandler();
+        $conditionHandlers[] = new ConditionHandler\HasProductNameConditionHandler();
+        $conditionHandlers[] = new ConditionHandler\IsActiveProductConditionHandler();
+        $conditionHandlers[] = new ConditionHandler\IsChildOfShopCategoryConditionHandler();
+
+        return $conditionHandlers;
     }
 }

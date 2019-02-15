@@ -13,7 +13,7 @@ class HasActiveMainDetailConditionHandlerTest extends TestCase
 {
     public function testGenerateCondition()
     {
-        $factory = Shopware()->Container()->get('shopware_searchdbal.dbal_query_builder_factory');
+        $factory = Shopware()->Container()->get('fin_search_unified.searchdbal.query_builder_factory');
 
         /** @var ContextServiceInterface $contextService */
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');

@@ -18,7 +18,8 @@ class IsChildOfShopCategoryConditionHandlerTest extends TestCase
     public function testGenerateCondition()
     {
         $shopCategoryId = 5;
-        $factory = Shopware()->Container()->get('shopware_searchdbal.dbal_query_builder_factory');
+
+        $factory = Shopware()->Container()->get('fin_search_unified.searchdbal.query_builder_factory');
 
         /** @var ContextServiceInterface $contextService */
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
