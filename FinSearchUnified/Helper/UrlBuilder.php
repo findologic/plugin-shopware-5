@@ -70,7 +70,10 @@ class UrlBuilder
         $this->shopUrl = rtrim(Shopware()->Shop()->getHost(), '/') . '/';
 
         /** @var Plugin $plugin */
-        $plugin = Shopware()->Container()->get('shopware.plugin_manager')->getPluginByName('FinSearchUnified');
+        $plugin = Shopware()->Container()->get('shopware.plugin_manager')
+            ->getPluginByName(
+                'FinSearchUnified'
+            );
 
         $this->parameters = [
             'userip' => $this->getClientIp(),
@@ -83,7 +86,15 @@ class UrlBuilder
         if ($_SERVER['HTTP_CLIENT_IP']) {
             $ipAddress = $_SERVER['HTTP_CLIENT_IP'];
         } elseif ($_SERVER['HTTP_X_FORWARDED_FOR']) {
-            $ipAddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
+            // Check for multiple IPs passing through proxy
+            $position = strpos($_SERVER['HTTP_X_FORWARDED_FOR'], ',');
+
+            // If multiple IPs are passed, extract the first one
+            if ($position !== false) {
+                $ipAddress = substr($_SERVER['HTTP_X_FORWARDED_FOR'], 0, $position);
+            } else {
+                $ipAddress = $_SERVER['HTTP_X_FORWARDED_FOR'];
+            }
         } elseif ($_SERVER['HTTP_X_FORWARDED']) {
             $ipAddress = $_SERVER['HTTP_X_FORWARDED'];
         } elseif ($_SERVER['HTTP_FORWARDED_FOR']) {
