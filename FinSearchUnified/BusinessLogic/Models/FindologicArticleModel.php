@@ -30,6 +30,7 @@ use Shopware\Models\Category\Category;
 use Shopware\Models\Customer\Group;
 use Shopware\Models\Media\Media;
 use Shopware\Models\Order\Detail as OrderDetail;
+use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
 
 class FindologicArticleModel
 {
@@ -556,23 +557,23 @@ class FindologicArticleModel
         $variationFilters = [];
         $storefrontContextService = Shopware()->Container()->get('shopware_storefront.context_service');
         $context = $storefrontContextService->createShopContext(Shopware()->Shop()->getId());
-        $productService = Shopware()->Container()->get('shopware_storefront.product_service');
+        $configuratorService = Shopware()->Container()->get('shopware_storefront.configurator_service');
 
         // Variant configurator entries
         /** @var Detail $variant */
         foreach ($this->variantArticles as $variant) {
-            if (!$variant->getActive()
-                || (Shopware()->Config()->get('hideNoInStock') && $variant->getInStock() < 1)) {
+            if (!$variant->getActive() ||
+                count($variant->getConfiguratorOptions()) === 0 ||
+                (Shopware()->Config()->get('hideNoInStock') && $variant->getInStock() < 1)
+            ) {
                 continue;
             }
 
-            $variantStruct = $productService->get($variant->getNumber(), $context);
+            $baseProduct = new BaseProduct($this->baseArticle->getId(), $variant->getId(), $variant->getNumber());
 
-            if (($variantStruct instanceof Product) === false) {
-                continue;
-            }
+            $configs = $configuratorService->getProductsConfigurations($baseProduct, $context);
 
-            foreach ($variantStruct->getConfiguration() as $group) {
+            foreach ($configs as $group) {
                 $variationFilterValues = [];
 
                 foreach ($group->getOptions() as $option) {
