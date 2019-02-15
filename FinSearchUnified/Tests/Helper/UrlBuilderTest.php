@@ -97,6 +97,7 @@ class UrlBuilderTest extends TestCase
         $criteria->offset(0)->limit(2);
 
         $urlBuilder->buildQueryUrlAndGetResponse($criteria);
+
         $requestedUrl = $this->httpClient->getUri()->getQueryAsArray();
         $usedIpInRequest = $requestedUrl['userip'];
 

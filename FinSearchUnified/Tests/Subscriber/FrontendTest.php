@@ -3,12 +3,26 @@
 namespace FinSearchUnified\Tests\Subscriber;
 
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
+use Enlight_Template_Manager;
 use FinSearchUnified\FinSearchUnified as Plugin;
 use Shopware\Components\Test\Plugin\TestCase;
-use Enlight_Template_Manager;
 
 class FrontendTest extends TestCase
 {
+    public function tearDown()
+    {
+        parent::tearDown();
+        $kernel = Shopware()->Container()->get('kernel');
+        $connection = Shopware()->Container()->get('db_connection');
+        $application = Shopware()->Container()->get('application');
+
+        Shopware()->Container()->reset();
+
+        Shopware()->Container()->set('kernel', $kernel);
+        Shopware()->Container()->set('db_connection', $connection);
+        Shopware()->Container()->set('application', $application);
+    }
+
     /**
      * @return array
      */

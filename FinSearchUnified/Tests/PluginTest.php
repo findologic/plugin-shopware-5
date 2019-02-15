@@ -4,6 +4,8 @@ namespace FinSearchUnified\Tests;
 
 use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
+use Shopware\Components\Api\Manager;
+use Shopware\Components\Api\Resource\Article;
 use Shopware\Components\Test\Plugin\TestCase;
 
 class PluginTest extends TestCase
@@ -13,6 +15,15 @@ class PluginTest extends TestCase
             'ShopKey' => 'ABCD0815'
         ],
     ];
+
+    /** @var Manager */
+    private $manager;
+
+    protected function setUp()
+    {
+        parent::setUp();
+        $this->manager = new Manager();
+    }
 
     public function testCanCreateInstance()
     {
@@ -56,6 +67,7 @@ class PluginTest extends TestCase
      * Method to run the export test cases using the data provider
      *
      * @dataProvider articleProvider
+     *
      * @param array $isActive
      * @param int $expected
      * @param string $errorMessage
@@ -75,6 +87,7 @@ class PluginTest extends TestCase
      *
      * @param int $number
      * @param bool $isActive
+     *
      * @return \Shopware\Models\Article\Article|null
      */
     private function createTestProduct($number, $isActive)
@@ -106,9 +119,10 @@ class PluginTest extends TestCase
         ];
 
         try {
-            $manger = new \Shopware\Components\Api\Manager();
-            $resource = $manger->getResource('Article');
+            /** @var Article $resource */
+            $resource = $this->manager->getResource('Article');
             $article = $resource->create($testArticle);
+
             return $article;
         } catch (\Exception $e) {
             echo sprintf("Exception: %s", $e->getMessage());
@@ -134,6 +148,7 @@ class PluginTest extends TestCase
 
             // Parse the xml and return the count of the products exported
             $xml = new \SimpleXMLElement($xmlDocument);
+
             return (int)$xml->items->attributes()->count;
         } catch (\Exception $e) {
             echo sprintf("Exception: %s", $e->getMessage());

@@ -10,6 +10,13 @@ use Shopware\Models\Category\Category;
 
 class StaticHelperTest extends TestCase
 {
+    public function tearDown()
+    {
+        parent::tearDown();
+        Shopware()->Container()->reset('front');
+        Shopware()->Container()->load('front');
+    }
+
     /**
      * Data provider for checking findologic behavior
      *
@@ -299,7 +306,6 @@ class StaticHelperTest extends TestCase
         $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
     }
 
-
     public function testUseShopSearchForBackendRequests()
     {
         $request = new RequestHttp();
@@ -341,6 +347,7 @@ class StaticHelperTest extends TestCase
         $result = StaticHelper::useShopSearch();
         $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
     }
+
     /**
      * @dataProvider controlCharacterProvider
      *
