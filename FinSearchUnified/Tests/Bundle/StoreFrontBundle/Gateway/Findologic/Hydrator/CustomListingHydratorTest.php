@@ -4,7 +4,6 @@ namespace FinSearchUnified\Tests\Bundle\StoreFrontBundle\Gateway\Findologic\Hydr
 
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
-use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use Shopware\Components\Test\Plugin\TestCase;
 use SimpleXMLElement;
 
@@ -175,9 +174,12 @@ class CustomListingHydratorTest extends TestCase
             $filter->addChild($name, $value);
         }
 
-        $customFacets = $this->hydrator->hydrateFacet($xmlResponse);
+        $customFacets = [];
 
-        /** @var CustomFacet $customFacet */
+        foreach ($xmlResponse->filters->filter as $filter) {
+            $customFacets[] = $this->hydrator->hydrateFacet($filter);
+        }
+
         foreach ($customFacets as $customFacet) {
             $this->assertSame(
                 $expectedName,

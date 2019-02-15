@@ -10,36 +10,17 @@ use SimpleXMLElement;
 class CustomListingHydrator
 {
     /**
-     * @param SimpleXMLElement $xmlResponse
-     *
-     * @return array
-     */
-    public function hydrateFacet(SimpleXMLElement $xmlResponse)
-    {
-        $facets = [];
-
-        foreach ($xmlResponse->filters->filter as $filter) {
-            $facets[] = $this->createFindologicFacet(
-                (string)$filter->display,
-                (string)$filter->name,
-                (string)$filter->type,
-                (string)$filter->select
-            );
-        }
-
-        return $facets;
-    }
-
-    /**
-     * @param string $label
-     * @param string $name
-     * @param string $type
-     * @param string $filter
+     * @param SimpleXMLElement $filter
      *
      * @return CustomFacet
      */
-    private function createFindologicFacet($label, $name, $type, $filter)
+    public function hydrateFacet(SimpleXMLElement $filter)
     {
+        $name = (string)$filter->name;
+        $label = (string)$filter->display;
+        $type = (string)$filter->type;
+        $filter = (string)$filter->select;
+
         $formFieldName = StaticHelper::escapeFilterName($name);
 
         switch ($type) {

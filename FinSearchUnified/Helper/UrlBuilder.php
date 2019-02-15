@@ -61,12 +61,13 @@ class UrlBuilder
      * UrlBuilder constructor.
      *
      * @param null|Zend_Http_Client $httpClient The Zend HTTP client to use.
+     *
      * @throws \Exception
      */
     public function __construct($httpClient = null)
     {
         $this->httpClient = $httpClient instanceof Zend_Http_Client ? $httpClient : new Zend_Http_Client();
-        $this->shopUrl = explode('//', Shopware()->Modules()->Core()->sRewriteLink())[1];
+        $this->shopUrl = rtrim(Shopware()->Shop()->getHost(), '/') . '/';
 
         /** @var Plugin $plugin */
         $plugin = Shopware()->Container()->get('shopware.plugin_manager')->getPluginByName('FinSearchUnified');
