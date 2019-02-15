@@ -1,6 +1,6 @@
 <?php
 
-namespace FinSearchUnified\Bundles\FacetResult;
+namespace FinSearchUnified\Bundle\FacetResult;
 
 class ColorPickerFacetResult extends \Shopware\Bundle\SearchBundle\FacetResult\MediaListFacetResult
 {

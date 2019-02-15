@@ -1,7 +1,7 @@
 {block name="frontend_index_header_javascript_modernizr_lib" prepend}
     <script type="text/javascript">
         (function() {
-            var mainUrl = 'https://cdn.findologic.com/static/{$hashedShopkey}/main.js?usergrouphash={$hash}';
+            var mainUrl = 'https://cdn.findologic.com/static/{$hashedShopkey}/main.js?usergrouphash={$userGroupHash}';
             var loader = document.createElement('script');
             loader.type = 'text/javascript';
             loader.async = true;

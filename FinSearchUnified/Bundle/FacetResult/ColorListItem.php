@@ -1,6 +1,6 @@
 <?php
 
-namespace FinSearchUnified\Bundles\FacetResult;
+namespace FinSearchUnified\Bundle\FacetResult;
 
 use Shopware\Bundle\SearchBundle\FacetResult;
 
