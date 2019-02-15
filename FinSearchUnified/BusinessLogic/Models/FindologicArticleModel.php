@@ -562,8 +562,7 @@ class FindologicArticleModel
         // Variant configurator entries
         /** @var Detail $variant */
         foreach ($this->variantArticles as $variant) {
-            if (
-                !$variant->getActive() ||
+            if (!$variant->getActive() ||
                 count($variant->getConfiguratorOptions()) === 0 ||
                 (Shopware()->Config()->get('hideNoInStock') && $variant->getInStock() < 1)
             ) {
