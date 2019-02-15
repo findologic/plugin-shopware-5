@@ -15,8 +15,13 @@ class CriteriaFactoryTest extends TestCase
     public function tearDown()
     {
         parent::tearDown();
+
         Shopware()->Container()->reset('front');
         Shopware()->Container()->load('front');
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->load('config');
+        Shopware()->Container()->reset('session');
+        Shopware()->Container()->load('session');
     }
 
     /**
