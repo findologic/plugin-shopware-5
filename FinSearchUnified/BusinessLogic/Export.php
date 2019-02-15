@@ -3,12 +3,12 @@
 namespace FinSearchUnified\BusinessLogic;
 
 use Assert\AssertionFailedException;
-use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveCategoryCondition;
-use FinSearchUnified\Bundles\SearchBundle\Condition\HasActiveMainDetailCondition;
-use FinSearchUnified\Bundles\SearchBundle\Condition\HasProductNameCondition;
-use FinSearchUnified\Bundles\SearchBundle\Condition\IsActiveProductCondition;
-use FinSearchUnified\Bundles\SearchBundle\Condition\IsChildOfShopCategoryCondition;
-use FinSearchUnified\Bundles\SearchBundleDBAL\QueryBuilderFactory;
+use FinSearchUnified\Bundle\SearchBundle\Condition\HasActiveCategoryCondition;
+use FinSearchUnified\Bundle\SearchBundle\Condition\HasActiveMainDetailCondition;
+use FinSearchUnified\Bundle\SearchBundle\Condition\HasProductNameCondition;
+use FinSearchUnified\Bundle\SearchBundle\Condition\IsActiveProductCondition;
+use FinSearchUnified\Bundle\SearchBundle\Condition\IsChildOfShopCategoryCondition;
+use FinSearchUnified\Bundle\SearchBundleDBAL\QueryBuilderFactory;
 use FinSearchUnified\XmlInformation;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilder;

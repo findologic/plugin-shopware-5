@@ -24,12 +24,5 @@
   },
   "require-dev": {
     "squizlabs/php_codesniffer": "3.3.2"
-  },
-  "archive": {
-    "exclude": [
-      "phpunit.xml.dist",
-      "shopware-phpcs.xml",
-      "/Tests"
-    ]
   }
 }
