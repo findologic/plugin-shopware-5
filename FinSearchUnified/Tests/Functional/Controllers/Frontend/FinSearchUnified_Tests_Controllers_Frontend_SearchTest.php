@@ -1,6 +1,6 @@
 <?php
 
-use FinSearchUnified\Bundles\ProductNumberSearch;
+use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Helper\UrlBuilder;
 use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Bundle\SearchBundle\Criteria;
