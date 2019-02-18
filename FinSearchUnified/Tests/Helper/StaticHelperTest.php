@@ -19,6 +19,13 @@ use SimpleXMLElement;
 
 class StaticHelperTest extends TestCase
 {
+    public function tearDown()
+    {
+        parent::tearDown();
+        Shopware()->Container()->reset('front');
+        Shopware()->Container()->load('front');
+    }
+
     /**
      * @var Resource\Category
      */

@@ -8,7 +8,6 @@ use Enlight_Controller_ActionEventArgs;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use Enlight_Template_Manager;
 use FinSearchUnified\FinSearchUnified as Plugin;
-use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Components_Config;
 

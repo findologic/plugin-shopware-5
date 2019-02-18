@@ -5,6 +5,8 @@ namespace FinSearchUnified\Tests;
 use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\Helper\Utility;
+use Shopware\Components\Api\Manager;
+use Shopware\Components\Api\Resource\Article;
 use Shopware\Components\Test\Plugin\TestCase;
 use SimpleXMLElement;
 
@@ -15,6 +17,15 @@ class PluginTest extends TestCase
             'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ'
         ],
     ];
+
+    /** @var Manager */
+    private $manager;
+
+    protected function setUp()
+    {
+        parent::setUp();
+        $this->manager = new Manager();
+    }
 
     public function testCanCreateInstance()
     {
@@ -83,7 +94,7 @@ class PluginTest extends TestCase
      * @param int $number
      * @param bool $isActive
      *
-     * @return void
+     * @return \Shopware\Models\Article\Article|null
      */
     private function createTestProduct($number, $isActive)
     {
@@ -113,9 +124,11 @@ class PluginTest extends TestCase
         ];
 
         try {
-            $manager = new \Shopware\Components\Api\Manager();
-            $resource = $manager->getResource('Article');
-            $resource->create($testArticle);
+            /** @var Article $resource */
+            $resource = $this->manager->getResource('Article');
+            $article = $resource->create($testArticle);
+
+            return $article;
         } catch (\Exception $e) {
             echo sprintf("Exception: %s", $e->getMessage());
         }

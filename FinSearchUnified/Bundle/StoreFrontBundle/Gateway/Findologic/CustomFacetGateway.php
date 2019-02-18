@@ -1,14 +1,24 @@
 <?php
 
-namespace FinSearchUnified\Bundles;
+namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic;
 
+use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\StoreFrontBundle\Gateway\CustomFacetGatewayInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
+use SimpleXMLElement;
 
-class FindologicFacetGateway implements CustomFacetGatewayInterface
+class CustomFacetGateway implements CustomFacetGatewayInterface
 {
+    /**
+     * @var CustomListingHydrator
+     */
+    protected $hydrator;
+
+    /**
+     * @var CustomFacetGatewayInterface
+     */
     private $originalService;
 
     /**
@@ -16,22 +26,32 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
      */
     private $urlBuilder;
 
-    public function __construct(CustomFacetGatewayInterface $service, $urlBuilder = null)
-    {
+    /**
+     * @param CustomFacetGatewayInterface $service
+     * @param CustomListingHydrator $hydrator
+     * @param UrlBuilder|null $urlBuilder
+     *
+     * @throws \Exception
+     */
+    public function __construct(
+        CustomFacetGatewayInterface $service,
+        CustomListingHydrator $hydrator,
+        $urlBuilder = null
+    ) {
+        $this->originalService = $service;
         if ($urlBuilder === null) {
             $this->urlBuilder = new UrlBuilder();
         } else {
             $this->urlBuilder = $urlBuilder;
         }
-
-        $this->originalService = $service;
+        $this->hydrator = $hydrator;
     }
 
     /**
      * @param int[] $ids
      * @param ShopContextInterface $context
      *
-     * @return \Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet indexed by id
+     * @return \Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet[]
      */
     public function getList(array $ids, ShopContextInterface $context)
     {
@@ -43,10 +63,8 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
         $response = $this->urlBuilder->buildCompleteFilterList();
         if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
-            $categoryFacets = [];
-            $categoryFacets[] = StaticHelper::getFindologicFacets($xmlResponse);
 
-            return $categoryFacets[0];
+            return $this->hydrate($xmlResponse->filters->filter);
         } else {
             return $this->originalService->getList($ids, $context);
         }
@@ -71,7 +89,7 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
         if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
             $categoryFacets = [];
-            $categoryFacets[$categoryId] = StaticHelper::getFindologicFacets($xmlResponse);
+            $categoryFacets[$categoryId] = $this->hydrate($xmlResponse->filters->filter);
 
             return $categoryFacets;
         }
@@ -88,5 +106,21 @@ class FindologicFacetGateway implements CustomFacetGatewayInterface
     {
         // TODO: Implement getAllCategoryFacets() method.
         return $this->originalService->getAllCategoryFacets($context);
+    }
+
+    /**
+     * @param SimpleXMLElement $filters
+     *
+     * @return array
+     */
+    private function hydrate(SimpleXMLElement $filters)
+    {
+        $facets = [];
+
+        foreach ($filters as $filter) {
+            $facets[] = $this->hydrator->hydrateFacet($filter);
+        }
+
+        return $facets;
     }
 }

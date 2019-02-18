@@ -51,6 +51,14 @@ class UrlBuilderTest extends TestCase
 
         Shopware()->Container()->reset('session');
         Shopware()->Container()->load('session');
+
+        if (isset($_SERVER['HTTP_CLIENT_IP'])) {
+            unset($_SERVER['HTTP_CLIENT_IP']);
+        }
+
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            unset($_SERVER['HTTP_X_FORWARDED_FOR']);
+        }
     }
 
     /**
@@ -65,8 +73,23 @@ class UrlBuilderTest extends TestCase
             'Same IP twice separated by comma' => ['192.168.0.1,192.168.0.1', '192.168.0.1'],
             'Same IP twice separated by comma and space' => ['192.168.0.1, 192.168.0.1', '192.168.0.1'],
             'Different IPs separated by comma' => ['192.168.0.1,10.10.0.200', '192.168.0.1,10.10.0.200'],
-            'Different IPs separated by comma and space' => ['192.168.0.1, 10.10.0.200', '192.168.0.1,10.10.0.200'],
-            'IP Unknown' => ['UNKNOWN', 'UNKNOWN']
+            'Different IPs separated by comma and space' => ['192.168.0.1, 10.10.0.200', '192.168.0.1,10.10.0.200']
+        ];
+    }
+
+    /**
+     * Scenarios of proxy IPs which should be filtered
+     *
+     * @return array
+     */
+    public function reverseProxyIpAddressProvider()
+    {
+        return [
+            'Single IP' => ['192.168.0.1'],
+            'Same IP twice separated by comma' => ['192.168.0.1,192.168.0.1'],
+            'Same IP twice separated by comma and space' => ['192.168.0.1, 192.168.0.1'],
+            'Different IPs separated by comma' => ['192.168.0.1,10.10.0.200'],
+            'Different IPs separated by comma and space' => ['192.168.0.1, 10.10.0.200']
         ];
     }
 
@@ -80,8 +103,46 @@ class UrlBuilderTest extends TestCase
      */
     public function testSendOnlyUniqueUserIps($unfilteredIp, $expectedValue)
     {
-        $this->setClientIp($unfilteredIp);
+        $this->setIpHeader('HTTP_CLIENT_IP', $unfilteredIp);
 
+        $urlBuilder = new UrlBuilder($this->httpClient);
+
+        $criteria = new Criteria();
+        $criteria->offset(0)->limit(2);
+
+        $urlBuilder->buildQueryUrlAndGetResponse($criteria);
+
+        $requestedUrl = $this->httpClient->getUri()->getQueryAsArray();
+        $usedIpInRequest = $requestedUrl['userip'];
+
+        $this->assertEquals($expectedValue, $usedIpInRequest);
+    }
+
+    /**
+     * @dataProvider reverseProxyIpAddressProvider
+     *
+     * @param string $unfilteredIp
+     *
+     * @throws \Exception
+     */
+    public function testSendsOnlyClientIpFromReverseProxy($unfilteredIp)
+    {
+        $this->setIpHeader('HTTP_X_FORWARDED_FOR', $unfilteredIp);
+
+        $urlBuilder = new UrlBuilder($this->httpClient);
+
+        $criteria = new Criteria();
+        $criteria->offset(0)->limit(2);
+
+        $urlBuilder->buildQueryUrlAndGetResponse($criteria);
+        $requestedUrl = $this->httpClient->getUri()->getQueryAsArray();
+        $usedIpInRequest = $requestedUrl['userip'];
+
+        $this->assertEquals('192.168.0.1', $usedIpInRequest);
+    }
+
+    public function testHandlesUnknownClientIp()
+    {
         $urlBuilder = new UrlBuilder($this->httpClient);
 
         $criteria = new Criteria();
@@ -92,15 +153,16 @@ class UrlBuilderTest extends TestCase
         $requestedUrl = $this->httpClient->getUri()->getQueryAsArray();
         $usedIpInRequest = $requestedUrl['userip'];
 
-        $this->assertEquals($expectedValue, $usedIpInRequest);
+        $this->assertEquals('UNKNOWN', $usedIpInRequest);
     }
 
     /**
+     * @param string $field
      * @param string $ipAddress The ip address to set.
      */
-    private function setClientIp($ipAddress)
+    private function setIpHeader($field, $ipAddress)
     {
-        $_SERVER['HTTP_CLIENT_IP'] = $ipAddress;
+        $_SERVER[$field] = $ipAddress;
     }
 
     /**

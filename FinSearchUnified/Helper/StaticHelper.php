@@ -3,12 +3,12 @@
 namespace FinSearchUnified\Helper;
 
 use Exception;
-use FinSearchUnified\Bundles\FacetResult as FinFacetResult;
+use FinSearchUnified\Bundle\FacetResult as FinFacetResult;
 use FinSearchUnified\Constants;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\StoreFrontBundle;
-use Shopware\Models\Search\CustomFacet;
+use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use SimpleXMLElement;
 use Zend_Http_Client;
 use Zend_Http_Response;
