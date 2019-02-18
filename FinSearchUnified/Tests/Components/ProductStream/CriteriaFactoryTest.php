@@ -18,8 +18,11 @@ class CriteriaFactoryTest extends TestCase
     public function tearDown()
     {
         parent::tearDown();
-        Shopware()->Container()->reset('front');
-        Shopware()->Container()->load('front');
+
+        Shopware()->Container()->reset('session');
+        Shopware()->Container()->load('session');
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->load('config');
     }
 
     /**
@@ -148,15 +151,5 @@ class CriteriaFactoryTest extends TestCase
         );
         $categories = $categoryCondition->getCategoryIds();
         $this->assertSame($expected, $categories[0]);
-    }
-
-    protected function tearDown()
-    {
-        parent::tearDown();
-
-        Shopware()->Container()->reset('session');
-        Shopware()->Container()->load('session');
-        Shopware()->Container()->reset('config');
-        Shopware()->Container()->load('config');
     }
 }
