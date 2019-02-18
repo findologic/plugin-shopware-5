@@ -7,4 +7,5 @@ namespace FinSearchUnified\Bundles;
  * @see FinSearchUnified\Bundle\ProductNumberSearch
  */
 class ProductNumberSearch extends \FinSearchUnified\Bundle\ProductNumberSearch
-{}
+{
+}
