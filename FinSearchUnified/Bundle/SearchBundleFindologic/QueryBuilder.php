@@ -95,7 +95,7 @@ class QueryBuilder
      */
     private function isSuccessful(Response $response)
     {
-        $restype = $response->getStatusCode();
+        $restype = (string)$response->getStatusCode();
 
         return $restype[0] === '2' || $restype[0] === '1';
     }
