@@ -19,7 +19,7 @@ class UrlBuilder
     const JSON_CONFIG = '/config.json';
     const ALIVE_ENDPOINT = 'alivetest.php';
     const SEARCH_ENDPOINT = 'index.php';
-    const NAVIGATION_ENPOINT = 'selector.php';
+    const NAVIGATION_ENDPOINT = 'selector.php';
     const JSON_PATH = 'directIntegration';
 
     /**
@@ -342,7 +342,7 @@ class UrlBuilder
         if (Shopware()->Session()->offsetGet('isSearchPage')) {
             $endpoint = self::SEARCH_ENDPOINT;
         } else {
-            $endpoint = self::NAVIGATION_ENPOINT;
+            $endpoint = self::NAVIGATION_ENDPOINT;
         }
 
         $this->parameters['shopkey'] = $this->getShopkey();

@@ -14,7 +14,7 @@ class QueryBuilder
     const BASE_URL = 'https://service.findologic.com/ps/xml_2.0/';
     const ALIVE_ENDPOINT = 'alivetest.php';
     const SEARCH_ENDPOINT = 'index.php';
-    const NAVIGATION_ENPOINT = 'selector.php';
+    const NAVIGATION_ENDPOINT = 'selector.php';
 
     /**
      * @var HttpClientInterface
@@ -64,7 +64,7 @@ class QueryBuilder
         if ($isSearch) {
             $endpoint = self::SEARCH_ENDPOINT;
         } else {
-            $endpoint = self::NAVIGATION_ENPOINT;
+            $endpoint = self::NAVIGATION_ENDPOINT;
         }
 
         $url = sprintf(
