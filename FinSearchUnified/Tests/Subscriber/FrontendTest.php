@@ -3,8 +3,9 @@
 namespace FinSearchUnified\Tests\Subscriber;
 
 use Enlight_Controller_Action;
-use Enlight_Controller_ActionEventArgs;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
+use Enlight_Event_EventArgs;
+use Enlight_Hook_HookArgs;
 use Shopware\Components\Test\Plugin\TestCase;
 
 class FrontendTest extends TestCase
@@ -67,6 +68,16 @@ class FrontendTest extends TestCase
         ];
     }
 
+    public function vendorProvider()
+    {
+        return [
+            'setRequestUri contains vendor=Brand' => ['Brand'],
+            'setRequestUri contains vendor=Awesome+Brand' => ['Awesome+Brand'],
+            'setRequestUri contains vendor=Brand%2BFriend' => ['Brand%2BFriend'],
+            'setRequestUri contains vendor=s.%C3%96liver' => ['s.%C3%96liver'],
+        ];
+    }
+
     /**
      * @dataProvider frontendPreDispatchProvider
      *
@@ -96,7 +107,7 @@ class FrontendTest extends TestCase
             ->willReturn($request);
 
         // Create mocked args for getting Subject and Request
-        $args = $this->getMockBuilder(Enlight_Controller_ActionEventArgs::class)
+        $args = $this->getMockBuilder(Enlight_Event_EventArgs::class)
             ->setMethods(['getSubject', 'getRequest'])
             ->getMock();
         $args->method('getSubject')->willReturn($subject);
@@ -153,7 +164,7 @@ class FrontendTest extends TestCase
             ->willReturn($request);
 
         // Create mocked args for getting Subject and Request
-        $args = $this->getMockBuilder(Enlight_Controller_ActionEventArgs::class)
+        $args = $this->getMockBuilder(Enlight_Event_EventArgs::class)
             ->setMethods(['getSubject', 'getRequest'])
             ->getMock();
         $args->method('getSubject')->willReturn($subject);
@@ -179,5 +190,52 @@ class FrontendTest extends TestCase
             $isSearchPage,
             "Expected isSearchPage to remain unchanged after listingCount method call"
         );
+    }
+
+    /**
+     * @dataProvider vendorProvider
+     *
+     * @param string $vendor
+     */
+    public function testBeforeSearchIndexAction($vendor)
+    {
+        Shopware()->Session()->isCategoryPage = null;
+        Shopware()->Session()->isSearchPage = true;
+
+        $attrib['vendor'] = $vendor;
+
+        // Create Request object to be passed in the mocked Subject
+        $request = new RequestHttp();
+        $request->setControllerName('index')
+            ->setActionName('index')
+            ->setModuleName('frontend')
+            ->setBaseUrl(rtrim(Shopware()->Shop()->getHost(), '/') . '/')
+            ->setParam('attrib', $attrib);
+
+        // Create mocked Subject to be passed in mocked args
+        $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
+            ->setMethods(['Request', 'redirect'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $subject->method('Request')
+            ->willReturn($request);
+        $subject->method('redirect')
+            ->willReturnCallback(function ($requestUrl) use ($vendor) {
+                \PHPUnit_Framework_Assert::assertContains(
+                    http_build_query(['vendor' => rawurldecode($vendor)]),
+                    $requestUrl
+                );
+            });
+
+        // Create mocked args for getting Subject and Request
+        $args = $this->getMockBuilder(Enlight_Hook_HookArgs::class)
+            ->setMethods(['getSubject', 'getRequest'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $args->method('getSubject')->willReturn($subject);
+        $args->method('getRequest')->willReturn($request);
+
+        $frontend = Shopware()->Container()->get('fin_search_unified.subscriber.frontend');
+        $frontend->beforeSearchIndexAction($args);
     }
 }

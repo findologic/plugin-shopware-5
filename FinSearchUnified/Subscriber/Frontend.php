@@ -5,6 +5,7 @@ namespace FinSearchUnified\Subscriber;
 use Enlight\Event\SubscriberInterface;
 use Enlight_Controller_Request_Request as Request;
 use Enlight_Event_EventArgs;
+use Enlight_Hook_HookArgs;
 use FinSearchUnified\Helper\StaticHelper;
 
 class Frontend implements SubscriberInterface
@@ -71,7 +72,7 @@ class Frontend implements SubscriberInterface
         }
     }
 
-    public function beforeSearchIndexAction(\Enlight_Hook_HookArgs $args)
+    public function beforeSearchIndexAction(Enlight_Hook_HookArgs $args)
     {
         /** @var \Shopware_Controllers_Frontend_Search $subject */
         $subject = $args->getSubject();
