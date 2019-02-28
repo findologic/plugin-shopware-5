@@ -87,7 +87,7 @@ class Frontend implements SubscriberInterface
         }
 
         if (array_key_exists('catFilter', $params)) {
-            $mappedParams['cat'] = urldecode($params['catFilter']);
+            $mappedParams['cat'] = rawurldecode($params['catFilter']);
             unset($params['catFilter']);
         }
 
@@ -101,7 +101,7 @@ class Frontend implements SubscriberInterface
                     }
                 } else {
                     $mappedValue = is_array($filterValue) ? implode('|', $filterValue) : $filterValue;
-                    $mappedParams[$filterName] = urldecode($mappedValue);
+                    $mappedParams[$filterName] = rawurldecode($mappedValue);
                 }
             }
 
