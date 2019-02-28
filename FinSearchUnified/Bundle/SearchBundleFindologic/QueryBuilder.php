@@ -11,7 +11,7 @@ use Shopware_Components_Config;
 
 class QueryBuilder
 {
-    const BASE_URL = 'https://service.findologic.com/ps/xml_2.0/';
+    const BASE_URL = 'https://service.findologic.com/ps';
     const ALIVE_ENDPOINT = 'alivetest.php';
     const SEARCH_ENDPOINT = 'index.php';
     const NAVIGATION_ENDPOINT = 'selector.php';
@@ -21,10 +21,19 @@ class QueryBuilder
      */
     protected $httpClient;
 
-    private $parameters;
+    /**
+     * @var array
+     */
+    private $parameters = [];
 
+    /**
+     * @var string
+     */
     private $shopUrl;
 
+    /**
+     * @var string
+     */
     private $shopKey;
 
     /**
@@ -43,11 +52,11 @@ class QueryBuilder
     ) {
         $plugin = $installerService->getPluginByName('FinSearchUnified');
 
-        $this->parameters = [];
         $this->httpClient = $httpClient;
         $this->shopKey = $config->offsetGet('ShopKey');
-        $this->shopUrl = rtrim(Shopware()->Shop()->getHost(), '/') . '/';
+        $this->shopUrl = rtrim(Shopware()->Shop()->getHost(), '/');
         $this->parameters = [
+            'outputAdapter' => 'XML_2.0',
             'userip' => $this->getClientIp(),
             'revision' => $plugin->getVersion(),
             'shopkey' => $this->shopKey
@@ -55,7 +64,7 @@ class QueryBuilder
     }
 
     /**
-     * @param bool $isSearch
+     * @param bool $isSearch Defaults to true
      *
      * @return string|null
      */
@@ -68,24 +77,24 @@ class QueryBuilder
         }
 
         $url = sprintf(
-            '%s%s%s?%s',
+            '%s/%s/%s?%s',
             self::BASE_URL,
             $this->shopUrl,
             $endpoint,
             http_build_query($this->parameters)
         );
 
+        $payload = null;
+
         try {
             if ($this->isAlive()) {
                 $response = $this->httpClient->get($url);
-
-                return $response->getBody();
-            } else {
-                return null;
+                $payload = $response->getBody();
             }
         } catch (RequestException $exception) {
-            return null;
         }
+
+        return $payload;
     }
 
     /**
@@ -106,25 +115,26 @@ class QueryBuilder
     private function isAlive()
     {
         $url = sprintf(
-            '%s%s%s?shopkey=%s',
+            '%s/%s/%s?shopkey=%s',
             self::BASE_URL,
             $this->shopUrl,
             self::ALIVE_ENDPOINT,
             $this->shopKey
         );
 
+        $isAlive = false;
+
         try {
             $response = $this->httpClient->get($url);
             $isAlive = $this->isSuccessful($response) && strpos($response->getBody(), 'alive') !== false;
-        } catch (RequestException $e) {
-            $isAlive = false;
+        } catch (RequestException $exception) {
         }
 
         return $isAlive;
     }
 
     /**
-     * @return bool|string
+     * @return string
      */
     private function getClientIp()
     {

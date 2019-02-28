@@ -4,6 +4,7 @@ namespace FinSearchUnified\Tests\Bundle\StoreFrontBundle\Gateway\Findologic;
 
 use Enlight_Controller_Front;
 use Enlight_Controller_Request_RequestHttp;
+use Exception;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGateway;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Helper\UrlBuilder;
@@ -30,7 +31,7 @@ class CustomFacetGatewayTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testUseOriginalServiceWhenShopSearchIsTriggered()
     {
@@ -71,7 +72,7 @@ class CustomFacetGatewayTest extends TestCase
      *
      * @param int|null $responseCode
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function testUseOriginalServiceWhenFindologicResponseIsFaulty($responseCode)
     {
@@ -185,7 +186,7 @@ class CustomFacetGatewayTest extends TestCase
      * @param array $filterData
      * @param array $attributeMode
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function testCreatesShopwareFacetsFromFindologicFilters(array $filterData, array $attributeMode)
     {
