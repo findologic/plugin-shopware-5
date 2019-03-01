@@ -26,7 +26,7 @@ class FrontendTest extends TestCase
             'Search Page' => [
                 'sSearch' => 'Yes',
                 'sCategory' => null,
-                'sController' => 'index',
+                'sController' => 'search',
                 'sAction' => 'index'
             ],
             'Category Page' => [
@@ -71,10 +71,10 @@ class FrontendTest extends TestCase
     public function vendorProvider()
     {
         return [
-            'setRequestUri contains vendor=Brand' => ['Brand'],
-            'setRequestUri contains vendor=Awesome+Brand' => ['Awesome+Brand'],
-            'setRequestUri contains vendor=Brand%2BFriend' => ['Brand%2BFriend'],
-            'setRequestUri contains vendor=s.%C3%96liver' => ['s.%C3%96liver'],
+            'Regular vendor name' => ['Brand'],
+            'Vendor name containing whitespace' => ['Awesome+Brand'],
+            'Vendor name containing "+" character' => ['Brand%2BFriend'],
+            'Vendor name containing special characters' => ['s.%C3%96liver'],
         ];
     }
 
@@ -202,14 +202,16 @@ class FrontendTest extends TestCase
         Shopware()->Session()->isCategoryPage = null;
         Shopware()->Session()->isSearchPage = true;
 
-        $attrib['vendor'] = $vendor;
+        $attrib = [
+            'vendor' => [$vendor]
+        ];
 
         // Create Request object to be passed in the mocked Subject
         $request = new RequestHttp();
-        $request->setControllerName('index')
+        $request->setControllerName('search')
             ->setActionName('index')
             ->setModuleName('frontend')
-            ->setBaseUrl(rtrim(Shopware()->Shop()->getHost(), '/') . '/')
+            ->setBaseUrl(rtrim(Shopware()->Shop()->getHost(), ' / ') . ' / ')
             ->setParam('attrib', $attrib);
 
         // Create mocked Subject to be passed in mocked args
