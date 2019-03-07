@@ -527,9 +527,12 @@ class FindologicArticleModel
         /** @var Product\Manufacturer $supplier */
         $supplier = $this->productStruct->getManufacturer();
         if ($supplier) {
-            $xmlSupplier = new Attribute('brand');
-            $xmlSupplier->setValues([StaticHelper::removeControlCharacters($supplier->getName())]);
-            $allAttributes[] = $xmlSupplier;
+            $supplierName = trim(StaticHelper::removeControlCharacters($supplier->getName()));
+            if ($supplierName) {
+                $xmlSupplier = new Attribute('brand');
+                $xmlSupplier->setValues([$supplierName]);
+                $allAttributes[] = $xmlSupplier;
+            }
         }
 
         // Filter Values
