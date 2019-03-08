@@ -14,7 +14,7 @@ use Zend_Http_Response;
 
 class UrlBuilder
 {
-    const BASE_URL = 'https://service.findologic.com/ps/xml_2.0/';
+    const BASE_URL = 'https://service.findologic.com/ps/';
     const CDN_URL = 'https://cdn.findologic.com/static/';
     const JSON_CONFIG = '/config.json';
     const ALIVE_ENDPOINT = 'alivetest.php';
@@ -346,6 +346,7 @@ class UrlBuilder
         }
 
         $this->parameters['shopkey'] = $this->getShopkey();
+        $this->parameters['outputAdapter'] = 'XML_2.0';
         $url = sprintf(
             '%s%s%s?%s',
             self::BASE_URL,
