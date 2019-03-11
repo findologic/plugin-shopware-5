@@ -2,12 +2,14 @@
 
 namespace FinSearchUnified\Tests\Helper;
 
+use Exception;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Components_Config;
 use Zend_Http_Client;
+use Zend_Http_Exception;
 use Zend_Http_Response;
 use Zend_Uri_Http;
 
@@ -18,10 +20,14 @@ class UrlBuilderTest extends TestCase
      */
     private $httpClient;
 
-    /**
-     * @var Zend_Http_Response
-     */
-    private $httpResponse;
+    protected function setUp()
+    {
+        parent::setUp();
+
+        $this->httpClient = $this->getMockBuilder(Zend_Http_Client::class)
+            ->setMethods(['request'])
+            ->getMock();
+    }
 
     protected function tearDown()
     {
@@ -76,22 +82,17 @@ class UrlBuilderTest extends TestCase
      * @param string $unfilteredIp
      * @param string $expectedValue
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function testSendOnlyUniqueUserIps($unfilteredIp, $expectedValue)
     {
         $this->setIpHeader('HTTP_CLIENT_IP', $unfilteredIp);
 
-        $this->httpResponse = new Zend_Http_Response(200, [], 'alive');
+        $httpResponse = new Zend_Http_Response(200, [], 'alive');
 
-        $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
-            ->setMethods(['request'])
-            ->getMock();
-        $httpClientMock->expects($this->atLeastOnce())
+        $this->httpClient->expects($this->atLeastOnce())
             ->method('request')
-            ->willReturn($this->httpResponse);
-
-        $this->httpClient = $httpClientMock;
+            ->willReturn($httpResponse);
 
         $urlBuilder = new UrlBuilder($this->httpClient);
 
@@ -111,22 +112,17 @@ class UrlBuilderTest extends TestCase
      *
      * @param string $unfilteredIp
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function testSendsOnlyClientIpFromReverseProxy($unfilteredIp)
     {
         $this->setIpHeader('HTTP_X_FORWARDED_FOR', $unfilteredIp);
 
-        $this->httpResponse = new Zend_Http_Response(200, [], 'alive');
+        $httpResponse = new Zend_Http_Response(200, [], 'alive');
 
-        $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
-            ->setMethods(['request'])
-            ->getMock();
-        $httpClientMock->expects($this->atLeastOnce())
+        $this->httpClient->expects($this->atLeastOnce())
             ->method('request')
-            ->willReturn($this->httpResponse);
-
-        $this->httpClient = $httpClientMock;
+            ->willReturn($httpResponse);
 
         $urlBuilder = new UrlBuilder($this->httpClient);
 
@@ -141,20 +137,15 @@ class UrlBuilderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function testHandlesUnknownClientIp()
     {
-        $this->httpResponse = new Zend_Http_Response(200, [], 'alive');
+        $httpResponse = new Zend_Http_Response(200, [], 'alive');
 
-        $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
-            ->setMethods(['request'])
-            ->getMock();
-        $httpClientMock->expects($this->atLeastOnce())
+        $this->httpClient->expects($this->atLeastOnce())
             ->method('request')
-            ->willReturn($this->httpResponse);
-
-        $this->httpClient = $httpClientMock;
+            ->willReturn($httpResponse);
 
         $urlBuilder = new UrlBuilder($this->httpClient);
 
@@ -208,10 +199,10 @@ class UrlBuilderTest extends TestCase
      * @param string $responseBody
      * @param bool $expectedStatus
      *
-     * @throws \Zend_Http_Exception
-     * @throws \Exception
+     * @throws Zend_Http_Exception
+     * @throws Exception
      */
-    public function testConfigStatusOnSuccessfulRequest($responseBody, $expectedStatus)
+    public function testIntegrationTypeOnSuccessfulRequest($responseBody, $expectedStatus)
     {
         $configArray = [
             ['IntegrationType', Constants::INTEGRATION_TYPE_DI]
@@ -229,16 +220,11 @@ class UrlBuilderTest extends TestCase
         // Assign mocked config variable to application container
         Shopware()->Container()->set('config', $config);
 
-        $this->httpResponse = new Zend_Http_Response(200, [], $responseBody);
+        $httpResponse = new Zend_Http_Response(200, [], $responseBody);
 
-        $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
-            ->setMethods(['request'])
-            ->getMock();
-        $httpClientMock->expects($this->once())
+        $this->httpClient->expects($this->once())
             ->method('request')
-            ->willReturn($this->httpResponse);
-
-        $this->httpClient = $httpClientMock;
+            ->willReturn($httpResponse);
 
         $urlBuilder = new UrlBuilder($this->httpClient);
 
@@ -247,10 +233,7 @@ class UrlBuilderTest extends TestCase
         $this->assertEquals(
             $expectedStatus,
             $status,
-            sprintf(
-                'Expected config status to return %s ',
-                $expectedStatus ? 'true' : 'false'
-            )
+            'Expected integration type to be "Direct Integration"'
         );
     }
 
@@ -260,10 +243,10 @@ class UrlBuilderTest extends TestCase
      * @param string $integrationType
      * @param bool $expectedStatus
      *
-     * @throws \Zend_Http_Exception
-     * @throws \Exception
+     * @throws Zend_Http_Exception
+     * @throws Exception
      */
-    public function testConfigStatusOnUnsuccessfulRequest($integrationType, $expectedStatus)
+    public function testIntegrationTypeOnUnsuccessfulRequest($integrationType, $expectedStatus)
     {
         $configArray = [
             ['IntegrationType', $integrationType]
@@ -281,16 +264,11 @@ class UrlBuilderTest extends TestCase
         // Assign mocked config variable to application container
         Shopware()->Container()->set('config', $config);
 
-        $this->httpResponse = new Zend_Http_Response(500, [], '');
+        $httpResponse = new Zend_Http_Response(500, [], '');
 
-        $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
-            ->setMethods(['request'])
-            ->getMock();
-        $httpClientMock->expects($this->once())
+        $this->httpClient->expects($this->once())
             ->method('request')
-            ->willReturn($this->httpResponse);
-
-        $this->httpClient = $httpClientMock;
+            ->willReturn($httpResponse);
 
         $urlBuilder = new UrlBuilder($this->httpClient);
 
@@ -300,8 +278,8 @@ class UrlBuilderTest extends TestCase
             $expectedStatus,
             $status,
             sprintf(
-                'Expected config status to return %s ',
-                $expectedStatus ? 'true' : 'false'
+                'Expected integration type to be "%s"',
+                $integrationType
             )
         );
     }
@@ -312,9 +290,9 @@ class UrlBuilderTest extends TestCase
      * @param string $integrationType
      * @param bool $expectedStatus
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function testConfigStatusOnException($integrationType, $expectedStatus)
+    public function testIntegrationTypeOnException($integrationType, $expectedStatus)
     {
         $configArray = [
             ['IntegrationType', $integrationType]
@@ -332,16 +310,11 @@ class UrlBuilderTest extends TestCase
         // Assign mocked config variable to application container
         Shopware()->Container()->set('config', $config);
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
 
-        $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
-            ->setMethods(['request'])
-            ->getMock();
-        $httpClientMock->expects($this->once())
+        $this->httpClient->expects($this->once())
             ->method('request')
-            ->willThrowException(new \Exception());
-
-        $this->httpClient = $httpClientMock;
+            ->willThrowException(new Exception());
 
         $urlBuilder = new UrlBuilder($this->httpClient);
 
@@ -351,8 +324,8 @@ class UrlBuilderTest extends TestCase
             $expectedStatus,
             $status,
             sprintf(
-                'Expected config status to return %s ',
-                $expectedStatus ? 'true' : 'false'
+                'Expected integration type to be "%s"',
+                $integrationType
             )
         );
     }
