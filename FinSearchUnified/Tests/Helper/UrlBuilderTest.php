@@ -194,6 +194,14 @@ class UrlBuilderTest extends TestCase
         ];
     }
 
+    public function exceptionOnRequestProvider()
+    {
+        return [
+            'Request causes "Zend_Http_Client_Exception" with DI enabled' => ['Direct Integration', true],
+            'Request causes "Zend_Http_Client_Exception" with DI disabled' => ['API', false]
+        ];
+    }
+
     /**
      * @dataProvider successfulRequestProvider
      *
@@ -253,6 +261,7 @@ class UrlBuilderTest extends TestCase
      * @param bool $expectedStatus
      *
      * @throws \Zend_Http_Exception
+     * @throws \Exception
      */
     public function testConfigStatusOnUnsuccessfulRequest($integrationType, $expectedStatus)
     {
@@ -280,6 +289,57 @@ class UrlBuilderTest extends TestCase
         $httpClientMock->expects($this->once())
             ->method('request')
             ->willReturn($this->httpResponse);
+
+        $this->httpClient = $httpClientMock;
+
+        $urlBuilder = new UrlBuilder($this->httpClient);
+
+        $status = $urlBuilder->getConfigStatus();
+
+        $this->assertEquals(
+            $expectedStatus,
+            $status,
+            sprintf(
+                'Expected config status to return %s ',
+                $expectedStatus ? 'true' : 'false'
+            )
+        );
+    }
+
+    /**
+     * @dataProvider exceptionOnRequestProvider
+     *
+     * @param string $integrationType
+     * @param bool $expectedStatus
+     *
+     * @throws \Exception
+     */
+    public function testConfigStatusOnException($integrationType, $expectedStatus)
+    {
+        $configArray = [
+            ['IntegrationType', $integrationType]
+        ];
+
+        // Create Mock object for Shopware Config
+        $config = $this->getMockBuilder(Shopware_Components_Config::class)
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $config->expects($this->atLeastOnce())
+            ->method('offsetGet')
+            ->willReturnMap($configArray);
+
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $config);
+
+        $this->expectException(\Exception::class);
+
+        $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
+            ->setMethods(['request'])
+            ->getMock();
+        $httpClientMock->expects($this->once())
+            ->method('request')
+            ->willThrowException(new \Exception());
 
         $this->httpClient = $httpClientMock;
 
