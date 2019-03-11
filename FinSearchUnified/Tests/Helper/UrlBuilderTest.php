@@ -185,8 +185,8 @@ class UrlBuilderTest extends TestCase
     public function unsuccessfulRequestProvider()
     {
         return [
-            'Request was not successful with DI enabled' => ['Direct Integration', true],
-            'Request was not successful with DI disabled' => ['API', false]
+            'Request was not successful with DI disabled' => ['API', false],
+            'Request was not successful with DI enabled' => ['Direct Integration', true]
         ];
     }
 
@@ -201,7 +201,7 @@ class UrlBuilderTest extends TestCase
      */
     public function testConfigStatusOnSuccessfulRequest($responseBody, $expectedStatus)
     {
-        Shopware()->Config()->IntegrationType = Constants::INTEGRATION_TYPE_DI;
+        $this->setConfig('IntegrationType', Constants::INTEGRATION_TYPE_DI);
 
         $this->httpResponse = new Zend_Http_Response(200, [], $responseBody);
 
@@ -238,7 +238,7 @@ class UrlBuilderTest extends TestCase
      */
     public function testConfigStatusOnUnsuccessfulRequest($integrationType, $expectedStatus)
     {
-        Shopware()->Config()->IntegrationType = $integrationType;
+        $this->setConfig('IntegrationType', $integrationType);
 
         $this->httpResponse = new Zend_Http_Response(500, [], '');
 
@@ -263,5 +263,18 @@ class UrlBuilderTest extends TestCase
                 $expectedStatus ? 'true' : 'false'
             )
         );
+    }
+
+    /**
+     * Allows to set a Shopware config
+     *
+     * @param string $name
+     * @param mixed $value
+     */
+    protected function setConfig($name, $value)
+    {
+        Shopware()->Container()->get('config_writer')->save($name, $value);
+        Shopware()->Container()->get('cache')->clean();
+        Shopware()->Container()->get('config')->setShop(Shopware()->Shop());
     }
 }
