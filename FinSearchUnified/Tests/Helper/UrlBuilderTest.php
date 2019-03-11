@@ -6,6 +6,7 @@ use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Components\Test\Plugin\TestCase;
+use Shopware_Components_Config;
 use Zend_Http_Client;
 use Zend_Http_Response;
 use Zend_Uri_Http;
@@ -32,6 +33,9 @@ class UrlBuilderTest extends TestCase
         if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             unset($_SERVER['HTTP_X_FORWARDED_FOR']);
         }
+
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->load('config');
     }
 
     /**
@@ -201,7 +205,21 @@ class UrlBuilderTest extends TestCase
      */
     public function testConfigStatusOnSuccessfulRequest($responseBody, $expectedStatus)
     {
-        $this->setConfig('IntegrationType', Constants::INTEGRATION_TYPE_DI);
+        $configArray = [
+            ['IntegrationType', Constants::INTEGRATION_TYPE_DI]
+        ];
+
+        // Create Mock object for Shopware Config
+        $config = $this->getMockBuilder(Shopware_Components_Config::class)
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $config->expects($this->atLeastOnce())
+            ->method('offsetGet')
+            ->willReturnMap($configArray);
+
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $config);
 
         $this->httpResponse = new Zend_Http_Response(200, [], $responseBody);
 
@@ -238,7 +256,21 @@ class UrlBuilderTest extends TestCase
      */
     public function testConfigStatusOnUnsuccessfulRequest($integrationType, $expectedStatus)
     {
-        $this->setConfig('IntegrationType', $integrationType);
+        $configArray = [
+            ['IntegrationType', $integrationType]
+        ];
+
+        // Create Mock object for Shopware Config
+        $config = $this->getMockBuilder(Shopware_Components_Config::class)
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $config->expects($this->atLeastOnce())
+            ->method('offsetGet')
+            ->willReturnMap($configArray);
+
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $config);
 
         $this->httpResponse = new Zend_Http_Response(500, [], '');
 
@@ -263,18 +295,5 @@ class UrlBuilderTest extends TestCase
                 $expectedStatus ? 'true' : 'false'
             )
         );
-    }
-
-    /**
-     * Allows to set a Shopware config
-     *
-     * @param string $name
-     * @param mixed $value
-     */
-    protected function setConfig($name, $value)
-    {
-        Shopware()->Container()->get('config_writer')->save($name, $value);
-        Shopware()->Container()->get('cache')->clean();
-        Shopware()->Container()->get('config')->setShop(Shopware()->Shop());
     }
 }
