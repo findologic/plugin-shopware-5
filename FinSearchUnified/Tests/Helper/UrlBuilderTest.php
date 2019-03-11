@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Tests\Helper;
 
+use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Components\Test\Plugin\TestCase;
@@ -23,6 +24,8 @@ class UrlBuilderTest extends TestCase
 
     public function setUp()
     {
+        parent::setUp();
+
         $this->httpResponse = new Zend_Http_Response(200, [], 'alive');
 
         $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
@@ -127,6 +130,9 @@ class UrlBuilderTest extends TestCase
         $this->assertEquals('192.168.0.1', $usedIpInRequest);
     }
 
+    /**
+     * @throws \Exception
+     */
     public function testHandlesUnknownClientIp()
     {
         $urlBuilder = new UrlBuilder($this->httpClient);
@@ -149,5 +155,90 @@ class UrlBuilderTest extends TestCase
     private function setIpHeader($field, $ipAddress)
     {
         $_SERVER[$field] = $ipAddress;
+    }
+
+    public function successfulRequestProvider()
+    {
+        return [
+            'Request was successful with DI enabled' => ['{"directIntegration":{"enabled":1}}', true],
+            'Request was successful with DI disabled' => ['{"directIntegration":{"enabled":0}}', false]
+        ];
+    }
+
+    public function unsuccessfulRequestProvider()
+    {
+        return [
+            'Request was not successful with DI enabled' => ['Direct Integration', true],
+            'Request was not successful with DI disabled' => ['API', false]
+        ];
+    }
+
+    /**
+     * @dataProvider successfulRequestProvider
+     *
+     * @param string $responseBody
+     * @param bool $expectedStatus
+     *
+     * @throws \Zend_Http_Exception
+     * @throws \Exception
+     */
+    public function testConfigStatusOnSuccessfulRequest($responseBody, $expectedStatus)
+    {
+        Shopware()->Config()->IntegrationType = Constants::INTEGRATION_TYPE_DI;
+
+        $httpResponse = new Zend_Http_Response(200, [], $responseBody);
+
+        $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
+            ->setMethods(['request'])
+            ->getMock();
+        $httpClientMock->expects($this->once())
+            ->method('request')
+            ->willReturn($httpResponse);
+
+        $urlBuilder = new UrlBuilder($httpClientMock);
+
+        $status = $urlBuilder->getConfigStatus();
+
+        $this->assertEquals(
+            $expectedStatus,
+            $status,
+            sprintf(
+                'Expected config status to return %s ',
+                $expectedStatus ? 'true' : 'false'
+            ));
+    }
+
+    /**
+     * @dataProvider unsuccessfulRequestProvider
+     *
+     * @param string $integrationType
+     * @param bool $expectedStatus
+     *
+     * @throws \Zend_Http_Exception
+     */
+    public function testConfigStatusOnUnsuccessfulRequest($integrationType, $expectedStatus)
+    {
+        Shopware()->Config()->IntegrationType = $integrationType;
+
+        $httpResponse = new Zend_Http_Response(500, [], '');
+
+        $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
+            ->setMethods(['request'])
+            ->getMock();
+        $httpClientMock->expects($this->once())
+            ->method('request')
+            ->willReturn($httpResponse);
+
+        $urlBuilder = new UrlBuilder($httpClientMock);
+
+        $status = $urlBuilder->getConfigStatus();
+
+        $this->assertEquals(
+            $expectedStatus,
+            $status,
+            sprintf(
+                'Expected config status to return %s ',
+                $expectedStatus ? 'true' : 'false'
+            ));
     }
 }

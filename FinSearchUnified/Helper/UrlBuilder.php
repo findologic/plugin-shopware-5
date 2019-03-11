@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Helper;
 
+use FinSearchUnified\Constants;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -150,17 +151,23 @@ class UrlBuilder
         try {
             $request = $this->httpClient->setUri($this->getConfigUrl());
             $requestHandler = $request->request();
-            if ($requestHandler->getStatus() == 200) {
+
+            if ($requestHandler->getStatus() === 200) {
                 $response = $requestHandler->getBody();
                 $jsonResponse = json_decode($response, true);
-
-                return (bool)$jsonResponse[self::JSON_PATH]['enabled'];
+                $isDirectIntegration = (bool)$jsonResponse[self::JSON_PATH]['enabled'];
+            } else {
+                $isDirectIntegration = Shopware()
+                        ->Config()
+                        ->offsetGet('IntegrationType') === Constants::INTEGRATION_TYPE_DI;
             }
-
-            return false;
         } catch (Zend_Http_Client_Exception $e) {
-            return false;
+            $isDirectIntegration = Shopware()
+                    ->Config()
+                    ->offsetGet('IntegrationType') === Constants::INTEGRATION_TYPE_DI;
         }
+
+        return $isDirectIntegration;
     }
 
     /**
