@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Tests\Helper;
 
+use Exception;
 use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Components\Test\Plugin\TestCase;
@@ -21,8 +22,13 @@ class UrlBuilderTest extends TestCase
      */
     private $httpResponse;
 
+    /**
+     * @throws \Zend_Http_Exception
+     */
     public function setUp()
     {
+        parent::setUp();
+
         $this->httpResponse = new Zend_Http_Response(200, [], 'alive');
 
         $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
@@ -85,7 +91,7 @@ class UrlBuilderTest extends TestCase
      * @param string $unfilteredIp
      * @param string $expectedValue
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function testSendOnlyUniqueUserIps($unfilteredIp, $expectedValue)
     {
@@ -109,7 +115,7 @@ class UrlBuilderTest extends TestCase
      *
      * @param string $unfilteredIp
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function testSendsOnlyClientIpFromReverseProxy($unfilteredIp)
     {
@@ -127,6 +133,9 @@ class UrlBuilderTest extends TestCase
         $this->assertEquals('192.168.0.1', $usedIpInRequest);
     }
 
+    /**
+     * @throws Exception
+     */
     public function testHandlesUnknownClientIp()
     {
         $urlBuilder = new UrlBuilder($this->httpClient);
@@ -143,9 +152,9 @@ class UrlBuilderTest extends TestCase
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
-    public function testOutputAdapterParameterInUrl()
+    public function testOutputAdapterIsExplicitlySetToXml()
     {
         $urlBuilder = new UrlBuilder($this->httpClient);
 
@@ -156,12 +165,24 @@ class UrlBuilderTest extends TestCase
         /** @var Zend_Uri_Http $requestedUrl */
         $requestedUrl = $this->httpClient->getUri();
         $path = $requestedUrl->getPath();
-        $this->assertNotContains('xml_2.0', $path, 'Expected "xml_2.0" to not be passed in requested URL ');
+        $this->assertNotContains(
+            'xml_2.0',
+            $path,
+            'Expected "xml_2.0" to not be passed in requested URL'
+        );
 
         $queryArray = $requestedUrl->getQueryAsArray();
 
-        $this->assertArrayHasKey('outputAdapter', $queryArray, 'outputAdapter was not found in query parameters');
-        $this->assertSame('XML_2.0', $queryArray['outputAdapter'], 'XML_2.0 was not found in outputAdapter parameter');
+        $this->assertArrayHasKey(
+            'outputAdapter',
+            $queryArray,
+            '"outputAdapter" was not found in query parameters'
+        );
+        $this->assertSame(
+            'XML_2.0',
+            $queryArray['outputAdapter'],
+            '"XML_2.0" was not found in "outputAdapter" parameter'
+        );
     }
 
     /**
