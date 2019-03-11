@@ -22,22 +22,6 @@ class UrlBuilderTest extends TestCase
      */
     private $httpResponse;
 
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->httpResponse = new Zend_Http_Response(200, [], 'alive');
-
-        $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
-            ->setMethods(['request'])
-            ->getMock();
-        $httpClientMock->expects($this->atLeastOnce())
-            ->method('request')
-            ->willReturn($this->httpResponse);
-
-        $this->httpClient = $httpClientMock;
-    }
-
     protected function tearDown()
     {
         parent::tearDown();
@@ -94,6 +78,17 @@ class UrlBuilderTest extends TestCase
     {
         $this->setIpHeader('HTTP_CLIENT_IP', $unfilteredIp);
 
+        $this->httpResponse = new Zend_Http_Response(200, [], 'alive');
+
+        $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
+            ->setMethods(['request'])
+            ->getMock();
+        $httpClientMock->expects($this->atLeastOnce())
+            ->method('request')
+            ->willReturn($this->httpResponse);
+
+        $this->httpClient = $httpClientMock;
+
         $urlBuilder = new UrlBuilder($this->httpClient);
 
         $criteria = new Criteria();
@@ -118,6 +113,17 @@ class UrlBuilderTest extends TestCase
     {
         $this->setIpHeader('HTTP_X_FORWARDED_FOR', $unfilteredIp);
 
+        $this->httpResponse = new Zend_Http_Response(200, [], 'alive');
+
+        $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
+            ->setMethods(['request'])
+            ->getMock();
+        $httpClientMock->expects($this->atLeastOnce())
+            ->method('request')
+            ->willReturn($this->httpResponse);
+
+        $this->httpClient = $httpClientMock;
+
         $urlBuilder = new UrlBuilder($this->httpClient);
 
         $criteria = new Criteria();
@@ -135,6 +141,17 @@ class UrlBuilderTest extends TestCase
      */
     public function testHandlesUnknownClientIp()
     {
+        $this->httpResponse = new Zend_Http_Response(200, [], 'alive');
+
+        $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
+            ->setMethods(['request'])
+            ->getMock();
+        $httpClientMock->expects($this->atLeastOnce())
+            ->method('request')
+            ->willReturn($this->httpResponse);
+
+        $this->httpClient = $httpClientMock;
+
         $urlBuilder = new UrlBuilder($this->httpClient);
 
         $criteria = new Criteria();
@@ -186,16 +203,18 @@ class UrlBuilderTest extends TestCase
     {
         Shopware()->Config()->IntegrationType = Constants::INTEGRATION_TYPE_DI;
 
-        $httpResponse = new Zend_Http_Response(200, [], $responseBody);
+        $this->httpResponse = new Zend_Http_Response(200, [], $responseBody);
 
         $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
             ->setMethods(['request'])
             ->getMock();
         $httpClientMock->expects($this->once())
             ->method('request')
-            ->willReturn($httpResponse);
+            ->willReturn($this->httpResponse);
 
-        $urlBuilder = new UrlBuilder($httpClientMock);
+        $this->httpClient = $httpClientMock;
+
+        $urlBuilder = new UrlBuilder($this->httpClient);
 
         $status = $urlBuilder->getConfigStatus();
 
@@ -205,7 +224,8 @@ class UrlBuilderTest extends TestCase
             sprintf(
                 'Expected config status to return %s ',
                 $expectedStatus ? 'true' : 'false'
-            ));
+            )
+        );
     }
 
     /**
@@ -220,16 +240,18 @@ class UrlBuilderTest extends TestCase
     {
         Shopware()->Config()->IntegrationType = $integrationType;
 
-        $httpResponse = new Zend_Http_Response(500, [], '');
+        $this->httpResponse = new Zend_Http_Response(500, [], '');
 
         $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
             ->setMethods(['request'])
             ->getMock();
         $httpClientMock->expects($this->once())
             ->method('request')
-            ->willReturn($httpResponse);
+            ->willReturn($this->httpResponse);
 
-        $urlBuilder = new UrlBuilder($httpClientMock);
+        $this->httpClient = $httpClientMock;
+
+        $urlBuilder = new UrlBuilder($this->httpClient);
 
         $status = $urlBuilder->getConfigStatus();
 
@@ -239,6 +261,7 @@ class UrlBuilderTest extends TestCase
             sprintf(
                 'Expected config status to return %s ',
                 $expectedStatus ? 'true' : 'false'
-            ));
+            )
+        );
     }
 }
