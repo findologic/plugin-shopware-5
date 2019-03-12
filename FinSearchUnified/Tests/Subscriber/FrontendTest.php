@@ -2,14 +2,11 @@
 
 namespace FinSearchUnified\Tests\Subscriber;
 
-use Enlight_Components_Session_Namespace;
 use Enlight_Controller_Action;
-use Enlight_Controller_ActionEventArgs;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
-use Enlight_Template_Manager;
-use FinSearchUnified\FinSearchUnified as Plugin;
+use Enlight_Event_EventArgs;
+use Enlight_Hook_HookArgs;
 use Shopware\Components\Test\Plugin\TestCase;
-use Shopware_Components_Config;
 
 class FrontendTest extends TestCase
 {
@@ -17,10 +14,8 @@ class FrontendTest extends TestCase
     {
         parent::tearDown();
 
-        Shopware()->Container()->reset('session');
-        Shopware()->Container()->load('session');
-        Shopware()->Container()->reset('config');
-        Shopware()->Container()->load('config');
+        Shopware()->Session()->offsetUnset('isCategoryPage');
+        Shopware()->Session()->offsetUnset('isSearchPage');
     }
 
     /**
@@ -32,7 +27,7 @@ class FrontendTest extends TestCase
             'Search Page' => [
                 'sSearch' => 'Yes',
                 'sCategory' => null,
-                'sController' => 'index',
+                'sController' => 'search',
                 'sAction' => 'index'
             ],
             'Category Page' => [
@@ -74,6 +69,16 @@ class FrontendTest extends TestCase
         ];
     }
 
+    public function vendorProvider()
+    {
+        return [
+            'Regular vendor name' => ['Brand'],
+            'Vendor name containing whitespace' => ['Awesome+Brand'],
+            'Vendor name containing "+" character' => ['Brand%2BFriend'],
+            'Vendor name containing special characters' => ['s.%C3%96liver'],
+        ];
+    }
+
     /**
      * @dataProvider frontendPreDispatchProvider
      *
@@ -103,43 +108,21 @@ class FrontendTest extends TestCase
             ->willReturn($request);
 
         // Create mocked args for getting Subject and Request
-        $args = $this->getMockBuilder(Enlight_Controller_ActionEventArgs::class)
+        $args = $this->getMockBuilder(Enlight_Event_EventArgs::class)
             ->setMethods(['getSubject', 'getRequest'])
             ->getMock();
         $args->method('getSubject')->willReturn($subject);
         $args->method('getRequest')->willReturn($request);
 
-        // Create Mock object for Shopware Session
-        $session = $this->createMock(Enlight_Components_Session_Namespace::class);
-        $session->expects($this->atLeastOnce())->method('offsetGet')->willReturnMap([
-            ['isSearchPage', $isSearch],
-            ['isCategoryPage', $isCategory],
-            ['findologicDI', false]
-        ]);
-        $session->expects($this->any())->method('offsetExists')->willReturn(true);
+        Shopware()->Session()->isCategoryPage = $isCategory;
+        Shopware()->Session()->isSearchPage = $isSearch;
 
-        Shopware()->Container()->set('session', $session);
-
-        $configArray = [
-            ['ActivateFindologic', true],
-            ['ActivateFindologicForCategoryPages', false],
-            ['ShopKey', '0000000000000000ZZZZZZZZZZZZZZZZ']
-        ];
-        // Create Mock object for Shopware Config
-        $config = $this->createMock(Shopware_Components_Config::class);
-        $config->method('offsetGet')->willReturnMap($configArray);
-        // Assign mocked config variable to application container
-        Shopware()->Container()->set('config', $config);
-
-        /** @var Plugin $plugin */
-        $plugin = Shopware()->Container()->get('kernel')->getPlugins()['FinSearchUnified'];
-        $frontend = new \FinSearchUnified\Subscriber\Frontend($plugin->getPath(), new Enlight_Template_Manager());
-
+        $frontend = Shopware()->Container()->get('fin_search_unified.subscriber.frontend');
         $frontend->onFrontendPreDispatch($args);
 
         // Check session values after FrontendPreDispatch Call
-        $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
-        $isSearchPage = Shopware()->Session()->offsetGet('isSearchPage');
+        $isCategoryPage = Shopware()->Session()->isCategoryPage;
+        $isSearchPage = Shopware()->Session()->isSearchPage;
 
         $this->assertEquals(
             $isSearch,
@@ -163,6 +146,9 @@ class FrontendTest extends TestCase
      */
     public function testSessionValuesAfterListingCount($sSearch, $sCategory, $sController, $sAction)
     {
+        $isSearch = isset($sSearch);
+        $isCategory = isset($sCategory);
+
         // Create Request object to be passed in the mocked Subject
         $request = new RequestHttp();
         $request->setControllerName($sController)
@@ -179,46 +165,80 @@ class FrontendTest extends TestCase
             ->willReturn($request);
 
         // Create mocked args for getting Subject and Request
-        $args = $this->getMockBuilder(Enlight_Controller_ActionEventArgs::class)
+        $args = $this->getMockBuilder(Enlight_Event_EventArgs::class)
             ->setMethods(['getSubject', 'getRequest'])
             ->getMock();
         $args->method('getSubject')->willReturn($subject);
         $args->method('getRequest')->willReturn($request);
 
-        $sessionArray = [
-            ['isSearchPage', isset($sSearch)],
-            ['isCategoryPage', isset($sCategory)]
-        ];
+        Shopware()->Session()->isCategoryPage = $isCategory;
+        Shopware()->Session()->isSearchPage = $isSearch;
 
-        // Create Mock object for Shopware Session
-        $session = $this->getMockBuilder(Enlight_Components_Session_Namespace::class)
-            ->setMethods(['offsetGet'])
-            ->getMock();
-        $session->expects($this->atLeastOnce())
-            ->method('offsetGet')
-            ->willReturnMap($sessionArray);
-
-        // Assign mocked session variable to application container
-        Shopware()->Container()->set('session', $session);
-
-        $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
-        $isSearchPage = Shopware()->Session()->offsetGet('isSearchPage');
-
-        /** @var Plugin $plugin */
-        $plugin = Shopware()->Container()->get('kernel')->getPlugins()['FinSearchUnified'];
-        $frontend = new \FinSearchUnified\Subscriber\Frontend($plugin->getPath(), new Enlight_Template_Manager());
-
+        $frontend = Shopware()->Container()->get('fin_search_unified.subscriber.frontend');
         $frontend->onFrontendPreDispatch($args);
 
+        // Check session values after FrontendPreDispatch Call
+        $isCategoryPage = Shopware()->Session()->isCategoryPage;
+        $isSearchPage = Shopware()->Session()->isSearchPage;
+
         $this->assertEquals(
+            $isCategory,
             $isCategoryPage,
-            Shopware()->Session()->offsetGet('isCategoryPage'),
             "Expected isCategoryPage to remain unchanged after listingCount method call"
         );
         $this->assertEquals(
+            $isSearch,
             $isSearchPage,
-            Shopware()->Session()->offsetGet('isSearchPage'),
             "Expected isSearchPage to remain unchanged after listingCount method call"
         );
+    }
+
+    /**
+     * @dataProvider vendorProvider
+     *
+     * @param string $vendor
+     */
+    public function testBeforeSearchIndexAction($vendor)
+    {
+        Shopware()->Session()->isCategoryPage = null;
+        Shopware()->Session()->isSearchPage = true;
+
+        $attrib = [
+            'vendor' => [$vendor]
+        ];
+
+        // Create Request object to be passed in the mocked Subject
+        $request = new RequestHttp();
+        $request->setControllerName('search')
+            ->setActionName('index')
+            ->setModuleName('frontend')
+            ->setBaseUrl(rtrim(Shopware()->Shop()->getHost(), ' / ') . ' / ')
+            ->setParam('attrib', $attrib);
+
+        // Create mocked Subject to be passed in mocked args
+        $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
+            ->setMethods(['Request', 'redirect'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $subject->method('Request')
+            ->willReturn($request);
+        $subject->method('redirect')
+            ->willReturnCallback(function ($requestUrl) use ($vendor) {
+                \PHPUnit_Framework_Assert::assertContains(
+                    http_build_query(['vendor' => rawurldecode($vendor)]),
+                    $requestUrl
+                );
+            });
+
+        // Create mocked args for getting Subject and Request
+        $args = $this->getMockBuilder(Enlight_Hook_HookArgs::class)
+            ->setMethods(['getSubject', 'getRequest'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $args->method('getSubject')->willReturn($subject);
+        $args->method('getRequest')->willReturn($request);
+
+        $frontend = Shopware()->Container()->get('fin_search_unified.subscriber.frontend');
+        $frontend->beforeSearchIndexAction($args);
     }
 }
