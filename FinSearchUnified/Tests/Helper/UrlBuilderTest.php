@@ -9,6 +9,7 @@ use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Components_Config;
 use Zend_Http_Client;
+use Zend_Http_Client_Exception;
 use Zend_Http_Exception;
 use Zend_Http_Response;
 use Zend_Uri_Http;
@@ -233,7 +234,10 @@ class UrlBuilderTest extends TestCase
         $this->assertEquals(
             $expectedStatus,
             $status,
-            'Expected integration type to be "Direct Integration"'
+            sprintf(
+                'Expected integration type to be "%s"',
+                $expectedStatus ? 'Direct Integration' : 'API'
+            )
         );
     }
 
@@ -310,11 +314,9 @@ class UrlBuilderTest extends TestCase
         // Assign mocked config variable to application container
         Shopware()->Container()->set('config', $config);
 
-        $this->expectException(Exception::class);
-
         $this->httpClient->expects($this->once())
             ->method('request')
-            ->willThrowException(new Exception());
+            ->willThrowException(new Zend_Http_Client_Exception());
 
         $urlBuilder = new UrlBuilder($this->httpClient);
 
