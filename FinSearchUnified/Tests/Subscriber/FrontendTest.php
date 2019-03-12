@@ -96,8 +96,13 @@ class FrontendTest extends TestCase
         $request = new RequestHttp();
         $request->setControllerName($sController)
             ->setActionName($sAction)
-            ->setModuleName('frontend')
-            ->setParams(['sSearch' => $sSearch, 'sCategory' => $sCategory]);
+            ->setModuleName('frontend');
+
+        if ($isSearch) {
+            $request->setParam('sSearch', $sSearch);
+        } else {
+            $request->setParam('sCategory', $sCategory);
+        }
 
         // Create mocked Subject to be passed in mocked args
         $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
@@ -153,8 +158,13 @@ class FrontendTest extends TestCase
         $request = new RequestHttp();
         $request->setControllerName($sController)
             ->setActionName($sAction)
-            ->setModuleName('widgets')
-            ->setParams(['sSearch' => $sSearch, 'sCategory' => $sCategory]);
+            ->setModuleName('widgets');
+
+        if ($isSearch) {
+            $request->setParam('sSearch', $sSearch);
+        } else {
+            $request->setParam('sCategory', $sCategory);
+        }
 
         // Create mocked Subject to be passed in mocked args
         $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
