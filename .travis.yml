@@ -26,9 +26,12 @@ env:
 
 cache:
    directories:
+     - ${HOME}/.bin
      - ${HOME}/.composer/cache/files
 
 install:
+  - wget -O ${HOME}/.bin/phpunit https://phar.phpunit.de/phpunit-5.7.27.phar
+  - chmod +x ${HOME}/.bin/phpunit
   - cd ${PLUGIN_NAME}
   - composer install
 
@@ -49,4 +52,4 @@ jobs:
         - composer lint
     - stage: test
       script:
-        - ${SHOPWARE_DIRECTORY}/vendor/phpunit/phpunit/phpunit -c phpunit.xml.dist --colors=always Tests
+        - ${HOME}/.bin/phpunit -c phpunit.xml.dist --colors=always Tests
