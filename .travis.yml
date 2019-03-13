@@ -49,4 +49,4 @@ jobs:
         - composer lint
     - stage: test
       script:
-        - ${SHOPWARE_DIRECTORY}/vendor/bin/phpunit -c phpunit.xml.dist --colors=always Tests
+        - ${SHOPWARE_DIRECTORY}/vendor/phpunit/phpunit/phpunit -c phpunit.xml.dist --colors=always Tests
