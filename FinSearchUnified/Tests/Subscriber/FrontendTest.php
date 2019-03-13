@@ -205,6 +205,7 @@ class FrontendTest extends TestCase
 
     /**
      * @dataProvider vendorProvider
+     * @doesNotPerformAssertions
      *
      * @param string $vendor
      */
@@ -233,12 +234,14 @@ class FrontendTest extends TestCase
         $subject->method('Request')
             ->willReturn($request);
         $subject->method('redirect')
-            ->willReturnCallback(function ($requestUrl) use ($vendor) {
+            ->with($this->callback(function ($requestUrl) use ($vendor) {
                 \PHPUnit_Framework_Assert::assertContains(
                     http_build_query(['vendor' => rawurldecode($vendor)]),
                     $requestUrl
                 );
-            });
+
+                return true;
+            }));
 
         // Create mocked args for getting Subject and Request
         $args = $this->getMockBuilder(Enlight_Hook_HookArgs::class)
