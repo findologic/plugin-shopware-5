@@ -30,8 +30,8 @@ cache:
      - ${HOME}/.composer/cache/files
 
 install:
-  - wget -O ${HOME}/.bin/phpunit https://phar.phpunit.de/phpunit-5.7.27.phar
-  - chmod +x ${HOME}/.bin/phpunit
+  - wget -O ${HOME}/.bin/phpunit-5.7.27 https://phar.phpunit.de/phpunit-5.7.27.phar
+  - chmod +x ${HOME}/.bin/phpunit-5.7.27
   - cd ${PLUGIN_NAME}
   - composer install
 
@@ -52,4 +52,4 @@ jobs:
         - composer lint
     - stage: test
       script:
-        - ${HOME}/.bin/phpunit -c phpunit.xml.dist --colors=always Tests
+        - ${HOME}/.bin/phpunit-5.7.27 -c phpunit.xml.dist --colors=always Tests
