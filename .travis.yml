@@ -39,7 +39,7 @@ before_script:
   - mv ${TRAVIS_BUILD_DIR}/${PLUGIN_NAME} ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
   - php ${HOME}/shopware/bin/console sw:plugin:refresh
   - php ${HOME}/shopware/bin/console sw:plugin:install ${PLUGIN_NAME}
-  - php ${HOME}/shopware/bin/console sw:plugin:activate ${PLUGIN_NAME}
+  - php ${HOME}/shopware/bin/console sw:plugin:activate --clear-cache ${PLUGIN_NAME}
   - cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
 
 jobs:
