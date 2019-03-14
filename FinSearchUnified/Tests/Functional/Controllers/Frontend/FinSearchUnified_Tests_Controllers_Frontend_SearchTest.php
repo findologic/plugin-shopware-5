@@ -7,6 +7,7 @@ use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
 use Shopware\Bundle\SearchBundle\StoreFrontCriteriaFactory;
 use Shopware\Bundle\SearchBundle\ProductSearch;
+use Shopware\Bundle\SearchBundleDBAL;
 
 class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Components_Test_Plugin_TestCase
 {
@@ -199,17 +200,18 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             ])
             ->getMock();
 
-        if ($originalQuery !== null) {
-            $urlBuilderMock->expects($this->once())->method('setCustomerGroup');
-            $urlBuilderMock->expects($this->once())->method('buildQueryUrlAndGetResponse')->willReturn(
-                new Zend_Http_Response(200, [], $xmlResponse->asXML())
-            );
-        }
-
-        $productNumberSearch = new ProductNumberSearch(
-            Shopware()->Container()->get('shopware_search.product_number_search'),
-            $urlBuilderMock
+        $urlBuilderMock->expects($this->once())->method('setCustomerGroup');
+        $urlBuilderMock->expects($this->once())->method('buildQueryUrlAndGetResponse')->willReturn(
+            new Zend_Http_Response(200, [], $xmlResponse->asXML())
         );
+
+        $originalService = $this->getMockBuilder(SearchBundleDBAL\ProductNumberSearch::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['search'])
+            ->getMock();
+        $originalService->expects($this->never())->method('search');
+
+        $productNumberSearch = new ProductNumberSearch($originalService, $urlBuilderMock);
 
         $productSearch = new ProductSearch(
             Shopware()->Container()->get('shopware_storefront.list_product_service'),

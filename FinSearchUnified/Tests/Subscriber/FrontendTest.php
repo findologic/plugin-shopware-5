@@ -7,6 +7,8 @@ use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use Enlight_Event_EventArgs;
 use Enlight_Hook_HookArgs;
 use Shopware\Components\Test\Plugin\TestCase;
+use Shopware_Controllers_Widgets_Listing;
+use Enlight_Controller_Response_ResponseHttp;
 
 class FrontendTest extends TestCase
 {
@@ -56,15 +58,11 @@ class FrontendTest extends TestCase
         return [
             'Check values after listingCount call on Search Page' => [
                 'sSearch' => 'Yes',
-                'sCategory' => null,
-                'sController' => 'listing',
-                'sAction' => 'listingCount'
+                'sCategory' => null
             ],
             'Check values after listingCount call in Category Page' => [
                 'sSearch' => null,
-                'sCategory' => 3,
-                'sController' => 'listing',
-                'sAction' => 'listingCount'
+                'sCategory' => 3
             ]
         ];
     }
@@ -146,18 +144,16 @@ class FrontendTest extends TestCase
      *
      * @param string $sSearch
      * @param int|null $sCategory
-     * @param string $sController
-     * @param string $sAction
      */
-    public function testSessionValuesAfterListingCount($sSearch, $sCategory, $sController, $sAction)
+    public function testSessionValuesAfterListingCount($sSearch, $sCategory)
     {
         $isSearch = isset($sSearch);
         $isCategory = isset($sCategory);
 
         // Create Request object to be passed in the mocked Subject
         $request = new RequestHttp();
-        $request->setControllerName($sController)
-            ->setActionName($sAction)
+        $request->setControllerName('listing')
+            ->setActionName('listingCount')
             ->setModuleName('widgets');
 
         if ($isSearch) {
@@ -166,20 +162,15 @@ class FrontendTest extends TestCase
             $request->setParam('sCategory', $sCategory);
         }
 
-        // Create mocked Subject to be passed in mocked args
-        $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
-            ->setMethods(['Request'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $subject->method('Request')
-            ->willReturn($request);
+        $subject = Shopware_Controllers_Widgets_Listing::Instance(
+            Shopware_Controllers_Widgets_Listing::class,
+            [
+                $request,
+                new Enlight_Controller_Response_ResponseHttp()
+            ]
+        );
 
-        // Create mocked args for getting Subject and Request
-        $args = $this->getMockBuilder(Enlight_Event_EventArgs::class)
-            ->setMethods(['getSubject', 'getRequest'])
-            ->getMock();
-        $args->method('getSubject')->willReturn($subject);
-        $args->method('getRequest')->willReturn($request);
+        $args = new Enlight_Event_EventArgs(['subject' => $subject]);
 
         Shopware()->Session()->isCategoryPage = $isCategory;
         Shopware()->Session()->isSearchPage = $isSearch;
