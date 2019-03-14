@@ -37,7 +37,7 @@ class FindologicArticleModelTest extends TestCase
      *
      * @return Article|null
      */
-    private function createTestProduct($testProductConfiguration)
+    private function createTestProduct(array $testProductConfiguration)
     {
         try {
             /** @var ArticleResource $resource */
@@ -121,7 +121,7 @@ class FindologicArticleModelTest extends TestCase
      * @param array $articleConfiguration The article configuration with the corresponding supplier.
      * @throws Exception
      */
-    public function testEmptySuppliersAreSkipped($articleConfiguration)
+    public function testEmptySuppliersAreSkipped(array $articleConfiguration)
     {
         $baseCategory = new Category();
         $baseCategory->setId(100);
