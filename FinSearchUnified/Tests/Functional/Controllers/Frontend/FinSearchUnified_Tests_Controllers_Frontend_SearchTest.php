@@ -81,6 +81,9 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         Shopware()->Container()->reset('shopware_search.product_search');
         Shopware()->Container()->load('shopware_search.product_search');
+
+        // Explicitly reset this super global since it might influence unrelated tests.
+        $_GET = [];
     }
 
     public function findologicResponseProvider()

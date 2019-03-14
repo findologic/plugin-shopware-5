@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<phpunit bootstrap="./Tests/Functional/Bootstrap.php" processIsolation="true">
+<phpunit bootstrap="./Tests/Functional/Bootstrap.php">
     <testsuite name="FinSearchUnified Test Suite">
         <directory>Tests</directory>
     </testsuite>
