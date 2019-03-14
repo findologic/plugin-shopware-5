@@ -4,8 +4,9 @@ use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use FinSearchUnified\BusinessLogic\Models\FindologicArticleModel;
 use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Components\Api\Manager;
-use Shopware\Components\Api\Resource\Article;
+use Shopware\Components\Api\Resource\Article as ArticleResource;
 use Shopware\Components\Test\Plugin\TestCase;
+use Shopware\Models\Article\Article;
 use Shopware\Models\Category\Category;
 
 class FindologicArticleModelTest extends TestCase
@@ -23,17 +24,23 @@ class FindologicArticleModelTest extends TestCase
         $this->articleFactory = new FindologicArticleFactory();
     }
 
+    protected function tearDown()
+    {
+        parent::tearDown();
+        Utility::sResetArticles();
+    }
+
     /**
      * Method to create test products for the export
      *
-     * @param array $testProductConfiguration
+     * @param array $testProductConfiguration The configuration of the test product which is to be created.
      *
-     * @return \Shopware\Models\Article\Article|null
+     * @return Article|null
      */
     private function createTestProduct($testProductConfiguration)
     {
         try {
-            /** @var Article $resource */
+            /** @var ArticleResource $resource */
             $resource = $this->manager->getResource('Article');
             $article = $resource->create($testProductConfiguration);
 
@@ -106,33 +113,28 @@ class FindologicArticleModelTest extends TestCase
     }
 
     /**
+     * Method to run the export test cases using the data provider,
+     * to check if the suppliers with empty names are not being exported.
+     *
      * @dataProvider articleSupplierProvider
      *
      * @param array $articleConfiguration The article configuration with the corresponding supplier.
+     * @throws Exception
      */
     public function testEmptySuppliersAreSkipped($articleConfiguration)
     {
-        try {
-            $baseCategory = new Category();
-            $baseCategory->setId(100);
+        $baseCategory = new Category();
+        $baseCategory->setId(100);
 
-            $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
-            $findologicArticle = $this->articleFactory->create(
-                $articleFromConfiguration,
-                'ABCD0815',
-                [],
-                [],
-                $baseCategory
-            );
-            $this->assertEquals(get_class($findologicArticle), FindologicArticleModel::class);
-        } catch (\Exception $exception) {
-            $this->fail('Exception may not be thrown here!');
-        }
-    }
-
-    protected function tearDown()
-    {
-        Utility::sResetArticles();
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+        $this->assertEquals(get_class($findologicArticle), FindologicArticleModel::class);
     }
 }
