@@ -19,7 +19,7 @@ class UrlBuilderTest extends TestCase
     /**
      * @var Zend_Http_Client A mock of the used http client.
      */
-    private $httpClient;
+    private $httpClient
 
     protected function setUp()
     {
@@ -159,6 +159,40 @@ class UrlBuilderTest extends TestCase
         $usedIpInRequest = $requestedUrl['userip'];
 
         $this->assertEquals('UNKNOWN', $usedIpInRequest);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testOutputAdapterIsExplicitlySetToXml()
+    {
+        $urlBuilder = new UrlBuilder($this->httpClient);
+
+        $criteria = new Criteria();
+        $criteria->offset(0)->limit(2);
+
+        $urlBuilder->buildQueryUrlAndGetResponse($criteria);
+        /** @var Zend_Uri_Http $requestedUrl */
+        $requestedUrl = $this->httpClient->getUri();
+        $path = $requestedUrl->getPath();
+        $this->assertNotContains(
+            'xml_2.0',
+            $path,
+            'Expected "xml_2.0" to not be passed in requested URL'
+        );
+
+        $queryArray = $requestedUrl->getQueryAsArray();
+
+        $this->assertArrayHasKey(
+            'outputAdapter',
+            $queryArray,
+            '"outputAdapter" was not found in query parameters'
+        );
+        $this->assertSame(
+            'XML_2.0',
+            $queryArray['outputAdapter'],
+            '"XML_2.0" was not found in "outputAdapter" parameter'
+        );
     }
 
     /**
