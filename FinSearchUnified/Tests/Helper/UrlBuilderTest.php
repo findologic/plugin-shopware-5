@@ -19,7 +19,7 @@ class UrlBuilderTest extends TestCase
     /**
      * @var Zend_Http_Client A mock of the used http client.
      */
-    private $httpClient
+    private $httpClient;
 
     protected function setUp()
     {
