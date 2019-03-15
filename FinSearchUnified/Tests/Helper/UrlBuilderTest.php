@@ -166,6 +166,12 @@ class UrlBuilderTest extends TestCase
      */
     public function testOutputAdapterIsExplicitlySetToXml()
     {
+        $httpResponse = new Zend_Http_Response(200, [], 'alive');
+
+        $this->httpClient->expects($this->atLeastOnce())
+            ->method('request')
+            ->willReturn($httpResponse);
+
         $urlBuilder = new UrlBuilder($this->httpClient);
 
         $criteria = new Criteria();
