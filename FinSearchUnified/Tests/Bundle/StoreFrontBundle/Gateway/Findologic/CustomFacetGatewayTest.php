@@ -1,5 +1,10 @@
 <?php
 
+namespace FinSearchUnified\Tests\Bundle\StoreFrontBundle\Gateway\Findologic;
+
+use Enlight_Controller_Front;
+use Enlight_Controller_Request_RequestHttp;
+use Exception;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGateway;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Helper\UrlBuilder;
@@ -9,6 +14,8 @@ use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Components_Config;
+use Zend_Http_Exception;
+use Zend_Http_Response;
 
 class CustomFacetGatewayTest extends TestCase
 {
@@ -21,6 +28,8 @@ class CustomFacetGatewayTest extends TestCase
         Shopware()->Session()->offsetUnset('isSearchPage');
         Shopware()->Session()->offsetUnset('isCategoryPage');
         Shopware()->Session()->offsetUnset('findologicDI');
+        Shopware()->Container()->reset('fin_search_unified.helper.url_builder');
+        Shopware()->Container()->load('fin_search_unified.helper.url_builder');
     }
 
     /**
@@ -42,10 +51,11 @@ class CustomFacetGatewayTest extends TestCase
         $mockUrlBuilder->expects($this->never())->method('setCustomerGroup');
         $mockUrlBuilder->expects($this->never())->method('buildCompleteFilterList');
 
+        Shopware()->Container()->set('fin_search_unified.helper.url_builder', $mockUrlBuilder);
+
         $facetGateway = new CustomFacetGateway(
             $mockOriginalService,
-            Shopware()->Container()->get('fin_search_unified.custom_listing_hydrator'),
-            $mockUrlBuilder
+            Shopware()->Container()->get('fin_search_unified.custom_listing_hydrator')
         );
 
         $facetGateway->getList([3], $context);
@@ -65,7 +75,6 @@ class CustomFacetGatewayTest extends TestCase
      *
      * @param int|null $responseCode
      *
-     * @throws Zend_Http_Exception
      * @throws Exception
      */
     public function testUseOriginalServiceWhenFindologicResponseIsFaulty($responseCode)
@@ -136,9 +145,10 @@ class CustomFacetGatewayTest extends TestCase
 
         $facetGateway = new CustomFacetGateway(
             $mockOriginalService,
-            $mockHydrator,
-            $mockUrlBuilder
+            $mockHydrator
         );
+
+        Shopware()->Container()->set('fin_search_unified.helper.url_builder', $mockUrlBuilder);
 
         $facetGateway->getList([3], $context);
     }
@@ -231,7 +241,7 @@ class CustomFacetGatewayTest extends TestCase
 
         $mockUrlBuilder = $this->getMockBuilder(UrlBuilder::class)->getMock();
         $mockUrlBuilder->expects($this->once())->method('setCustomerGroup');
-        $xmlResponse = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>');
+        $xmlResponse = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>');
 
         $results = $xmlResponse->addChild('results');
         $results->addChild('count', 2);
@@ -252,9 +262,10 @@ class CustomFacetGatewayTest extends TestCase
 
         $facetGateway = new CustomFacetGateway(
             $mockOriginalService,
-            $originalHydrator,
-            $mockUrlBuilder
+            $originalHydrator
         );
+
+        Shopware()->Container()->set('fin_search_unified.helper.url_builder', $mockUrlBuilder);
 
         $customFacets = $facetGateway->getList([3], $context);
         $this->assertCount(
