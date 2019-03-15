@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Helper;
 
+use FinSearchUnified\Constants;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -14,7 +15,7 @@ use Zend_Http_Response;
 
 class UrlBuilder
 {
-    const BASE_URL = 'https://service.findologic.com/ps/xml_2.0/';
+    const BASE_URL = 'https://service.findologic.com/ps/';
     const CDN_URL = 'https://cdn.findologic.com/static/';
     const JSON_CONFIG = '/config.json';
     const ALIVE_ENDPOINT = 'alivetest.php';
@@ -150,17 +151,23 @@ class UrlBuilder
         try {
             $request = $this->httpClient->setUri($this->getConfigUrl());
             $requestHandler = $request->request();
-            if ($requestHandler->getStatus() == 200) {
+
+            if ($requestHandler->getStatus() === 200) {
                 $response = $requestHandler->getBody();
                 $jsonResponse = json_decode($response, true);
-
-                return (bool)$jsonResponse[self::JSON_PATH]['enabled'];
+                $isDirectIntegration = (bool)$jsonResponse[self::JSON_PATH]['enabled'];
+            } else {
+                $isDirectIntegration = Shopware()
+                        ->Config()
+                        ->offsetGet('IntegrationType') === Constants::INTEGRATION_TYPE_DI;
             }
-
-            return false;
         } catch (Zend_Http_Client_Exception $e) {
-            return false;
+            $isDirectIntegration = Shopware()
+                    ->Config()
+                    ->offsetGet('IntegrationType') === Constants::INTEGRATION_TYPE_DI;
         }
+
+        return $isDirectIntegration;
     }
 
     /**
@@ -346,6 +353,7 @@ class UrlBuilder
         }
 
         $this->parameters['shopkey'] = $this->getShopkey();
+        $this->parameters['outputAdapter'] = 'XML_2.0';
         $url = sprintf(
             '%s%s%s?%s',
             self::BASE_URL,
