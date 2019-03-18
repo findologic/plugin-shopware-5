@@ -23,9 +23,7 @@ class ReleaseDateSortingHandler implements FindologicSortingHandlerInterface
     }
 
     /**
-     * Handles the passed sorting object.
-     * Extends the passed query builder with the specify sorting.
-     * Should use the addOrderBy function, otherwise other sortings would be overwritten.
+     * Handles the passed sorting object
      *
      * @param SortingInterface $sorting
      * @param QueryBuilder $query
