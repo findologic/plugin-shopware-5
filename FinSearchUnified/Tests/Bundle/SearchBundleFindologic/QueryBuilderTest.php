@@ -231,6 +231,9 @@ class QueryBuilderTest extends TestCase
         );
     }
 
+    /**
+     * @throws Exception
+     */
     public function testAddOrderMethod()
     {
         $querybuilder = new QueryBuilder(
@@ -298,6 +301,9 @@ class QueryBuilderTest extends TestCase
         );
     }
 
+    /**
+     * @throws Exception
+     */
     public function testSetFirstResultMethod()
     {
         $querybuilder = new QueryBuilder(
