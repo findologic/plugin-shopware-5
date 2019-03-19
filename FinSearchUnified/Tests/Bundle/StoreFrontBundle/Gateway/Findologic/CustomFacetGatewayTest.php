@@ -16,6 +16,7 @@ use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Components_Config;
 use Zend_Http_Exception;
 use Zend_Http_Response;
+use SimpleXMLElement;
 
 class CustomFacetGatewayTest extends TestCase
 {
@@ -241,7 +242,7 @@ class CustomFacetGatewayTest extends TestCase
 
         $mockUrlBuilder = $this->getMockBuilder(UrlBuilder::class)->getMock();
         $mockUrlBuilder->expects($this->once())->method('setCustomerGroup');
-        $xmlResponse = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>');
+        $xmlResponse = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>');
 
         $results = $xmlResponse->addChild('results');
         $results->addChild('count', 2);
