@@ -44,6 +44,9 @@ class CategoryConditionHandler implements ConditionHandlerInterface
                 $categories[] = $categoryName;
             }
         }
-        $query->addCategories($categories);
+
+        if (!empty($categories)) {
+            $query->addCategories($categories);
+        }
     }
 }
