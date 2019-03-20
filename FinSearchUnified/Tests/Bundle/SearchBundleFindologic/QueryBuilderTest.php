@@ -225,12 +225,15 @@ class QueryBuilderTest extends TestCase
         $this->assertArrayHasKey('attrib', $parameters);
         $this->assertArrayHasKey('price', $parameters['attrib']);
         $this->assertEquals(
-            $price,
+            [$price],
             $parameters['attrib']['price'],
             '"price" parameter does not match the given arguments'
         );
     }
 
+    /**
+     * @throws Exception
+     */
     public function testAddOrderMethod()
     {
         $querybuilder = new QueryBuilder(
@@ -253,7 +256,7 @@ class QueryBuilderTest extends TestCase
      *
      * @throws Exception
      */
-    public function testAddFilterMethod($filters, $expectedFilters)
+    public function testAddFilterMethod(array $filters, array $expectedFilters)
     {
         $querybuilder = new QueryBuilder(
             Shopware()->Container()->get('http_client'),
@@ -276,6 +279,9 @@ class QueryBuilderTest extends TestCase
         );
     }
 
+    /**
+     * @throws Exception
+     */
     public function testAddCategoriesMethod()
     {
         $querybuilder = new QueryBuilder(
@@ -292,12 +298,15 @@ class QueryBuilderTest extends TestCase
         $this->assertArrayHasKey('cat', $parameters['attrib']);
 
         $this->assertEquals(
-            $categories,
+            [$categories],
             $parameters['attrib']['cat'],
             'Expected both categories to be available in parameters'
         );
     }
 
+    /**
+     * @throws Exception
+     */
     public function testSetFirstResultMethod()
     {
         $querybuilder = new QueryBuilder(
@@ -312,6 +321,9 @@ class QueryBuilderTest extends TestCase
         $this->assertSame(0, $parameters['first'], 'Expected offset to be 0');
     }
 
+    /**
+     * @throws Exception
+     */
     public function testMaxResultMethod()
     {
         $querybuilder = new QueryBuilder(

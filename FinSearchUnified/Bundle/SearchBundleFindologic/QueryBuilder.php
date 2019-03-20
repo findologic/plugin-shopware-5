@@ -15,6 +15,7 @@ class QueryBuilder
     const ALIVE_ENDPOINT = 'alivetest.php';
     const SEARCH_ENDPOINT = 'index.php';
     const NAVIGATION_ENDPOINT = 'selector.php';
+    const PARAMETER_KEY_ATTRIB = 'attrib';
 
     /**
      * @var HttpClientInterface
@@ -194,15 +195,11 @@ class QueryBuilder
 
     /**
      * @param string $key
-     * @param string $value
+     * @param mixed $value
      */
     public function addFilter($key, $value)
     {
-        if (!empty($this->getParameter($key))) {
-            $this->addParameter($key, urldecode($value));
-        } else {
-            $this->addParameter($key, [urldecode($value)]);
-        }
+        $this->addParameter($key, urldecode($value));
     }
 
     /**
@@ -244,11 +241,11 @@ class QueryBuilder
      */
     private function getParameter($key)
     {
-        if (!isset($this->parameters['attrib']) || !isset($this->parameters['attrib'][$key])) {
+        if (!isset($this->parameters[self::PARAMETER_KEY_ATTRIB]) || !isset($this->parameters[self::PARAMETER_KEY_ATTRIB][$key])) {
             return null;
         }
 
-        return $this->parameters['attrib'][$key];
+        return $this->parameters[self::PARAMETER_KEY_ATTRIB][$key];
     }
 
     /**
@@ -257,14 +254,14 @@ class QueryBuilder
      */
     private function addParameter($key, $value)
     {
-        if (!isset($this->parameters['attrib'])) {
-            $this->parameters['attrib'] = [];
+        if (!isset($this->parameters[self::PARAMETER_KEY_ATTRIB])) {
+            $this->parameters[self::PARAMETER_KEY_ATTRIB] = [];
         }
 
-        if (!isset($this->parameters['attrib'][$key])) {
-            $this->parameters['attrib'][$key] = $value;
+        if (!isset($this->parameters[self::PARAMETER_KEY_ATTRIB][$key])) {
+            $this->parameters[self::PARAMETER_KEY_ATTRIB][$key] = [$value];
         } else {
-            $this->parameters['attrib'][$key][] = $value;
+            $this->parameters[self::PARAMETER_KEY_ATTRIB][$key][] = $value;
         }
     }
 }
