@@ -6,6 +6,7 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\ProductNameSortingHandler;
 use Shopware\Bundle\SearchBundle\Sorting\ProductNameSorting;
 use Shopware\Bundle\SearchBundle\SortingInterface;
+use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
 use Shopware\Components\Test\Plugin\TestCase;
 
 class ProductNameSortingHandlerTest extends TestCase
@@ -15,7 +16,10 @@ class ProductNameSortingHandlerTest extends TestCase
      */
     private $querybuilder;
 
-    private $context;
+    /**
+     * @var ProductContextInterface
+     */
+    private $context = null;
 
     /**
      * @throws \Exception

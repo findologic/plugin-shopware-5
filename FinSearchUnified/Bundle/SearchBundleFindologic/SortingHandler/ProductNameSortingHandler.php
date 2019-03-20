@@ -2,13 +2,13 @@
 
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler;
 
-use FinSearchUnified\Bundle\SearchBundleFindologic\FindologicSortingHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandlerInterface;
 use Shopware\Bundle\SearchBundle\Sorting\ProductNameSorting;
 use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
-class ProductNameSortingHandler implements FindologicSortingHandlerInterface
+class ProductNameSortingHandler implements SortingHandlerInterface
 {
     /**
      * Checks if the passed sorting can be handled by this class

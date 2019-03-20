@@ -5,7 +5,7 @@ namespace FinSearchUnified\Bundle\SearchBundleFindologic;
 use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
-interface FindologicSortingHandlerInterface
+interface SortingHandlerInterface
 {
     /**
      * Checks if the passed sorting can be handled by this class
