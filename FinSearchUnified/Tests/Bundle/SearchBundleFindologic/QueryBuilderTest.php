@@ -225,7 +225,7 @@ class QueryBuilderTest extends TestCase
         $this->assertArrayHasKey('attrib', $parameters);
         $this->assertArrayHasKey('price', $parameters['attrib']);
         $this->assertEquals(
-            [$price],
+            $price,
             $parameters['attrib']['price'],
             '"price" parameter does not match the given arguments'
         );
@@ -298,7 +298,7 @@ class QueryBuilderTest extends TestCase
         $this->assertArrayHasKey('cat', $parameters['attrib']);
 
         $this->assertEquals(
-            [$categories],
+            $categories,
             $parameters['attrib']['cat'],
             'Expected both categories to be available in parameters'
         );

@@ -199,7 +199,11 @@ class QueryBuilder
      */
     public function addFilter($key, $value)
     {
-        $this->addParameter($key, urldecode($value));
+        if (empty($this->getParameter($key))) {
+            $this->addParameter($key, [urldecode($value)]);
+        } else {
+            $this->addParameter($key, urldecode($value));
+        }
     }
 
     /**
@@ -259,8 +263,8 @@ class QueryBuilder
             $this->parameters[self::PARAMETER_KEY_ATTRIB] = [];
         }
 
-        if (!isset($this->parameters[self::PARAMETER_KEY_ATTRIB][$key])) {
-            $this->parameters[self::PARAMETER_KEY_ATTRIB][$key] = [$value];
+        if ($this->getParameter($key) === null) {
+            $this->parameters[self::PARAMETER_KEY_ATTRIB][$key] = $value;
         } else {
             $this->parameters[self::PARAMETER_KEY_ATTRIB][$key][] = $value;
         }
