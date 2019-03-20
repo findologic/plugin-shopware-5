@@ -241,7 +241,8 @@ class QueryBuilder
      */
     private function getParameter($key)
     {
-        if (!isset($this->parameters[self::PARAMETER_KEY_ATTRIB]) || !isset($this->parameters[self::PARAMETER_KEY_ATTRIB][$key])) {
+        if (!isset($this->parameters[self::PARAMETER_KEY_ATTRIB]) ||
+            !isset($this->parameters[self::PARAMETER_KEY_ATTRIB][$key])) {
             return null;
         }
 
