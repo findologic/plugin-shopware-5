@@ -3,14 +3,14 @@
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler;
 
 use Exception;
-use FinSearchUnified\Bundle\SearchBundleFindologic\FindologicQueryBuilderInterface;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
-class CategoryConditionHandler implements FindologicQueryBuilderInterface
+class CategoryConditionHandler implements ConditionHandlerInterface
 {
     /**
      * Checks if the passed condition can be handled by this class.
@@ -39,9 +39,6 @@ class CategoryConditionHandler implements FindologicQueryBuilderInterface
 
         /** @var CategoryCondition $condition */
         foreach ($condition->getCategoryIds() as $categoryId) {
-            if ($categoryId === 1) {
-                continue;
-            }
             $categoryName = StaticHelper::buildCategoryName($categoryId, false);
             if (!empty($categoryName)) {
                 $categories[] = $categoryName;

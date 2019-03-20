@@ -40,11 +40,11 @@ class CategoryConditionHandlerTest extends TestCase
     {
         return [
             'Single ID of a category without parents' => [[5], ['Genusswelten']],
-            'One Category without parents and one category having parents' => [
+            'One category without parents and one category having parents' => [
                 [5, 12],
                 ['Genusswelten', 'Genusswelten_Tees und Zubehör_Tees']
             ],
-            'Category ID of "1"' => [[1], []],
+            'Root category ID of "3"' => [[3], []],
         ];
     }
 
@@ -56,7 +56,7 @@ class CategoryConditionHandlerTest extends TestCase
      *
      * @throws Exception
      */
-    public function testGenerateCondition($categoryIds, $expectedCategoryNames)
+    public function testGenerateCondition(array $categoryIds, array $expectedCategoryNames)
     {
         $handler = new CategoryConditionHandler();
         $handler->generateCondition(

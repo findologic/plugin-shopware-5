@@ -70,7 +70,7 @@ class ProductAttributeConditionHandlerTest extends TestCase
      *
      * @throws Exception
      */
-    public function testGenerateCondition($attributes, $expectedValues)
+    public function testGenerateCondition(array $attributes, array $expectedValues)
     {
         $handler = new ProductAttributeConditionHandler();
         foreach ($attributes as $value) {

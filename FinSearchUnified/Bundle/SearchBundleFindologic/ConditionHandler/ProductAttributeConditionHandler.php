@@ -3,13 +3,13 @@
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler;
 
 use Exception;
-use FinSearchUnified\Bundle\SearchBundleFindologic\FindologicQueryBuilderInterface;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
-class ProductAttributeConditionHandler implements FindologicQueryBuilderInterface
+class ProductAttributeConditionHandler implements ConditionHandlerInterface
 {
     /**
      * Checks if the passed condition can be handled by this class.

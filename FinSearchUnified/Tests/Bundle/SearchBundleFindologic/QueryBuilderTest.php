@@ -253,7 +253,7 @@ class QueryBuilderTest extends TestCase
      *
      * @throws Exception
      */
-    public function testAddFilterMethod($filters, $expectedFilters)
+    public function testAddFilterMethod(array $filters, array $expectedFilters)
     {
         $querybuilder = new QueryBuilder(
             Shopware()->Container()->get('http_client'),

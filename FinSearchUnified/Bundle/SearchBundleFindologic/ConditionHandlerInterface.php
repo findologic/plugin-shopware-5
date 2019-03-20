@@ -5,7 +5,7 @@ namespace FinSearchUnified\Bundle\SearchBundleFindologic;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
-interface FindologicQueryBuilderInterface
+interface ConditionHandlerInterface
 {
     /**
      * Checks if the passed condition can be handled by this class.

@@ -58,7 +58,7 @@ class PriceConditionHandlerTest extends TestCase
      *
      * @throws Exception
      */
-    public function testGenerateCondition($prices, $expectedPrices)
+    public function testGenerateCondition(array $prices, array $expectedPrices)
     {
         $handler = new PriceConditionHandler();
         $handler->generateCondition(
