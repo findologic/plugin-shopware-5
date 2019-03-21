@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Bundle;
 
+use Exception;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle;
@@ -13,15 +14,12 @@ use Shopware\Models\Search\CustomFacet;
 
 class ProductNumberSearch implements ProductNumberSearchInterface
 {
-    protected $urlBuilder;
-
     protected $originalService;
 
     protected $facets = [];
 
     public function __construct(ProductNumberSearchInterface $service)
     {
-        $this->urlBuilder = new UrlBuilder();
         $this->originalService = $service;
     }
 
@@ -29,14 +27,14 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      * Creates a product search result for the passed criteria object.
      * The criteria object contains different core conditions and plugin conditions.
      * This conditions has to be handled over the different condition handlers.
-     *
      * The search gateway has to implement an event which plugin can be listened to,
      * to add their own handler classes.
      *
-     * @param \Shopware\Bundle\SearchBundle\Criteria                        $criteria
-     * @param \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context
+     * @param Criteria $criteria
+     * @param ShopContextInterface $context
      *
      * @return SearchBundle\ProductNumberSearchResult
+     * @throws Exception
      */
     public function search(Criteria $criteria, ShopContextInterface $context)
     {
@@ -156,12 +154,15 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     /**
      * @param Criteria $criteria
      * @param Group $customerGroup
+     *
      * @return null|\Zend_Http_Response
+     * @throws Exception
      */
     protected function sendRequestToFindologic(Criteria $criteria, Group $customerGroup)
     {
-        $this->urlBuilder->setCustomerGroup($customerGroup);
-        $response = $this->urlBuilder->buildQueryUrlAndGetResponse($criteria);
+        $urlBuilder = new UrlBuilder();
+        $urlBuilder->setCustomerGroup($customerGroup);
+        $response = $urlBuilder->buildQueryUrlAndGetResponse($criteria);
 
         return $response;
     }
