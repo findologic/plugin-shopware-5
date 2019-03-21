@@ -226,10 +226,13 @@ class UrlBuilderTest extends TestCase
         return [
             'forceOriginalQuery not present' => [null],
             'forceOriginalQuery present and truthy' => [1],
-            'forceOriginalQuery present and falsy' => [0],
+            'forceOriginalQuery present and falsy' => [0]
         ];
     }
 
+    /**
+     * @return array
+     */
     public function successfulRequestProvider()
     {
         return [
@@ -279,6 +282,12 @@ class UrlBuilderTest extends TestCase
 
         $_GET['forceOriginalQuery'] = $forceOriginalQuery;
 
+        $httpResponse = new Zend_Http_Response(200, [], 'alive');
+
+        $this->httpClient->expects($this->atLeastOnce())
+            ->method('request')
+            ->willReturn($httpResponse);
+
         $urlBuilder = new UrlBuilder($this->httpClient);
 
         // Create criteria object with necessary conditions
@@ -295,7 +304,7 @@ class UrlBuilderTest extends TestCase
         $actualUrl = sprintf('%s://%s%s', $url->getScheme(), $url->getHost(), $url->getPath());
 
         $this->assertSame(
-            sprintf('https://service.findologic.com/ps/xml_2.0/%s/index.php', Shopware()->Shop()->getHost()),
+            sprintf('https://service.findologic.com/ps/%s/index.php', Shopware()->Shop()->getHost()),
             $actualUrl,
             'The resulting URL is not correct'
         );

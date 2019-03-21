@@ -76,6 +76,9 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         Shopware()->Session()->offsetUnset('findologicDI');
 
+        Shopware()->Container()->reset('fin_search_unified.helper.url_builder');
+        Shopware()->Container()->load('fin_search_unified.helper.url_builder');
+
         Shopware()->Container()->reset('shopware_search.store_front_criteria_factory');
         Shopware()->Container()->load('shopware_search.store_front_criteria_factory');
 
@@ -128,7 +131,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
                 'forced',
                 [],
                 ''
-            ],
+            ]
         ];
     }
 
@@ -208,13 +211,15 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             new Zend_Http_Response(200, [], $xmlResponse->asXML())
         );
 
+        Shopware()->Container()->set('fin_search_unified.helper.url_builder', $urlBuilderMock);
+
         $originalService = $this->getMockBuilder(SearchBundleDBAL\ProductNumberSearch::class)
             ->disableOriginalConstructor()
             ->setMethods(['search'])
             ->getMock();
         $originalService->expects($this->never())->method('search');
 
-        $productNumberSearch = new ProductNumberSearch($originalService, $urlBuilderMock);
+        $productNumberSearch = new ProductNumberSearch($originalService);
 
         $productSearch = new ProductSearch(
             Shopware()->Container()->get('shopware_storefront.list_product_service'),
