@@ -185,4 +185,181 @@ class QueryBuilderTest extends TestCase
 
         $querybuilder->execute($isSearch);
     }
+
+    /**
+     * @dataProvider searchTermProvider
+     *
+     * @param string $searchTerm
+     * @param string $expectedResult
+     *
+     * @throws Exception
+     */
+    public function testAddQueryMethod($searchTerm, $expectedResult)
+    {
+        $querybuilder = new QueryBuilder(
+            Shopware()->Container()->get('http_client'),
+            $this->installerService,
+            $this->config
+        );
+
+        $querybuilder->addQuery($searchTerm);
+        $parameters = $querybuilder->getParameters();
+        $this->assertArrayHasKey('query', $parameters);
+        $this->assertSame($expectedResult, $parameters['query'], sprintf('Expected query to be "%s"', $expectedResult));
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testAddPriceMethod()
+    {
+        $price = ['min' => 12.69, 'max' => 42];
+        $querybuilder = new QueryBuilder(
+            Shopware()->Container()->get('http_client'),
+            $this->installerService,
+            $this->config
+        );
+
+        $querybuilder->addPrice($price['min'], $price['max']);
+        $parameters = $querybuilder->getParameters();
+        $this->assertArrayHasKey('attrib', $parameters);
+        $this->assertArrayHasKey('price', $parameters['attrib']);
+        $this->assertEquals(
+            $price,
+            $parameters['attrib']['price'],
+            '"price" parameter does not match the given arguments'
+        );
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testAddOrderMethod()
+    {
+        $querybuilder = new QueryBuilder(
+            Shopware()->Container()->get('http_client'),
+            $this->installerService,
+            $this->config
+        );
+
+        $querybuilder->addOrder('price ASC');
+        $parameters = $querybuilder->getParameters();
+        $this->assertArrayHasKey('order', $parameters);
+        $this->assertSame('price ASC', $parameters['order'], 'Expected order to be "price ASC"');
+    }
+
+    /**
+     * @dataProvider vendorFilterProvider
+     *
+     * @param array $filters
+     * @param array $expectedFilters
+     *
+     * @throws Exception
+     */
+    public function testAddFilterMethod(array $filters, array $expectedFilters)
+    {
+        $querybuilder = new QueryBuilder(
+            Shopware()->Container()->get('http_client'),
+            $this->installerService,
+            $this->config
+        );
+
+        foreach ($filters as $filter) {
+            $querybuilder->addFilter('vendor', $filter);
+        }
+
+        $parameters = $querybuilder->getParameters();
+        $this->assertArrayHasKey('attrib', $parameters);
+        $this->assertArrayHasKey('vendor', $parameters['attrib']);
+
+        $this->assertEquals(
+            $expectedFilters,
+            $parameters['attrib']['vendor'],
+            'Expected filters to have correct values'
+        );
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testAddCategoriesMethod()
+    {
+        $querybuilder = new QueryBuilder(
+            Shopware()->Container()->get('http_client'),
+            $this->installerService,
+            $this->config
+        );
+
+        $categories = ['Genusswelten', 'Sommerwelten'];
+        $querybuilder->addCategories($categories);
+
+        $parameters = $querybuilder->getParameters();
+        $this->assertArrayHasKey('attrib', $parameters);
+        $this->assertArrayHasKey('cat', $parameters['attrib']);
+
+        $this->assertEquals(
+            $categories,
+            $parameters['attrib']['cat'],
+            'Expected both categories to be available in parameters'
+        );
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testSetFirstResultMethod()
+    {
+        $querybuilder = new QueryBuilder(
+            Shopware()->Container()->get('http_client'),
+            $this->installerService,
+            $this->config
+        );
+
+        $querybuilder->setFirstResult(0);
+        $parameters = $querybuilder->getParameters();
+        $this->assertArrayHasKey('first', $parameters);
+        $this->assertSame(0, $parameters['first'], 'Expected offset to be 0');
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testMaxResultMethod()
+    {
+        $querybuilder = new QueryBuilder(
+            Shopware()->Container()->get('http_client'),
+            $this->installerService,
+            $this->config
+        );
+
+        $querybuilder->setMaxResults(12);
+        $parameters = $querybuilder->getParameters();
+        $this->assertArrayHasKey('count', $parameters);
+        $this->assertSame(12, $parameters['count'], 'Expected limit to be 12');
+    }
+
+    public function searchTermProvider()
+    {
+        return [
+            'Query is "search"' => ['search', 'search'],
+            'Query is "search+term"' => ['search+term', 'search term'],
+            'Query is "search.term"' => ['search.term', 'search.term'],
+            'Query is "search%2Bterm"' => ['search%2Bterm', 'search+term'],
+            'Query is "search%2Fterm"' => ['search%2Fterm', 'search/term'],
+        ];
+    }
+
+    public function vendorFilterProvider()
+    {
+        return [
+            'Vendor is "Brands%2BFriends' => [
+                ['Brands%2BFriends'],
+                ['Brands+Friends']
+            ],
+            'Two vendors "Brands" and "Friends"' => [
+                ['Brands', 'Friends'],
+                ['Brands', 'Friends'],
+            ]
+        ];
+    }
 }

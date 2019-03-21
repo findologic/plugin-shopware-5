@@ -15,6 +15,7 @@ class QueryBuilder
     const ALIVE_ENDPOINT = 'alivetest.php';
     const SEARCH_ENDPOINT = 'index.php';
     const NAVIGATION_ENDPOINT = 'selector.php';
+    const PARAMETER_KEY_ATTRIB = 'attrib';
 
     /**
      * @var HttpClientInterface
@@ -165,5 +166,107 @@ class QueryBuilder
         $ipAddress = implode(',', array_unique(array_map('trim', explode(',', $ipAddress))));
 
         return $ipAddress;
+    }
+
+    /**
+     * @return array
+     */
+    public function getParameters()
+    {
+        return $this->parameters;
+    }
+
+    /**
+     * @param string $query
+     */
+    public function addQuery($query)
+    {
+        $this->parameters['query'] = urldecode($query);
+    }
+
+    /**
+     * @param float $min
+     * @param float $max
+     */
+    public function addPrice($min, $max)
+    {
+        $this->addParameter('price', ['min' => urldecode($min), 'max' => urldecode($max)]);
+    }
+
+    /**
+     * @param string $key
+     * @param mixed $value
+     */
+    public function addFilter($key, $value)
+    {
+        if (empty($this->getParameter($key))) {
+            $this->addParameter($key, [urldecode($value)]);
+        } else {
+            $this->addParameter($key, urldecode($value));
+        }
+    }
+
+    /**
+     * @param array $categories
+     */
+    public function addCategories(array $categories)
+    {
+        $this->addParameter('cat', $categories);
+    }
+
+    /**
+     * @param string $order
+     */
+    public function addOrder($order)
+    {
+        $this->parameters['order'] = $order;
+    }
+
+    /**
+     * @param int $firstResult
+     */
+    public function setFirstResult($firstResult)
+    {
+        $this->parameters['first'] = $firstResult;
+    }
+
+    /**
+     * @param int $maxResults
+     */
+    public function setMaxResults($maxResults)
+    {
+        $this->parameters['count'] = $maxResults;
+    }
+
+    /**
+     * @param string $key
+     *
+     * @return mixed|null
+     */
+    private function getParameter($key)
+    {
+        if (!isset($this->parameters[self::PARAMETER_KEY_ATTRIB]) ||
+            !isset($this->parameters[self::PARAMETER_KEY_ATTRIB][$key])) {
+            return null;
+        }
+
+        return $this->parameters[self::PARAMETER_KEY_ATTRIB][$key];
+    }
+
+    /**
+     * @param string $key
+     * @param mixed $value
+     */
+    private function addParameter($key, $value)
+    {
+        if (!isset($this->parameters[self::PARAMETER_KEY_ATTRIB])) {
+            $this->parameters[self::PARAMETER_KEY_ATTRIB] = [];
+        }
+
+        if ($this->getParameter($key) === null) {
+            $this->parameters[self::PARAMETER_KEY_ATTRIB][$key] = $value;
+        } else {
+            $this->parameters[self::PARAMETER_KEY_ATTRIB][$key][] = $value;
+        }
     }
 }
