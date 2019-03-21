@@ -66,13 +66,20 @@ class CategoryConditionHandlerTest extends TestCase
         );
 
         $params = $this->querybuilder->getParameters();
-        $this->assertArrayHasKey('attrib', $params, 'Parameter "attrib" was not found in the parameters');
-        $this->assertArrayHasKey('cat', $params['attrib'], 'Categories are not set in the "attrib" parameter');
-        $this->assertEquals(
-            $expectedCategoryNames,
-            $params['attrib']['cat'],
-            sprintf('Expected querybuilder to %s the name
-        of the provided category ID', !empty($expectedCategoryNames) ? 'contain' : 'not contain')
-        );
+        if (empty($expectedCategoryNames)) {
+            $this->assertArrayNotHasKey(
+                'attrib',
+                $params,
+                'Expected parameters to not contain the categories attribute'
+            );
+        } else {
+            $this->assertArrayHasKey('attrib', $params, 'Parameter "attrib" was not found in the parameters');
+            $this->assertArrayHasKey('cat', $params['attrib'], 'Categories are not set in the "attrib" parameter');
+            $this->assertEquals(
+                $expectedCategoryNames,
+                $params['attrib']['cat'],
+                'Expected querybuilder to contain the name of the provided category ID'
+            );
+        }
     }
 }
