@@ -14,7 +14,6 @@ use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Components_Config;
-use Zend_Http_Exception;
 use Zend_Http_Response;
 use SimpleXMLElement;
 
@@ -67,7 +66,6 @@ class CustomFacetGatewayTest extends TestCase
         return [
             'FINDOLOGIC search is triggered and response is null' => [null],
             'FINDOLOGIC search is triggered and response is not OK' => [404]
-
         ];
     }
 
@@ -191,7 +189,6 @@ class CustomFacetGatewayTest extends TestCase
      * @param array $filterData
      * @param array $attributeMode
      *
-     * @throws Zend_Http_Exception
      * @throws Exception
      */
     public function testCreatesShopwareFacetsFromFindologicFilters(array $filterData, array $attributeMode)
