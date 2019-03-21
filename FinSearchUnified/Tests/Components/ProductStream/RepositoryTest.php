@@ -2,12 +2,25 @@
 
 namespace FinSearchUnified\Tests\Components\ProductStream;
 
+use Enlight_Components_Session_Namespace;
 use FinSearchUnified\Components\ProductStream\Repository;
+use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Components\Test\Plugin\TestCase;
+use Shopware_Components_Config;
 
 class RepositoryTest extends TestCase
 {
+    protected function tearDown()
+    {
+        parent::tearDown();
+
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->load('config');
+        Shopware()->Container()->reset('session');
+        Shopware()->Container()->load('session');
+    }
+
     /**
      * @return array
      */
@@ -16,27 +29,24 @@ class RepositoryTest extends TestCase
         return [
             'Uses the original implementation' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => 'ABCD0815',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
                 'prepareCriteria' => true
             ],
             'Uses the original implementation for backend' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => 'ABCD0815',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
                 'prepareCriteria' => false
             ],
             'Uses the custom implementation' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => 'ABCD0815',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
                 'prepareCriteria' => false,
@@ -47,10 +57,59 @@ class RepositoryTest extends TestCase
     /**
      * @dataProvider shopSearchSwitchProvider
      *
+     * @param bool $isActive
+     * @param string $shopKey
+     * @param bool $isActiveForCategory
+     * @param bool $isSearchPage
+     * @param bool $isCategoryPage
      * @param bool $prepareCriteria
+     *
+     * @throws \Enlight_Exception
      */
-    public function testUsesOriginalOrDecoratedImplementation($prepareCriteria)
-    {
+    public function testUsesOriginalOrDecoratedImplementation(
+        $isActive,
+        $shopKey,
+        $isActiveForCategory,
+        $isSearchPage,
+        $isCategoryPage,
+        $prepareCriteria
+    ) {
+        $request = new \Enlight_Controller_Request_RequestHttp();
+        Shopware()->Front()->setRequest($request);
+
+        $configArray = [
+            ['ActivateFindologic', $isActive],
+            ['ShopKey', $shopKey],
+            ['ActivateFindologicForCategoryPages', $isActiveForCategory]
+        ];
+
+        // Create mock object for Shopware Config and explicitly return the values
+        $config = $this->getMockBuilder(Shopware_Components_Config::class)
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $config->method('offsetGet')
+            ->willReturnMap($configArray);
+
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $config);
+
+        $sessionArray = [
+            ['isSearchPage', $isSearchPage],
+            ['isCategoryPage', $isCategoryPage],
+            ['findologicDI', false]
+        ];
+
+        // Create mock object for Shopware Session and explicitly return the values
+        $session = $this->getMockBuilder(Enlight_Components_Session_Namespace::class)
+            ->setMethods(['offsetGet', 'offsetExists'])
+            ->getMock();
+        $session->method('offsetGet')->willReturnMap($sessionArray);
+        $session->method('offsetExists')->with('findologicDI')->willReturn(true);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('session', $session);
+
         $mockedRepository = $this->getMockBuilder('\Shopware\Components\ProductStream\Repository')
             ->setMethods(['prepareCriteria'])
             ->disableOriginalConstructor()

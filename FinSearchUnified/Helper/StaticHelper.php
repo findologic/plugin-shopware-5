@@ -814,11 +814,36 @@ class StaticHelper
 
         if (isset($promotion) && count($promotion->attributes()) > 0) {
             /** @var \Enlight_View_Default $view */
-            $view = Shopware()->Container()->get('front')->Plugins()->ViewRenderer()->Action()->View();
+            $view = Shopware()->Container()->get('front')->Plugins()->get('ViewRenderer')->Action()->View();
             $view->assign([
                 'finPromotion' => [
                     'image' => $promotion->attributes()->image,
                     'link' => $promotion->attributes()->link
+                ]
+            ]);
+        }
+    }
+
+    /**
+     * @param SimpleXMLElement $xmlResponse
+     */
+    public static function setSmartDidYouMean(SimpleXMLElement $xmlResponse)
+    {
+        $query = $xmlResponse->query;
+        $originalQuery = (string)$query->originalQuery;
+        $didYouMeanQuery = (string)$query->didYouMeanQuery;
+        $queryString = $query->queryString;
+        $queryStringType = (string)$queryString->attributes()->type;
+
+        if ((!empty($originalQuery) || !empty($didYouMeanQuery)) && $queryStringType !== 'forced') {
+            /** @var \Enlight_View_Default $view */
+            $view = Shopware()->Front()->Plugins()->get('ViewRenderer')->Action()->View();
+            $type = !empty($didYouMeanQuery) ? 'did-you-mean' : $queryStringType;
+            $view->assign([
+                'finSmartDidYouMean' => [
+                    'type' => $type,
+                    'alternative_query' => $type === 'did-you-mean' ? $didYouMeanQuery : $queryString,
+                    'original_query' => $type === 'did-you-mean' ? '' : $originalQuery
                 ]
             ]);
         }

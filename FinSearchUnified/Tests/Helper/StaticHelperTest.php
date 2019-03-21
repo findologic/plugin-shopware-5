@@ -2,19 +2,46 @@
 
 namespace FinSearchUnified\Tests\Helper;
 
+use Enlight_Components_Session_Namespace as Session;
+use Enlight_Controller_Action as Action;
+use Enlight_Controller_Front as Front;
+use Enlight_Controller_Plugins_ViewRenderer_Bootstrap as ViewRenderer;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
+use Enlight_Plugin_Namespace_Loader as Plugins;
+use Enlight_View_Default as View;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Models\Category\Category;
+use Shopware\Components\Api\Resource;
+use Shopware_Components_Config as Config;
+use SimpleXMLElement;
 
 class StaticHelperTest extends TestCase
 {
-    public function tearDown()
+    /**
+     * @var Resource\Category
+     */
+    private $categoryResource;
+
+    protected function setUp()
+    {
+        parent::setUp();
+
+        $manager = new \Shopware\Components\Api\Manager();
+        $this->categoryResource = $manager->getResource('Category');
+    }
+
+    protected function tearDown()
     {
         parent::tearDown();
+
         Shopware()->Container()->reset('front');
         Shopware()->Container()->load('front');
+        Shopware()->Container()->reset('session');
+        Shopware()->Container()->load('session');
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->load('config');
     }
 
     /**
@@ -27,7 +54,7 @@ class StaticHelperTest extends TestCase
         return [
             'FINDOLOGIC is inactive' => [
                 'ActivateFindologic' => false,
-                'ShopKey' => 'ABCD0815',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => true,
                 'findologicDI' => false,
                 'isSearchPage' => null,
@@ -54,7 +81,7 @@ class StaticHelperTest extends TestCase
             ],
             'FINDOLOGIC is active but integration type is DI' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => 'ABCD0815',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => true,
                 'findologicDI' => true,
                 'isSearchPage' => null,
@@ -63,7 +90,7 @@ class StaticHelperTest extends TestCase
             ],
             'FINDOLOGIC is active but the current page is neither the search nor a category page' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => 'ABCD0815',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => true,
                 'findologicDI' => false,
                 'isSearchPage' => false,
@@ -72,7 +99,7 @@ class StaticHelperTest extends TestCase
             ],
             'FINDOLOGIC is not active on category pages' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => 'ABCD0815',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => false,
                 'findologicDI' => false,
                 'isSearchPage' => false,
@@ -81,7 +108,7 @@ class StaticHelperTest extends TestCase
             ],
             'FINDOLOGIC is active in search' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => 'ABCD0815',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => false,
                 'findologicDI' => false,
                 'isSearchPage' => true,
@@ -90,7 +117,7 @@ class StaticHelperTest extends TestCase
             ],
             'FINDOLOGIC is active on category pages' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => 'ABCD0815',
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => true,
                 'findologicDI' => false,
                 'isSearchPage' => false,
@@ -205,7 +232,7 @@ class StaticHelperTest extends TestCase
     public function categoryNamesProvider()
     {
         return [
-            'Root category name without children' => [1, ' Root ', 'Root'],
+            'Root category name without children' => [5, ' Genusswelten ', 'Genusswelten'],
             'Category name with parent' => [12, ' Tees ', 'Genusswelten_Tees%20und%20Zubeh%C3%B6r_Tees'],
         ];
     }
@@ -241,7 +268,7 @@ class StaticHelperTest extends TestCase
         $request->setModuleName('frontend');
 
         // Create Mock object for Shopware Front Request
-        $front = $this->getMockBuilder('\Enlight_Controller_Front')
+        $front = $this->getMockBuilder(Front::class)
             ->setMethods(['Request'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -260,7 +287,7 @@ class StaticHelperTest extends TestCase
             ];
 
             // Create Mock object for Shopware Session
-            $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
+            $session = $this->getMockBuilder(Session::class)
                 ->setMethods(['offsetGet'])
                 ->getMock();
             $session->expects($this->atLeastOnce())
@@ -271,13 +298,16 @@ class StaticHelperTest extends TestCase
             Shopware()->Container()->set('session', $session);
         }
         // Create Mock object for Shopware Config
-        $config = $this->getMockBuilder('\Shopware_Components_Config')
-            ->setMethods(['offsetGet'])
+        $config = $this->getMockBuilder(Config::class)
+            ->setMethods(['offsetGet', 'offsetExists'])
             ->disableOriginalConstructor()
             ->getMock();
         $config->expects($this->atLeastOnce())
             ->method('offsetGet')
             ->willReturnMap($configArray);
+        $config->expects($this->any())
+            ->method('offsetExists')
+            ->willReturn(true);
 
         // Assign mocked config variable to application container
         Shopware()->Container()->set('config', $config);
@@ -291,7 +321,7 @@ class StaticHelperTest extends TestCase
     public function testUseShopSearchWhenRequestIsNull()
     {
         // Create Mock object for Shopware Front Request
-        $front = $this->getMockBuilder('\Enlight_Controller_Front')
+        $front = $this->getMockBuilder(Front::class)
             ->setMethods(['Request'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -312,7 +342,7 @@ class StaticHelperTest extends TestCase
         $request->setModuleName('backend');
 
         // Create Mock object for Shopware Front Request
-        $front = $this->getMockBuilder('\Enlight_Controller_Front')
+        $front = $this->getMockBuilder(Front::class)
             ->setMethods(['Request'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -324,7 +354,7 @@ class StaticHelperTest extends TestCase
         Shopware()->Container()->set('front', $front);
 
         // Create Mock object for Shopware Config
-        $config = $this->getMockBuilder('\Shopware_Components_Config')
+        $config = $this->getMockBuilder(Config::class)
             ->setMethods(['offsetGet'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -335,7 +365,7 @@ class StaticHelperTest extends TestCase
         Shopware()->Container()->set('config', $config);
 
         // Create Mock object for Shopware Session
-        $session = $this->getMockBuilder('\Enlight_Components_Session_Namespace')
+        $session = $this->getMockBuilder(Session::class)
             ->setMethods(['offsetGet'])
             ->getMock();
         $session->expects($this->never())
@@ -385,29 +415,21 @@ class StaticHelperTest extends TestCase
      */
     public function testBuildCategoryName($categoryId, $category, $expected)
     {
-        $categoryModel = Shopware()->Models()->getRepository('Shopware\Models\Category\Category')
-            ->find($categoryId);
-        $this->assertInstanceOf('Shopware\Models\Category\Category', $categoryModel);
+        $categoryModel = $this->categoryResource->update($categoryId, [
+            'name' => $category
+        ]);
+        $this->assertInstanceOf(Category::class, $categoryModel);
 
-        // Set category name with preceeding and succeeding spaces
-        $categoryModel->setName($category);
-        $parent = $categoryModel->getParent();
+        $this->updateParentCategoryName($categoryModel->getParent(), false);
 
-        // Set parent category name with preceeding and succeeding spaces
-        if ($parent !== null) {
-            $this->updateParentCategoryName($parent, $categoryModel);
-        }
-        // Persist changes to database
-        Shopware()->Models()->flush();
         $result = StaticHelper::buildCategoryName($categoryModel->getId());
 
-        // Revert category name back to correct state after test result
-        $categoryModel->setName(trim($category));
-        if ($parent !== null) {
-            $this->updateParentCategoryName($parent, $categoryModel, true);
-        }
-        // Persist changes to database
-        Shopware()->Models()->flush();
+        $this->categoryResource->update($categoryId, [
+            'name' => trim($category)
+        ]);
+
+        $this->updateParentCategoryName($categoryModel->getParent());
+
         $this->assertSame($expected, $result, 'Expected category name to be trimmed but was not');
     }
 
@@ -415,27 +437,160 @@ class StaticHelperTest extends TestCase
      * Helper method to recursively update parent category name
      *
      * @param Category $parent
-     * @param Category $categoryModel
      * @param bool $restore
      */
-    private function updateParentCategoryName(Category $parent, Category $categoryModel, $restore = false)
+    private function updateParentCategoryName(Category $parent, $restore = true)
     {
-        // Trim name here for restoring
-        $parentName = trim($parent->getName());
-
-        // Add spaces to name for testing if restore is false
-        if (!$restore) {
-            $parentName = str_pad($parentName, strlen($parentName) + 2, ' ', STR_PAD_BOTH);
+        // Stop when Shopware's root category is reached. Changing it can and will break unrelated tests.
+        if ($parent->getId() === 1) {
+            return;
         }
 
-        $parent->setName($parentName);
-        Shopware()->Models()->persist($parent);
-
-        $categoryModel->setParent($parent);
-        Shopware()->Models()->persist($categoryModel);
-
-        if ($parent->getParent() !== null) {
-            $this->updateParentCategoryName($parent->getParent(), $parent, $restore);
+        if ($restore) {
+            $name = trim($parent->getName());
+        } else {
+            $name = str_pad(
+                $parent->getName(),
+                strlen($parent->getName()) + 2,
+                ' ',
+                STR_PAD_BOTH
+            );
         }
+
+        $this->categoryResource->update($parent->getId(), [
+            'name' => $name
+        ]);
+
+        $this->updateParentCategoryName($parent->getParent(), $restore);
+    }
+
+    public function smartDidYouMeanProvider()
+    {
+        return [
+            'didYouMeanQuery and originalQuery are not present' => [null, null, null, null, null, null],
+            'Attribute type of queryString is forced' => [null, 'originalQuery', 'forced', null, null, null],
+            'didYouMeanQuery is present but has no value' => ['', null, 'improved', null, null, null],
+            'originalQuery is present but has no value' => [null, '', 'improved', null, null, null],
+            'didYouMeanQuery is present' => [
+                'didYouMeanQuery',
+                'originalQuery',
+                'improved',
+                'did-you-mean',
+                'didYouMeanQuery',
+                ''
+            ],
+            'queryString type is improved' => [
+                null,
+                'originalQuery',
+                'improved',
+                'improved',
+                'queryString',
+                'originalQuery'
+            ],
+            'queryString type is corrected' => [
+                null,
+                'originalQuery',
+                'corrected',
+                'corrected',
+                'queryString',
+                'originalQuery'
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider smartDidYouMeanProvider
+     *
+     * @param string $didYouMeanQuery
+     * @param string $originalQuery
+     * @param string $queryStringType
+     * @param string $expectedType
+     * @param string $expectedAlternativeQuery
+     * @param string $expectedOriginalQuery
+     */
+    public function testParsesSmartDidYouMeanData(
+        $didYouMeanQuery,
+        $originalQuery,
+        $queryStringType,
+        $expectedType,
+        $expectedAlternativeQuery,
+        $expectedOriginalQuery
+    ) {
+        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
+        $xmlResponse = new SimpleXMLElement($data);
+
+        $query = $xmlResponse->addChild('query');
+        $queryString = $query->addChild('queryString', 'queryString');
+
+        if ($queryStringType !== null) {
+            $queryString->addAttribute('type', $queryStringType);
+        }
+
+        if ($didYouMeanQuery !== null) {
+            $query->addChild('didYouMeanQuery', $didYouMeanQuery);
+        }
+        if ($originalQuery !== null) {
+            $query->addChild('originalQuery', $originalQuery);
+        }
+
+        $results = $xmlResponse->addChild('results');
+        $results->addChild('count', 5);
+        $products = $xmlResponse->addChild('products');
+
+        for ($i = 1; $i <= 5; $i++) {
+            $product = $products->addChild('product');
+            $product->addAttribute('id', $i);
+        }
+
+        // Create mocked view
+        $view = $this->createMock(View::class);
+        if ($expectedType === null) {
+            $view->expects($this->never())->method('assign');
+        } else {
+            $view->expects($this->once())
+                ->method('assign')
+                ->with($this->callback(function ($data) use (
+                    $expectedType,
+                    $expectedAlternativeQuery,
+                    $expectedOriginalQuery
+                ) {
+                    \PHPUnit_Framework_Assert::assertArrayHasKey(
+                        'finSmartDidYouMean',
+                        $data,
+                        '"finSmartDidYouMean" was not assigned to the view'
+                    );
+
+                    \PHPUnit_Framework_Assert::assertEquals(
+                        [
+                            'type' => $expectedType,
+                            'alternative_query' => $expectedAlternativeQuery,
+                            'original_query' => $expectedOriginalQuery
+                        ],
+                        $data['finSmartDidYouMean']
+                    );
+
+                    return true;
+                }));
+        }
+        $action = $this->createMock(Action::class);
+        $action->method('View')
+            ->willReturn($view);
+
+        $renderer = $this->createMock(ViewRenderer::class);
+        $renderer->method('Action')
+            ->willReturn($action);
+
+        $plugin = $this->createMock(Plugins::class);
+        $plugin->method('get')
+            ->with('ViewRenderer')
+            ->willReturn($renderer);
+
+        $front = $this->createMock(Front::class);
+        $front->method('Plugins')
+            ->willReturn($plugin);
+
+        Shopware()->Container()->set('front', $front);
+
+        StaticHelper::setSmartDidYouMean($xmlResponse);
     }
 }

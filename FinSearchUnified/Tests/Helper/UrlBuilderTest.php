@@ -2,10 +2,14 @@
 
 namespace FinSearchUnified\Tests\Helper;
 
+use Enlight_Components_Session_Namespace;
 use Exception;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\UrlBuilder;
+use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
+use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
+use Shopware\Bundle\SearchBundle\Sorting\ProductNameSorting;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Components_Config;
 use Zend_Http_Client;
@@ -34,9 +38,13 @@ class UrlBuilderTest extends TestCase
     {
         parent::tearDown();
 
+        Shopware()->Container()->reset('session');
+        Shopware()->Container()->load('session');
+
         if (isset($_SERVER['HTTP_CLIENT_IP'])) {
             unset($_SERVER['HTTP_CLIENT_IP']);
         }
+
         if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             unset($_SERVER['HTTP_X_FORWARDED_FOR']);
         }
@@ -210,6 +218,21 @@ class UrlBuilderTest extends TestCase
         $_SERVER[$field] = $ipAddress;
     }
 
+    /**
+     * @return array
+     */
+    public function forceOriginalQueryProvider()
+    {
+        return [
+            'forceOriginalQuery not present' => [null],
+            'forceOriginalQuery present and truthy' => [1],
+            'forceOriginalQuery present and falsy' => [0]
+        ];
+    }
+
+    /**
+     * @return array
+     */
     public function successfulRequestProvider()
     {
         return [
@@ -232,6 +255,95 @@ class UrlBuilderTest extends TestCase
             'Request causes "Zend_Http_Client_Exception" with DI enabled' => ['Direct Integration', true],
             'Request causes "Zend_Http_Client_Exception" with DI disabled' => ['API', false]
         ];
+    }
+
+    /**
+     * @dataProvider forceOriginalQueryProvider
+     *
+     * @param int|null $forceOriginalQuery
+     *
+     * @throws \Exception
+     */
+    public function testBuildUrlAndResponse($forceOriginalQuery)
+    {
+        $sessionArray = [
+            ['isSearchPage', true]
+        ];
+        // Create mock object for Shopware Session and explicitly return the values
+        $session = $this->getMockBuilder(Enlight_Components_Session_Namespace::class)
+            ->setMethods(['offsetGet'])
+            ->getMock();
+        $session->expects($this->atLeastOnce())
+            ->method('offsetGet')
+            ->willReturnMap($sessionArray);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('session', $session);
+
+        $_GET['forceOriginalQuery'] = $forceOriginalQuery;
+
+        $httpResponse = new Zend_Http_Response(200, [], 'alive');
+
+        $this->httpClient->expects($this->atLeastOnce())
+            ->method('request')
+            ->willReturn($httpResponse);
+
+        $urlBuilder = new UrlBuilder($this->httpClient);
+
+        // Create criteria object with necessary conditions
+        $criteria = new Criteria();
+        $criteria->offset(0)->limit(2)
+            ->addBaseCondition(new SearchTermCondition('findologic'))
+            ->addBaseCondition(new CategoryCondition([Shopware()->Shop()->getCategory()->getId()]))
+            ->addSorting(new ProductNameSorting());
+
+        $urlBuilder->buildQueryUrlAndGetResponse($criteria);
+
+        $requestedUrl = $this->httpClient->getUri()->getQueryAsArray();
+        $url = $this->httpClient->getUri();
+        $actualUrl = sprintf('%s://%s%s', $url->getScheme(), $url->getHost(), $url->getPath());
+
+        $this->assertSame(
+            sprintf('https://service.findologic.com/ps/%s/index.php', Shopware()->Shop()->getHost()),
+            $actualUrl,
+            'The resulting URL is not correct'
+        );
+        $this->assertArrayHasKey(
+            'userip',
+            $requestedUrl,
+            '"userip" was not found in the query parameters'
+        );
+        $this->assertArrayHasKey(
+            'revision',
+            $requestedUrl,
+            '"revision" was not found in the query parameters'
+        );
+        $this->assertArrayHasKey(
+            'shopkey',
+            $requestedUrl,
+            '"shopkey" was not found in the query parameters'
+        );
+        if ($forceOriginalQuery === null) {
+            $this->assertArrayNotHasKey(
+                'forceOriginalQuery',
+                $requestedUrl,
+                'Expected "forceOriginalQuery" parameter to NOT be present'
+            );
+        } else {
+            $this->assertArrayHasKey(
+                'forceOriginalQuery',
+                $requestedUrl,
+                'Expected "forceOriginalQuery" parameter to be present'
+            );
+        }
+        $this->assertEquals(
+            $forceOriginalQuery,
+            $requestedUrl['forceOriginalQuery'],
+            'forceOriginalQuery was not processed correctly'
+        );
+        $this->assertTrue($criteria->hasBaseCondition('search'));
+        $this->assertTrue($criteria->hasBaseCondition('category'));
+        $this->assertTrue($criteria->hasSorting('product_name'));
     }
 
     /**

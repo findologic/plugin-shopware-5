@@ -21,8 +21,6 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
     private $originalService;
 
     /**
-     * CustomFacetGateway constructor.
-     *
      * @param CustomFacetGatewayInterface $service
      * @param CustomListingHydrator $hydrator
      *

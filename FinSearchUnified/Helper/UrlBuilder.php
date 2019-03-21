@@ -246,6 +246,10 @@ class UrlBuilder
         } else {
             $this->parameters['count'] = $itemsPerPage;
         }
+
+        if (isset($_GET[Constants::SDYM_PARAM_FORCE_QUERY])) {
+            $this->parameters[Constants::SDYM_PARAM_FORCE_QUERY] = $_GET[Constants::SDYM_PARAM_FORCE_QUERY] ? 1 : 0;
+        }
     }
 
     /**

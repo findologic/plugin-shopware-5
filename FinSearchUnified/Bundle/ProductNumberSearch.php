@@ -14,10 +14,23 @@ use Shopware\Models\Search\CustomFacet;
 
 class ProductNumberSearch implements ProductNumberSearchInterface
 {
+    /**
+     * @var ProductNumberSearchInterface
+     */
     protected $originalService;
 
+    /**
+     * @var array
+     */
     protected $facets = [];
 
+    /**
+     * ProductNumberSearch constructor.
+     *
+     * @param ProductNumberSearchInterface $service
+     *
+     * @throws \Exception
+     */
     public function __construct(ProductNumberSearchInterface $service)
     {
         $this->originalService = $service;
@@ -54,6 +67,8 @@ class ProductNumberSearch implements ProductNumberSearchInterface
                     self::redirectOnLandingpage($xmlResponse);
 
                     StaticHelper::setPromotion($xmlResponse);
+
+                    StaticHelper::setSmartDidYouMean($xmlResponse);
 
                     $this->facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
 
@@ -160,7 +175,8 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      */
     protected function sendRequestToFindologic(Criteria $criteria, Group $customerGroup)
     {
-        $urlBuilder = new UrlBuilder();
+        /** @var UrlBuilder $urlBuilder */
+        $urlBuilder = Shopware()->Container()->get('fin_search_unified.helper.url_builder');
         $urlBuilder->setCustomerGroup($customerGroup);
         $response = $urlBuilder->buildQueryUrlAndGetResponse($criteria);
 
