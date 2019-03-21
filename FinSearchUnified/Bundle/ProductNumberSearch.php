@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Bundle;
 
+use Exception;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle;
@@ -13,11 +14,6 @@ use Shopware\Models\Search\CustomFacet;
 
 class ProductNumberSearch implements ProductNumberSearchInterface
 {
-    /**
-     * @var UrlBuilder
-     */
-    protected $urlBuilder;
-
     protected $originalService;
 
     protected $facets = [];
@@ -32,12 +28,6 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      */
     public function __construct(ProductNumberSearchInterface $service, $urlBuilder = null)
     {
-        if ($urlBuilder === null) {
-            $this->urlBuilder = new UrlBuilder();
-        } else {
-            $this->urlBuilder = $urlBuilder;
-        }
-
         $this->originalService = $service;
     }
 
@@ -48,10 +38,11 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      * The search gateway has to implement an event which plugin can be listened to,
      * to add their own handler classes.
      *
-     * @param \Shopware\Bundle\SearchBundle\Criteria $criteria
-     * @param \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface $context
+     * @param Criteria $criteria
+     * @param ShopContextInterface $context
      *
      * @return SearchBundle\ProductNumberSearchResult
+     * @throws Exception
      */
     public function search(Criteria $criteria, ShopContextInterface $context)
     {
@@ -175,11 +166,13 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      * @param Group $customerGroup
      *
      * @return null|\Zend_Http_Response
+     * @throws Exception
      */
     protected function sendRequestToFindologic(Criteria $criteria, Group $customerGroup)
     {
-        $this->urlBuilder->setCustomerGroup($customerGroup);
-        $response = $this->urlBuilder->buildQueryUrlAndGetResponse($criteria);
+        $urlBuilder = new UrlBuilder();
+        $urlBuilder->setCustomerGroup($customerGroup);
+        $response = $urlBuilder->buildQueryUrlAndGetResponse($criteria);
 
         return $response;
     }

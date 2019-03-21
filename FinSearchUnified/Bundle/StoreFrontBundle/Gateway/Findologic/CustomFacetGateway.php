@@ -4,7 +4,6 @@ namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic;
 
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Helper\StaticHelper;
-use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\StoreFrontBundle\Gateway\CustomFacetGatewayInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use SimpleXMLElement;
@@ -22,28 +21,16 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
     private $originalService;
 
     /**
-     * @var UrlBuilder
-     */
-    private $urlBuilder;
-
-    /**
      * @param CustomFacetGatewayInterface $service
      * @param CustomListingHydrator $hydrator
-     * @param UrlBuilder|null $urlBuilder
      *
      * @throws \Exception
      */
     public function __construct(
         CustomFacetGatewayInterface $service,
-        CustomListingHydrator $hydrator,
-        $urlBuilder = null
+        CustomListingHydrator $hydrator
     ) {
         $this->originalService = $service;
-        if ($urlBuilder === null) {
-            $this->urlBuilder = new UrlBuilder();
-        } else {
-            $this->urlBuilder = $urlBuilder;
-        }
         $this->hydrator = $hydrator;
     }
 
@@ -59,8 +46,9 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
             return $this->originalService->getList($ids, $context);
         }
 
-        $this->urlBuilder->setCustomerGroup($context->getCurrentCustomerGroup());
-        $response = $this->urlBuilder->buildCompleteFilterList();
+        $urlBuilder = Shopware()->Container()->get('fin_search_unified.helper.url_builder');
+        $urlBuilder->setCustomerGroup($context->getCurrentCustomerGroup());
+        $response = $urlBuilder->buildCompleteFilterList();
         if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
 
@@ -82,10 +70,12 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
             return $this->originalService->getFacetsOfCategories($categoryIds, $context);
         }
 
+        $urlBuilder = Shopware()->Container()->get('fin_search_unified.helper.url_builder');
+
         // Facets abfragen
         $categoryId = $categoryIds[0];
-        $this->urlBuilder->setCustomerGroup($context->getCurrentCustomerGroup());
-        $response = $this->urlBuilder->buildCategoryUrlAndGetResponse($categoryId);
+        $urlBuilder->setCustomerGroup($context->getCurrentCustomerGroup());
+        $response = $urlBuilder->buildCategoryUrlAndGetResponse($categoryId);
         if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
             $categoryFacets = [];

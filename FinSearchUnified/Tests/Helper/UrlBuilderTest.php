@@ -3,13 +3,17 @@
 namespace FinSearchUnified\Tests\Helper;
 
 use Enlight_Components_Session_Namespace;
+use Exception;
+use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Sorting\ProductNameSorting;
 use Shopware\Components\Test\Plugin\TestCase;
+use Shopware_Components_Config;
 use Zend_Http_Client;
+use Zend_Http_Client_Exception;
 use Zend_Http_Exception;
 use Zend_Http_Response;
 use Zend_Uri_Http;
@@ -21,28 +25,13 @@ class UrlBuilderTest extends TestCase
      */
     private $httpClient;
 
-    /**
-     * @var Zend_Http_Response
-     */
-    private $httpResponse;
-
-    /**
-     * @throws Zend_Http_Exception
-     */
-    public function setUp()
+    protected function setUp()
     {
         parent::setUp();
 
-        $this->httpResponse = new Zend_Http_Response(200, [], 'alive');
-
-        $httpClientMock = $this->getMockBuilder(Zend_Http_Client::class)
+        $this->httpClient = $this->getMockBuilder(Zend_Http_Client::class)
             ->setMethods(['request'])
             ->getMock();
-        $httpClientMock->expects($this->atLeastOnce())
-            ->method('request')
-            ->willReturn($this->httpResponse);
-
-        $this->httpClient = $httpClientMock;
     }
 
     protected function tearDown()
@@ -59,6 +48,9 @@ class UrlBuilderTest extends TestCase
         if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             unset($_SERVER['HTTP_X_FORWARDED_FOR']);
         }
+
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->load('config');
     }
 
     /**
@@ -99,11 +91,17 @@ class UrlBuilderTest extends TestCase
      * @param string $unfilteredIp
      * @param string $expectedValue
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function testSendOnlyUniqueUserIps($unfilteredIp, $expectedValue)
     {
         $this->setIpHeader('HTTP_CLIENT_IP', $unfilteredIp);
+
+        $httpResponse = new Zend_Http_Response(200, [], 'alive');
+
+        $this->httpClient->expects($this->atLeastOnce())
+            ->method('request')
+            ->willReturn($httpResponse);
 
         $urlBuilder = new UrlBuilder($this->httpClient);
 
@@ -123,11 +121,17 @@ class UrlBuilderTest extends TestCase
      *
      * @param string $unfilteredIp
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function testSendsOnlyClientIpFromReverseProxy($unfilteredIp)
     {
         $this->setIpHeader('HTTP_X_FORWARDED_FOR', $unfilteredIp);
+
+        $httpResponse = new Zend_Http_Response(200, [], 'alive');
+
+        $this->httpClient->expects($this->atLeastOnce())
+            ->method('request')
+            ->willReturn($httpResponse);
 
         $urlBuilder = new UrlBuilder($this->httpClient);
 
@@ -141,8 +145,17 @@ class UrlBuilderTest extends TestCase
         $this->assertEquals('192.168.0.1', $usedIpInRequest);
     }
 
+    /**
+     * @throws Exception
+     */
     public function testHandlesUnknownClientIp()
     {
+        $httpResponse = new Zend_Http_Response(200, [], 'alive');
+
+        $this->httpClient->expects($this->atLeastOnce())
+            ->method('request')
+            ->willReturn($httpResponse);
+
         $urlBuilder = new UrlBuilder($this->httpClient);
 
         $criteria = new Criteria();
@@ -154,6 +167,46 @@ class UrlBuilderTest extends TestCase
         $usedIpInRequest = $requestedUrl['userip'];
 
         $this->assertEquals('UNKNOWN', $usedIpInRequest);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testOutputAdapterIsExplicitlySetToXml()
+    {
+        $httpResponse = new Zend_Http_Response(200, [], 'alive');
+
+        $this->httpClient->expects($this->atLeastOnce())
+            ->method('request')
+            ->willReturn($httpResponse);
+
+        $urlBuilder = new UrlBuilder($this->httpClient);
+
+        $criteria = new Criteria();
+        $criteria->offset(0)->limit(2);
+
+        $urlBuilder->buildQueryUrlAndGetResponse($criteria);
+        /** @var Zend_Uri_Http $requestedUrl */
+        $requestedUrl = $this->httpClient->getUri();
+        $path = $requestedUrl->getPath();
+        $this->assertNotContains(
+            'xml_2.0',
+            $path,
+            'Expected "xml_2.0" to not be passed in requested URL'
+        );
+
+        $queryArray = $requestedUrl->getQueryAsArray();
+
+        $this->assertArrayHasKey(
+            'outputAdapter',
+            $queryArray,
+            '"outputAdapter" was not found in query parameters'
+        );
+        $this->assertSame(
+            'XML_2.0',
+            $queryArray['outputAdapter'],
+            '"XML_2.0" was not found in "outputAdapter" parameter'
+        );
     }
 
     /**
@@ -174,6 +227,30 @@ class UrlBuilderTest extends TestCase
             'forceOriginalQuery not present' => [null],
             'forceOriginalQuery present and truthy' => [1],
             'forceOriginalQuery present and falsy' => [0],
+        ];
+    }
+
+    public function successfulRequestProvider()
+    {
+        return [
+            'Request was successful with DI enabled' => ['{"directIntegration":{"enabled":1}}', true],
+            'Request was successful with DI disabled' => ['{"directIntegration":{"enabled":0}}', false]
+        ];
+    }
+
+    public function unsuccessfulRequestProvider()
+    {
+        return [
+            'Request was not successful with DI disabled' => ['API', false],
+            'Request was not successful with DI enabled' => ['Direct Integration', true]
+        ];
+    }
+
+    public function exceptionOnRequestProvider()
+    {
+        return [
+            'Request causes "Zend_Http_Client_Exception" with DI enabled' => ['Direct Integration', true],
+            'Request causes "Zend_Http_Client_Exception" with DI disabled' => ['API', false]
         ];
     }
 
@@ -258,5 +335,143 @@ class UrlBuilderTest extends TestCase
         $this->assertTrue($criteria->hasBaseCondition('search'));
         $this->assertTrue($criteria->hasBaseCondition('category'));
         $this->assertTrue($criteria->hasSorting('product_name'));
+    }
+
+    /**
+     * @dataProvider successfulRequestProvider
+     *
+     * @param string $responseBody
+     * @param bool $expectedStatus
+     *
+     * @throws Zend_Http_Exception
+     * @throws Exception
+     */
+    public function testIntegrationTypeOnSuccessfulRequest($responseBody, $expectedStatus)
+    {
+        $configArray = [
+            ['IntegrationType', Constants::INTEGRATION_TYPE_DI]
+        ];
+
+        // Create Mock object for Shopware Config
+        $config = $this->getMockBuilder(Shopware_Components_Config::class)
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $config->expects($this->atLeastOnce())
+            ->method('offsetGet')
+            ->willReturnMap($configArray);
+
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $config);
+
+        $httpResponse = new Zend_Http_Response(200, [], $responseBody);
+
+        $this->httpClient->expects($this->once())
+            ->method('request')
+            ->willReturn($httpResponse);
+
+        $urlBuilder = new UrlBuilder($this->httpClient);
+
+        $status = $urlBuilder->getConfigStatus();
+
+        $this->assertEquals(
+            $expectedStatus,
+            $status,
+            sprintf(
+                'Expected integration type to be "%s"',
+                $expectedStatus ? 'Direct Integration' : 'API'
+            )
+        );
+    }
+
+    /**
+     * @dataProvider unsuccessfulRequestProvider
+     *
+     * @param string $integrationType
+     * @param bool $expectedStatus
+     *
+     * @throws Zend_Http_Exception
+     * @throws Exception
+     */
+    public function testIntegrationTypeOnUnsuccessfulRequest($integrationType, $expectedStatus)
+    {
+        $configArray = [
+            ['IntegrationType', $integrationType]
+        ];
+
+        // Create Mock object for Shopware Config
+        $config = $this->getMockBuilder(Shopware_Components_Config::class)
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $config->expects($this->atLeastOnce())
+            ->method('offsetGet')
+            ->willReturnMap($configArray);
+
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $config);
+
+        $httpResponse = new Zend_Http_Response(500, [], '');
+
+        $this->httpClient->expects($this->once())
+            ->method('request')
+            ->willReturn($httpResponse);
+
+        $urlBuilder = new UrlBuilder($this->httpClient);
+
+        $status = $urlBuilder->getConfigStatus();
+
+        $this->assertEquals(
+            $expectedStatus,
+            $status,
+            sprintf(
+                'Expected integration type to be "%s"',
+                $integrationType
+            )
+        );
+    }
+
+    /**
+     * @dataProvider exceptionOnRequestProvider
+     *
+     * @param string $integrationType
+     * @param bool $expectedStatus
+     *
+     * @throws Exception
+     */
+    public function testIntegrationTypeOnException($integrationType, $expectedStatus)
+    {
+        $configArray = [
+            ['IntegrationType', $integrationType]
+        ];
+
+        // Create Mock object for Shopware Config
+        $config = $this->getMockBuilder(Shopware_Components_Config::class)
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $config->expects($this->atLeastOnce())
+            ->method('offsetGet')
+            ->willReturnMap($configArray);
+
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $config);
+
+        $this->httpClient->expects($this->once())
+            ->method('request')
+            ->willThrowException(new Zend_Http_Client_Exception());
+
+        $urlBuilder = new UrlBuilder($this->httpClient);
+
+        $status = $urlBuilder->getConfigStatus();
+
+        $this->assertEquals(
+            $expectedStatus,
+            $status,
+            sprintf(
+                'Expected integration type to be "%s"',
+                $integrationType
+            )
+        );
     }
 }
