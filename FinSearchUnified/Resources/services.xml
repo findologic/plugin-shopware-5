@@ -76,7 +76,6 @@
             <argument type="service" id="fin_search_unified_es.product_number_search.inner" />
         </service>
 
-
         <service id="fin_search_unified.commands.export_command" class="FinSearchUnified\Commands\ExportCommand">
             <tag name="console.command" />
         </service>
@@ -104,5 +103,7 @@
         >
             <argument type="service" id="fin_search_unified.product_stream.repository.inner" />
         </service>
+
+        <service id="fin_search_unified.helper.url_builder" class="FinSearchUnified\Helper\UrlBuilder" />
     </services>
 </container>

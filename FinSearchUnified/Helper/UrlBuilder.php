@@ -20,7 +20,7 @@ class UrlBuilder
     const JSON_CONFIG = '/config.json';
     const ALIVE_ENDPOINT = 'alivetest.php';
     const SEARCH_ENDPOINT = 'index.php';
-    const NAVIGATION_ENPOINT = 'selector.php';
+    const NAVIGATION_ENDPOINT = 'selector.php';
     const JSON_PATH = 'directIntegration';
 
     /**
@@ -246,6 +246,10 @@ class UrlBuilder
         } else {
             $this->parameters['count'] = $itemsPerPage;
         }
+
+        if (isset($_GET[Constants::SDYM_PARAM_FORCE_QUERY])) {
+            $this->parameters[Constants::SDYM_PARAM_FORCE_QUERY] = $_GET[Constants::SDYM_PARAM_FORCE_QUERY] ? 1 : 0;
+        }
     }
 
     /**
@@ -349,7 +353,7 @@ class UrlBuilder
         if (Shopware()->Session()->offsetGet('isSearchPage')) {
             $endpoint = self::SEARCH_ENDPOINT;
         } else {
-            $endpoint = self::NAVIGATION_ENPOINT;
+            $endpoint = self::NAVIGATION_ENDPOINT;
         }
 
         $this->parameters['shopkey'] = $this->getShopkey();
