@@ -37,13 +37,6 @@ class FinSearchUnified extends Plugin
         parent::uninstall($context);
     }
 
-    public function update(UpdateContext $context)
-    {
-        $this->storeIntegrationType();
-
-        parent::update($context);
-    }
-
     /**
      * Try to deactivate any customization plugins of FINDOLOGIC
      */
@@ -61,18 +54,5 @@ class FinSearchUnified extends Plugin
         } catch (\Exception $exception) {
             Shopware()->PluginLogger()->info("ExtendFinSearchUnified plugin doesn't exist!");
         }
-    }
-
-    private function storeIntegrationType()
-    {
-        $urlBuilder = new UrlBuilder();
-
-        if ($urlBuilder->getConfigStatus()) {
-            $integrationType = Constants::INTEGRATION_TYPE_DI;
-        } else {
-            $integrationType = Constants::INTEGRATION_TYPE_API;
-        }
-
-        StaticHelper::storeIntegrationType($integrationType);
     }
 }

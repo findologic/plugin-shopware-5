@@ -10,8 +10,8 @@
             class="FinSearchUnified\Bundle\FacetResult\ColorPickerFacetResult"
         />
         <service id="fin_search_unified.shopware_process" class="FinSearchUnified\ShopwareProcess">
-            <argument type="service" id="cache"/>
-            <argument type="service" id="shopware_product_stream.repository"/>
+            <argument type="service" id="cache" />
+            <argument type="service" id="shopware_product_stream.repository" />
         </service>
         <service
             id="fin_search_unified.article_model_factory"
@@ -37,5 +37,6 @@
             id="fin_search_unified.custom_listing_hydrator"
             class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator"
         />
+        <service id="fin_search_unified.helper.url_builder" class="FinSearchUnified\Helper\UrlBuilder" />
     </services>
 </container>

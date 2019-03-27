@@ -5,6 +5,7 @@ namespace FinSearchUnified\Subscriber;
 use Enlight\Event\SubscriberInterface;
 use Enlight_Controller_Request_Request as Request;
 use Enlight_Event_EventArgs;
+use Enlight_Hook_HookArgs;
 use FinSearchUnified\Helper\StaticHelper;
 
 class Frontend implements SubscriberInterface
@@ -71,7 +72,7 @@ class Frontend implements SubscriberInterface
         }
     }
 
-    public function beforeSearchIndexAction(\Enlight_Hook_HookArgs $args)
+    public function beforeSearchIndexAction(Enlight_Hook_HookArgs $args)
     {
         /** @var \Shopware_Controllers_Frontend_Search $subject */
         $subject = $args->getSubject();
@@ -87,7 +88,7 @@ class Frontend implements SubscriberInterface
         }
 
         if (array_key_exists('catFilter', $params)) {
-            $mappedParams['cat'] = urldecode($params['catFilter']);
+            $mappedParams['cat'] = rawurldecode($params['catFilter']);
             unset($params['catFilter']);
         }
 
@@ -101,7 +102,7 @@ class Frontend implements SubscriberInterface
                     }
                 } else {
                     $mappedValue = is_array($filterValue) ? implode('|', $filterValue) : $filterValue;
-                    $mappedParams[$filterName] = urldecode($mappedValue);
+                    $mappedParams[$filterName] = rawurldecode($mappedValue);
                 }
             }
 

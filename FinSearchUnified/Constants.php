@@ -18,4 +18,5 @@ class Constants
 
     const INTEGRATION_TYPE_DI = 'Direct Integration';
     const INTEGRATION_TYPE_API = 'API';
+    const SDYM_PARAM_FORCE_QUERY = 'forceOriginalQuery';
 }

@@ -57,7 +57,8 @@ class Utility
                 TRUNCATE `s_article_configurator_template_prices_attributes`;
                 TRUNCATE `s_article_img_mappings`;
                 TRUNCATE `s_article_img_mapping_rules`;
-                TRUNCATE `s_filter_articles`;'
+                TRUNCATE `s_filter_articles`;
+                SET foreign_key_checks = 1;'
             );
         } catch (Exception $ignored) {
         }

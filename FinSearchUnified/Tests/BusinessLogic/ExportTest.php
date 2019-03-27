@@ -439,9 +439,9 @@ class ExportTest extends TestBase
         for ($i = 0; $i < count($isActive); $i++) {
             $this->createTestProduct(
                 $i,
-                $isActive[$i],
                 $hasName[$i],
                 $mainDetailActive[$i],
+                $isActive[$i],
                 $laststock,
                 $instock,
                 $minpurchase,
