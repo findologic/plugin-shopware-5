@@ -11,6 +11,14 @@ use Shopware\Models\ProductStream\ProductStream;
 
 class ShopwareProcessTest extends TestCase
 {
+    protected function tearDown()
+    {
+        parent::tearDown();
+
+        Shopware()->Container()->reset('modules');
+        Shopware()->Container()->load('modules');
+    }
+
     /**
      * @throws ReflectionException
      */
@@ -37,8 +45,14 @@ class ShopwareProcessTest extends TestCase
         $categoryD->setStream(new ProductStream());
         $categoryD->setParent($categoryB);
 
-        $children = new ArrayCollection(
+        $childCategories = new ArrayCollection(
             [$categoryC, $categoryD]
+        );
+
+        $children = new PersistentCollection(
+            Shopware()->Models(),
+            Shopware()->Models()->getClassMetadata(Category::class),
+            $childCategories
         );
 
         $categoryB->setChildren($children);
@@ -62,28 +76,23 @@ class ShopwareProcessTest extends TestCase
             ->offset(0);
 
         $sArticles['sArticles'] = [];
+        $sArticles['sNumberArticles'] = 10;
 
-        for ($i = 1; $i <= 10; $i++) {
-            $categoryId = rand(1, 4);
-
-            if (!isset($sArticles['sArticles'][$categoryId])) {
-                $sArticles['sArticles'][$categoryId] = [];
-            }
-
-            $sArticles['sArticles'][$categoryId][] = ['articleID' => $i + 1];
+        for ($i = 0; $i < 10; $i++) {
+            $sArticles['sArticles'][] = ['articleID' => $i + 1];
         }
 
-        $result = [
-            [$categoryA->getId(), $sArticles['sArticle'][$categoryA->getId()]],
-            [$categoryB->getId(), $sArticles['sArticle'][$categoryB->getId()]],
-        ];
+        $criteria = new Criteria();
+        $criteria
+            ->limit(200)
+            ->offset(0);
 
         $mockModules = $this->createMock(Shopware_Components_Modules::class);
 
         $mockArticlesModule = $this->createMock(sArticles::class);
-        $mockArticlesModule->method('sGetArticlesByCategory')->willReturnMap($result);
+        $mockArticlesModule->expects($this->atLeastOnce())->method('sGetArticlesByCategory')->willReturn($sArticles);
 
-        $mockModules->method('getModule')->with('Articles')->willReturn($mockArticlesModule);
+        $mockModules->method('Articles')->willReturn($mockArticlesModule);
 
         Shopware()->Container()->set('modules', $mockModules);
 
@@ -96,6 +105,15 @@ class ShopwareProcessTest extends TestCase
         $reflector = new ReflectionObject($shopwareProcess);
         $method = $reflector->getMethod('parseProductStreams');
         $method->setAccessible(true);
-        $method->invoke($shopwareProcess, $parameters);
+        $articles = $method->invoke($shopwareProcess, $parameters);
+
+        foreach ($articles as $article) {
+            foreach ($article as $category) {
+                $this->assertThat($category, $this->logicalOr(
+                    $this->attributeEqualTo('id', $categoryB->getId()),
+                    $this->attributeEqualTo('id', $categoryD->getId())
+                ));
+            }
+        }
     }
 }
