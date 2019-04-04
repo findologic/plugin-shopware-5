@@ -105,5 +105,7 @@
         </service>
 
         <service id="fin_search_unified.helper.url_builder" class="FinSearchUnified\Helper\UrlBuilder" />
+
+        <service id="fin_search_unified.subscriber.widgets" class="FinSearchUnified\Subscriber\Widgets" />
     </services>
 </container>
