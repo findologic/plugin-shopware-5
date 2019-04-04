@@ -10,11 +10,19 @@ use Shopware_Controllers_Widgets_Listing;
 
 class WidgetsTest extends TestCase
 {
+    protected function tearDown()
+    {
+        parent::tearDown();
+
+        Shopware()->Container()->reset('front');
+        Shopware()->Container()->load('front');
+    }
+
     /**
      * @dataProvider searchParameterProvider
      *
      * @param array $requestParameters
-     * @param string $expectedSearchParameter
+     * @param string|null $expectedSearchParameter
      * @param string $expectedMessage
      *
      * @throws \ReflectionException
@@ -58,7 +66,7 @@ class WidgetsTest extends TestCase
         }
 
         if ($expectedSearchParameter === null) {
-            $this->assertArrayNotHasKey('sSearch', $params, $expectedMessage);
+            $this->assertArrayNotHasKey('sSearch', $params, 'Expected no query parameter to be set');
         } else {
             $this->assertEquals($expectedSearchParameter, $params['sSearch'], $expectedMessage);
         }

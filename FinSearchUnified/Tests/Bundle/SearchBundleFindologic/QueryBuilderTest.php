@@ -164,12 +164,12 @@ class QueryBuilderTest extends TestCase
         $httpResponse = new Response(200, [], 'alive');
         $httpClientMock = $this->createMock(GuzzleHttpClient::class);
         $aliveCallback = $this->returnCallback(function ($url) use ($aliveUrl, $httpResponse) {
-            \PHPUnit_Framework_Assert::assertSame($aliveUrl, $url);
+            \PHPUnit\Framework\Assert::assertSame($aliveUrl, $url);
 
             return $httpResponse;
         });
         $executeCallback = $this->returnCallback(function ($url) use ($executeUrl, $httpResponse) {
-            \PHPUnit_Framework_Assert::assertSame($executeUrl, $url);
+            \PHPUnit\Framework\Assert::assertSame($executeUrl, $url);
 
             return $httpResponse;
         });

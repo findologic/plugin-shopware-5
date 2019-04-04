@@ -4,11 +4,11 @@ namespace FinSearchUnified\Tests\Subscriber;
 
 use Enlight_Controller_Action;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
+use Enlight_Controller_Response_ResponseHttp;
 use Enlight_Event_EventArgs;
 use Enlight_Hook_HookArgs;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Controllers_Widgets_Listing;
-use Enlight_Controller_Response_ResponseHttp;
 
 class FrontendTest extends TestCase
 {
@@ -144,6 +144,8 @@ class FrontendTest extends TestCase
      *
      * @param string $sSearch
      * @param int|null $sCategory
+     *
+     * @throws \ReflectionException
      */
     public function testSessionValuesAfterListingCount($sSearch, $sCategory)
     {
@@ -226,7 +228,7 @@ class FrontendTest extends TestCase
             ->willReturn($request);
         $subject->method('redirect')
             ->with($this->callback(function ($requestUrl) use ($vendor) {
-                \PHPUnit_Framework_Assert::assertContains(
+                \PHPUnit\Framework\Assert::assertContains(
                     http_build_query(['vendor' => rawurldecode($vendor)]),
                     $requestUrl
                 );
