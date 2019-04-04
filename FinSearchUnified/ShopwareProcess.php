@@ -4,10 +4,13 @@ namespace FinSearchUnified;
 
 use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\ORM\PersistentCollection;
+use Enlight_Exception;
 use Exception;
 use FINDOLOGIC\Export\Exporter;
+use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use Shopware\Bundle\SearchBundle\Criteria;
+use Shopware\Bundle\StoreFrontBundle\Service\Core\ContextService;
 use Shopware\Components\ProductStream\RepositoryInterface;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Category\Category;
@@ -20,9 +23,19 @@ use Zend_Cache_Core;
 class ShopwareProcess
 {
     /**
+     * @var \Shopware\Models\Shop\Shop
+     */
+    public $shop;
+
+    /**
+     * @var string
+     */
+    public $shopKey;
+
+    /**
      * @var \Shopware\Bundle\StoreFrontBundle\Struct\ShopContext
      */
-    protected $context;
+    protected $contextService;
 
     /**
      * @var \Shopware\Models\Customer\Repository
@@ -35,16 +48,6 @@ class ShopwareProcess
     protected $articleRepository;
 
     /**
-     * @var \Shopware\Models\Shop\Shop
-     */
-    public $shop;
-
-    /**
-     * @var string
-     */
-    public $shopKey;
-
-    /**
      * @var \Zend_Cache_Core
      */
     protected $cache;
@@ -54,10 +57,21 @@ class ShopwareProcess
      */
     protected $productStreamRepository;
 
-    public function __construct(Zend_Cache_Core $cache, RepositoryInterface $repository)
-    {
+    /**
+     * @var ProductNumberSearch
+     */
+    protected $searchService;
+
+    public function __construct(
+        Zend_Cache_Core $cache,
+        RepositoryInterface $repository,
+        ContextService $contextService,
+        ProductNumberSearch $productNumberSearch
+    ) {
         $this->cache = $cache;
         $this->productStreamRepository = $repository;
+        $this->contextService = $contextService;
+        $this->searchService = $productNumberSearch;
     }
 
     /**
@@ -231,7 +245,7 @@ class ShopwareProcess
     }
 
     /**
-     * @throws \Enlight_Exception
+     * @throws Enlight_Exception
      * @throws \Zend_Cache_Exception
      */
     protected function warmUpCache()
@@ -256,7 +270,8 @@ class ShopwareProcess
      *                         May be omitted when the method is called since it is used internally for the recursion
      *
      * @return array
-     * @throws \Enlight_Exception
+     * @throws Enlight_Exception
+     * @throws Exception
      */
     protected function parseProductStreams(PersistentCollection $categories, array &$articles = [])
     {
@@ -280,14 +295,14 @@ class ShopwareProcess
             $this->productStreamRepository->prepareCriteria($criteria, $category->getStream()->getId());
 
             do {
-                $result = Shopware()->Modules()->Articles()->sGetArticlesByCategory($category->getId(), $criteria);
+                $result = $this->searchService->search($criteria, $this->contextService->getShopContext());
 
-                foreach ($result['sArticles'] as $sArticle) {
-                    $articles[$sArticle['articleID']][] = $category;
+                foreach ($result->getProducts() as $product) {
+                    $articles[$product->getId()][] = $category;
                 }
 
                 $criteria->offset($criteria->getOffset() + $criteria->getLimit());
-            } while ($criteria->getOffset() < $result['sNumberArticles']);
+            } while ($criteria->getOffset() < $result->getTotalCount());
         }
 
         return $articles;

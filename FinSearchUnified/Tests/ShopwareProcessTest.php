@@ -1,26 +1,24 @@
 <?php
 
+namespace FinSearchUnified\Tests;
+
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\PersistentCollection;
+use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Components\ProductStream\Repository;
 use FinSearchUnified\ShopwareProcess;
-use Shopware\Bundle\SearchBundle\Criteria;
+use ReflectionObject;
+use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
+use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Models\Category\Category;
 use Shopware\Models\ProductStream\ProductStream;
 
 class ShopwareProcessTest extends TestCase
 {
-    protected function tearDown()
-    {
-        parent::tearDown();
-
-        Shopware()->Container()->reset('modules');
-        Shopware()->Container()->load('modules');
-    }
-
     /**
-     * @throws ReflectionException
+     * @throws \ReflectionException
+     * @throws \Exception
      */
     public function testProductStreams()
     {
@@ -68,38 +66,31 @@ class ShopwareProcessTest extends TestCase
         );
 
         $mockRepository = $this->createMock(Repository::class);
-        $mockRepository->method('prepareCriteria')->willReturnSelf();
+        $mockRepository->method('prepareCriteria');
 
-        $criteria = new Criteria();
-        $criteria
-            ->limit(200)
-            ->offset(0);
-
-        $sArticles['sArticles'] = [];
-        $sArticles['sNumberArticles'] = 10;
+        $result = new \stdClass();
+        $result->totalCount = 10;
+        $result->products = [];
 
         for ($i = 0; $i < 10; $i++) {
-            $sArticles['sArticles'][] = ['articleID' => $i + 1];
+            $product = new BaseProduct(rand(), rand(), uniqid());
+            $result->products[] = $product;
         }
 
-        $criteria = new Criteria();
-        $criteria
-            ->limit(200)
-            ->offset(0);
+        $mockSearchResult = $this->createMock(ProductNumberSearchResult::class);
+        $mockSearchResult->method('getProducts')->willReturn($result->products);
 
-        $mockModules = $this->createMock(Shopware_Components_Modules::class);
+        $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
 
-        $mockArticlesModule = $this->createMock(sArticles::class);
-        $mockArticlesModule->expects($this->atLeastOnce())->method('sGetArticlesByCategory')->willReturn($sArticles);
-
-        $mockModules->method('Articles')->willReturn($mockArticlesModule);
-
-        Shopware()->Container()->set('modules', $mockModules);
+        $mockProductNumberSearch = $this->createMock(ProductNumberSearch::class);
+        $mockProductNumberSearch->expects($this->atLeastOnce())->method('search')->willReturn($mockSearchResult);
 
         /** @var Repository $mockRepository */
         $shopwareProcess = new ShopwareProcess(
             Shopware()->Container()->get('cache'),
-            $mockRepository
+            $mockRepository,
+            $contextService,
+            $mockProductNumberSearch
         );
 
         $reflector = new ReflectionObject($shopwareProcess);
