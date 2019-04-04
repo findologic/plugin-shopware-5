@@ -27,9 +27,8 @@ class WidgetsTest extends TestCase
         $request = new Enlight_Controller_Request_RequestHttp();
         $request->setControllerName('listing')
             ->setActionName('listingCount')
-            ->setModuleName('widgets');
-
-        $request->setParams($requestParameters);
+            ->setModuleName('widgets')
+            ->setParams($requestParameters);
 
         /** @var \Shopware_Controllers_Widgets_Listing $subject */
         $subject = Shopware_Controllers_Widgets_Listing::Instance(
@@ -52,14 +51,17 @@ class WidgetsTest extends TestCase
         $widgets->beforeListingCountAction($args);
 
         $params = $subject->Request()->getParams();
-        if (!empty($requestParameters)) {
-            foreach ($requestParameters as $key => $value) {
-                $this->assertArrayHasKey($key, $params, sprintf('Expected %s to be present', $key));
-                $this->assertSame($value, $params[$key], sprintf('Expected %s to have correct values', $key));
-            }
+
+        foreach ($requestParameters as $key => $value) {
+            $this->assertArrayHasKey($key, $params, sprintf('Expected %s to be present', $key));
+            $this->assertSame($value, $params[$key], sprintf('Expected %s to have correct values', $key));
         }
 
-        $this->assertEquals($expectedSearchParameter, $params['sSearch'], $expectedMessage);
+        if ($expectedSearchParameter === null) {
+            $this->assertArrayNotHasKey('sSearch', $params, $expectedMessage);
+        } else {
+            $this->assertEquals($expectedSearchParameter, $params['sSearch'], $expectedMessage);
+        }
     }
 
     public function searchParameterProvider()
