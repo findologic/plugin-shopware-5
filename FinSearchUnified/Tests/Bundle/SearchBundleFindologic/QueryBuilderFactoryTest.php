@@ -5,7 +5,7 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic;
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
-use Shopware\Bundle\SearchBundle\Condition\LastProductIdCondition;
+use Shopware\Bundle\SearchBundle\Condition\IsAvailableCondition;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
@@ -72,7 +72,7 @@ class QueryBuilderFactoryTest extends TestCase
         $criteria->addCondition(new PriceCondition(1, 20));
         $criteria->addCondition(new ProductAttributeCondition('vendor', '=', 'Findologic Rockers'));
         $criteria->addCondition(new SearchTermCondition('blubbergurke'));
-        $criteria->addCondition(new LastProductIdCondition(10));
+        $criteria->addCondition(new IsAvailableCondition());
 
         $query = $this->factory->createQuery($criteria, $this->context);
         $params = $query->getParameters();
@@ -151,7 +151,7 @@ class QueryBuilderFactoryTest extends TestCase
         $criteria->addSorting(new PopularitySorting());
         $criteria->addSorting(new SimpleSorting('name'));
         $criteria->addCondition(new SearchTermCondition('blubbergurke'));
-        $criteria->addCondition(new LastProductIdCondition(10));
+        $criteria->addCondition(new IsAvailableCondition());
 
         $query = $this->factory->createQueryWithSorting($criteria, $this->context);
         $params = $query->getParameters();
