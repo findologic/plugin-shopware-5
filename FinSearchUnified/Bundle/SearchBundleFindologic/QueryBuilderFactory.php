@@ -172,9 +172,9 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
      */
     public function createQueryWithSorting(Criteria $criteria, ShopContextInterface $context)
     {
-        $query = $this->createQueryBuilder();
+        $query = $this->createQuery($criteria, $context);
+
         $this->addSorting($criteria, $query, $context);
-        $this->addConditions($criteria, $query, $context);
 
         return $query;
     }
