@@ -5,17 +5,18 @@ namespace FinSearchUnified\Tests\Subscriber;
 use Enlight_Controller_Request_RequestHttp;
 use Enlight_Controller_Response_ResponseHttp;
 use Enlight_Hook_HookArgs;
+use ReflectionException;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Controllers_Widgets_Listing;
 
 class WidgetsTest extends TestCase
 {
-    protected function tearDown()
+    public function setUp()
     {
-        parent::tearDown();
+        parent::setUp();
 
-        Shopware()->Container()->reset('front');
-        Shopware()->Container()->load('front');
+        // reset global variable as it conflicts with existing tests in this class
+        $_GET = [];
     }
 
     /**
@@ -25,7 +26,7 @@ class WidgetsTest extends TestCase
      * @param string|null $expectedSearchParameter
      * @param string $expectedMessage
      *
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function testBeforeListingCountAction(
         array $requestParameters,
@@ -38,7 +39,7 @@ class WidgetsTest extends TestCase
             ->setModuleName('widgets')
             ->setParams($requestParameters);
 
-        /** @var \Shopware_Controllers_Widgets_Listing $subject */
+        /** @var Shopware_Controllers_Widgets_Listing $subject */
         $subject = Shopware_Controllers_Widgets_Listing::Instance(
             Shopware_Controllers_Widgets_Listing::class,
             [
