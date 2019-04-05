@@ -4,9 +4,11 @@ namespace FinSearchUnified\Tests;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\PersistentCollection;
+use Exception;
 use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Components\ProductStream\Repository;
 use FinSearchUnified\ShopwareProcess;
+use ReflectionException;
 use ReflectionObject;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
 use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
@@ -17,8 +19,8 @@ use Shopware\Models\ProductStream\ProductStream;
 class ShopwareProcessTest extends TestCase
 {
     /**
-     * @throws \ReflectionException
-     * @throws \Exception
+     * @throws ReflectionException
+     * @throws Exception
      */
     public function testProductStreams()
     {
@@ -83,6 +85,7 @@ class ShopwareProcessTest extends TestCase
         $mockProductNumberSearch->expects($this->exactly(2))->method('search')->willReturn($results);
 
         /** @var Repository $mockRepository */
+        /** @var ProductNumberSearch $mockProductNumberSearch */
         $shopwareProcess = new ShopwareProcess(
             Shopware()->Container()->get('cache'),
             $mockRepository,
@@ -101,6 +104,8 @@ class ShopwareProcessTest extends TestCase
         );
 
         foreach ($articles as $articleID => $categories) {
+            $this->assertCount(2, $categories, 'Expected not more than two categories to be assigned');
+
             $this->assertSame(
                 $categoryD,
                 $categories[0],
@@ -109,7 +114,7 @@ class ShopwareProcessTest extends TestCase
             $this->assertSame(
                 $categoryB,
                 $categories[1],
-                'Expected categoryB to be the parent of the assigned categoryD'
+                'Expected parent of categoryD to be assigned to the article'
             );
         }
     }
