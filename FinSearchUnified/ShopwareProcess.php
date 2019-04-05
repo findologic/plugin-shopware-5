@@ -7,9 +7,9 @@ use Doctrine\ORM\PersistentCollection;
 use Enlight_Exception;
 use Exception;
 use FINDOLOGIC\Export\Exporter;
-use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use Shopware\Bundle\SearchBundle\Criteria;
+use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
 use Shopware\Bundle\StoreFrontBundle\Service\Core\ContextService;
 use Shopware\Components\ProductStream\RepositoryInterface;
 use Shopware\Models\Article\Article;
@@ -23,7 +23,7 @@ use Zend_Cache_Core;
 class ShopwareProcess
 {
     /**
-     * @var \Shopware\Models\Shop\Shop
+     * @var Shop
      */
     public $shop;
 
@@ -33,7 +33,7 @@ class ShopwareProcess
     public $shopKey;
 
     /**
-     * @var \Shopware\Bundle\StoreFrontBundle\Struct\ShopContext
+     * @var ContextService
      */
     protected $contextService;
 
@@ -48,7 +48,7 @@ class ShopwareProcess
     protected $articleRepository;
 
     /**
-     * @var \Zend_Cache_Core
+     * @var Zend_Cache_Core
      */
     protected $cache;
 
@@ -58,7 +58,7 @@ class ShopwareProcess
     protected $productStreamRepository;
 
     /**
-     * @var ProductNumberSearch
+     * @var ProductNumberSearchInterface
      */
     protected $searchService;
 
@@ -66,7 +66,7 @@ class ShopwareProcess
         Zend_Cache_Core $cache,
         RepositoryInterface $repository,
         ContextService $contextService,
-        ProductNumberSearch $productNumberSearch
+        ProductNumberSearchInterface $productNumberSearch
     ) {
         $this->cache = $cache;
         $this->productStreamRepository = $repository;

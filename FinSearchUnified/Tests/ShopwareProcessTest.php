@@ -68,22 +68,19 @@ class ShopwareProcessTest extends TestCase
         $mockRepository = $this->createMock(Repository::class);
         $mockRepository->method('prepareCriteria');
 
-        $result = new \stdClass();
-        $result->totalCount = 10;
-        $result->products = [];
+        $products = [];
 
         for ($i = 0; $i < 10; $i++) {
             $product = new BaseProduct(rand(), rand(), uniqid());
-            $result->products[] = $product;
+            $products[] = $product;
         }
 
-        $mockSearchResult = $this->createMock(ProductNumberSearchResult::class);
-        $mockSearchResult->method('getProducts')->willReturn($result->products);
+        $results = new ProductNumberSearchResult($products, 10, []);
 
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
 
         $mockProductNumberSearch = $this->createMock(ProductNumberSearch::class);
-        $mockProductNumberSearch->expects($this->atLeastOnce())->method('search')->willReturn($mockSearchResult);
+        $mockProductNumberSearch->expects($this->exactly(2))->method('search')->willReturn($results);
 
         /** @var Repository $mockRepository */
         $shopwareProcess = new ShopwareProcess(
@@ -98,13 +95,22 @@ class ShopwareProcessTest extends TestCase
         $method->setAccessible(true);
         $articles = $method->invoke($shopwareProcess, $parameters);
 
-        foreach ($articles as $article) {
-            foreach ($article as $category) {
-                $this->assertThat($category, $this->logicalOr(
-                    $this->attributeEqualTo('id', $categoryB->getId()),
-                    $this->attributeEqualTo('id', $categoryD->getId())
-                ));
-            }
+        $this->assertEmpty(
+            array_diff_key(array_column($products, 'id'), $articles),
+            'Expected returned articles to only contain the same products that were created'
+        );
+
+        foreach ($articles as $articleID => $categories) {
+            $this->assertSame(
+                $categoryD,
+                $categories[0],
+                'Expected categoryD to be assigned to the article'
+            );
+            $this->assertSame(
+                $categoryB,
+                $categories[1],
+                'Expected categoryB to be the parent of the assigned categoryD'
+            );
         }
     }
 }
