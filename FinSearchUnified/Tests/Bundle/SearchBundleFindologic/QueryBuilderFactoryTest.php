@@ -4,6 +4,7 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic;
 
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
+use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Condition\IsAvailableCondition;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
@@ -57,8 +58,12 @@ class QueryBuilderFactoryTest extends TestCase
         $query = $this->factory->createQuery($criteria, $this->context);
         $params = $query->getParameters();
 
+        $hashed = StaticHelper::calculateUsergroupHash(
+            Shopware()->Container()->get('config')->offsetGet('ShopKey'), 'EK');
+
         $this->assertArrayHasKey('group', $params, 'Usergroup was expected to be present in the parameters');
-        $this->assertSame('EK', $params['group'], 'Expected usergroup "EK" to be present in group parameter');
+        $this->assertSame([$hashed], $params['group'],
+            'Expected usergroup "EK" to hashed correctly in group parameter');
 
         $this->assertArrayNotHasKey('attrib', $params, 'No attributes were expected to be present in the parameters');
         $this->assertArrayNotHasKey('query', $params, 'No search query was expected to be present in the parameters');
@@ -235,18 +240,13 @@ class QueryBuilderFactoryTest extends TestCase
     }
 
     /**
-     * @dataProvider offsetAndLimitProvider
-     *
-     * @param int $offset
-     * @param int $limit
-     *
      * @throws Exception
      */
-    public function testCreateProductQueryWithOffsetAndLimit($offset, $limit)
+    public function testCreateProductQueryWithOffsetAndLimit()
     {
         $criteria = new Criteria();
-        $criteria->offset($offset);
-        $criteria->limit($limit);
+        $criteria->offset(5);
+        $criteria->limit(2);
 
         $query = $this->factory->createProductQuery($criteria, $this->context);
         $params = $query->getParameters();
@@ -254,8 +254,8 @@ class QueryBuilderFactoryTest extends TestCase
         $this->assertArrayHasKey('first', $params, 'Expected parameters to have offset set');
         $this->assertArrayHasKey('count', $params, 'Search query was expected to be present in the parameters');
 
-        $this->assertEquals($offset, $params['first'], sprintf('Expected offset in parameters to be %d', $offset));
-        $this->assertEquals($limit, $params['count'], sprintf('Expected total to be %d', $limit));
+        $this->assertEquals(5, $params['first'], 'Expected offset in parameters to be 5');
+        $this->assertEquals(2, $params['count'], 'Expected limit in parameters to be 2');
     }
 
     /**
@@ -272,15 +272,6 @@ class QueryBuilderFactoryTest extends TestCase
                 new SimpleSorting('name'),
                 null
             ],
-        ];
-    }
-
-    public function offsetAndLimitProvider()
-    {
-        return [
-            'Offset is 0 and Limit is 0' => [0, 0],
-            'Offset is 0 and Limit is 1' => [0, 1],
-            'Offset is 5 and Limit is 2' => [5, 2],
         ];
     }
 }
