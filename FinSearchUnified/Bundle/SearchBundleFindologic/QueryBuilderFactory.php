@@ -100,8 +100,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     /**
      * @param ConditionInterface $condition
      *
-     * @throws Exception
-     * @return ConditionHandlerInterface
+     * @return ConditionHandlerInterface|null
      */
     private function getConditionHandler(ConditionInterface $condition)
     {
@@ -118,8 +117,6 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
      * @param Criteria $criteria
      * @param QueryBuilder $query
      * @param ShopContextInterface $context
-     *
-     * @throws Exception
      */
     private function addConditions(Criteria $criteria, QueryBuilder $query, ShopContextInterface $context)
     {
@@ -134,8 +131,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     /**
      * @param SortingInterface $sorting
      *
-     * @throws Exception
-     * @return SortingHandlerInterface
+     * @return SortingHandlerInterface|null
      */
     private function getSortingHandler(SortingInterface $sorting)
     {
@@ -152,8 +148,6 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
      * @param Criteria $criteria
      * @param QueryBuilder $query
      * @param ShopContextInterface $context
-     *
-     * @throws Exception
      */
     private function addSorting(Criteria $criteria, QueryBuilder $query, ShopContextInterface $context)
     {

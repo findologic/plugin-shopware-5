@@ -14,7 +14,7 @@ use Shopware\Bundle\SearchBundle\Sorting\PopularitySorting;
 use Shopware\Bundle\SearchBundle\Sorting\SimpleSorting;
 use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
-use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
+use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use Shopware\Components\Test\Plugin\TestCase;
 
 class QueryBuilderFactoryTest extends TestCase
@@ -25,7 +25,7 @@ class QueryBuilderFactoryTest extends TestCase
     private $factory;
 
     /**
-     * @var ProductContextInterface
+     * @var ShopContextInterface
      */
     private $context;
 
@@ -58,14 +58,16 @@ class QueryBuilderFactoryTest extends TestCase
         $params = $query->getParameters();
 
         $this->assertArrayHasKey('group', $params, 'Usergroup was expected to be present in the parameters');
+        $this->assertSame('EK', $params['group'], 'Expected usergroup "EK" to be present in group parameter');
+
         $this->assertArrayNotHasKey('attrib', $params, 'No attributes were expected to be present in the parameters');
-        $this->assertArrayNotHasKey('query', $params, 'No search query was expected to be present in the parameters ');
+        $this->assertArrayNotHasKey('query', $params, 'No search query was expected to be present in the parameters');
     }
 
     /**
      * @throws Exception
      */
-    public function testCreateQueryithConditions()
+    public function testCreateQueryWithConditions()
     {
         $criteria = new Criteria();
         $criteria->addCondition(new CategoryCondition([5, 12]));
@@ -90,6 +92,8 @@ class QueryBuilderFactoryTest extends TestCase
 
         // PriceCondition
         $this->assertArrayHasKey('price', $attrib, 'Prices were expected to be present in the attribute parameters');
+        $this->assertArrayHasKey('min', $attrib['price'], 'Expected minimum price to be set');
+        $this->assertArrayHasKey('max', $attrib['price'], 'Expected maximum price to be set');
         $this->assertEquals(1, $attrib['price']['min'], 'Expected minimum price to be 1');
         $this->assertEquals(20, $attrib['price']['max'], 'Expected maximum price to be 20');
 
@@ -98,7 +102,7 @@ class QueryBuilderFactoryTest extends TestCase
         $this->assertEquals(
             ['Findologic Rockers'],
             $attrib['vendor'],
-            'Expected vendor to be an array containing "Findologic Rockers"'
+            'Expected "vendor" to be an array containing "Findologic Rockers"'
         );
 
         // SearchTermCondition
@@ -120,7 +124,7 @@ class QueryBuilderFactoryTest extends TestCase
 
         $this->assertArrayNotHasKey('order', $params, 'Sorting was not expected to be present in the parameters');
         $this->assertArrayNotHasKey('attrib', $params, 'No attributes were expected to be present in the parameters');
-        $this->assertArrayNotHasKey('query', $params, 'No search query was expected to be present in the parameters ');
+        $this->assertArrayNotHasKey('query', $params, 'No search query was expected to be present in the parameters');
     }
 
     /**
@@ -131,7 +135,7 @@ class QueryBuilderFactoryTest extends TestCase
      *
      * @throws Exception
      */
-    public function testCreateQueryWithSingleSorting($sorting, $expected)
+    public function testCreateQueryWithSingleSorting(SortingInterface $sorting, $expected)
     {
         $criteria = new Criteria();
         $criteria->addSorting($sorting);
@@ -139,7 +143,12 @@ class QueryBuilderFactoryTest extends TestCase
         $query = $this->factory->createQueryWithSorting($criteria, $this->context);
         $params = $query->getParameters();
 
-        $this->assertSame($expected, $params['order'], sprintf('Expected sorting to be "%s"', $expected));
+        if ($expected === null) {
+            $this->assertArrayNotHasKey('order', $params, 'Did not expect order to exist in the parameters');
+        } else {
+            $this->assertArrayHasKey('order', $params, 'Did not expect order to exist in the parameters');
+            $this->assertSame($expected, $params['order'], sprintf('Expected sorting to be "%s"', $expected));
+        }
     }
 
     /**
@@ -156,14 +165,102 @@ class QueryBuilderFactoryTest extends TestCase
         $query = $this->factory->createQueryWithSorting($criteria, $this->context);
         $params = $query->getParameters();
 
-        $this->assertArrayHasKey('order', $params, 'Sorting was expected to be present in the parameters');
-        $this->assertArrayHasKey('query', $params, 'Search query was expected to be present in the parameters ');
+        $this->assertArrayHasKey('query', $params, 'Search query was expected to be present in the parameters');
+        $this->assertSame('blubbergurke', $params['query'], 'Expected "blubbergurke" to be the search query');
         $this->assertArrayNotHasKey('attrib', $params, 'No attributes were expected to be present in the parameters');
 
-        $this->assertSame('salesfrequency ASC', $params['order'], 'Expected sorting order to be "salesfrequency ASC"');
+        $this->assertArrayHasKey('order', $params, 'Sorting was expected to be present in the parameters');
         $this->assertSame('salesfrequency ASC', $params['order'], 'Expected sorting order to be "salesfrequency ASC"');
     }
 
+    /**
+     * @throws Exception
+     */
+    public function testCreateProductQueryWithoutConditionsAndSortings()
+    {
+        $criteria = new Criteria();
+
+        $query = $this->factory->createProductQuery($criteria, $this->context);
+        $params = $query->getParameters();
+
+        $this->assertArrayNotHasKey('order', $params, 'Sorting was not expected to be present in the parameters');
+        $this->assertArrayNotHasKey('attrib', $params, 'No attributes were expected to be present in the parameters');
+        $this->assertArrayNotHasKey('query', $params, 'No search query was expected to be present in the parameters ');
+    }
+
+    /**
+     * @dataProvider sortingProvider
+     *
+     * @param SortingInterface $sorting
+     * @param string $expected
+     *
+     * @throws Exception
+     */
+    public function testCreateProductQueryWithSingleSorting(SortingInterface $sorting, $expected)
+    {
+        $criteria = new Criteria();
+        $criteria->addSorting($sorting);
+
+        $query = $this->factory->createProductQuery($criteria, $this->context);
+        $params = $query->getParameters();
+
+        if ($expected === null) {
+            $this->assertArrayNotHasKey('order', $params, 'Did not expect order to exist in the parameters');
+        } else {
+            $this->assertArrayHasKey('order', $params, 'Did not expect order to exist in the parameters');
+            $this->assertSame($expected, $params['order'], sprintf('Expected sorting to be "%s"', $expected));
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testCreateProductQueryWithMultipleSortingAndConditions()
+    {
+        $criteria = new Criteria();
+        $criteria->addSorting(new PopularitySorting());
+        $criteria->addSorting(new SimpleSorting('name'));
+        $criteria->addCondition(new SearchTermCondition('blubbergurke'));
+        $criteria->addCondition(new IsAvailableCondition());
+
+        $query = $this->factory->createProductQuery($criteria, $this->context);
+        $params = $query->getParameters();
+
+        $this->assertArrayHasKey('query', $params, 'Search query was expected to be present in the parameters');
+        $this->assertSame('blubbergurke', $params['query'], 'Expected "blubbergurke" to be the search query');
+        $this->assertArrayNotHasKey('attrib', $params, 'No attributes were expected to be present in the parameters');
+
+        $this->assertArrayHasKey('order', $params, 'Sorting was expected to be present in the parameters');
+        $this->assertSame('salesfrequency ASC', $params['order'], 'Expected sorting order to be "salesfrequency ASC"');
+    }
+
+    /**
+     * @dataProvider offsetAndLimitProvider
+     *
+     * @param int $offset
+     * @param int $limit
+     *
+     * @throws Exception
+     */
+    public function testCreateProductQueryWithOffsetAndLimit($offset, $limit)
+    {
+        $criteria = new Criteria();
+        $criteria->offset($offset);
+        $criteria->limit($limit);
+
+        $query = $this->factory->createProductQuery($criteria, $this->context);
+        $params = $query->getParameters();
+
+        $this->assertArrayHasKey('first', $params, 'Expected parameters to have offset set');
+        $this->assertArrayHasKey('count', $params, 'Search query was expected to be present in the parameters');
+
+        $this->assertEquals($offset, $params['first'], sprintf('Expected offset in parameters to be %d', $offset));
+        $this->assertEquals($limit, $params['count'], sprintf('Expected total to be %d', $limit));
+    }
+
+    /**
+     * @return array
+     */
     public function sortingProvider()
     {
         return [
@@ -175,6 +272,15 @@ class QueryBuilderFactoryTest extends TestCase
                 new SimpleSorting('name'),
                 null
             ],
+        ];
+    }
+
+    public function offsetAndLimitProvider()
+    {
+        return [
+            'Offset is 0 and Limit is 0' => [0, 0],
+            'Offset is 0 and Limit is 1' => [0, 1],
+            'Offset is 5 and Limit is 2' => [5, 2],
         ];
     }
 }

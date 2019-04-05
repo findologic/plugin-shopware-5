@@ -271,6 +271,9 @@ class QueryBuilder
         }
     }
 
+    /**
+     * @param string $usergroup
+     */
     public function addGroup($usergroup)
     {
         $hashedKey = StaticHelper::calculateUsergroupHash($this->shopKey, $usergroup);
