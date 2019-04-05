@@ -59,11 +59,16 @@ class QueryBuilderFactoryTest extends TestCase
         $params = $query->getParameters();
 
         $hashed = StaticHelper::calculateUsergroupHash(
-            Shopware()->Container()->get('config')->offsetGet('ShopKey'), 'EK');
+            Shopware()->Container()->get('config')->offsetGet('ShopKey'),
+            'EK'
+        );
 
         $this->assertArrayHasKey('group', $params, 'Usergroup was expected to be present in the parameters');
-        $this->assertSame([$hashed], $params['group'],
-            'Expected usergroup "EK" to hashed correctly in group parameter');
+        $this->assertSame(
+            [$hashed],
+            $params['group'],
+            'Expected usergroup "EK" to hashed correctly in group parameter'
+        );
 
         $this->assertArrayNotHasKey('attrib', $params, 'No attributes were expected to be present in the parameters');
         $this->assertArrayNotHasKey('query', $params, 'No search query was expected to be present in the parameters');
