@@ -3,6 +3,8 @@
 namespace FinSearchUnified\Subscriber;
 
 use Enlight\Event\SubscriberInterface;
+use Enlight_Hook_HookArgs;
+use FinSearchUnified\Helper\StaticHelper;
 
 class Widgets implements SubscriberInterface
 {
@@ -18,8 +20,12 @@ class Widgets implements SubscriberInterface
         ];
     }
 
-    public function beforeListingCountAction(\Enlight_Hook_HookArgs $args)
+    public function beforeListingCountAction(Enlight_Hook_HookArgs $args)
     {
+        if (StaticHelper::useShopSearch()) {
+            return;
+        }
+
         /** @var \Shopware_Controllers_Widgets_Listing $subject */
         $subject = $args->getSubject();
 

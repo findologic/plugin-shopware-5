@@ -12,6 +12,12 @@ use Shopware_Controllers_Widgets_Listing;
 
 class FrontendTest extends TestCase
 {
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+        $_GET = [];
+    }
+
     protected function tearDown()
     {
         parent::tearDown();

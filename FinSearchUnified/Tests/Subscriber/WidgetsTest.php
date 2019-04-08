@@ -11,12 +11,18 @@ use Shopware_Controllers_Widgets_Listing;
 
 class WidgetsTest extends TestCase
 {
-    public function setUp()
-    {
-        parent::setUp();
+    protected static $ensureLoadedPlugins = [
+        'FinSearchUnified' => [
+            'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+            'ActivateFindologic' => true
+        ],
+    ];
 
-        // reset global variable as it conflicts with existing tests in this class
-        $_GET = [];
+    protected function tearDown()
+    {
+        parent::tearDown();
+
+        Shopware()->Session()->offsetUnset('isSearchPage');
     }
 
     /**
@@ -28,7 +34,7 @@ class WidgetsTest extends TestCase
      *
      * @throws ReflectionException
      */
-    public function testBeforeListingCountAction(
+    public function testBeforeListingCountActionIfFindologicSearchIsActive(
         array $requestParameters,
         $expectedSearchParameter,
         $expectedMessage
@@ -39,6 +45,10 @@ class WidgetsTest extends TestCase
             ->setModuleName('widgets')
             ->setParams($requestParameters);
 
+        // Make sure that the findologic search is triggered
+        Shopware()->Container()->get('front')->setRequest($request);
+        Shopware()->Session()->isSearchPage = true;
+
         /** @var Shopware_Controllers_Widgets_Listing $subject */
         $subject = Shopware_Controllers_Widgets_Listing::Instance(
             Shopware_Controllers_Widgets_Listing::class,
@@ -48,13 +58,7 @@ class WidgetsTest extends TestCase
             ]
         );
 
-        // Create mocked args for getting Subject and Request
-        $args = $this->getMockBuilder(Enlight_Hook_HookArgs::class)
-            ->setMethods(['getSubject', 'getRequest'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $args->method('getSubject')->willReturn($subject);
-        $args->method('getRequest')->willReturn($request);
+        $args = new Enlight_Hook_HookArgs($subject, 'listingCountAction');
 
         $widgets = Shopware()->Container()->get('fin_search_unified.subscriber.widgets');
         $widgets->beforeListingCountAction($args);
@@ -69,8 +73,38 @@ class WidgetsTest extends TestCase
         if ($expectedSearchParameter === null) {
             $this->assertArrayNotHasKey('sSearch', $params, 'Expected no query parameter to be set');
         } else {
-            $this->assertEquals($expectedSearchParameter, $params['sSearch'], $expectedMessage);
+            $this->assertSame($expectedSearchParameter, $params['sSearch'], $expectedMessage);
         }
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function testBeforeListingCountActionIfShopSearchIsActive()
+    {
+        $request = new Enlight_Controller_Request_RequestHttp();
+        $request->setControllerName('listing')
+            ->setActionName('listingCount')
+            ->setModuleName('widgets');
+
+        /** @var Shopware_Controllers_Widgets_Listing $subject */
+        $subject = Shopware_Controllers_Widgets_Listing::Instance(
+            Shopware_Controllers_Widgets_Listing::class,
+            [
+                $request,
+                new Enlight_Controller_Response_ResponseHttp()
+            ]
+        );
+
+        $args = new Enlight_Hook_HookArgs($subject, 'listingCountAction');
+
+        $widgets = Shopware()->Container()->get('fin_search_unified.subscriber.widgets');
+        $widgets->beforeListingCountAction($args);
+
+        $params = $subject->Request()->getParams();
+
+        $this->assertArrayNotHasKey('sSearch', $params, 'Expected no query parameter to be set');
+        $this->assertArrayNotHasKey('sCategory', $params, 'Expected no category parameter to be set');
     }
 
     public function searchParameterProvider()
