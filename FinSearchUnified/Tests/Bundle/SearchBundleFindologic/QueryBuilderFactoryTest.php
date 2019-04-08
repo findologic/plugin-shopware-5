@@ -245,13 +245,20 @@ class QueryBuilderFactoryTest extends TestCase
     }
 
     /**
+     * @dataProvider offsetLimitProvider
+     *
+     * @param int $offset
+     * @param int $expectedOffset
+     * @param int $limit
+     * @param int $expectedLimit
+     *
      * @throws Exception
      */
-    public function testCreateProductQueryWithOffsetAndLimit()
+    public function testCreateProductQueryWithOffsetAndLimit($offset, $expectedOffset, $limit, $expectedLimit)
     {
         $criteria = new Criteria();
-        $criteria->offset(5);
-        $criteria->limit(2);
+        $criteria->offset($offset);
+        $criteria->limit($limit);
 
         $query = $this->factory->createProductQuery($criteria, $this->context);
         $params = $query->getParameters();
@@ -259,8 +266,16 @@ class QueryBuilderFactoryTest extends TestCase
         $this->assertArrayHasKey('first', $params, 'Expected parameters to have offset set');
         $this->assertArrayHasKey('count', $params, 'Search query was expected to be present in the parameters');
 
-        $this->assertEquals(5, $params['first'], 'Expected offset in parameters to be 5');
-        $this->assertEquals(2, $params['count'], 'Expected limit in parameters to be 2');
+        $this->assertEquals(
+            $expectedOffset,
+            $params['first'],
+            sprintf('Expected offset in parameters to be %d', $expectedOffset)
+        );
+        $this->assertEquals(
+            $expectedLimit,
+            $params['count'],
+            sprintf('Expected limit in parameters to be %d', $expectedLimit)
+        );
     }
 
     /**
@@ -277,6 +292,14 @@ class QueryBuilderFactoryTest extends TestCase
                 new SimpleSorting('name'),
                 null
             ],
+        ];
+    }
+
+    public function offsetLimitProvider()
+    {
+        return [
+            'Offset is 0 and Limit = 1' => [0, 0, 1, 0],
+            'Offset is 5 and Limit = 2' => [5, 5, 2, 2],
         ];
     }
 }
