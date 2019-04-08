@@ -59,12 +59,8 @@ class WidgetsTest extends TestCase
         );
 
         // Create mocked args for getting Subject and Request due to backwards compatibility
-        $args = $this->getMockBuilder(Enlight_Hook_HookArgs::class)
-            ->setMethods(['getSubject', 'getRequest'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $args->method('getSubject')->willReturn($subject);
-        $args->method('getRequest')->willReturn($request);
+        $args = $this->createMock(Enlight_Hook_HookArgs::class);
+        $args->expects($this->once())->method('getSubject')->willReturn($subject);
 
         $widgets = Shopware()->Container()->get('fin_search_unified.subscriber.widgets');
         $widgets->beforeListingCountAction($args);
@@ -104,6 +100,7 @@ class WidgetsTest extends TestCase
 
         // Create mocked args for getting Subject and Request due to backwards compatibility
         $args = $this->createMock(Enlight_Hook_HookArgs::class);
+        $args->expects($this->never())->method('getSubject');
 
         $widgets = Shopware()->Container()->get('fin_search_unified.subscriber.widgets');
         $widgets->beforeListingCountAction($args);
