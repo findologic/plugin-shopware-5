@@ -574,28 +574,47 @@ class FindologicArticleModel
 
             $baseProduct = new BaseProduct($this->baseArticle->getId(), $variant->getId(), $variant->getNumber());
 
-            $configs = $configuratorService->getProductsConfigurations($baseProduct, $context);
+            if ($configs = $configuratorService->getProductsConfigurations($baseProduct, $context)) {
+                foreach ($configs as $group) {
+                    $variationFilterValues = [];
 
-            foreach ($configs as $group) {
-                $variationFilterValues = [];
+                    foreach ($group->getOptions() as $option) {
+                        if (!self::checkIfHasValue($option->getName())) {
+                            continue;
+                        }
 
-                foreach ($group->getOptions() as $option) {
-                    if (!self::checkIfHasValue($option->getName())) {
-                        continue;
+                        $variationFilterValues[] = StaticHelper::removeControlCharacters($option->getName());
                     }
 
-                    $variationFilterValues[] = StaticHelper::removeControlCharacters($option->getName());
+                    $groupName = StaticHelper::removeControlCharacters($group->getName());
+
+                    if (array_key_exists($groupName, $variationFilters)) {
+                        $variationFilters[$groupName] = array_unique(array_merge(
+                            $variationFilters[$groupName],
+                            $variationFilterValues
+                        ));
+                    } else {
+                        $variationFilters[$groupName] = $variationFilterValues;
+                    }
                 }
+            } else {
+                foreach ($variant->getConfiguratorOptions() as $option) {
+                    if (!self::checkIfHasValue($option->getName()) ||
+                        !self::checkIfHasValue($option->getGroup()->getName())
+                    ) {
+                        continue;
+                    } else {
+                        $optionName = StaticHelper::removeControlCharacters($option->getName());
+                        $groupName = StaticHelper::removeControlCharacters($option->getGroup()->getName());
+                    }
 
-                $groupName = StaticHelper::removeControlCharacters($group->getName());
-
-                if (array_key_exists($groupName, $variationFilters)) {
-                    $variationFilters[$groupName] = array_unique(array_merge(
-                        $variationFilters[$groupName],
-                        $variationFilterValues
-                    ));
-                } else {
-                    $variationFilters[$groupName] = $variationFilterValues;
+                    if (!array_key_exists($groupName, $variationFilters)) {
+                        $variationFilters[$groupName] = [$optionName];
+                    } elseif (!in_array($optionName, $variationFilters[$groupName])) {
+                        $variationFilters[$groupName][] = $optionName;
+                    } else {
+                        // Similar option already exists. No further processing necessary.
+                    }
                 }
             }
         }

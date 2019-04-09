@@ -281,13 +281,13 @@ class UrlBuilder
     private function buildSortingParameter(SortingInterface $sorting)
     {
         if ($sorting instanceof SearchBundle\Sorting\PopularitySorting) {
-            $this->parameters['order'] = urldecode('salesfrequency ' . $sorting->getDirection());
+            $this->parameters['order'] = rawurldecode('salesfrequency ' . $sorting->getDirection());
         } elseif ($sorting instanceof SearchBundle\Sorting\PriceSorting) {
-            $this->parameters['order'] = urldecode('price ' . $sorting->getDirection());
+            $this->parameters['order'] = rawurldecode('price ' . $sorting->getDirection());
         } elseif ($sorting instanceof SearchBundle\Sorting\ProductNameSorting) {
-            $this->parameters['order'] = urldecode('label ' . $sorting->getDirection());
+            $this->parameters['order'] = rawurldecode('label ' . $sorting->getDirection());
         } elseif ($sorting instanceof SearchBundle\Sorting\ReleaseDateSorting) {
-            $this->parameters['order'] = urldecode('dateadded ' . $sorting->getDirection());
+            $this->parameters['order'] = rawurldecode('dateadded ' . $sorting->getDirection());
         }
     }
 
@@ -323,7 +323,7 @@ class UrlBuilder
      */
     private function buildPriceAttribute($key, $value)
     {
-        $this->parameters['attrib']['price'][$key] = urldecode($value);
+        $this->parameters['attrib']['price'][$key] = rawurldecode($value);
     }
 
     /**
@@ -333,7 +333,7 @@ class UrlBuilder
     private function buildAttribute($key, $value)
     {
         foreach ($value as $realValue) {
-            $this->parameters['attrib'][$key][] = urldecode($realValue);
+            $this->parameters['attrib'][$key][] = rawurldecode($realValue);
         }
     }
 
@@ -342,7 +342,7 @@ class UrlBuilder
      */
     private function buildKeywordQuery($searchQuery)
     {
-        $this->parameters['query'] = urldecode($searchQuery);
+        $this->parameters['query'] = rawurldecode($searchQuery);
     }
 
     /**

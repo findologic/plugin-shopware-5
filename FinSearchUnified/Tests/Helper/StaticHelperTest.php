@@ -11,9 +11,9 @@ use Enlight_Plugin_Namespace_Loader as Plugins;
 use Enlight_View_Default as View;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
+use Shopware\Components\Api\Resource;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Models\Category\Category;
-use Shopware\Components\Api\Resource;
 use Shopware_Components_Config as Config;
 use SimpleXMLElement;
 
@@ -554,13 +554,13 @@ class StaticHelperTest extends TestCase
                     $expectedAlternativeQuery,
                     $expectedOriginalQuery
                 ) {
-                    \PHPUnit_Framework_Assert::assertArrayHasKey(
+                    \PHPUnit\Framework\Assert::assertArrayHasKey(
                         'finSmartDidYouMean',
                         $data,
                         '"finSmartDidYouMean" was not assigned to the view'
                     );
 
-                    \PHPUnit_Framework_Assert::assertEquals(
+                    \PHPUnit\Framework\Assert::assertEquals(
                         [
                             'type' => $expectedType,
                             'alternative_query' => $expectedAlternativeQuery,

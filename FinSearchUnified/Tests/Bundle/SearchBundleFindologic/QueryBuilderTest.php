@@ -4,6 +4,7 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic;
 
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
+use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Components\HttpClient\GuzzleHttpClient;
 use Shopware\Components\HttpClient\RequestException;
@@ -164,12 +165,12 @@ class QueryBuilderTest extends TestCase
         $httpResponse = new Response(200, [], 'alive');
         $httpClientMock = $this->createMock(GuzzleHttpClient::class);
         $aliveCallback = $this->returnCallback(function ($url) use ($aliveUrl, $httpResponse) {
-            \PHPUnit_Framework_Assert::assertSame($aliveUrl, $url);
+            \PHPUnit\Framework\Assert::assertSame($aliveUrl, $url);
 
             return $httpResponse;
         });
         $executeCallback = $this->returnCallback(function ($url) use ($executeUrl, $httpResponse) {
-            \PHPUnit_Framework_Assert::assertSame($executeUrl, $url);
+            \PHPUnit\Framework\Assert::assertSame($executeUrl, $url);
 
             return $httpResponse;
         });
@@ -336,6 +337,63 @@ class QueryBuilderTest extends TestCase
         $parameters = $querybuilder->getParameters();
         $this->assertArrayHasKey('count', $parameters);
         $this->assertSame(12, $parameters['count'], 'Expected limit to be 12');
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testAddGroupMethodWithCustomerGroup()
+    {
+        $querybuilder = new QueryBuilder(
+            Shopware()->Container()->get('http_client'),
+            $this->installerService,
+            $this->config
+        );
+
+        $querybuilder->addGroup('EK');
+
+        $hashed = StaticHelper::calculateUsergroupHash($this->config['ShopKey'], 'EK');
+        $parameters = $querybuilder->getParameters();
+        $this->assertArrayHasKey('group', $parameters, 'Expected user group to be present in parameters');
+        $this->assertSame([$hashed], $parameters['group'], 'Expected usergroup to be hashed correctly');
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testAddGroupMethodWithEmptyCustomerGroup()
+    {
+        $querybuilder = new QueryBuilder(
+            Shopware()->Container()->get('http_client'),
+            $this->installerService,
+            $this->config
+        );
+
+        $querybuilder->addGroup('');
+
+        $hashed = StaticHelper::calculateUsergroupHash($this->config['ShopKey'], '');
+        $parameters = $querybuilder->getParameters();
+        $this->assertArrayHasKey('group', $parameters, 'Expected user group to be present in parameters');
+        $this->assertSame([$hashed], $parameters['group'], 'Expected usergroup to be hashed correctly');
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testAddGroupMethodWithNullCustomerGroup()
+    {
+        $querybuilder = new QueryBuilder(
+            Shopware()->Container()->get('http_client'),
+            $this->installerService,
+            $this->config
+        );
+
+        $querybuilder->addGroup(null);
+
+        $hashed = StaticHelper::calculateUsergroupHash($this->config['ShopKey'], null);
+        $parameters = $querybuilder->getParameters();
+        $this->assertArrayHasKey('group', $parameters, 'Expected user group to be present in parameters');
+        $this->assertSame([$hashed], $parameters['group'], 'Expected usergroup to be hashed correctly');
     }
 
     public function searchTermProvider()
