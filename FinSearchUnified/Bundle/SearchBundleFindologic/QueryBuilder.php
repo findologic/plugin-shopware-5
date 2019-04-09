@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Bundle\SearchBundleFindologic;
 
 use Exception;
+use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Components\HttpClient\HttpClientInterface;
 use Shopware\Components\HttpClient\RequestException;
@@ -268,5 +269,14 @@ class QueryBuilder
         } else {
             $this->parameters[self::PARAMETER_KEY_ATTRIB][$key][] = $value;
         }
+    }
+
+    /**
+     * @param string $usergroup
+     */
+    public function addGroup($usergroup)
+    {
+        $hashedKey = StaticHelper::calculateUsergroupHash($this->shopKey, $usergroup);
+        $this->parameters['group'] = [$hashedKey];
     }
 }

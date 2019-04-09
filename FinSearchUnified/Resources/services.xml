@@ -108,6 +108,15 @@
 
         <service id="fin_search_unified.helper.url_builder" class="FinSearchUnified\Helper\UrlBuilder" />
 
+        <service
+            id="fin_search_unified.query_builder_factory"
+            class="FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory"
+        >
+            <argument type="service" id="http_client" />
+            <argument type="service" id="shopware_plugininstaller.plugin_manager" />
+            <argument type="service" id="config" />
+        </service>
+
         <service id="fin_search_unified.subscriber.widgets" class="FinSearchUnified\Subscriber\Widgets">
             <tag name="shopware.event_subscriber" />
         </service>
