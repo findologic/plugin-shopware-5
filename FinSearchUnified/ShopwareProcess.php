@@ -4,24 +4,38 @@ namespace FinSearchUnified;
 
 use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\ORM\PersistentCollection;
+use Enlight_Exception;
+use Exception;
 use FINDOLOGIC\Export\Exporter;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
+use Shopware\Bundle\SearchBundle\Criteria;
+use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
+use Shopware\Bundle\StoreFrontBundle\Service\Core\ContextService;
+use Shopware\Components\ProductStream\RepositoryInterface;
 use Shopware\Models\Article\Article;
+use Shopware\Models\Category\Category;
 use Shopware\Models\Config\Value;
 use Shopware\Models\Customer\Customer;
 use Shopware\Models\Shop\Repository;
 use Shopware\Models\Shop\Shop;
 use Zend_Cache_Core;
-use Shopware\Components\ProductStream\RepositoryInterface;
-use Shopware\Bundle\SearchBundle\Criteria;
-use Shopware\Models\Category\Category;
 
 class ShopwareProcess
 {
     /**
-     * @var \Shopware\Bundle\StoreFrontBundle\Struct\ShopContext
+     * @var Shop
      */
-    protected $context;
+    public $shop;
+
+    /**
+     * @var string
+     */
+    public $shopKey;
+
+    /**
+     * @var ContextService
+     */
+    protected $contextService;
 
     /**
      * @var \Shopware\Models\Customer\Repository
@@ -34,29 +48,30 @@ class ShopwareProcess
     protected $articleRepository;
 
     /**
-     * @var \Shopware\Models\Shop\Shop
-     */
-    public $shop;
-
-    /**
-     * @var string
-     */
-    public $shopKey;
-
-    /**
-     * @var \Zend_Cache_Core
+     * @var Zend_Cache_Core
      */
     protected $cache;
 
     /**
-     * @var Shopware\Components\ProductStream\Repository
+     * @var \Shopware\Components\ProductStream\Repository
      */
     protected $productStreamRepository;
 
-    public function __construct(Zend_Cache_Core $cache, RepositoryInterface $repository)
-    {
+    /**
+     * @var ProductNumberSearchInterface
+     */
+    protected $searchService;
+
+    public function __construct(
+        Zend_Cache_Core $cache,
+        RepositoryInterface $repository,
+        ContextService $contextService,
+        ProductNumberSearchInterface $productNumberSearch
+    ) {
         $this->cache = $cache;
         $this->productStreamRepository = $repository;
+        $this->contextService = $contextService;
+        $this->searchService = $productNumberSearch;
     }
 
     /**
@@ -65,7 +80,7 @@ class ShopwareProcess
      * @param int $count
      *
      * @return XmlInformation
-     * @throws \Exception
+     * @throws Exception
      */
     public function getAllProductsAsXmlArray($selectedLanguage = 'de_DE', $start = 0, $count = 0)
     {
@@ -78,19 +93,19 @@ class ShopwareProcess
 
         if ($count > 0) {
             $countQuery = $this->articleRepository->createQueryBuilder('articles')
-                                                    ->select('count(articles.id)')
-                                                    ->where('articles.active = :active')
-                                                    ->setParameter('active', true);
+                ->select('count(articles.id)')
+                ->where('articles.active = :active')
+                ->setParameter('active', true);
 
             $response->total = $countQuery->getQuery()->getScalarResult()[0][1];
 
             $articlesQuery = $this->articleRepository->createQueryBuilder('articles')
-                                                    ->select('articles')
-                                                    ->where('articles.active = :active')
-                                                    ->orderBy('articles.id')
-                                                    ->setMaxResults($count)
-                                                    ->setFirstResult($start)
-                                                    ->setParameter('active', true);
+                ->select('articles')
+                ->where('articles.active = :active')
+                ->orderBy('articles.id')
+                ->setMaxResults($count)
+                ->setFirstResult($start)
+                ->setParameter('active', true);
             /** @var array $allArticles */
             $allArticles = $articlesQuery->getQuery()->execute();
         } else {
@@ -106,7 +121,6 @@ class ShopwareProcess
         $allUserGroups = $this->customerRepository->getCustomerGroupsQuery()->getResult();
 
         $findologicArticleFactory = Shopware()->Container()->get('fin_search_unified.article_model_factory');
-
 
         /** @var Article $article */
         foreach ($allArticles as $article) {
@@ -164,6 +178,7 @@ class ShopwareProcess
      * @param int $start
      * @param int $length
      * @param bool $save
+     *
      * @return null|string
      */
     public function getFindologicXml($lang = "de_DE", $start = 0, $length = 0, $save = false)
@@ -184,12 +199,12 @@ class ShopwareProcess
             }
 
             $xmlArray = $this->getAllProductsAsXmlArray($lang, $start, $length);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             die($e->getMessage());
         }
 
         if ($save) {
-            $exporter->serializeItemsToFile(__DIR__.'', $xmlArray->items, $start, $xmlArray->count, $xmlArray->total);
+            $exporter->serializeItemsToFile(__DIR__ . '', $xmlArray->items, $start, $xmlArray->count, $xmlArray->total);
         } else {
             $xmlDocument = $exporter->serializeItems($xmlArray->items, $start, $xmlArray->count, $xmlArray->total);
         }
@@ -199,6 +214,8 @@ class ShopwareProcess
 
     /**
      * @param string $shopKey
+     *
+     * @throws Exception
      */
     public function setShopKey($shopKey)
     {
@@ -227,6 +244,10 @@ class ShopwareProcess
         }
     }
 
+    /**
+     * @throws Enlight_Exception
+     * @throws \Zend_Cache_Exception
+     */
     protected function warmUpCache()
     {
         $id = sprintf('%s_%s', Constants::CACHE_ID_PRODUCT_STREAMS, $this->shopKey);
@@ -247,7 +268,10 @@ class ShopwareProcess
      * @param PersistentCollection $categories List of categories to be checked for Product Streams
      * @param array &$articles List of affected products.
      *                         May be omitted when the method is called since it is used internally for the recursion
+     *
      * @return array
+     * @throws Enlight_Exception
+     * @throws Exception
      */
     protected function parseProductStreams(PersistentCollection $categories, array &$articles = [])
     {
@@ -257,26 +281,28 @@ class ShopwareProcess
         foreach ($categories as $category) {
             if (!$category->isLeaf()) {
                 $this->parseProductStreams($category->getChildren(), $articles);
-            } elseif (!$category->getActive() || $category->getStream() === null) {
-                continue;
-            } else {
-                $criteria = new Criteria();
-                $criteria
-                    ->limit(200)
-                    ->offset(0);
-
-                $this->productStreamRepository->prepareCriteria($criteria, $category->getStream()->getId());
-
-                do {
-                    $result = Shopware()->Modules()->Articles()->sGetArticlesByCategory($category->getId(), $criteria);
-
-                    foreach ($result['sArticles'] as $sArticle) {
-                        $articles[$sArticle['articleID']][] = $category;
-                    }
-
-                    $criteria->offset($criteria->getOffset() + $criteria->getLimit());
-                } while ($criteria->getOffset() < $result['sNumberArticles']);
             }
+
+            if (!$category->getActive() || $category->getStream() === null) {
+                continue;
+            }
+
+            $criteria = new Criteria();
+            $criteria
+                ->limit(200)
+                ->offset(0);
+
+            $this->productStreamRepository->prepareCriteria($criteria, $category->getStream()->getId());
+
+            do {
+                $result = $this->searchService->search($criteria, $this->contextService->getShopContext());
+
+                foreach ($result->getProducts() as $product) {
+                    $articles[$product->getId()][] = $category;
+                }
+
+                $criteria->offset($criteria->getOffset() + $criteria->getLimit());
+            } while ($criteria->getOffset() < $result->getTotalCount());
         }
 
         return $articles;

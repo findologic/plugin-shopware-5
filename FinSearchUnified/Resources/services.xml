@@ -41,6 +41,8 @@
         <service id="fin_search_unified.shopware_process" class="FinSearchUnified\ShopwareProcess">
             <argument type="service" id="cache" />
             <argument type="service" id="shopware_product_stream.repository" />
+            <argument type="service" id="shopware_storefront.context_service" />
+            <argument type="service" id="shopware_search.product_number_search" />
         </service>
 
         <service
@@ -113,6 +115,10 @@
             <argument type="service" id="http_client" />
             <argument type="service" id="shopware_plugininstaller.plugin_manager" />
             <argument type="service" id="config" />
+        </service>
+
+        <service id="fin_search_unified.subscriber.widgets" class="FinSearchUnified\Subscriber\Widgets">
+            <tag name="shopware.event_subscriber" />
         </service>
     </services>
 </container>
