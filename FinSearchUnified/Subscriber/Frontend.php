@@ -125,7 +125,7 @@ class Frontend implements SubscriberInterface
             unset($mappedParams['controller']);
             unset($mappedParams['action']);
 
-            $request->setRequestUri($path . '?' . http_build_query($mappedParams));
+            $request->setRequestUri($path . '?' . http_build_query($mappedParams, null, '&', PHP_QUERY_RFC3986));
             $args->setReturn($request);
 
             $subject->redirect($request->getRequestUri());

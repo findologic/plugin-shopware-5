@@ -363,7 +363,7 @@ class UrlBuilder
             self::BASE_URL,
             $this->shopUrl,
             $endpoint,
-            http_build_query($this->parameters)
+            http_build_query($this->parameters, null, '&', PHP_QUERY_RFC3986)
         );
 
         try {
