@@ -4,9 +4,9 @@ namespace FinSearchUnified\Tests\Components\ProductStream;
 
 use Enlight_Components_Session_Namespace;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
+use Enlight_Exception;
 use FinSearchUnified\Components\ProductStream\CriteriaFactory;
 use FinSearchUnified\Constants;
-use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
@@ -74,7 +74,7 @@ class CriteriaFactoryTest extends TestCase
      * @param bool $isCategoryPage
      * @param int $expected
      *
-     * @throws \Enlight_Exception
+     * @throws Enlight_Exception
      */
     public function testCreateCriteria(
         $isActive,
@@ -89,7 +89,6 @@ class CriteriaFactoryTest extends TestCase
             Shopware()->Container()->get('shopware_search.store_front_criteria_factory'),
             Shopware()->Container()->get('shopware_product_stream.criteria_factory')
         );
-
 
         /** @var ContextServiceInterface $contextService */
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');

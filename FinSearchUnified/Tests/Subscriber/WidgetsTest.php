@@ -11,12 +11,12 @@ use Shopware_Controllers_Widgets_Listing;
 
 class WidgetsTest extends TestCase
 {
-    protected static $ensureLoadedPlugins = [
-        'FinSearchUnified' => [
-            'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-            'ActivateFindologic' => true
-        ],
-    ];
+    public static function setUpBeforeClass()
+    {
+        parent::setUpBeforeClass();
+
+        Shopware()->Container()->get('config_writer')->save('ActivateFindologic', true);
+    }
 
     protected function tearDown()
     {
