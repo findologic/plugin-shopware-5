@@ -48,5 +48,9 @@
             <argument type="service" id="shopware_plugininstaller.plugin_manager" />
             <argument type="service" id="config" />
         </service>
+        <service
+            id="fin_search_unified.business_logic.export_factory"
+            class="FinSearchUnified\BusinessLogic\ExportFactory"
+        />
     </services>
 </container>
