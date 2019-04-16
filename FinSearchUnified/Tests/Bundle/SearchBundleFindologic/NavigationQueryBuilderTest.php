@@ -4,7 +4,6 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic;
 
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\NavigationQueryBuilder;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use PHPUnit\Framework\Assert;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Components\HttpClient\GuzzleHttpClient;
@@ -33,6 +32,13 @@ class NavigationQueryBuilderTest extends TestCase
         Shopware()->Session()->offsetSet('isSearchPage', false);
     }
 
+    protected function tearDown()
+    {
+        parent::tearDown();
+
+        Shopware()->Session()->offsetUnset('isSearchPage');
+    }
+
     /**
      * @throws Exception
      */
@@ -47,17 +53,13 @@ class NavigationQueryBuilderTest extends TestCase
             'shopkey' => $this->config->offsetGet('ShopKey')
         ];
         $aliveUrl = sprintf(
-            '%s/%s/%s?shopkey=%s',
-            QueryBuilder::BASE_URL,
+            'https://service.findologic.com/ps/%s/alivetest.php?shopkey=%s',
             $shopUrl,
-            QueryBuilder::ALIVE_ENDPOINT,
             $parameters['shopkey']
         );
         $executeUrl = sprintf(
-            '%s/%s/%s?%s',
-            QueryBuilder::BASE_URL,
+            'https://service.findologic.com/ps/%s/selector.php?%s',
             $shopUrl,
-            NavigationQueryBuilder::ENDPOINT,
             http_build_query($parameters)
         );
         $httpResponse = new Response(200, [], 'alive');

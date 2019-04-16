@@ -303,7 +303,7 @@ class QueryBuilderFactoryTest extends TestCase
         Shopware()->Session()->offsetSet('isSearchPage', $isSearchPage);
 
         $builder = $this->factory->createQueryBuilder();
-        $this->assertInstanceOf($expectedInstance, $builder, sprintf('Expected %s to be returned', $expectedInstance));
+        $this->assertInstanceOf($expectedInstance, $builder);
     }
 
     /**
@@ -334,8 +334,8 @@ class QueryBuilderFactoryTest extends TestCase
     public function isSearchPageDataProvider()
     {
         return [
-            'isSearchPage is true' => [true, SearchQueryBuilder::class],
-            'isSearchPage is false' => [false, NavigationQueryBuilder::class],
+            'Search request' => [true, SearchQueryBuilder::class],
+            'Navigation request' => [false, NavigationQueryBuilder::class],
         ];
     }
 }
