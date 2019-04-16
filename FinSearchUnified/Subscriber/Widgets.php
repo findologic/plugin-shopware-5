@@ -22,17 +22,15 @@ class Widgets implements SubscriberInterface
 
     public function beforeListingCountAction(Enlight_Hook_HookArgs $args)
     {
-        if (StaticHelper::useShopSearch()) {
-            return;
-        }
+        if (!StaticHelper::useShopSearch()) {
+            /** @var \Shopware_Controllers_Widgets_Listing $subject */
+            $subject = $args->getSubject();
 
-        /** @var \Shopware_Controllers_Widgets_Listing $subject */
-        $subject = $args->getSubject();
+            $params = $subject->Request()->getParams();
 
-        $params = $subject->Request()->getParams();
-
-        if (!isset($params['sSearch']) && !isset($params['sCategory'])) {
-            $subject->Request()->setParam('sSearch', ' ');
+            if (!isset($params['sSearch']) && !isset($params['sCategory'])) {
+                $subject->Request()->setParam('sSearch', ' ');
+            }
         }
     }
 }
