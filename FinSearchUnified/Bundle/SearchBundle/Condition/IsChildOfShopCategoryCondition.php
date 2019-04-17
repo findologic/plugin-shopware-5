@@ -14,8 +14,6 @@ class IsChildOfShopCategoryCondition implements ConditionInterface, \JsonSeriali
     private $shopCategoryId;
 
     /**
-     * HasActiveCategoryCondition constructor.
-     *
      * @param int $shopCategoryId
      *
      * @throws AssertionFailedException

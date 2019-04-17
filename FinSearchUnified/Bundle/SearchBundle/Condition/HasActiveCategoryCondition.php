@@ -14,8 +14,6 @@ class HasActiveCategoryCondition implements ConditionInterface, \JsonSerializabl
     protected $shopCategoryId;
 
     /**
-     * HasActiveCategoryCondition constructor.
-     *
      * @param int $shopCategoryId
      *
      * @throws AssertionFailedException

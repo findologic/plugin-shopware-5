@@ -48,8 +48,6 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     private $conditionHandlers;
 
     /**
-     * QueryBuilderFactory constructor.
-     *
      * @param HttpClientInterface $httpClient
      * @param InstallerService $installerService
      * @param Shopware_Components_Config $config

@@ -19,8 +19,6 @@ class ExportFactory
     ];
 
     /**
-     * ExportFactory constructor.
-     *
      * @param InstallerService $installerService
      */
     public function __construct(InstallerService $installerService)

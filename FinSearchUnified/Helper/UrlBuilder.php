@@ -59,8 +59,6 @@ class UrlBuilder
     private $configUrl;
 
     /**
-     * UrlBuilder constructor.
-     *
      * @param null|Zend_Http_Client $httpClient The Zend HTTP client to use.
      *
      * @throws \Exception
