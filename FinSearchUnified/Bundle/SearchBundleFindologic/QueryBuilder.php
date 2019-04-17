@@ -39,8 +39,6 @@ class QueryBuilder
     private $shopKey;
 
     /**
-     * QueryBuilder constructor.
-     *
      * @param HttpClientInterface $httpClient
      * @param InstallerService $installerService
      * @param Shopware_Components_Config $config

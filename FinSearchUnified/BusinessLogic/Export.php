@@ -53,8 +53,6 @@ class Export
     private $queryBuilderFactory;
 
     /**
-     * Export constructor.
-     *
      * @param QueryBuilderFactoryInterface $queryBuilderFactory
      * @param ProductServiceInterface $productService
      * @param LegacyStructConverter $legacyStructConverter

@@ -25,8 +25,6 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     protected $facets = [];
 
     /**
-     * ProductNumberSearch constructor.
-     *
      * @param ProductNumberSearchInterface $service
      *
      * @throws \Exception
