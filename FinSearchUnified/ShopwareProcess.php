@@ -10,7 +10,7 @@ use FINDOLOGIC\Export\Exporter;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
-use Shopware\Bundle\StoreFrontBundle\Service\Core\ContextService;
+use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Components\ProductStream\RepositoryInterface;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Category\Category;
@@ -33,7 +33,7 @@ class ShopwareProcess
     public $shopKey;
 
     /**
-     * @var ContextService
+     * @var ContextServiceInterface
      */
     protected $contextService;
 
@@ -65,7 +65,7 @@ class ShopwareProcess
     public function __construct(
         Zend_Cache_Core $cache,
         RepositoryInterface $repository,
-        ContextService $contextService,
+        ContextServiceInterface $contextService,
         ProductNumberSearchInterface $productNumberSearch
     ) {
         $this->cache = $cache;
