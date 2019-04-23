@@ -10,7 +10,3 @@ li.ui-menu-item .label {
     color: inherit;
     background: transparent;
 }
-
-.main-search--results{
-    display: none !important;
-}
