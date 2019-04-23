@@ -2,7 +2,9 @@
 
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\SortingHandler;
 
+use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\PopularitySortingHandler;
 use Shopware\Bundle\SearchBundle\Sorting\PopularitySorting;
 use Shopware\Bundle\SearchBundle\SortingInterface;
@@ -22,13 +24,13 @@ class PopularitySortingHandlerTest extends TestCase
     private $context = null;
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     protected function setUp()
     {
         parent::setUp();
 
-        $this->querybuilder = new QueryBuilder(
+        $this->querybuilder = new SearchQueryBuilder(
             Shopware()->Container()->get('http_client'),
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
             Shopware()->Config()

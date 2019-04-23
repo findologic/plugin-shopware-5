@@ -3,7 +3,9 @@
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic;
 
 use Exception;
+use FinSearchUnified\Bundle\SearchBundleFindologic\NavigationQueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
+use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Condition\IsAvailableCondition;
@@ -37,6 +39,9 @@ class QueryBuilderFactoryTest extends TestCase
     {
         parent::setUp();
 
+        // By default, the search page is true
+        Shopware()->Session()->offsetSet('isSearchPage', true);
+
         $this->factory = new QueryBuilderFactory(
             Shopware()->Container()->get('http_client'),
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
@@ -46,6 +51,13 @@ class QueryBuilderFactoryTest extends TestCase
         /** @var ContextServiceInterface $contextService */
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
         $this->context = $contextService->getShopContext();
+    }
+
+    protected function tearDown()
+    {
+        parent::tearDown();
+
+        Shopware()->Session()->offsetUnset('isSearchPage');
     }
 
     /**
@@ -279,6 +291,22 @@ class QueryBuilderFactoryTest extends TestCase
     }
 
     /**
+     * @dataProvider isSearchPageDataProvider
+     *
+     * @param bool $isSearchPage
+     * @param string $expectedInstance
+     *
+     * @throws Exception
+     */
+    public function testTypeOfQueryBuilder($isSearchPage, $expectedInstance)
+    {
+        Shopware()->Session()->offsetSet('isSearchPage', $isSearchPage);
+
+        $builder = $this->factory->createQueryBuilder();
+        $this->assertInstanceOf($expectedInstance, $builder);
+    }
+
+    /**
      * @return array
      */
     public function sortingProvider()
@@ -300,6 +328,14 @@ class QueryBuilderFactoryTest extends TestCase
         return [
             'Offset is 0 and Limit = 1' => [0, 0, 1, 0],
             'Offset is 5 and Limit = 2' => [5, 5, 2, 2],
+        ];
+    }
+
+    public function isSearchPageDataProvider()
+    {
+        return [
+            'Search request' => [true, SearchQueryBuilder::class],
+            'Navigation request' => [false, NavigationQueryBuilder::class],
         ];
     }
 }

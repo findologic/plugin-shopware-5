@@ -3,11 +3,12 @@
 use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Helper\UrlBuilder;
 use FinSearchUnified\Tests\Helper\Utility;
-use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
-use Shopware\Bundle\SearchBundle\StoreFrontCriteriaFactory;
+use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductSearch;
+use Shopware\Bundle\SearchBundle\StoreFrontCriteriaFactory;
 use Shopware\Bundle\SearchBundleDBAL;
+use Shopware\Components\Api\Manager;
 
 class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Components_Test_Plugin_TestCase
 {
@@ -44,10 +45,10 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             ];
 
             try {
-                $manager = new \Shopware\Components\Api\Manager();
+                $manager = new Manager();
                 $resource = $manager->getResource('Article');
                 $resource->create($testArticle);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 echo sprintf("Exception: %s", $e->getMessage());
             }
         }
@@ -58,7 +59,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         parent::tearDownAfterClass();
         Utility::sResetArticles();
     }
-    
+
     public function setUp()
     {
         parent::setUp();
@@ -66,8 +67,6 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         $this->setConfig('ActivateFindologic', true);
         $this->setConfig('ActivateFindologicForCategoryPages', false);
         $this->setConfig('ShopKey', '0000000000000000ZZZZZZZZZZZZZZZZ');
-
-        Shopware()->Container()->reset('fin_search_unified.subscriber.frontend');
     }
 
     protected function tearDown()
@@ -85,6 +84,8 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         Shopware()->Container()->reset('shopware_search.product_search');
         Shopware()->Container()->load('shopware_search.product_search');
 
+        Shopware()->Container()->reset('fin_search_unified.subscriber.frontend');
+        Shopware()->Container()->load('fin_search_unified.subscriber.frontend');
         // Explicitly reset this super global since it might influence unrelated tests.
         $_GET = [];
     }
@@ -264,7 +265,9 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
      * Allows to set a Shopware config
      *
      * @param string $name
-     * @param mixed  $value
+     * @param mixed $value
+     *
+     * @throws Zend_Cache_Exception
      */
     protected function setConfig($name, $value)
     {
