@@ -3,7 +3,7 @@
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic;
 
 use Exception;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Components\HttpClient\GuzzleHttpClient;
@@ -12,7 +12,7 @@ use Shopware\Components\HttpClient\Response;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Components_Config;
 
-class QueryBuilderTest extends TestCase
+class SearchQueryBuilderTest extends TestCase
 {
     /**
      * @var Shopware_Components_Config
@@ -24,12 +24,26 @@ class QueryBuilderTest extends TestCase
      */
     private $installerService;
 
+    /**
+     * @var SearchQueryBuilder
+     */
+    private $querybuilder;
+
+    /**
+     * @throws Exception
+     */
     protected function setUp()
     {
         parent::setUp();
 
         $this->config = Shopware()->Container()->get('config');
         $this->installerService = Shopware()->Container()->get('shopware_plugininstaller.plugin_manager');
+
+        $this->querybuilder = new SearchQueryBuilder(
+            Shopware()->Container()->get('http_client'),
+            $this->installerService,
+            $this->config
+        );
     }
 
     /**
@@ -84,7 +98,7 @@ class QueryBuilderTest extends TestCase
                 ->method('get')
                 ->will($this->onConsecutiveCalls($httpResponse, $this->throwException(new Exception())));
         }
-        $querybuilder = new QueryBuilder(
+        $querybuilder = new SearchQueryBuilder(
             $httpClientMock,
             $this->installerService,
             $this->config
@@ -111,80 +125,13 @@ class QueryBuilderTest extends TestCase
             ->method('get')
             ->willReturn($httpResponse);
 
-        $querybuilder = new QueryBuilder(
+        $querybuilder = new SearchQueryBuilder(
             $httpClientMock,
             $this->installerService,
             $this->config
         );
         $response = $querybuilder->execute();
         $this->assertSame($expectedExecute, $response);
-    }
-
-    public function querybuilderRequestUrlProvider()
-    {
-        return [
-            'Request Url uses SEARCH_ENDPOINT' => [true, QueryBuilder::SEARCH_ENDPOINT],
-            'Request Url uses NAVIGATION_ENDPOINT' => [false, QueryBuilder::NAVIGATION_ENDPOINT],
-        ];
-    }
-
-    /**
-     * @dataProvider querybuilderRequestUrlProvider
-     *
-     * @param bool $isSearch
-     * @param string $endpoint
-     *
-     * @throws Exception
-     */
-    public function testQuerybuilderRequestUrl($isSearch, $endpoint)
-    {
-        $plugin = $this->installerService->getPluginByName('FinSearchUnified');
-        $shopUrl = rtrim(Shopware()->Shop()->getHost(), '/');
-        $parameters = [
-            'outputAdapter' => 'XML_2.0',
-            'userip' => 'UNKNOWN',
-            'revision' => $plugin->getVersion(),
-            'shopkey' => $this->config->offsetGet('ShopKey')
-        ];
-
-        $aliveUrl = sprintf(
-            '%s/%s/%s?shopkey=%s',
-            QueryBuilder::BASE_URL,
-            $shopUrl,
-            QueryBuilder::ALIVE_ENDPOINT,
-            $parameters['shopkey']
-        );
-        $executeUrl = sprintf(
-            '%s/%s/%s?%s',
-            QueryBuilder::BASE_URL,
-            $shopUrl,
-            $endpoint,
-            http_build_query($parameters)
-        );
-
-        $httpResponse = new Response(200, [], 'alive');
-        $httpClientMock = $this->createMock(GuzzleHttpClient::class);
-        $aliveCallback = $this->returnCallback(function ($url) use ($aliveUrl, $httpResponse) {
-            \PHPUnit\Framework\Assert::assertSame($aliveUrl, $url);
-
-            return $httpResponse;
-        });
-        $executeCallback = $this->returnCallback(function ($url) use ($executeUrl, $httpResponse) {
-            \PHPUnit\Framework\Assert::assertSame($executeUrl, $url);
-
-            return $httpResponse;
-        });
-        $httpClientMock->expects($this->exactly(2))
-            ->method('get')
-            ->will($this->onConsecutiveCalls($aliveCallback, $executeCallback));
-
-        $querybuilder = new QueryBuilder(
-            $httpClientMock,
-            $this->installerService,
-            $this->config
-        );
-
-        $querybuilder->execute($isSearch);
     }
 
     /**
@@ -197,14 +144,8 @@ class QueryBuilderTest extends TestCase
      */
     public function testAddQueryMethod($searchTerm, $expectedResult)
     {
-        $querybuilder = new QueryBuilder(
-            Shopware()->Container()->get('http_client'),
-            $this->installerService,
-            $this->config
-        );
-
-        $querybuilder->addQuery($searchTerm);
-        $parameters = $querybuilder->getParameters();
+        $this->querybuilder->addQuery($searchTerm);
+        $parameters = $this->querybuilder->getParameters();
         $this->assertArrayHasKey('query', $parameters);
         $this->assertSame($expectedResult, $parameters['query'], sprintf('Expected query to be "%s"', $expectedResult));
     }
@@ -215,14 +156,9 @@ class QueryBuilderTest extends TestCase
     public function testAddPriceMethod()
     {
         $price = ['min' => 12.69, 'max' => 42];
-        $querybuilder = new QueryBuilder(
-            Shopware()->Container()->get('http_client'),
-            $this->installerService,
-            $this->config
-        );
 
-        $querybuilder->addPrice($price['min'], $price['max']);
-        $parameters = $querybuilder->getParameters();
+        $this->querybuilder->addPrice($price['min'], $price['max']);
+        $parameters = $this->querybuilder->getParameters();
         $this->assertArrayHasKey('attrib', $parameters);
         $this->assertArrayHasKey('price', $parameters['attrib']);
         $this->assertEquals(
@@ -237,14 +173,8 @@ class QueryBuilderTest extends TestCase
      */
     public function testAddOrderMethod()
     {
-        $querybuilder = new QueryBuilder(
-            Shopware()->Container()->get('http_client'),
-            $this->installerService,
-            $this->config
-        );
-
-        $querybuilder->addOrder('price ASC');
-        $parameters = $querybuilder->getParameters();
+        $this->querybuilder->addOrder('price ASC');
+        $parameters = $this->querybuilder->getParameters();
         $this->assertArrayHasKey('order', $parameters);
         $this->assertSame('price ASC', $parameters['order'], 'Expected order to be "price ASC"');
     }
@@ -259,17 +189,11 @@ class QueryBuilderTest extends TestCase
      */
     public function testAddFilterMethod(array $filters, array $expectedFilters)
     {
-        $querybuilder = new QueryBuilder(
-            Shopware()->Container()->get('http_client'),
-            $this->installerService,
-            $this->config
-        );
-
         foreach ($filters as $filter) {
-            $querybuilder->addFilter('vendor', $filter);
+            $this->querybuilder->addFilter('vendor', $filter);
         }
 
-        $parameters = $querybuilder->getParameters();
+        $parameters = $this->querybuilder->getParameters();
         $this->assertArrayHasKey('attrib', $parameters);
         $this->assertArrayHasKey('vendor', $parameters['attrib']);
 
@@ -285,16 +209,10 @@ class QueryBuilderTest extends TestCase
      */
     public function testAddCategoriesMethod()
     {
-        $querybuilder = new QueryBuilder(
-            Shopware()->Container()->get('http_client'),
-            $this->installerService,
-            $this->config
-        );
-
         $categories = ['Genusswelten', 'Sommerwelten'];
-        $querybuilder->addCategories($categories);
+        $this->querybuilder->addCategories($categories);
 
-        $parameters = $querybuilder->getParameters();
+        $parameters = $this->querybuilder->getParameters();
         $this->assertArrayHasKey('attrib', $parameters);
         $this->assertArrayHasKey('cat', $parameters['attrib']);
 
@@ -310,14 +228,8 @@ class QueryBuilderTest extends TestCase
      */
     public function testSetFirstResultMethod()
     {
-        $querybuilder = new QueryBuilder(
-            Shopware()->Container()->get('http_client'),
-            $this->installerService,
-            $this->config
-        );
-
-        $querybuilder->setFirstResult(0);
-        $parameters = $querybuilder->getParameters();
+        $this->querybuilder->setFirstResult(0);
+        $parameters = $this->querybuilder->getParameters();
         $this->assertArrayHasKey('first', $parameters);
         $this->assertSame(0, $parameters['first'], 'Expected offset to be 0');
     }
@@ -327,14 +239,8 @@ class QueryBuilderTest extends TestCase
      */
     public function testMaxResultMethod()
     {
-        $querybuilder = new QueryBuilder(
-            Shopware()->Container()->get('http_client'),
-            $this->installerService,
-            $this->config
-        );
-
-        $querybuilder->setMaxResults(12);
-        $parameters = $querybuilder->getParameters();
+        $this->querybuilder->setMaxResults(12);
+        $parameters = $this->querybuilder->getParameters();
         $this->assertArrayHasKey('count', $parameters);
         $this->assertSame(12, $parameters['count'], 'Expected limit to be 12');
     }
@@ -344,16 +250,10 @@ class QueryBuilderTest extends TestCase
      */
     public function testAddGroupMethodWithCustomerGroup()
     {
-        $querybuilder = new QueryBuilder(
-            Shopware()->Container()->get('http_client'),
-            $this->installerService,
-            $this->config
-        );
-
-        $querybuilder->addGroup('EK');
+        $this->querybuilder->addGroup('EK');
 
         $hashed = StaticHelper::calculateUsergroupHash($this->config['ShopKey'], 'EK');
-        $parameters = $querybuilder->getParameters();
+        $parameters = $this->querybuilder->getParameters();
         $this->assertArrayHasKey('group', $parameters, 'Expected user group to be present in parameters');
         $this->assertSame([$hashed], $parameters['group'], 'Expected usergroup to be hashed correctly');
     }
@@ -363,16 +263,10 @@ class QueryBuilderTest extends TestCase
      */
     public function testAddGroupMethodWithEmptyCustomerGroup()
     {
-        $querybuilder = new QueryBuilder(
-            Shopware()->Container()->get('http_client'),
-            $this->installerService,
-            $this->config
-        );
-
-        $querybuilder->addGroup('');
+        $this->querybuilder->addGroup('');
 
         $hashed = StaticHelper::calculateUsergroupHash($this->config['ShopKey'], '');
-        $parameters = $querybuilder->getParameters();
+        $parameters = $this->querybuilder->getParameters();
         $this->assertArrayHasKey('group', $parameters, 'Expected user group to be present in parameters');
         $this->assertSame([$hashed], $parameters['group'], 'Expected usergroup to be hashed correctly');
     }
@@ -382,16 +276,10 @@ class QueryBuilderTest extends TestCase
      */
     public function testAddGroupMethodWithNullCustomerGroup()
     {
-        $querybuilder = new QueryBuilder(
-            Shopware()->Container()->get('http_client'),
-            $this->installerService,
-            $this->config
-        );
-
-        $querybuilder->addGroup(null);
+        $this->querybuilder->addGroup(null);
 
         $hashed = StaticHelper::calculateUsergroupHash($this->config['ShopKey'], null);
-        $parameters = $querybuilder->getParameters();
+        $parameters = $this->querybuilder->getParameters();
         $this->assertArrayHasKey('group', $parameters, 'Expected user group to be present in parameters');
         $this->assertSame([$hashed], $parameters['group'], 'Expected usergroup to be hashed correctly');
     }

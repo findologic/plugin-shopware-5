@@ -5,6 +5,7 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\ConditionHandler;
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\PriceConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
 use Shopware\Components\Test\Plugin\TestCase;
@@ -27,7 +28,7 @@ class PriceConditionHandlerTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
-        $this->querybuilder = new QueryBuilder(
+        $this->querybuilder = new SearchQueryBuilder(
             Shopware()->Container()->get('http_client'),
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
             Shopware()->Config()

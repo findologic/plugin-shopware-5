@@ -230,11 +230,21 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
      */
     public function createQueryBuilder()
     {
-        $querybuilder = new QueryBuilder(
-            $this->httpClient,
-            $this->installerService,
-            $this->config
-        );
+        $isSearchPage = Shopware()->Session()->offsetGet('isSearchPage');
+
+        if ($isSearchPage) {
+            $querybuilder = new SearchQueryBuilder(
+                $this->httpClient,
+                $this->installerService,
+                $this->config
+            );
+        } else {
+            $querybuilder = new NavigationQueryBuilder(
+                $this->httpClient,
+                $this->installerService,
+                $this->config
+            );
+        }
 
         return $querybuilder;
     }
