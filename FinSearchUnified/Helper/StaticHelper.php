@@ -533,11 +533,23 @@ class StaticHelper
     {
         $request = Shopware()->Front()->Request();
 
+        $minFieldName = 'min' . $facetItem['name'];
+        $maxFieldName = 'max' . $facetItem['name'];
+
+        if ($facetItem['name'] == 'price') {
+            $minFieldName = 'min';
+            $maxFieldName = 'max';
+        }
+
         // Perform a loose comparison since the floating numbers could actually be integers.
-        if ($request->getParam('min') == $activeMin || $request->getParam('max') == $activeMax) {
-            $active = true;
-        } else {
+        if ($request->getParam($minFieldName) == null && $request->getParam($maxFieldName) == null) {
             $active = false;
+        } else {
+            if ($request->getParam($minFieldName) == $activeMin || $request->getParam($maxFieldName) == $activeMax) {
+                $active = true;
+            } else {
+                $active = false;
+            }
         }
 
         $facetResult = new SearchBundle\FacetResult\RangeFacetResult(
@@ -548,8 +560,8 @@ class StaticHelper
             $max,
             $activeMin,
             $activeMax,
-            'min',
-            'max'
+            $minFieldName,
+            $maxFieldName
         );
 
         return $facetResult;

@@ -225,7 +225,19 @@ class UrlBuilder
                 $this->buildPriceAttribute('min', $condition->getMinPrice());
                 $this->buildPriceAttribute('max', $max);
             } elseif ($condition instanceof SearchBundle\Condition\ProductAttributeCondition) {
-                $this->buildAttribute($condition->getField(), $condition->getValue());
+                $value = $condition->getValue();
+
+                if ($condition->getOperator() == ConditionInterface::OPERATOR_BETWEEN) {
+                    if (isset($value['min']) && !isset($value['max'])) {
+                        $value['max'] = PHP_INT_MAX;
+                    } else {
+                        if (!isset($value['min']) && isset($value['max'])) {
+                            $value['min'] = 0;
+                        }
+                    }
+                }
+
+                $this->buildAttribute($condition->getField(), $value);
             } elseif ($condition instanceof SearchBundle\Condition\SearchTermCondition) {
                 /* @var SearchBundle\Condition\SearchTermCondition $condition */
                 $this->buildKeywordQuery($condition->getTerm());
@@ -332,8 +344,8 @@ class UrlBuilder
      */
     private function buildAttribute($key, $value)
     {
-        foreach ($value as $realValue) {
-            $this->parameters['attrib'][$key][] = rawurldecode($realValue);
+        foreach ($value as $index => $realValue) {
+            $this->parameters['attrib'][$key][$index] = rawurldecode($realValue);
         }
     }
 
