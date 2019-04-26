@@ -602,7 +602,7 @@ class StaticHelperTest extends TestCase
      *
      * @param array $filterData
      * @param array $parameters
-     * @param bool $expectedFacetResult
+     * @param bool $expectedFacetState
      * @param string $expectedMinField
      * @param string $expectedMaxField
      *
@@ -611,7 +611,7 @@ class StaticHelperTest extends TestCase
     public function testCreateRangeSliderFacetMethod(
         array $filterData,
         array $parameters,
-        $expectedFacetResult,
+        $expectedFacetState,
         $expectedMinField,
         $expectedMaxField
     ) {
@@ -628,9 +628,9 @@ class StaticHelperTest extends TestCase
             if ($key === 'attributes') {
                 $attributes = $filter->addChild('attributes');
                 foreach ($value as $type => $ranges) {
-                    $$type = $attributes->addChild($type);
+                    $rangeType = $attributes->addChild($type);
                     foreach ($ranges as $minMax => $range) {
-                        $$type->addChild($minMax, $range);
+                        $rangeType->addChild($minMax, $range);
                     }
                 }
             } else {
@@ -659,7 +659,7 @@ class StaticHelperTest extends TestCase
         /** @var RangeFacetResult $facet */
         foreach ($facets as $facet) {
             $this->assertInstanceOf(RangeFacetResult::class, $facet);
-            $this->assertSame($expectedFacetResult, $facet->isActive());
+            $this->assertSame($expectedFacetState, $facet->isActive());
             $this->assertSame($expectedMinField, $facet->getMinFieldName());
             $this->assertSame($expectedMaxField, $facet->getMaxFieldName());
         }

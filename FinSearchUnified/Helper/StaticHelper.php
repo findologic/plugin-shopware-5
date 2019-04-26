@@ -536,20 +536,19 @@ class StaticHelper
         $minFieldName = 'min' . $facetItem['name'];
         $maxFieldName = 'max' . $facetItem['name'];
 
-        if ($facetItem['name'] == 'price') {
+        if ($facetItem['name'] === 'price') {
             $minFieldName = 'min';
             $maxFieldName = 'max';
         }
 
-        // Perform a loose comparison since the floating numbers could actually be integers.
-        if ($request->getParam($minFieldName) == null && $request->getParam($maxFieldName) == null) {
+        if ($request->getParam($minFieldName) === null && $request->getParam($maxFieldName) === null) {
             $active = false;
+            // Perform a loose comparison here since the floating numbers could actually be integers.
+        } elseif ($request->getParam($minFieldName) == $activeMin ||
+            $request->getParam($maxFieldName) == $activeMax) {
+            $active = true;
         } else {
-            if ($request->getParam($minFieldName) == $activeMin || $request->getParam($maxFieldName) == $activeMax) {
-                $active = true;
-            } else {
-                $active = false;
-            }
+            $active = false;
         }
 
         $facetResult = new SearchBundle\FacetResult\RangeFacetResult(
