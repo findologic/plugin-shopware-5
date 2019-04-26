@@ -336,6 +336,27 @@ class StaticHelperTest extends TestCase
         $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
     }
 
+    public function testUseShopSearchInEmotion()
+    {
+        $request = new RequestHttp();
+        $request->setModuleName('widgets')->setControllerName('emotion')->setActionName('emotionArticleSlider');
+
+        // Create Mock object for Shopware Front Request
+        $front = $this->getMockBuilder(Front::class)
+            ->setMethods(['Request'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $front->expects($this->atLeastOnce())
+            ->method('Request')
+            ->willReturn($request);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('front', $front);
+
+        $result = StaticHelper::useShopSearch();
+        $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
+    }
+
     public function testUseShopSearchForBackendRequests()
     {
         $request = new RequestHttp();
