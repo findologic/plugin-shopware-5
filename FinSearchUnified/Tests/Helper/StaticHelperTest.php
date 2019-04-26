@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Tests\Helper;
 
+use Doctrine\ORM\OptimisticLockException;
 use Enlight_Components_Session_Namespace as Session;
 use Enlight_Controller_Action as Action;
 use Enlight_Controller_Front as Front;
@@ -11,6 +12,8 @@ use Enlight_Plugin_Namespace_Loader as Plugins;
 use Enlight_View_Default as View;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
+use PHPUnit\Framework\Assert;
+use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Models\Category\Category;
@@ -28,7 +31,7 @@ class StaticHelperTest extends TestCase
     {
         parent::setUp();
 
-        $manager = new \Shopware\Components\Api\Manager();
+        $manager = new Manager();
         $this->categoryResource = $manager->getResource('Category');
     }
 
@@ -42,6 +45,8 @@ class StaticHelperTest extends TestCase
         Shopware()->Container()->load('session');
         Shopware()->Container()->reset('config');
         Shopware()->Container()->load('config');
+
+        Shopware()->Session()->offsetUnset('findologicDI');
     }
 
     /**
@@ -338,6 +343,8 @@ class StaticHelperTest extends TestCase
 
     public function testUseShopSearchInEmotion()
     {
+        Shopware()->Session()->findologicDI = false;
+
         $request = new RequestHttp();
         $request->setModuleName('widgets')->setControllerName('emotion')->setActionName('emotionArticleSlider');
 
@@ -432,7 +439,7 @@ class StaticHelperTest extends TestCase
      * @param string $category
      * @param string $expected
      *
-     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws OptimisticLockException
      */
     public function testBuildCategoryName($categoryId, $category, $expected)
     {
@@ -575,13 +582,13 @@ class StaticHelperTest extends TestCase
                     $expectedAlternativeQuery,
                     $expectedOriginalQuery
                 ) {
-                    \PHPUnit\Framework\Assert::assertArrayHasKey(
+                    Assert::assertArrayHasKey(
                         'finSmartDidYouMean',
                         $data,
                         '"finSmartDidYouMean" was not assigned to the view'
                     );
 
-                    \PHPUnit\Framework\Assert::assertEquals(
+                    Assert::assertEquals(
                         [
                             'type' => $expectedType,
                             'alternative_query' => $expectedAlternativeQuery,
