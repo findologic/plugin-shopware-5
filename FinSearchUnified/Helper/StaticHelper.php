@@ -543,9 +543,8 @@ class StaticHelper
 
         if ($request->getParam($minFieldName) === null && $request->getParam($maxFieldName) === null) {
             $active = false;
+        } elseif ($request->getParam($minFieldName) == $activeMin || $request->getParam($maxFieldName) == $activeMax) {
             // Perform a loose comparison here since the floating numbers could actually be integers.
-        } elseif ($request->getParam($minFieldName) == $activeMin ||
-            $request->getParam($maxFieldName) == $activeMax) {
             $active = true;
         } else {
             $active = false;
