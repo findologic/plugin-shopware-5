@@ -17,17 +17,20 @@ git fetch --all --tags --prune
 
 TAG=$(git tag -l "v${VERSION}")
 
+# Get current working branch
+BRANCH=$(git branch | grep \* | cut -d ' ' -f2)
+
 # If tag is available we proceed with the checkout and zip commands
 # else exit with code 1
 if [[ -z "${TAG}" ]]
 then
-echo "[ERROR]: Tag v${TAG} not found"
-exit 1
+    echo "[ERROR]: Tag ${TAG} not found"
+    exit 1
 else
-echo "Checking out ${TAG} from master .."
+    echo "Checking out ${TAG} from ${BRANCH} .."
 fi
 
-git checkout tags/${TAG} -b master
+git checkout tags/${TAG}
 
 # Copying plugins files
 echo "Copying files ... "
@@ -42,13 +45,16 @@ composer install --no-dev
 cd /tmp
 
 # Run archive command to create the zip in the root directory
-zip -r9 ${ROOT_DIR}/FinSearchUnified-${VERSION}.zip FinSearchUnified -x FinSearchUnified/phpunit.xml.dist FinSearchUnified/shopware-phpcs.xml FinSearchUnified/Tests/\*
+zip -r9 ${ROOT_DIR}/FinSearchUnified-${VERSION}.zip FinSearchUnified -x FinSearchUnified/phpunit.xml.dist
+FinSearchUnified/shopware-phpcs.xml FinSearchUnified/Tests/\*
 
 # Delete the directory after script execution
 rm -rf "/tmp/FinSearchUnified"
 
 cd ${ROOT_DIR}
 
-git checkout master
+echo "Restoring work in progress ... "
+
+git checkout ${BRANCH}
 
 git stash pop
