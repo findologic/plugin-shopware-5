@@ -11,7 +11,9 @@ VERSION_RAW="$(sed -n 's|<version>\(.*\)</version>|\1|p' ./FinSearchUnified/plug
 VERSION="$(echo -e "${VERSION_RAW}" | tr -d '[:space:]')"
 echo "Version: ${VERSION}"
 
-echo $(git stash)
+STASH=$(git stash)
+
+echo ${STASH}
 
 git fetch --all --tags --prune
 
@@ -27,7 +29,7 @@ then
     echo "[ERROR]: Tag ${TAG} not found"
     exit 1
 else
-    echo "Checking out ${TAG} from ${BRANCH} .."
+    echo "Checking out ${TAG} ... "
 fi
 
 git checkout tags/${TAG}
@@ -45,7 +47,7 @@ composer install --no-dev
 cd /tmp
 
 # Run archive command to create the zip in the root directory
-zip -r9 ${ROOT_DIR}/FinSearchUnified-${VERSION}.zip FinSearchUnified -x FinSearchUnified/phpunit.xml.dist
+zip -r9 ${ROOT_DIR}/FinSearchUnified-${VERSION}.zip FinSearchUnified -x FinSearchUnified/phpunit.xml.dist \
 FinSearchUnified/shopware-phpcs.xml FinSearchUnified/Tests/\*
 
 # Delete the directory after script execution
@@ -57,4 +59,7 @@ echo "Restoring work in progress ... "
 
 git checkout ${BRANCH}
 
-git stash pop
+# Only apply stash if there are some local changes
+if [[ ${STASH} != "No local changes to save" ]]; then
+    git stash pop
+fi
