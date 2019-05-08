@@ -24,12 +24,9 @@ BRANCH=$(git branch | grep \* | cut -d ' ' -f2)
 
 # If tag is available we proceed with the checkout and zip commands
 # else exit with code 1
-if [[ -z "${TAG}" ]]
-then
+if [[ -z "${TAG}" ]]; then
     echo "[ERROR]: Tag ${TAG} not found"
     exit 1
-else
-    echo "Checking out ${TAG} ... "
 fi
 
 git checkout tags/${TAG}
