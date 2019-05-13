@@ -10,12 +10,11 @@ use Shopware\Components\HttpClient\RequestException;
 use Shopware\Components\HttpClient\Response;
 use Shopware_Components_Config;
 
-class QueryBuilder
+abstract class QueryBuilder
 {
     const BASE_URL = 'https://service.findologic.com/ps';
     const ALIVE_ENDPOINT = 'alivetest.php';
-    const SEARCH_ENDPOINT = 'index.php';
-    const NAVIGATION_ENDPOINT = 'selector.php';
+    const ENDPOINT = 'index.php';
     const PARAMETER_KEY_ATTRIB = 'attrib';
 
     /**
@@ -26,7 +25,7 @@ class QueryBuilder
     /**
      * @var array
      */
-    private $parameters = [];
+    protected $parameters = [];
 
     /**
      * @var string
@@ -64,23 +63,15 @@ class QueryBuilder
     }
 
     /**
-     * @param bool $isSearch Defaults to true
-     *
      * @return string|null
      */
-    public function execute($isSearch = true)
+    public function execute()
     {
-        if ($isSearch) {
-            $endpoint = self::SEARCH_ENDPOINT;
-        } else {
-            $endpoint = self::NAVIGATION_ENDPOINT;
-        }
-
         $url = sprintf(
             '%s/%s/%s?%s',
             self::BASE_URL,
             $this->shopUrl,
-            $endpoint,
+            static::ENDPOINT,
             http_build_query($this->parameters)
         );
 

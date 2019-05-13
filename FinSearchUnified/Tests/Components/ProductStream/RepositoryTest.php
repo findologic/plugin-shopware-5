@@ -3,8 +3,9 @@
 namespace FinSearchUnified\Tests\Components\ProductStream;
 
 use Enlight_Components_Session_Namespace;
+use Enlight_Controller_Request_RequestHttp;
+use Enlight_Exception;
 use FinSearchUnified\Components\ProductStream\Repository;
-use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Components_Config;
@@ -64,7 +65,7 @@ class RepositoryTest extends TestCase
      * @param bool $isCategoryPage
      * @param bool $prepareCriteria
      *
-     * @throws \Enlight_Exception
+     * @throws Enlight_Exception
      */
     public function testUsesOriginalOrDecoratedImplementation(
         $isActive,
@@ -74,7 +75,7 @@ class RepositoryTest extends TestCase
         $isCategoryPage,
         $prepareCriteria
     ) {
-        $request = new \Enlight_Controller_Request_RequestHttp();
+        $request = new Enlight_Controller_Request_RequestHttp();
         Shopware()->Front()->setRequest($request);
 
         $configArray = [

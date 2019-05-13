@@ -14,8 +14,8 @@ use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Components_Config;
-use Zend_Http_Response;
 use SimpleXMLElement;
+use Zend_Http_Response;
 
 class CustomFacetGatewayTest extends TestCase
 {

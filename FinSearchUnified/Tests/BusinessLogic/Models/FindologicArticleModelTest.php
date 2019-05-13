@@ -45,7 +45,7 @@ class FindologicArticleModelTest extends TestCase
             $article = $resource->create($testProductConfiguration);
 
             return $article;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             echo sprintf("Exception: %s", $e->getMessage());
         }
 
@@ -119,6 +119,7 @@ class FindologicArticleModelTest extends TestCase
      * @dataProvider articleSupplierProvider
      *
      * @param array $articleConfiguration The article configuration with the corresponding supplier.
+     *
      * @throws Exception
      */
     public function testEmptySuppliersAreSkipped(array $articleConfiguration)
