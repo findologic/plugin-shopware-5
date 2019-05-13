@@ -12,6 +12,7 @@ use Enlight_Plugin_Namespace_Loader as Plugins;
 use Enlight_View_Default as View;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
+use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use PHPUnit\Framework\Assert;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource;
@@ -19,6 +20,7 @@ use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Models\Category\Category;
 use Shopware_Components_Config as Config;
 use SimpleXMLElement;
+use Zend_Http_Client_Exception;
 
 class StaticHelperTest extends TestCase
 {
@@ -620,5 +622,182 @@ class StaticHelperTest extends TestCase
         Shopware()->Container()->set('front', $front);
 
         StaticHelper::setSmartDidYouMean($xmlResponse);
+    }
+
+    /**
+     * @dataProvider discountFilterProvider
+     * @dataProvider priceFilterProvider
+     *
+     * @param array $filterData
+     * @param array $parameters
+     * @param bool $expectedFacetState
+     * @param string $expectedMinField
+     * @param string $expectedMaxField
+     *
+     * @throws Zend_Http_Client_Exception
+     */
+    public function testCreateRangeSliderFacetMethod(
+        array $filterData,
+        array $parameters,
+        $expectedFacetState,
+        $expectedMinField,
+        $expectedMaxField
+    ) {
+        // Minimal XML to be able to call createRangeSlideFacet
+        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
+        $xmlResponse = new SimpleXMLElement($data);
+        $filters = $xmlResponse->addChild('filters');
+        $filter = $filters->addChild('filter');
+        $filter->addChild('type', 'range-slider');
+        $filter->addChild('items')->addChild('item');
+
+        // Generate sample XML to mock the filters data
+        foreach ($filterData as $key => $value) {
+            if ($key === 'attributes') {
+                $attributes = $filter->addChild('attributes');
+                foreach ($value as $type => $ranges) {
+                    $rangeType = $attributes->addChild($type);
+                    foreach ($ranges as $minMax => $range) {
+                        $rangeType->addChild($minMax, $range);
+                    }
+                }
+            } else {
+                $filter->addChild($key, $value);
+            }
+        }
+
+        $request = new RequestHttp();
+        $request->setModuleName('frontend');
+        $request->setParams($parameters);
+
+        // Create Mock object for Shopware Front Request
+        $front = $this->getMockBuilder(Front::class)
+            ->setMethods(['Request'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $front->expects($this->once())
+            ->method('Request')
+            ->willReturn($request);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('front', $front);
+
+        $facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
+
+        /** @var RangeFacetResult $facet */
+        foreach ($facets as $facet) {
+            $this->assertInstanceOf(RangeFacetResult::class, $facet);
+            $this->assertSame($expectedFacetState, $facet->isActive());
+            $this->assertSame($expectedMinField, $facet->getMinFieldName());
+            $this->assertSame($expectedMaxField, $facet->getMaxFieldName());
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function discountFilterProvider()
+    {
+        return [
+            '"discount" filter parameters do not exist' => [
+                [
+                    'name' => 'discount',
+                    'display' => 'Discount',
+                    'select' => 'single',
+                    'attributes' => [
+                        'selectedRange' => ['min' => 0.99, 'max' => 25],
+                        'totalRange' => ['min' => 0, 'max' => 50]
+                    ]
+                ],
+                'parameters' => [],
+                false,
+                'mindiscount',
+                'maxdiscount'
+            ],
+            '"discount" filter parameters exist in request and values do not match' => [
+                [
+                    'name' => 'discount',
+                    'display' => 'Discount',
+                    'select' => 'single',
+                    'attributes' => [
+                        'selectedRange' => ['min' => 0.99, 'max' => 25],
+                        'totalRange' => ['min' => 0, 'max' => 50]
+                    ]
+                ],
+                'parameters' => ['mindiscount' => 12.69, 'maxdiscount' => 33.5],
+                false,
+                'mindiscount',
+                'maxdiscount'
+            ],
+            '"discount" filter parameters exist in request and values match' => [
+                [
+                    'name' => 'discount',
+                    'display' => 'Discount',
+                    'select' => 'single',
+                    'attributes' => [
+                        'selectedRange' => ['min' => 0.99, 'max' => 25],
+                        'totalRange' => ['min' => 0, 'max' => 50]
+                    ]
+                ],
+                'parameters' => ['mindiscount' => 0.99, 'maxdiscount' => 25],
+                true,
+                'mindiscount',
+                'maxdiscount'
+            ]
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public function priceFilterProvider()
+    {
+        return [
+            '"price" filter parameters do not exist' => [
+                [
+                    'name' => 'price',
+                    'display' => 'Preis',
+                    'select' => 'single',
+                    'attributes' => [
+                        'selectedRange' => ['min' => 0.99, 'max' => 25],
+                        'totalRange' => ['min' => 0, 'max' => 50]
+                    ]
+                ],
+                'parameters' => [],
+                false,
+                'min',
+                'max'
+            ],
+            '"price" filter parameters exist in request and values do not match' => [
+                [
+                    'name' => 'price',
+                    'display' => 'Preis',
+                    'select' => 'single',
+                    'attributes' => [
+                        'selectedRange' => ['min' => 0.99, 'max' => 110.65],
+                        'totalRange' => ['min' => 0, 'max' => 950]
+                    ]
+                ],
+                'parameters' => ['min' => 12.25, 'max' => 51],
+                false,
+                'min',
+                'max'
+            ],
+            '"price" filter parameters exist in request and values match' => [
+                [
+                    'name' => 'price',
+                    'display' => 'Preis',
+                    'select' => 'single',
+                    'attributes' => [
+                        'selectedRange' => ['min' => 0.99, 'max' => 150],
+                        'totalRange' => ['min' => 0.99, 'max' => 150]
+                    ]
+                ],
+                'parameters' => ['min' => 0.99, 'max' => 150],
+                true,
+                'min',
+                'max'
+            ]
+        ];
     }
 }

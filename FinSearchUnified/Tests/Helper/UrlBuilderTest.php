@@ -7,7 +7,9 @@ use Exception;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
+use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
+use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Sorting\ProductNameSorting;
 use Shopware\Components\Test\Plugin\TestCase;
@@ -482,5 +484,91 @@ class UrlBuilderTest extends TestCase
                 $integrationType
             )
         );
+    }
+
+    /**
+     * @dataProvider multipleRangeSliderProvider
+     *
+     * @param string $operator
+     * @param array $values
+     * @param array $expectedValues
+     *
+     * @throws Exception
+     */
+    public function testProcessQueryParameter($operator, array $values, array $expectedValues)
+    {
+        $httpResponse = new Zend_Http_Response(200, [], 'alive');
+
+        $this->httpClient->expects($this->exactly(2))
+            ->method('request')
+            ->willReturn($httpResponse);
+
+        $urlBuilder = new UrlBuilder($this->httpClient);
+        $criteria = new Criteria();
+        $criteria->addCondition(new ProductAttributeCondition('discount', $operator, $values));
+        $urlBuilder->buildQueryUrlAndGetResponse($criteria);
+
+        /** @var Zend_Uri_Http $requestedUrl */
+        $url = $this->httpClient->getUri();
+        $queryArray = $url->getQueryAsArray();
+
+        $actualUrl = sprintf('%s://%s%s', $url->getScheme(), $url->getHost(), $url->getPath());
+        $expectedUrl = sprintf('https://service.findologic.com/ps/%s/selector.php', Shopware()->Shop()->getHost());
+
+        $this->assertSame(
+            $expectedUrl,
+            $actualUrl,
+            'The resulting URL is not correct'
+        );
+
+        $this->assertArrayHasKey(
+            'attrib',
+            $queryArray,
+            'Parameter "attrib" was not found in the query'
+        );
+        $this->assertArrayHasKey(
+            'discount',
+            $queryArray['attrib'],
+            'Parameter "discount" was not found in the attributes'
+        );
+        if (isset($expectedValues['min'])) {
+            $this->assertArrayHasKey(
+                'min',
+                $queryArray['attrib']['discount'],
+                'Minimum discount was not found'
+            );
+            $this->assertArrayHasKey(
+                'max',
+                $queryArray['attrib']['discount'],
+                'Maximum discount was not found'
+            );
+        }
+        $this->assertEquals($expectedValues, $queryArray['attrib']['discount']);
+    }
+
+    public function multipleRangeSliderProvider()
+    {
+        return [
+            'Discount is between 12.69 and PHP_INT_MAX' => [
+                ConditionInterface::OPERATOR_BETWEEN,
+                ['min' => 12.69],
+                ['min' => 12.69, 'max' => PHP_INT_MAX]
+            ],
+            'Discount is between 0 and 50' => [
+                ConditionInterface::OPERATOR_BETWEEN,
+                ['max' => 50],
+                ['min' => 0, 'max' => 50]
+            ],
+            'Discount is between 12 and 50' => [
+                ConditionInterface::OPERATOR_BETWEEN,
+                ['min' => 12, 'max' => 50],
+                ['min' => 12, 'max' => 50]
+            ],
+            'Discount is exactly 25' => [
+                ConditionInterface::OPERATOR_EQ,
+                [25],
+                [25]
+            ],
+        ];
     }
 }
