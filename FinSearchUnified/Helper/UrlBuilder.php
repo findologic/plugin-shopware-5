@@ -2,8 +2,10 @@
 
 namespace FinSearchUnified\Helper;
 
+use Exception;
 use FinSearchUnified\Constants;
 use Shopware\Bundle\SearchBundle;
+use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\SortingInterface;
@@ -63,7 +65,7 @@ class UrlBuilder
      *
      * @param null|Zend_Http_Client $httpClient The Zend HTTP client to use.
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct($httpClient = null)
     {
@@ -171,13 +173,13 @@ class UrlBuilder
     }
 
     /**
-     * @param \Shopware\Bundle\SearchBundle\Criteria $criteria
+     * @param Criteria $criteria
      *
      * @return null|Zend_Http_Response
      */
     public function buildQueryUrlAndGetResponse(Criteria $criteria)
     {
-        /** @var \Shopware\Bundle\SearchBundle\Condition\SearchTermCondition $searchQuery */
+        /** @var SearchTermCondition $searchQuery */
         $searchQuery = $criteria->getBaseCondition('search');
 
         /** @var SearchBundle\Condition\CategoryCondition $catQuery */
@@ -187,7 +189,7 @@ class UrlBuilder
 
         /** @var SearchBundle\ConditionInterface[] $conditions */
         $conditions = $criteria->getConditions();
-        if ($searchQuery instanceof SearchBundle\Condition\SearchTermCondition) {
+        if ($searchQuery instanceof SearchTermCondition) {
             $this->buildKeywordQuery($searchQuery->getTerm());
         }
         if ($catQuery instanceof SearchBundle\Condition\CategoryCondition) {
@@ -225,9 +227,21 @@ class UrlBuilder
                 $this->buildPriceAttribute('min', $condition->getMinPrice());
                 $this->buildPriceAttribute('max', $max);
             } elseif ($condition instanceof SearchBundle\Condition\ProductAttributeCondition) {
-                $this->buildAttribute($condition->getField(), $condition->getValue());
-            } elseif ($condition instanceof SearchBundle\Condition\SearchTermCondition) {
-                /* @var SearchBundle\Condition\SearchTermCondition $condition */
+                $value = $condition->getValue();
+
+                if ($condition->getOperator() === ConditionInterface::OPERATOR_BETWEEN) {
+                    if (!isset($value['max'])) {
+                        $value['max'] = PHP_INT_MAX;
+                    }
+
+                    if (!isset($value['min'])) {
+                        $value['min'] = 0;
+                    }
+                }
+
+                $this->buildAttribute($condition->getField(), $value);
+            } elseif ($condition instanceof SearchTermCondition) {
+                /* @var SearchTermCondition $condition */
                 $this->buildKeywordQuery($condition->getTerm());
             } elseif ($condition instanceof SearchBundle\Condition\CategoryCondition) {
                 /* @var SearchBundle\Condition\CategoryCondition $condition */
@@ -332,8 +346,8 @@ class UrlBuilder
      */
     private function buildAttribute($key, $value)
     {
-        foreach ($value as $realValue) {
-            $this->parameters['attrib'][$key][] = rawurldecode($realValue);
+        foreach ($value as $index => $realValue) {
+            $this->parameters['attrib'][$key][$index] = rawurldecode($realValue);
         }
     }
 
