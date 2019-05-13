@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Tests\Helper;
 
+use Doctrine\ORM\OptimisticLockException;
 use Enlight_Components_Session_Namespace as Session;
 use Enlight_Controller_Action as Action;
 use Enlight_Controller_Front as Front;
@@ -12,6 +13,8 @@ use Enlight_View_Default as View;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
+use PHPUnit\Framework\Assert;
+use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Models\Category\Category;
@@ -30,7 +33,7 @@ class StaticHelperTest extends TestCase
     {
         parent::setUp();
 
-        $manager = new \Shopware\Components\Api\Manager();
+        $manager = new Manager();
         $this->categoryResource = $manager->getResource('Category');
     }
 
@@ -44,6 +47,8 @@ class StaticHelperTest extends TestCase
         Shopware()->Container()->load('session');
         Shopware()->Container()->reset('config');
         Shopware()->Container()->load('config');
+
+        Shopware()->Session()->offsetUnset('findologicDI');
     }
 
     /**
@@ -338,6 +343,29 @@ class StaticHelperTest extends TestCase
         $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
     }
 
+    public function testUseShopSearchInEmotion()
+    {
+        Shopware()->Session()->findologicDI = false;
+
+        $request = new RequestHttp();
+        $request->setModuleName('widgets')->setControllerName('emotion')->setActionName('emotionArticleSlider');
+
+        // Create Mock object for Shopware Front Request
+        $front = $this->getMockBuilder(Front::class)
+            ->setMethods(['Request'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $front->expects($this->atLeastOnce())
+            ->method('Request')
+            ->willReturn($request);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('front', $front);
+
+        $result = StaticHelper::useShopSearch();
+        $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
+    }
+
     public function testUseShopSearchForBackendRequests()
     {
         $request = new RequestHttp();
@@ -413,7 +441,7 @@ class StaticHelperTest extends TestCase
      * @param string $category
      * @param string $expected
      *
-     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws OptimisticLockException
      */
     public function testBuildCategoryName($categoryId, $category, $expected)
     {
@@ -556,13 +584,13 @@ class StaticHelperTest extends TestCase
                     $expectedAlternativeQuery,
                     $expectedOriginalQuery
                 ) {
-                    \PHPUnit\Framework\Assert::assertArrayHasKey(
+                    Assert::assertArrayHasKey(
                         'finSmartDidYouMean',
                         $data,
                         '"finSmartDidYouMean" was not assigned to the view'
                     );
 
-                    \PHPUnit\Framework\Assert::assertEquals(
+                    Assert::assertEquals(
                         [
                             'type' => $expectedType,
                             'alternative_query' => $expectedAlternativeQuery,

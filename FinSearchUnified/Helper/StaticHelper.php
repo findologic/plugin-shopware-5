@@ -711,6 +711,7 @@ class StaticHelper
         return (
             Shopware()->Front()->Request() === null ||
             Shopware()->Front()->Request()->getModuleName() === 'backend' ||
+            Shopware()->Front()->Request()->getControllerName() === 'emotion' ||
             !self::isFindologicActive() ||
             self::checkDirectIntegration() ||
             (
