@@ -111,7 +111,7 @@ class CustomListingHydratorTest extends TestCase
                 'product_attribute_cat',
                 'cat',
                 'Kategorie',
-                ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                ProductAttributeFacet::MODE_RADIO_LIST_RESULT
             ],
             'Filter with a single special character' => [
                 [
@@ -125,7 +125,7 @@ class CustomListingHydratorTest extends TestCase
                 'product_attribute_zoom factor',
                 'zoom_factor',
                 'Zoom Faktor',
-                ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                ProductAttributeFacet::MODE_RADIO_LIST_RESULT
             ],
             'Filter with multiple special characters' => [
                 [
@@ -139,7 +139,7 @@ class CustomListingHydratorTest extends TestCase
                 'product_attribute_special .characters',
                 'special_characters',
                 'Sonderzeichen',
-                ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                ProductAttributeFacet::MODE_RADIO_LIST_RESULT
             ]
         ];
     }
@@ -241,7 +241,7 @@ class CustomListingHydratorTest extends TestCase
             ],
             'String with control characters' => [
                 "Findologic\n1\t2\r3",
-                'Findologic123',
+                'Findologic_1_2_3',
                 'Expected control characters to be stripped way'
             ],
             'String with another set of control characters' => [
