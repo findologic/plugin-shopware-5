@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic;
 
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
@@ -59,6 +60,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         $criteria = new Criteria();
         $criteria->offset(0)->limit(0)->resetConditions();
 
+        /** @var QueryBuilder $query */
         $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
 
         $response = $query->execute();

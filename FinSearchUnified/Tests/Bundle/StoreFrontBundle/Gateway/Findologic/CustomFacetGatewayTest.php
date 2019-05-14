@@ -6,10 +6,8 @@ use Enlight_Controller_Front;
 use Enlight_Controller_Request_RequestHttp;
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
-use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGateway;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
-use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilder;
 use Shopware\Bundle\StoreFrontBundle\Gateway\DBAL;
@@ -20,7 +18,6 @@ use Shopware\Components\HttpClient\Response;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Components_Config;
 use SimpleXMLElement;
-use Zend_Http_Response;
 
 class CustomFacetGatewayTest extends TestCase
 {
@@ -33,8 +30,6 @@ class CustomFacetGatewayTest extends TestCase
         Shopware()->Session()->offsetUnset('isSearchPage');
         Shopware()->Session()->offsetUnset('isCategoryPage');
         Shopware()->Session()->offsetUnset('findologicDI');
-        Shopware()->Container()->reset('fin_search_unified.helper.url_builder');
-        Shopware()->Container()->load('fin_search_unified.helper.url_builder');
     }
 
     /**
@@ -52,8 +47,7 @@ class CustomFacetGatewayTest extends TestCase
             ->getMock();
         $mockOriginalService->expects($this->once())->method('getList');
 
-        // TODO
-        $mockQuerybuilder = $this->createMock(SearchQueryBuilder::class);
+        $mockQuerybuilder = $this->createMock(QueryBuilderFactory::class);
         $mockQuerybuilder->expects($this->never())->method('createProductQuery');
 
         $facetGateway = new CustomFacetGateway(
@@ -154,7 +148,7 @@ class CustomFacetGatewayTest extends TestCase
 
         $facetGateway = new CustomFacetGateway(
             $mockOriginalService,
-            $mockHydrator .
+            $mockHydrator,
             $querybuilderfactory
         );
 
@@ -246,8 +240,6 @@ class CustomFacetGatewayTest extends TestCase
             ->getMock();
         $mockOriginalService->expects($this->never())->method('getList');
 
-        $mockUrlBuilder = $this->getMockBuilder(UrlBuilder::class)->getMock();
-        $mockUrlBuilder->expects($this->once())->method('setCustomerGroup');
         $xmlResponse = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>');
 
         $results = $xmlResponse->addChild('results');
@@ -261,20 +253,32 @@ class CustomFacetGatewayTest extends TestCase
             }
         }
 
-        $mockUrlBuilder->expects($this->once())
-            ->method('buildCompleteFilterList')
-            ->willReturn(new Zend_Http_Response(200, [], $xmlResponse->asXML()));
-
         $originalHydrator = Shopware()->Container()->get('fin_search_unified.custom_listing_hydrator');
+
+        $httpResponse = new Response(200, [], 'alive');
+
+        $httpClientMock = $this->createMock(GuzzleHttpClient::class);
+        $httpClientMock->expects($this->exactly(2))
+            ->method('get')
+            ->willReturn($httpResponse);
+
+        $query = $this->createMock(QueryBuilder::class);
+        $query->expects($this->once())->method('execute')->willReturn($xmlResponse->asXML());
+
+        $querybuilderfactory = new QueryBuilderFactory(
+            $httpClientMock,
+            Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
+            Shopware()->Container()->get('config')
+        );
 
         $facetGateway = new CustomFacetGateway(
             $mockOriginalService,
-            $originalHydrator
+            $originalHydrator,
+            $querybuilderfactory
         );
 
-        Shopware()->Container()->set('fin_search_unified.helper.url_builder', $mockUrlBuilder);
-
         $customFacets = $facetGateway->getList([3], $context);
+
         $this->assertCount(
             count($filterData),
             $customFacets,
