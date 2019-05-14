@@ -225,4 +225,53 @@ class CustomListingHydratorTest extends TestCase
             );
         }
     }
+
+    /**
+     * Data provider for testing removal of control characters
+     *
+     * @return array
+     */
+    public static function controlCharacterProvider()
+    {
+        return [
+            'Strings with only letters and numbers' => [
+                'Findologic123',
+                'Findologic123',
+                'Expected string to return unchanged'
+            ],
+            'String with control characters' => [
+                "Findologic\n1\t2\r3",
+                'Findologic123',
+                'Expected control characters to be stripped way'
+            ],
+            'String with another set of control characters' => [
+                "Findologic\xC2\x9F\xC2\x80 Rocks",
+                'Findologic Rocks',
+                'Expected control characters to be stripped way'
+            ],
+            'String with special characters' => [
+                'Findologic&123',
+                'Findologic&123',
+                'Expected special characters to be returned as they are'
+            ],
+            'String with umlauts' => [
+                'Findolögic123',
+                'Findolögic123',
+                'Expected umlauts to be left unaltered.'
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider controlCharacterProvider
+     *
+     * @param string $text
+     * @param string $expected
+     * @param string $errorMessage
+     */
+    public function testControlCharacterMethod($text, $expected, $errorMessage)
+    {
+        $result = $this->hydrator->getFormFieldName($text);
+        $this->assertEquals($expected, $result, $errorMessage);
+    }
 }
