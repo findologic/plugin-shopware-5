@@ -52,6 +52,7 @@ class CustomFacetGatewayTest extends TestCase
             ->getMock();
         $mockOriginalService->expects($this->once())->method('getList');
 
+        // TODO
         $mockQuerybuilder = $this->createMock(SearchQueryBuilder::class);
         $mockQuerybuilder->expects($this->never())->method('createProductQuery');
 

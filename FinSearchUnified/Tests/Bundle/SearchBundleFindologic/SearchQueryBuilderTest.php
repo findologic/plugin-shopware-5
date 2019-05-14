@@ -98,6 +98,7 @@ class SearchQueryBuilderTest extends TestCase
                 ->method('get')
                 ->will($this->onConsecutiveCalls($httpResponse, $this->throwException(new Exception())));
         }
+
         $querybuilder = new SearchQueryBuilder(
             $httpClientMock,
             $this->installerService,
