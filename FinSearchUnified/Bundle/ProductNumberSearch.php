@@ -4,11 +4,16 @@ namespace FinSearchUnified\Bundle;
 
 use Exception;
 use FinSearchUnified\Helper\StaticHelper;
+use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
-use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
+use Shopware\Bundle\StoreFrontBundle\Struct\Customer\Group;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
+use Shopware\Models\Search\CustomFacet;
+use SimpleXMLElement;
+use Zend_Http_Client_Exception;
+use Zend_Http_Response;
 
 class ProductNumberSearch implements ProductNumberSearchInterface
 {
@@ -23,22 +28,15 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     protected $facets = [];
 
     /**
-     * @var QueryBuilderFactoryInterface
-     */
-    protected $queryBuilderFactory;
-
-    /**
      * ProductNumberSearch constructor.
      *
      * @param ProductNumberSearchInterface $service
-     * @param QueryBuilderFactoryInterface $queryBuilderFactory
+     *
+     * @throws Exception
      */
-    public function __construct(
-        ProductNumberSearchInterface $service,
-        QueryBuilderFactoryInterface $queryBuilderFactory
-    ) {
+    public function __construct(ProductNumberSearchInterface $service)
+    {
         $this->originalService = $service;
-        $this->queryBuilderFactory = $queryBuilderFactory;
     }
 
     /**
@@ -61,35 +59,45 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         $fetchCount = $criteria->fetchCount();
 
         if ($fetchCount && !StaticHelper::useShopSearch()) {
-            $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
-            $response = $query->execute();
+            try {
+                $response = $this->sendRequestToFindologic($criteria, $context->getCurrentCustomerGroup());
 
-            if (!empty($response)) {
-                self::setFallbackFlag(0);
+                if ($response instanceof Zend_Http_Response && $response->getStatus() == 200) {
+                    self::setFallbackFlag(0);
 
-                $xmlResponse = StaticHelper::getXmlFromResponse($response);
+                    $xmlResponse = StaticHelper::getXmlFromResponse($response);
 
-                self::redirectOnLandingpage($xmlResponse);
+                    self::redirectOnLandingpage($xmlResponse);
 
-                StaticHelper::setPromotion($xmlResponse);
-                StaticHelper::setSmartDidYouMean($xmlResponse);
+                    StaticHelper::setPromotion($xmlResponse);
 
-                $this->facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
-                $facetsInterfaces = StaticHelper::getFindologicFacets($xmlResponse);
+                    StaticHelper::setSmartDidYouMean($xmlResponse);
 
-                foreach ($facetsInterfaces as $facetsInterface) {
-                    $criteria->addFacet($facetsInterface->getFacet());
+                    $this->facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
+
+                    $facetsInterfaces = StaticHelper::getFindologicFacets($xmlResponse);
+
+                    /** @var CustomFacet $facets_interface */
+                    foreach ($facetsInterfaces as $facetsInterface) {
+                        $criteria->addFacet($facetsInterface->getFacet());
+                    }
+
+                    $this->setSelectedFacets($criteria);
+
+                    $criteria->resetConditions();
+
+                    $totalResults = (int)$xmlResponse->results->count;
+
+                    $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
+                    $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
+
+                    return new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $this->facets);
+                } else {
+                    self::setFallbackFlag(1);
+
+                    return $this->originalService->search($criteria, $context);
                 }
-
-                $this->setSelectedFacets($criteria);
-                $criteria->resetConditions();
-
-                $totalResults = (int)$xmlResponse->results->count;
-                $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
-                $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
-
-                return new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $this->facets);
-            } else {
+            } catch (Zend_Http_Client_Exception $e) {
                 self::setFallbackFlag(1);
 
                 return $this->originalService->search($criteria, $context);
@@ -102,9 +110,9 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     /**
      * Checks if a landing page is present in the response and in that case, performs a redirect.
      *
-     * @param \SimpleXMLElement $xmlResponse
+     * @param SimpleXMLElement $xmlResponse
      */
-    protected static function redirectOnLandingpage(\SimpleXMLElement $xmlResponse)
+    protected static function redirectOnLandingpage(SimpleXMLElement $xmlResponse)
     {
         $hasLandingpage = StaticHelper::checkIfRedirect($xmlResponse);
 
@@ -159,5 +167,22 @@ class ProductNumberSearch implements ProductNumberSearchInterface
                 $this->facets[] = $tempFacet;
             }
         }
+    }
+
+    /**
+     * @param Criteria $criteria
+     * @param Group $customerGroup
+     *
+     * @return null|Zend_Http_Response
+     * @throws Exception
+     */
+    protected function sendRequestToFindologic(Criteria $criteria, Group $customerGroup)
+    {
+        /** @var UrlBuilder $urlBuilder */
+        $urlBuilder = Shopware()->Container()->get('fin_search_unified.helper.url_builder');
+        $urlBuilder->setCustomerGroup($customerGroup);
+        $response = $urlBuilder->buildQueryUrlAndGetResponse($criteria);
+
+        return $response;
     }
 }

@@ -2,15 +2,14 @@
 
 namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic;
 
+use Exception;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Helper\StaticHelper;
-use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
-use Shopware\Bundle\SearchBundle\Criteria;
-use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Gateway\CustomFacetGatewayInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use SimpleXMLElement;
+use Zend_Http_Response;
 
 class CustomFacetGateway implements CustomFacetGatewayInterface
 {
@@ -20,11 +19,6 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
     protected $hydrator;
 
     /**
-     * @var QueryBuilderFactoryInterface
-     */
-    protected $queryBuilderFactory;
-
-    /**
      * @var CustomFacetGatewayInterface
      */
     private $originalService;
@@ -32,16 +26,15 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
     /**
      * @param CustomFacetGatewayInterface $service
      * @param CustomListingHydrator $hydrator
-     * @param QueryBuilderFactoryInterface $queryBuilderFactory
+     *
+     * @throws Exception
      */
     public function __construct(
         CustomFacetGatewayInterface $service,
-        CustomListingHydrator $hydrator,
-        QueryBuilderFactoryInterface $queryBuilderFactory
+        CustomListingHydrator $hydrator
     ) {
         $this->originalService = $service;
         $this->hydrator = $hydrator;
-        $this->queryBuilderFactory = $queryBuilderFactory;
     }
 
     /**
@@ -56,14 +49,10 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
             return $this->originalService->getList($ids, $context);
         }
 
-        $criteria = new Criteria();
-        $criteria->offset(0)->limit(0)->resetConditions();
-
-        $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
-
-        $response = $query->execute();
-
-        if (!empty($response)) {
+        $urlBuilder = Shopware()->Container()->get('fin_search_unified.helper.url_builder');
+        $urlBuilder->setCustomerGroup($context->getCurrentCustomerGroup());
+        $response = $urlBuilder->buildCompleteFilterList();
+        if ($response instanceof Zend_Http_Response && $response->getStatus() == 200) {
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
 
             return $this->hydrate($xmlResponse->filters->filter);
@@ -84,16 +73,13 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
             return $this->originalService->getFacetsOfCategories($categoryIds, $context);
         }
 
+        $urlBuilder = Shopware()->Container()->get('fin_search_unified.helper.url_builder');
+
+        // Facets abfragen
         $categoryId = $categoryIds[0];
-
-        $criteria = new Criteria();
-        $criteria->offset(0)->limit(0);
-        $criteria->addCondition(new CategoryCondition($categoryIds));
-
-        $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
-        $response = $query->execute();
-
-        if (!empty($response)) {
+        $urlBuilder->setCustomerGroup($context->getCurrentCustomerGroup());
+        $response = $urlBuilder->buildCategoryUrlAndGetResponse($categoryId);
+        if ($response instanceof Zend_Http_Response && $response->getStatus() == 200) {
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
             $categoryFacets = [];
             $categoryFacets[$categoryId] = $this->hydrate($xmlResponse->filters->filter);
@@ -111,6 +97,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
      */
     public function getAllCategoryFacets(ShopContextInterface $context)
     {
+        // TODO: Implement getAllCategoryFacets() method.
         return $this->originalService->getAllCategoryFacets($context);
     }
 
