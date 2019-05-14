@@ -308,4 +308,78 @@ class SearchQueryBuilderTest extends TestCase
             ]
         ];
     }
+
+    /**
+     * @dataProvider querybuilderResponseProvider
+     *
+     * @param int $responseCode
+     * @param int $callCount
+     * @param string|null $expectedResponse
+     *
+     * @throws Exception
+     */
+    public function testQueryBuilderResponse($responseCode, $callCount, $expectedResponse)
+    {
+        $httpResponse = new Response($responseCode, [], 'alive');
+        $httpClientMock = $this->createMock(GuzzleHttpClient::class);
+        $httpClientMock->expects($this->exactly($callCount))
+            ->method('get')
+            ->willReturn($httpResponse);
+
+        $querybuilder = new SearchQueryBuilder(
+            $httpClientMock,
+            $this->installerService,
+            $this->config
+        );
+        $response = $querybuilder->execute();
+        $this->assertSame($expectedResponse, $response);
+    }
+
+    public function querybuilderResponseProvider()
+    {
+        return [
+            'Response is 200' => [200, 2, 'alive'],
+            'Response is 500' => [500, 1, null],
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public function forceOriginalQueryProvider()
+    {
+        return [
+            'forceOriginalQuery not present' => [null],
+            'forceOriginalQuery present and truthy' => [1],
+            'forceOriginalQuery present and falsy' => [0]
+        ];
+    }
+
+    /**
+     * @dataProvider forceOriginalQueryProvider
+     *
+     * @param int|null $forceOriginalQuery
+     *
+     * @throws Exception
+     */
+    public function testQuerybuilderForceOriginalQuery($forceOriginalQuery)
+    {
+        $httpResponse = new Response(200, [], 'alive');
+        $httpClientMock = $this->createMock(GuzzleHttpClient::class);
+        $httpClientMock->expects($this->exactly(2))
+            ->method('get')
+            ->willReturn($httpResponse);
+
+        $_GET['forceOriginalQuery'] = $forceOriginalQuery;
+
+        $querybuilder = new SearchQueryBuilder(
+            $httpClientMock,
+            $this->installerService,
+            $this->config
+        );
+
+        $querybuilder->execute();
+        $parameters = $querybuilder->getParameters();
+        $this->assertSame($forceOriginalQuery, $parameters['forceOriginalQuery']);
+    }
 }

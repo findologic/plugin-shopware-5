@@ -11,7 +11,6 @@ use Shopware\Bundle\StoreFrontBundle;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use SimpleXMLElement;
 use Zend_Http_Client;
-use Zend_Http_Response;
 
 class StaticHelper
 {
@@ -58,15 +57,12 @@ class StaticHelper
     }
 
     /**
-     * @param Zend_Http_Response $response
+     * @param string $responseText
      *
      * @return SimpleXMLElement
      */
-    public static function getXmlFromResponse(Zend_Http_Response $response)
+    public static function getXmlFromResponse($responseText)
     {
-        /* TLOAD XML RESPONSE */
-        $responseText = (string)$response->getBody();
-
         $xmlResponse = new SimpleXMLElement($responseText);
 
         return $xmlResponse;

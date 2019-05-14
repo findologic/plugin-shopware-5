@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Bundle\SearchBundleFindologic;
 
 use Exception;
+use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Components\HttpClient\HttpClientInterface;
@@ -69,6 +70,10 @@ abstract class QueryBuilder
      */
     public function execute()
     {
+        if (isset($_GET[Constants::SDYM_PARAM_FORCE_QUERY])) {
+            $this->parameters[Constants::SDYM_PARAM_FORCE_QUERY] = $_GET[Constants::SDYM_PARAM_FORCE_QUERY] ? 1 : 0;
+        }
+
         $url = sprintf(
             '%s/%s/%s?%s',
             self::BASE_URL,
@@ -82,7 +87,9 @@ abstract class QueryBuilder
         try {
             if ($this->isAlive()) {
                 $response = $this->httpClient->get($url);
-                $payload = $response->getBody();
+                if ((string)$response->getStatusCode() === '200') {
+                    $payload = $response->getBody();
+                }
             }
         } catch (RequestException $exception) {
         }
