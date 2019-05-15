@@ -227,34 +227,39 @@ class CustomListingHydratorTest extends TestCase
     }
 
     /**
-     * Data provider for testing removal of control characters
+     * Data provider for escaping filter names
      *
      * @return array
      */
-    public static function controlCharacterProvider()
+    public static function unescapedFilterNameProvider()
     {
         return [
-            'Strings with only letters and numbers' => [
+            'Filter name with only letters and numbers' => [
                 'Findologic123',
                 'Findologic123',
                 'Expected string to return unchanged'
             ],
-            'String with control characters' => [
-                "Findologic\n1\t2\r3",
+            'Filter name with spaces' => [
+                "Findologic 1 2 3",
                 'Findologic_1_2_3',
-                'Expected control characters to be stripped way'
+                'Expected whitespaces to be stripped way'
             ],
-            'String with another set of control characters' => [
-                "Findologic\xC2\x9F\xC2\x80 Rocks",
-                'Findologic Rocks',
-                'Expected control characters to be stripped way'
+            'Filter name with dots' => [
+                "Findologic...Rocks",
+                'Findologic_Rocks',
+                'Expected dots to be stripped way'
             ],
-            'String with special characters' => [
+            'Filter name with special characters' => [
                 'Findologic&123',
                 'Findologic&123',
                 'Expected special characters to be returned as they are'
             ],
-            'String with umlauts' => [
+            'Filter name with non standard character' => [
+                'Findologic@123',
+                'Findologic_123',
+                'Expected non standard characters to be stripped away'
+            ],
+            'Filter name with umlauts' => [
                 'Findolögic123',
                 'Findolögic123',
                 'Expected umlauts to be left unaltered.'
@@ -263,13 +268,13 @@ class CustomListingHydratorTest extends TestCase
     }
 
     /**
-     * @dataProvider controlCharacterProvider
+     * @dataProvider unescapedFilterNameProvider
      *
      * @param string $text
      * @param string $expected
      * @param string $errorMessage
      */
-    public function testControlCharacterMethod($text, $expected, $errorMessage)
+    public function testFilterNamesAreEscaped($text, $expected, $errorMessage)
     {
         $result = $this->hydrator->getFormFieldName($text);
         $this->assertEquals($expected, $result, $errorMessage);
