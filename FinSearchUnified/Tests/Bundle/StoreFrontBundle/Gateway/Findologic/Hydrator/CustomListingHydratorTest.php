@@ -255,7 +255,7 @@ class CustomListingHydratorTest extends TestCase
                 'Expected special characters to be returned as they are'
             ],
             'Filter name with non standard character' => [
-                'Findologic@123',
+                "Findologic\xC2\xAE 123",
                 'Findologic_123',
                 'Expected non standard characters to be stripped away'
             ],
