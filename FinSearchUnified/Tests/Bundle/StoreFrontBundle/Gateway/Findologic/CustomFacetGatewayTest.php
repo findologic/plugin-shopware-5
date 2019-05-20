@@ -5,6 +5,7 @@ namespace FinSearchUnified\Tests\Bundle\StoreFrontBundle\Gateway\Findologic;
 use Enlight_Controller_Front;
 use Enlight_Controller_Request_RequestHttp;
 use Exception;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGateway;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
@@ -111,7 +112,7 @@ class CustomFacetGatewayTest extends TestCase
         $mockHydrator->expects($this->never())
             ->method('hydrateFacet');
 
-        $mockedQuery = $this->getMockBuilder(\FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder::class)
+        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
             ->disableOriginalConstructor()
             ->setMethods(['execute'])
             ->getMockForAbstractClass();
@@ -233,7 +234,7 @@ class CustomFacetGatewayTest extends TestCase
 
         $originalHydrator = Shopware()->Container()->get('fin_search_unified.custom_listing_hydrator');
 
-        $mockedQuery = $this->getMockBuilder(\FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder::class)
+        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
             ->disableOriginalConstructor()
             ->setMethods(['execute'])
             ->getMockForAbstractClass();

@@ -43,9 +43,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     /**
      * Creates a product search result for the passed criteria object.
      * The criteria object contains different core conditions and plugin conditions.
-     * This conditions has to be handled over the different condition handlers.
-     * The search gateway has to implement an event which plugin can be listened to,
-     * to add their own handler classes.
+     * This conditions has to be handled over the different condition handlers
      *
      * @param Criteria $criteria
      * @param ShopContextInterface $context
@@ -61,44 +59,44 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         $useShopSearch = StaticHelper::useShopSearch();
 
-        if ($fetchCount && !$useShopSearch) {
-            /** @var QueryBuilder $query */
-            $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
-            $response = $query->execute();
-
-            if (!empty($response)) {
-                self::setFallbackFlag(0);
-
-                $xmlResponse = StaticHelper::getXmlFromResponse($response);
-
-                self::redirectOnLandingpage($xmlResponse);
-
-                StaticHelper::setPromotion($xmlResponse);
-                StaticHelper::setSmartDidYouMean($xmlResponse);
-
-                $this->facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
-                $facetsInterfaces = StaticHelper::getFindologicFacets($xmlResponse);
-
-                foreach ($facetsInterfaces as $facetsInterface) {
-                    $criteria->addFacet($facetsInterface->getFacet());
-                }
-
-                $this->setSelectedFacets($criteria);
-                $criteria->resetConditions();
-
-                $totalResults = (int)$xmlResponse->results->count;
-                $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
-                $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
-
-                return new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $this->facets);
-            } else {
-                self::setFallbackFlag(1);
-
-                return $this->originalService->search($criteria, $context);
-            }
-        } else {
+        if (!$fetchCount || $useShopSearch) {
             return $this->originalService->search($criteria, $context);
         }
+
+        /** @var QueryBuilder $query */
+        $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
+        $response = $query->execute();
+
+        if (empty($response)) {
+            self::setFallbackFlag(1);
+
+            $searchResult = $this->originalService->search($criteria, $context);
+        } else {
+            self::setFallbackFlag(0);
+
+            $xmlResponse = StaticHelper::getXmlFromResponse($response);
+            self::redirectOnLandingpage($xmlResponse);
+            StaticHelper::setPromotion($xmlResponse);
+            StaticHelper::setSmartDidYouMean($xmlResponse);
+
+            $this->facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
+            $facetsInterfaces = StaticHelper::getFindologicFacets($xmlResponse);
+
+            foreach ($facetsInterfaces as $facetsInterface) {
+                $criteria->addFacet($facetsInterface->getFacet());
+            }
+
+            $this->setSelectedFacets($criteria);
+            $criteria->resetConditions();
+
+            $totalResults = (int)$xmlResponse->results->count;
+            $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
+            $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
+
+            $searchResult = new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $this->facets);
+        }
+
+        return $searchResult;
     }
 
     /**

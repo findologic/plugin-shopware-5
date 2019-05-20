@@ -4,6 +4,7 @@ namespace FinSearchUnified\Tests\Bundle;
 
 use Enlight_Controller_Front as Front;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
+use Exception;
 use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
@@ -55,7 +56,7 @@ class ProductNumberSearchTest extends TestCase
      * @param string|null $response
      * @param int $invokationCount
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function testProductNumberSearchImplementation($isFetchCount, $isUseShopSearch, $response, $invokationCount)
     {
@@ -70,28 +71,7 @@ class ProductNumberSearchTest extends TestCase
             ->setMethods(['execute'])
             ->getMockForAbstractClass();
 
-        if ($response === 'xml') {
-            $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-            $xmlResponse = new SimpleXMLElement($data);
-
-            $query = $xmlResponse->addChild('query');
-            $query->addChild('queryString', 'queryString');
-
-            $results = $xmlResponse->addChild('results');
-            $results->addChild('count', 5);
-            $products = $xmlResponse->addChild('products');
-
-            for ($i = 1; $i <= 5; $i++) {
-                $product = $products->addChild('product');
-                $product->addAttribute('id', $i);
-            }
-
-            $xml = $xmlResponse->asXML();
-        } else {
-            $xml = $response;
-        }
-
-        $mockedQuery->expects($this->exactly($invokationCount))->method('execute')->willReturn($xml);
+        $mockedQuery->expects($this->exactly($invokationCount))->method('execute')->willReturn($response);
 
         // Mock querybuilder factory method to check that custom implementation does not get called
         // as original implementation will be called in this case
@@ -128,12 +108,29 @@ class ProductNumberSearchTest extends TestCase
 
     public function productNumberSearchProvider()
     {
+        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
+        $xmlResponse = new SimpleXMLElement($data);
+
+        $query = $xmlResponse->addChild('query');
+        $query->addChild('queryString', 'queryString');
+
+        $results = $xmlResponse->addChild('results');
+        $results->addChild('count', 5);
+        $products = $xmlResponse->addChild('products');
+
+        for ($i = 1; $i <= 5; $i++) {
+            $product = $products->addChild('product');
+            $product->addAttribute('id', $i);
+        }
+
+        $xml = $xmlResponse->asXML();
+
         return [
-            'Internal search is performed and findologic is not active' => [false, true, 'alive', 0],
-            'Internal search is performed and findologic is active' => [false, false, 'alive', 0],
-            'Explicit search is performed and findologic is not active' => [true, true, 'alive', 0],
-            'Explicit search is performed and findologic is active but response is null' => [true, false, null, 1],
-            'Explicit search is performed and findologic is active with valid XML' => [true, false, 'xml', 1]
+            'Shopware internal search, unrelated to FINDOLOGIC' => [false, true, $xml, 0],
+            'Shopware internal search' => [false, false, $xml, 0],
+            'Shopware search, unrelated to FINDOLOGIC' => [true, true, $xml, 0],
+            'FINDOLOGIC returns invalid response' => [true, false, null, 1],
+            'FINDOLOGIC search' => [true, false, $xml, 1]
         ];
     }
 }

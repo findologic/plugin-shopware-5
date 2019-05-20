@@ -87,7 +87,7 @@ abstract class QueryBuilder
         try {
             if ($this->isAlive()) {
                 $response = $this->httpClient->get($url);
-                if ((string)$response->getStatusCode() === '200') {
+                if ($this->isSuccessful($response)) {
                     $payload = $response->getBody();
                 }
             }
