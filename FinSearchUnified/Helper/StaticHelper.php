@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Helper;
 
+use Enlight_View_Default;
 use Exception;
 use FinSearchUnified\Bundle\FacetResult as FinFacetResult;
 use FinSearchUnified\Constants;
@@ -11,6 +12,8 @@ use Shopware\Bundle\StoreFrontBundle;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use SimpleXMLElement;
 use Zend_Http_Client;
+use Zend_Http_Client_Exception;
+use Zend_Http_Response;
 
 class StaticHelper
 {
@@ -63,9 +66,7 @@ class StaticHelper
      */
     public static function getXmlFromResponse($responseText)
     {
-        $xmlResponse = new SimpleXMLElement($responseText);
-
-        return $xmlResponse;
+        return new SimpleXMLElement($responseText);
     }
 
     /**
@@ -149,7 +150,7 @@ class StaticHelper
      * @param SimpleXMLElement $xmlResponse
      *
      * @return array
-     * @throws \Zend_Http_Client_Exception
+     * @throws Zend_Http_Client_Exception
      */
     public static function getFacetResultsFromXml(SimpleXMLElement $xmlResponse)
     {
@@ -412,7 +413,7 @@ class StaticHelper
      * @param array $facetItem
      *
      * @return SearchBundle\FacetResult\MediaListFacetResult
-     * @throws \Zend_Http_Client_Exception
+     * @throws Zend_Http_Client_Exception
      */
     private static function createMediaListFacet(array $facetItem)
     {
@@ -434,7 +435,7 @@ class StaticHelper
      * @param string $name
      *
      * @return array
-     * @throws \Zend_Http_Client_Exception
+     * @throws Zend_Http_Client_Exception
      */
     private static function prepareMediaItems($items, $name)
     {
@@ -820,7 +821,7 @@ class StaticHelper
         $promotion = $xmlResponse->promotion;
 
         if (isset($promotion) && count($promotion->attributes()) > 0) {
-            /** @var \Enlight_View_Default $view */
+            /** @var Enlight_View_Default $view */
             $view = Shopware()->Container()->get('front')->Plugins()->get('ViewRenderer')->Action()->View();
             $view->assign([
                 'finPromotion' => [
@@ -843,7 +844,7 @@ class StaticHelper
         $queryStringType = (string)$queryString->attributes()->type;
 
         if ((!empty($originalQuery) || !empty($didYouMeanQuery)) && $queryStringType !== 'forced') {
-            /** @var \Enlight_View_Default $view */
+            /** @var Enlight_View_Default $view */
             $view = Shopware()->Front()->Plugins()->get('ViewRenderer')->Action()->View();
             $type = !empty($didYouMeanQuery) ? 'did-you-mean' : $queryStringType;
             $view->assign([
