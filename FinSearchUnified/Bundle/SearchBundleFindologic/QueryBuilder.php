@@ -272,9 +272,8 @@ abstract class QueryBuilder
     /**
      * @param string $usergroup
      */
-    public function addGroup($usergroup)
+    public function addUserGroup($usergroup)
     {
-        $hashedKey = StaticHelper::calculateUsergroupHash($this->shopKey, $usergroup);
-        $this->parameters['group'] = [$hashedKey];
+        $this->parameters['usergrouphash'] = StaticHelper::calculateUsergroupHash($this->shopKey, $usergroup);
     }
 }

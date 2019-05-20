@@ -251,12 +251,12 @@ class SearchQueryBuilderTest extends TestCase
      */
     public function testAddGroupMethodWithCustomerGroup()
     {
-        $this->querybuilder->addGroup('EK');
+        $this->querybuilder->addUserGroup('EK');
 
         $hashed = StaticHelper::calculateUsergroupHash($this->config['ShopKey'], 'EK');
         $parameters = $this->querybuilder->getParameters();
-        $this->assertArrayHasKey('group', $parameters, 'Expected user group to be present in parameters');
-        $this->assertSame([$hashed], $parameters['group'], 'Expected usergroup to be hashed correctly');
+        $this->assertArrayHasKey('usergrouphash', $parameters, 'Expected user group to be present in parameters');
+        $this->assertSame($hashed, $parameters['usergrouphash'], 'Expected usergroup to be hashed correctly');
     }
 
     /**
@@ -264,12 +264,12 @@ class SearchQueryBuilderTest extends TestCase
      */
     public function testAddGroupMethodWithEmptyCustomerGroup()
     {
-        $this->querybuilder->addGroup('');
+        $this->querybuilder->addUserGroup('');
 
         $hashed = StaticHelper::calculateUsergroupHash($this->config['ShopKey'], '');
         $parameters = $this->querybuilder->getParameters();
-        $this->assertArrayHasKey('group', $parameters, 'Expected user group to be present in parameters');
-        $this->assertSame([$hashed], $parameters['group'], 'Expected usergroup to be hashed correctly');
+        $this->assertArrayHasKey('usergrouphash', $parameters, 'Expected user group to be present in parameters');
+        $this->assertSame($hashed, $parameters['usergrouphash'], 'Expected usergroup to be hashed correctly');
     }
 
     /**
@@ -277,12 +277,12 @@ class SearchQueryBuilderTest extends TestCase
      */
     public function testAddGroupMethodWithNullCustomerGroup()
     {
-        $this->querybuilder->addGroup(null);
+        $this->querybuilder->addUserGroup(null);
 
         $hashed = StaticHelper::calculateUsergroupHash($this->config['ShopKey'], null);
         $parameters = $this->querybuilder->getParameters();
-        $this->assertArrayHasKey('group', $parameters, 'Expected user group to be present in parameters');
-        $this->assertSame([$hashed], $parameters['group'], 'Expected usergroup to be hashed correctly');
+        $this->assertArrayHasKey('usergrouphash', $parameters, 'Expected user group to be present in parameters');
+        $this->assertSame($hashed, $parameters['usergrouphash'], 'Expected usergroup to be hashed correctly');
     }
 
     public function searchTermProvider()
