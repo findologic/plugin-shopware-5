@@ -9,22 +9,40 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Components\Test\Plugin\TestCase;
+use Shopware_Components_Config;
 use SimpleXMLElement;
 
 class ProductNumberSearchTest extends TestCase
 {
-    protected static $ensureLoadedPlugins = [
-        'FinSearchUnified' => [
-            'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-            'ActivateFindologic' => true
-        ],
-    ];
+    public function setUp()
+    {
+        parent::setUp();
+
+        $configArray = [
+            ['ActivateFindologic', true],
+            ['ShopKey', 'ABCD0815'],
+            ['ActivateFindologicForCategoryPages', false]
+        ];
+        // Create mock object for Shopware Config and explicitly return the values
+        $mockConfig = $this->getMockBuilder(Shopware_Components_Config::class)
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig->method('offsetGet')
+            ->willReturnMap($configArray);
+
+        Shopware()->Container()->set('config', $mockConfig);
+    }
 
     protected function tearDown()
     {
         parent::tearDown();
+
         Shopware()->Container()->reset('front');
         Shopware()->Container()->load('front');
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->load('config');
+
         Shopware()->Session()->offsetUnset('findologicDI');
         Shopware()->Session()->offsetUnset('isSearchPage');
     }
