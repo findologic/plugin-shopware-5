@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Bundle;
 
 use Exception;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -28,8 +29,6 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     protected $queryBuilderFactory;
 
     /**
-     * ProductNumberSearch constructor.
-     *
      * @param ProductNumberSearchInterface $service
      * @param QueryBuilderFactoryInterface $queryBuilderFactory
      */
@@ -60,7 +59,10 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         // Checking its value is the only way to tell if we should actually perform the search.
         $fetchCount = $criteria->fetchCount();
 
-        if ($fetchCount && !StaticHelper::useShopSearch()) {
+        $useShopSearch = StaticHelper::useShopSearch();
+
+        if ($fetchCount && !$useShopSearch) {
+            /** @var QueryBuilder $query */
             $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
             $response = $query->execute();
 

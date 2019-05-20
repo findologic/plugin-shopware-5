@@ -58,7 +58,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         }
 
         $criteria = new Criteria();
-        $criteria->offset(0)->limit(0)->resetConditions();
+        $criteria->offset(0)->limit(1)->resetConditions();
 
         /** @var QueryBuilder $query */
         $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);

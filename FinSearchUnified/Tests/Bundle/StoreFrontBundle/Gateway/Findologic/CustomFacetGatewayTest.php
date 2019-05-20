@@ -9,12 +9,9 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGateway;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
-use Shopware\Bundle\SearchBundleDBAL\QueryBuilder;
 use Shopware\Bundle\StoreFrontBundle\Gateway\DBAL;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
-use Shopware\Components\HttpClient\GuzzleHttpClient;
-use Shopware\Components\HttpClient\Response;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Components_Config;
 use SimpleXMLElement;
@@ -59,22 +56,10 @@ class CustomFacetGatewayTest extends TestCase
         $facetGateway->getList([3], $context);
     }
 
-    public function faultyResponseProvider()
-    {
-        return [
-            'FINDOLOGIC search is triggered and response is null' => [null],
-            'FINDOLOGIC search is triggered and response is not OK' => [404]
-        ];
-    }
-
     /**
-     * @dataProvider faultyResponseProvider
-     *
-     * @param int|null $responseCode
-     *
      * @throws Exception
      */
-    public function testUseOriginalServiceWhenFindologicResponseIsFaulty($responseCode)
+    public function testUseOriginalServiceWhenFindologicResponseIsFaulty()
     {
         /** @var ContextServiceInterface $contextService */
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
@@ -120,36 +105,29 @@ class CustomFacetGatewayTest extends TestCase
             ->getMock();
         $mockOriginalService->expects($this->once())->method('getList');
 
-        if ($responseCode) {
-            $response = new Response($responseCode, [], 'alive');
-        } else {
-            $response = null;
-        }
-
         $mockHydrator = $this->getMockBuilder(CustomListingHydrator::class)
             ->setMethods(['hydrateFacet'])
             ->getMock();
         $mockHydrator->expects($this->never())
             ->method('hydrateFacet');
 
-        $httpClientMock = $this->createMock(GuzzleHttpClient::class);
-        $httpClientMock->expects($this->exactly(2))
-            ->method('get')
-            ->willReturn($response);
+        $mockedQuery = $this->getMockBuilder(\FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['execute'])
+            ->getMockForAbstractClass();
+        $mockedQuery->expects($this->once())->method('execute')->willReturn(null);
 
-        $query = $this->createMock(QueryBuilder::class);
-        $query->expects($this->once())->method('execute')->willReturn($response);
-
-        $querybuilderfactory = new QueryBuilderFactory(
-            $httpClientMock,
-            Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
-            Shopware()->Container()->get('config')
-        );
+        // Mock querybuilder factory method to check that custom implementation does not get called
+        // as original implementation will be called in this case
+        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+        $mockQuerybuilderFactory->expects($this->once())
+            ->method('createProductQuery')
+            ->willReturn($mockedQuery);
 
         $facetGateway = new CustomFacetGateway(
             $mockOriginalService,
             $mockHydrator,
-            $querybuilderfactory
+            $mockQuerybuilderFactory
         );
 
         $facetGateway->getList([3], $context);
@@ -255,26 +233,23 @@ class CustomFacetGatewayTest extends TestCase
 
         $originalHydrator = Shopware()->Container()->get('fin_search_unified.custom_listing_hydrator');
 
-        $httpResponse = new Response(200, [], 'alive');
+        $mockedQuery = $this->getMockBuilder(\FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['execute'])
+            ->getMockForAbstractClass();
+        $mockedQuery->expects($this->once())->method('execute')->willReturn($xmlResponse->asXML());
 
-        $httpClientMock = $this->createMock(GuzzleHttpClient::class);
-        $httpClientMock->expects($this->exactly(2))
-            ->method('get')
-            ->willReturn($httpResponse);
-
-        $query = $this->createMock(QueryBuilder::class);
-        $query->expects($this->once())->method('execute')->willReturn($xmlResponse->asXML());
-
-        $querybuilderfactory = new QueryBuilderFactory(
-            $httpClientMock,
-            Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
-            Shopware()->Container()->get('config')
-        );
+        // Mock querybuilder factory method to check that custom implementation does not get called
+        // as original implementation will be called in this case
+        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+        $mockQuerybuilderFactory->expects($this->once())
+            ->method('createProductQuery')
+            ->willReturn($mockedQuery);
 
         $facetGateway = new CustomFacetGateway(
             $mockOriginalService,
             $originalHydrator,
-            $querybuilderfactory
+            $mockQuerybuilderFactory
         );
 
         $customFacets = $facetGateway->getList([3], $context);

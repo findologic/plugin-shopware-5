@@ -2,7 +2,6 @@
 
 namespace FinSearchUnified\Tests\Helper;
 
-use Doctrine\ORM\OptimisticLockException;
 use Enlight_Components_Session_Namespace as Session;
 use Enlight_Controller_Action as Action;
 use Enlight_Controller_Front as Front;
@@ -12,8 +11,8 @@ use Enlight_Plugin_Namespace_Loader as Plugins;
 use Enlight_View_Default as View;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
-use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use PHPUnit\Framework\Assert;
+use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource;
 use Shopware\Components\Test\Plugin\TestCase;
@@ -336,7 +335,6 @@ class StaticHelperTest extends TestCase
             ->method('Request')
             ->willReturn(null);
 
-        // Assign mocked session variable to application container
         Shopware()->Container()->set('front', $front);
 
         $result = StaticHelper::useShopSearch();
@@ -441,7 +439,6 @@ class StaticHelperTest extends TestCase
      * @param string $category
      * @param string $expected
      *
-     * @throws OptimisticLockException
      */
     public function testBuildCategoryName($categoryId, $category, $expected)
     {
