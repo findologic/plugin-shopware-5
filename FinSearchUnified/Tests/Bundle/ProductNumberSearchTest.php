@@ -13,6 +13,13 @@ use SimpleXMLElement;
 
 class ProductNumberSearchTest extends TestCase
 {
+    protected static $ensureLoadedPlugins = [
+        'FinSearchUnified' => [
+            'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+            'ActivateFindologic' => true
+        ],
+    ];
+
     protected function tearDown()
     {
         parent::tearDown();
