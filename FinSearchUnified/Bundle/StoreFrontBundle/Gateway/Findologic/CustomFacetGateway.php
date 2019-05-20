@@ -89,7 +89,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         $categoryId = $categoryIds[0];
 
         $criteria = new Criteria();
-        $criteria->offset(0)->limit(0);
+        $criteria->offset(0)->limit(1);
         $criteria->addCondition(new CategoryCondition($categoryIds));
 
         $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
