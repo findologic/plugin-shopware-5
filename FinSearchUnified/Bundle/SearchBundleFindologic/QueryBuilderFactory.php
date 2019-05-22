@@ -216,7 +216,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     public function createQuery(Criteria $criteria, ShopContextInterface $context)
     {
         $query = $this->createQueryBuilder();
-        $query->addGroup($context->getCurrentCustomerGroup()->getKey());
+        $query->addUserGroup($context->getCurrentCustomerGroup()->getKey());
         $this->addConditions($criteria, $query, $context);
 
         return $query;

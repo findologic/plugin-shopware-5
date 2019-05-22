@@ -111,7 +111,7 @@ class CustomListingHydratorTest extends TestCase
                 'product_attribute_cat',
                 'cat',
                 'Kategorie',
-                ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                ProductAttributeFacet::MODE_RADIO_LIST_RESULT
             ],
             'Filter with a single special character' => [
                 [
@@ -125,7 +125,7 @@ class CustomListingHydratorTest extends TestCase
                 'product_attribute_zoom factor',
                 'zoom_factor',
                 'Zoom Faktor',
-                ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                ProductAttributeFacet::MODE_RADIO_LIST_RESULT
             ],
             'Filter with multiple special characters' => [
                 [
@@ -139,7 +139,7 @@ class CustomListingHydratorTest extends TestCase
                 'product_attribute_special .characters',
                 'special_characters',
                 'Sonderzeichen',
-                ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                ProductAttributeFacet::MODE_RADIO_LIST_RESULT
             ]
         ];
     }
@@ -224,5 +224,59 @@ class CustomListingHydratorTest extends TestCase
                 sprintf("Expected product attribute facet's mode to be %s", $expectedAttributeMode)
             );
         }
+    }
+
+    /**
+     * Data provider for escaping filter names
+     *
+     * @return array
+     */
+    public static function unescapedFilterNameProvider()
+    {
+        return [
+            'Filter name with only letters and numbers' => [
+                'Findologic123',
+                'Findologic123',
+                'Expected string to return unchanged'
+            ],
+            'Filter name with spaces' => [
+                "Findologic 1 2 3",
+                'Findologic_1_2_3',
+                'Expected whitespaces to be stripped way'
+            ],
+            'Filter name with dots' => [
+                "Findologic...Rocks",
+                'Findologic_Rocks',
+                'Expected dots to be stripped way'
+            ],
+            'Filter name with special characters' => [
+                'Findologic&123',
+                'Findologic&123',
+                'Expected special characters to be returned as they are'
+            ],
+            'Filter name with non standard character' => [
+                "Findologic\xC2\xAE 123",
+                'Findologic_123',
+                'Expected non standard characters to be stripped away'
+            ],
+            'Filter name with umlauts' => [
+                'Findolögic123',
+                'Findolögic123',
+                'Expected umlauts to be left unaltered.'
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider unescapedFilterNameProvider
+     *
+     * @param string $text
+     * @param string $expected
+     * @param string $errorMessage
+     */
+    public function testFilterNamesAreEscaped($text, $expected, $errorMessage)
+    {
+        $result = $this->hydrator->getFormFieldName($text);
+        $this->assertEquals($expected, $result, $errorMessage);
     }
 }

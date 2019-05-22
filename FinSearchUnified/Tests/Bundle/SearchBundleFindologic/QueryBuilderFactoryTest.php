@@ -75,10 +75,10 @@ class QueryBuilderFactoryTest extends TestCase
             'EK'
         );
 
-        $this->assertArrayHasKey('group', $params, 'Usergroup was expected to be present in the parameters');
+        $this->assertArrayHasKey('usergrouphash', $params, 'Usergroup was expected to be present in the parameters');
         $this->assertSame(
-            [$hashed],
-            $params['group'],
+            $hashed,
+            $params['usergrouphash'],
             'Expected usergroup "EK" to hashed correctly in group parameter'
         );
 
