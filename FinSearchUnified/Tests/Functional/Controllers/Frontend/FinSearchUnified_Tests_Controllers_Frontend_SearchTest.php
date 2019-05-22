@@ -1,7 +1,8 @@
 <?php
 
 use FinSearchUnified\Bundle\ProductNumberSearch;
-use FinSearchUnified\Helper\UrlBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -75,9 +76,6 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         Shopware()->Session()->offsetUnset('findologicDI');
 
-        Shopware()->Container()->reset('fin_search_unified.helper.url_builder');
-        Shopware()->Container()->load('fin_search_unified.helper.url_builder');
-
         Shopware()->Container()->reset('shopware_search.store_front_criteria_factory');
         Shopware()->Container()->load('shopware_search.store_front_criteria_factory');
 
@@ -146,7 +144,6 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
      * @param array $expectedText
      * @param string $expectedLink
      *
-     * @throws Zend_Http_Exception
      * @throws Exception
      */
     public function testSmartDidYouMeanSuggestionsAreDisplayed(
@@ -187,6 +184,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         Shopware()->Session()->offsetSet('findologicDI', false);
 
         $criteria = new Criteria();
+        $criteria->setFetchCount(true);
         $criteria->addBaseCondition(new SearchTermCondition('blubbergurke'));
         $storeFrontCriteriaFactoryMock = $this->getMockBuilder(StoreFrontCriteriaFactory::class)
             ->disableOriginalConstructor()
@@ -194,25 +192,21 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             ->getMock();
         $storeFrontCriteriaFactoryMock->expects($this->once())->method('createSearchCriteria')->willReturn($criteria);
 
-        Shopware()->Container()->set(
-            'shopware_search.store_front_criteria_factory',
-            $storeFrontCriteriaFactoryMock
-        );
+        Shopware()->Container()->set('shopware_search.store_front_criteria_factory', $storeFrontCriteriaFactoryMock);
 
-        $urlBuilderMock = $this->getMockBuilder(UrlBuilder::class)
+        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
             ->disableOriginalConstructor()
-            ->setMethods([
-                'setCustomerGroup',
-                'buildQueryUrlAndGetResponse'
-            ])
-            ->getMock();
+            ->setMethods(['execute'])
+            ->getMockForAbstractClass();
 
-        $urlBuilderMock->expects($this->once())->method('setCustomerGroup');
-        $urlBuilderMock->expects($this->once())->method('buildQueryUrlAndGetResponse')->willReturn(
-            new Zend_Http_Response(200, [], $xmlResponse->asXML())
-        );
+        $mockedQuery->expects($this->once())->method('execute')->willReturn($xmlResponse->asXML());
 
-        Shopware()->Container()->set('fin_search_unified.helper.url_builder', $urlBuilderMock);
+        // Mock querybuilder factory method to check that custom implementation does not get called
+        // as original implementation will be called in this case
+        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+        $mockQuerybuilderFactory->expects($this->once())
+            ->method('createProductQuery')
+            ->willReturn($mockedQuery);
 
         $originalService = $this->getMockBuilder(SearchBundleDBAL\ProductNumberSearch::class)
             ->disableOriginalConstructor()
@@ -220,7 +214,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             ->getMock();
         $originalService->expects($this->never())->method('search');
 
-        $productNumberSearch = new ProductNumberSearch($originalService);
+        $productNumberSearch = new ProductNumberSearch($originalService, $mockQuerybuilderFactory);
 
         $productSearch = new ProductSearch(
             Shopware()->Container()->get('shopware_storefront.list_product_service'),

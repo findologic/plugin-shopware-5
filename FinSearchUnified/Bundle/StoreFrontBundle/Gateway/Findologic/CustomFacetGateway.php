@@ -2,9 +2,14 @@
 
 namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic;
 
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Helper\StaticHelper;
+use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
+use Shopware\Bundle\SearchBundle\Criteria;
+use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Gateway\CustomFacetGatewayInterface;
+use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use SimpleXMLElement;
 
@@ -16,6 +21,11 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
     protected $hydrator;
 
     /**
+     * @var QueryBuilderFactoryInterface
+     */
+    protected $queryBuilderFactory;
+
+    /**
      * @var CustomFacetGatewayInterface
      */
     private $originalService;
@@ -23,22 +33,23 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
     /**
      * @param CustomFacetGatewayInterface $service
      * @param CustomListingHydrator $hydrator
-     *
-     * @throws \Exception
+     * @param QueryBuilderFactoryInterface $queryBuilderFactory
      */
     public function __construct(
         CustomFacetGatewayInterface $service,
-        CustomListingHydrator $hydrator
+        CustomListingHydrator $hydrator,
+        QueryBuilderFactoryInterface $queryBuilderFactory
     ) {
         $this->originalService = $service;
         $this->hydrator = $hydrator;
+        $this->queryBuilderFactory = $queryBuilderFactory;
     }
 
     /**
      * @param int[] $ids
      * @param ShopContextInterface $context
      *
-     * @return \Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet[]
+     * @return CustomFacet[]
      */
     public function getList(array $ids, ShopContextInterface $context)
     {
@@ -46,10 +57,15 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
             return $this->originalService->getList($ids, $context);
         }
 
-        $urlBuilder = Shopware()->Container()->get('fin_search_unified.helper.url_builder');
-        $urlBuilder->setCustomerGroup($context->getCurrentCustomerGroup());
-        $response = $urlBuilder->buildCompleteFilterList();
-        if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
+        $criteria = new Criteria();
+        $criteria->offset(0)->limit(1);
+
+        /** @var QueryBuilder $query */
+        $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
+
+        $response = $query->execute();
+
+        if (!empty($response)) {
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
 
             return $this->hydrate($xmlResponse->filters->filter);
@@ -70,13 +86,16 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
             return $this->originalService->getFacetsOfCategories($categoryIds, $context);
         }
 
-        $urlBuilder = Shopware()->Container()->get('fin_search_unified.helper.url_builder');
-
-        // Facets abfragen
         $categoryId = $categoryIds[0];
-        $urlBuilder->setCustomerGroup($context->getCurrentCustomerGroup());
-        $response = $urlBuilder->buildCategoryUrlAndGetResponse($categoryId);
-        if ($response instanceof \Zend_Http_Response && $response->getStatus() == 200) {
+
+        $criteria = new Criteria();
+        $criteria->offset(0)->limit(1);
+        $criteria->addCondition(new CategoryCondition($categoryIds));
+
+        $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
+        $response = $query->execute();
+
+        if (!empty($response)) {
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
             $categoryFacets = [];
             $categoryFacets[$categoryId] = $this->hydrate($xmlResponse->filters->filter);
@@ -90,11 +109,10 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
     /**
      * @param ShopContextInterface $context
      *
-     * @return \Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet
+     * @return CustomFacet
      */
     public function getAllCategoryFacets(ShopContextInterface $context)
     {
-        // TODO: Implement getAllCategoryFacets() method.
         return $this->originalService->getAllCategoryFacets($context);
     }
 

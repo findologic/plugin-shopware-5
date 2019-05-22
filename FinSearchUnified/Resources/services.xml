@@ -36,6 +36,7 @@
         >
             <argument type="service" id="FinSearchUnified.findologic_facet_gateway.inner" />
             <argument type="service" id="fin_search_unified.custom_listing_hydrator" />
+            <argument type="service" id="fin_search_unified.query_builder_factory" />
         </service>
 
         <service id="fin_search_unified.shopware_process" class="FinSearchUnified\ShopwareProcess">
@@ -67,6 +68,7 @@
             public="false"
         >
             <argument type="service" id="fin_search_unified.product_number_search.inner" />
+            <argument type="service" id="fin_search_unified.query_builder_factory" />
         </service>
 
         <service
@@ -76,6 +78,7 @@
             public="false"
         >
             <argument type="service" id="fin_search_unified_es.product_number_search.inner" />
+            <argument type="service" id="fin_search_unified.query_builder_factory" />
         </service>
 
         <service id="fin_search_unified.commands.export_command" class="FinSearchUnified\Commands\ExportCommand">

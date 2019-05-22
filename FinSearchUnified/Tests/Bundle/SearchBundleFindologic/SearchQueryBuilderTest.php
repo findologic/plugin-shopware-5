@@ -98,6 +98,7 @@ class SearchQueryBuilderTest extends TestCase
                 ->method('get')
                 ->will($this->onConsecutiveCalls($httpResponse, $this->throwException(new Exception())));
         }
+
         $querybuilder = new SearchQueryBuilder(
             $httpClientMock,
             $this->installerService,
@@ -250,12 +251,12 @@ class SearchQueryBuilderTest extends TestCase
      */
     public function testAddGroupMethodWithCustomerGroup()
     {
-        $this->querybuilder->addGroup('EK');
+        $this->querybuilder->addUserGroup('EK');
 
         $hashed = StaticHelper::calculateUsergroupHash($this->config['ShopKey'], 'EK');
         $parameters = $this->querybuilder->getParameters();
-        $this->assertArrayHasKey('group', $parameters, 'Expected user group to be present in parameters');
-        $this->assertSame([$hashed], $parameters['group'], 'Expected usergroup to be hashed correctly');
+        $this->assertArrayHasKey('usergrouphash', $parameters, 'Expected user group to be present in parameters');
+        $this->assertSame($hashed, $parameters['usergrouphash'], 'Expected usergroup to be hashed correctly');
     }
 
     /**
@@ -263,12 +264,12 @@ class SearchQueryBuilderTest extends TestCase
      */
     public function testAddGroupMethodWithEmptyCustomerGroup()
     {
-        $this->querybuilder->addGroup('');
+        $this->querybuilder->addUserGroup('');
 
         $hashed = StaticHelper::calculateUsergroupHash($this->config['ShopKey'], '');
         $parameters = $this->querybuilder->getParameters();
-        $this->assertArrayHasKey('group', $parameters, 'Expected user group to be present in parameters');
-        $this->assertSame([$hashed], $parameters['group'], 'Expected usergroup to be hashed correctly');
+        $this->assertArrayHasKey('usergrouphash', $parameters, 'Expected user group to be present in parameters');
+        $this->assertSame($hashed, $parameters['usergrouphash'], 'Expected usergroup to be hashed correctly');
     }
 
     /**
@@ -276,12 +277,12 @@ class SearchQueryBuilderTest extends TestCase
      */
     public function testAddGroupMethodWithNullCustomerGroup()
     {
-        $this->querybuilder->addGroup(null);
+        $this->querybuilder->addUserGroup(null);
 
         $hashed = StaticHelper::calculateUsergroupHash($this->config['ShopKey'], null);
         $parameters = $this->querybuilder->getParameters();
-        $this->assertArrayHasKey('group', $parameters, 'Expected user group to be present in parameters');
-        $this->assertSame([$hashed], $parameters['group'], 'Expected usergroup to be hashed correctly');
+        $this->assertArrayHasKey('usergrouphash', $parameters, 'Expected user group to be present in parameters');
+        $this->assertSame($hashed, $parameters['usergrouphash'], 'Expected usergroup to be hashed correctly');
     }
 
     public function searchTermProvider()
@@ -307,5 +308,79 @@ class SearchQueryBuilderTest extends TestCase
                 ['Brands', 'Friends'],
             ]
         ];
+    }
+
+    /**
+     * @dataProvider querybuilderResponseProvider
+     *
+     * @param int $responseCode
+     * @param int $callCount
+     * @param string|null $expectedResponse
+     *
+     * @throws Exception
+     */
+    public function testQueryBuilderResponse($responseCode, $callCount, $expectedResponse)
+    {
+        $httpResponse = new Response($responseCode, [], 'alive');
+        $httpClientMock = $this->createMock(GuzzleHttpClient::class);
+        $httpClientMock->expects($this->exactly($callCount))
+            ->method('get')
+            ->willReturn($httpResponse);
+
+        $querybuilder = new SearchQueryBuilder(
+            $httpClientMock,
+            $this->installerService,
+            $this->config
+        );
+        $response = $querybuilder->execute();
+        $this->assertSame($expectedResponse, $response);
+    }
+
+    public function querybuilderResponseProvider()
+    {
+        return [
+            'Response is 200' => [200, 2, 'alive'],
+            'Response is 500' => [500, 1, null],
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public function forceOriginalQueryProvider()
+    {
+        return [
+            'forceOriginalQuery not present' => [null],
+            'forceOriginalQuery present and truthy' => [1],
+            'forceOriginalQuery present and falsy' => [0]
+        ];
+    }
+
+    /**
+     * @dataProvider forceOriginalQueryProvider
+     *
+     * @param int|null $forceOriginalQuery
+     *
+     * @throws Exception
+     */
+    public function testQuerybuilderForceOriginalQuery($forceOriginalQuery)
+    {
+        $httpResponse = new Response(200, [], 'alive');
+        $httpClientMock = $this->createMock(GuzzleHttpClient::class);
+        $httpClientMock->expects($this->exactly(2))
+            ->method('get')
+            ->willReturn($httpResponse);
+
+        $_GET['forceOriginalQuery'] = $forceOriginalQuery;
+
+        $querybuilder = new SearchQueryBuilder(
+            $httpClientMock,
+            $this->installerService,
+            $this->config
+        );
+
+        $querybuilder->execute();
+        $parameters = $querybuilder->getParameters();
+        $this->assertSame($forceOriginalQuery, $parameters['forceOriginalQuery']);
     }
 }

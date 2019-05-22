@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Bundle\SearchBundleFindologic;
 
 use Exception;
+use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Components\HttpClient\HttpClientInterface;
@@ -69,6 +70,10 @@ abstract class QueryBuilder
      */
     public function execute()
     {
+        if (isset($_GET[Constants::SDYM_PARAM_FORCE_QUERY])) {
+            $this->parameters[Constants::SDYM_PARAM_FORCE_QUERY] = $_GET[Constants::SDYM_PARAM_FORCE_QUERY] ? 1 : 0;
+        }
+
         $url = sprintf(
             '%s/%s/%s?%s',
             self::BASE_URL,
@@ -82,7 +87,9 @@ abstract class QueryBuilder
         try {
             if ($this->isAlive()) {
                 $response = $this->httpClient->get($url);
-                $payload = $response->getBody();
+                if ($this->isSuccessful($response)) {
+                    $payload = $response->getBody();
+                }
             }
         } catch (RequestException $exception) {
         }
@@ -187,14 +194,20 @@ abstract class QueryBuilder
 
     /**
      * @param string $key
-     * @param mixed $value
+     * @param mixed $values
      */
-    public function addFilter($key, $value)
+    public function addFilter($key, $values)
     {
-        if (empty($this->getParameter($key))) {
-            $this->addParameter($key, [urldecode($value)]);
-        } else {
-            $this->addParameter($key, urldecode($value));
+        if (!is_array($values)) {
+            $values = [$values];
+        }
+
+        foreach ($values as $value) {
+            if (empty($this->getParameter($key))) {
+                $this->addParameter($key, [urldecode($value)]);
+            } else {
+                $this->addParameter($key, urldecode($value));
+            }
         }
     }
 
@@ -265,9 +278,8 @@ abstract class QueryBuilder
     /**
      * @param string $usergroup
      */
-    public function addGroup($usergroup)
+    public function addUserGroup($usergroup)
     {
-        $hashedKey = StaticHelper::calculateUsergroupHash($this->shopKey, $usergroup);
-        $this->parameters['group'] = [$hashedKey];
+        $this->parameters['usergrouphash'] = StaticHelper::calculateUsergroupHash($this->shopKey, $usergroup);
     }
 }
