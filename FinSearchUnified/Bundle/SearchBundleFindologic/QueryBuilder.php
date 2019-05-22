@@ -194,14 +194,20 @@ abstract class QueryBuilder
 
     /**
      * @param string $key
-     * @param mixed $value
+     * @param mixed $values
      */
-    public function addFilter($key, $value)
+    public function addFilter($key, $values)
     {
-        if (empty($this->getParameter($key))) {
-            $this->addParameter($key, [urldecode($value)]);
-        } else {
-            $this->addParameter($key, urldecode($value));
+        if (!is_array($values)) {
+            $values = [$values];
+        }
+
+        foreach ($values as $value) {
+            if (empty($this->getParameter($key))) {
+                $this->addParameter($key, [urldecode($value)]);
+            } else {
+                $this->addParameter($key, urldecode($value));
+            }
         }
     }
 
