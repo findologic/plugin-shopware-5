@@ -167,11 +167,11 @@ class SearchQueryBuilderTest extends TestCase
     /**
      * @throws Exception
      */
-    public function testAddPriceMethod()
+    public function testAddRangeFilterMethod()
     {
         $price = ['min' => 12.69, 'max' => 42];
 
-        $this->querybuilder->addPrice($price['min'], $price['max']);
+        $this->querybuilder->addRangeFilter('price', $price['min'], $price['max']);
         $parameters = $this->querybuilder->getParameters();
         $this->assertArrayHasKey('attrib', $parameters);
         $this->assertArrayHasKey('price', $parameters['attrib']);

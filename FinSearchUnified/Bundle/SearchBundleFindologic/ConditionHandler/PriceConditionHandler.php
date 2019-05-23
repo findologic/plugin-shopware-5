@@ -38,6 +38,6 @@ class PriceConditionHandler implements ConditionHandlerInterface
         $minPrice = $condition->getMinPrice();
         $maxPrice = $condition->getMaxPrice() ?: PHP_INT_MAX;
 
-        $query->addPrice($minPrice, $maxPrice);
+        $query->addRangeFilter('price', $minPrice, $maxPrice);
     }
 }

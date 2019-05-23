@@ -35,6 +35,16 @@ class ProductAttributeConditionHandler implements ConditionHandlerInterface
     public function generateCondition(ConditionInterface $condition, QueryBuilder $query, ShopContextInterface $context)
     {
         /** @var ProductAttributeCondition $condition */
-        $query->addFilter($condition->getField(), $condition->getValue());
+        if ($condition->getOperator() === ConditionInterface::OPERATOR_BETWEEN) {
+            $values = $condition->getValue();
+
+            $query->addRangeFilter(
+                $condition->getField(),
+                isset($values['min']) ? $values['min'] : 0,
+                isset($values['max']) ? $values['max'] : PHP_INT_MAX
+            );
+        } else {
+            $query->addFilter($condition->getField(), $condition->getValue());
+        }
     }
 }

@@ -184,12 +184,13 @@ abstract class QueryBuilder
     }
 
     /**
+     * @param string $key
      * @param float $min
      * @param float $max
      */
-    public function addPrice($min, $max)
+    public function addRangeFilter($key, $min, $max)
     {
-        $this->addParameter('price', ['min' => urldecode($min), 'max' => urldecode($max)]);
+        $this->addParameter($key, ['min' => urldecode($min), 'max' => urldecode($max)]);
     }
 
     /**
