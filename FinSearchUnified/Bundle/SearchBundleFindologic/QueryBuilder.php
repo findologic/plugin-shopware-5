@@ -79,7 +79,7 @@ abstract class QueryBuilder
             self::BASE_URL,
             $this->shopUrl,
             static::ENDPOINT,
-            http_build_query($this->parameters)
+            http_build_query($this->parameters, null, '&', PHP_QUERY_RFC3986)
         );
 
         $payload = null;
@@ -184,12 +184,13 @@ abstract class QueryBuilder
     }
 
     /**
+     * @param string $key
      * @param float $min
      * @param float $max
      */
-    public function addPrice($min, $max)
+    public function addRangeFilter($key, $min, $max)
     {
-        $this->addParameter('price', ['min' => urldecode($min), 'max' => urldecode($max)]);
+        $this->addParameter($key, ['min' => urldecode($min), 'max' => urldecode($max)]);
     }
 
     /**
