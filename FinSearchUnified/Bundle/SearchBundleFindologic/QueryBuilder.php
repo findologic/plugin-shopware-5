@@ -79,7 +79,7 @@ abstract class QueryBuilder
             self::BASE_URL,
             $this->shopUrl,
             static::ENDPOINT,
-            http_build_query($this->parameters)
+            http_build_query($this->parameters, null, '&', PHP_QUERY_RFC3986)
         );
 
         $payload = null;
