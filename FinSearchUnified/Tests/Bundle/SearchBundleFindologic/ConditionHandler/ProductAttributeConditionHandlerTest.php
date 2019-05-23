@@ -9,6 +9,7 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
 use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
 use Shopware\Components\Test\Plugin\TestCase;
+use Shopware\Bundle\SearchBundle\ConditionInterface;
 
 class ProductAttributeConditionHandlerTest extends TestCase
 {
@@ -76,7 +77,7 @@ class ProductAttributeConditionHandlerTest extends TestCase
         $handler = new ProductAttributeConditionHandler();
         foreach ($attributes as $value) {
             $handler->generateCondition(
-                new ProductAttributeCondition($value['field'], '=', $value['value']),
+                new ProductAttributeCondition($value['field'], ConditionInterface::OPERATOR_EQ, $value['value']),
                 $this->querybuilder,
                 $this->context
             );
