@@ -67,10 +67,6 @@ class WidgetsTest extends TestCase
 
         $params = $subject->Request()->getParams();
 
-        foreach ($requestParameters as $key => $value) {
-            $this->assertArrayHasKey($key, $params, sprintf('Expected %s to be present', $key));
-        }
-
         if (empty($expectedRequestParameters)) {
             $this->assertArrayNotHasKey('sSearch', $params, 'Expected no query parameter to be set');
         } else {
