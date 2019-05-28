@@ -123,5 +123,12 @@
         <service id="fin_search_unified.subscriber.widgets" class="FinSearchUnified\Subscriber\Widgets">
             <tag name="shopware.event_subscriber" />
         </service>
+
+        <service class="FinSearchUnified\Components\ConfigLoader" id="fin_search_unified.config_loader">
+            <argument id="cache" type="service" />
+            <argument id="http_client" type="service" />
+            <argument id="config" type="service" />
+        </service>
+
     </services>
 </container>
