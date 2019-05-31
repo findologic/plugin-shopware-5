@@ -94,7 +94,7 @@ class ConfigLoader
 
     private function getCacheKey()
     {
-        return sprintf('%s_%s', self::CACHE_ID, $this->shopkey);
+        return sprintf('%s_%s', self::CACHE_ID, strtoupper($this->shopkey));
     }
 
     /**
