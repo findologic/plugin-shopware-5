@@ -19,6 +19,7 @@ use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use Shopware\Components\HttpClient\HttpClientInterface;
 use Shopware_Components_Config;
+use SimpleConditionHandler;
 
 class QueryBuilderFactory implements QueryBuilderFactoryInterface
 {
@@ -93,6 +94,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
         $conditionHandlers[] = new PriceConditionHandler();
         $conditionHandlers[] = new ProductAttributeConditionHandler();
         $conditionHandlers[] = new SearchTermConditionHandler();
+        $conditionHandlers[] = new SimpleConditionHandler();
 
         return $conditionHandlers;
     }

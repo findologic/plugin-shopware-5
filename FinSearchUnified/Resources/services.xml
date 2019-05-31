@@ -16,6 +16,10 @@
             <tag name="shopware.event_subscriber" />
         </service>
 
+        <service id="fin_search_unified.sdym_criteria_request_handler">
+            <tag name="criteria_request_handler"/>
+        </service>
+
         <service
             id="fin_search_unified.subscriber.register_components"
             class="FinSearchUnified\Subscriber\RegisterComponents"
