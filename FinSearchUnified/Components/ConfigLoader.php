@@ -104,7 +104,7 @@ class ConfigLoader
     {
         $config = json_decode($this->getConfigFile(), true);
         if ($config) {
-            $data = array_intersect_key($config, self::WHITE_LIST);
+            $data = array_intersect_key(self::WHITE_LIST, $config);
             $this->cache->save($data, $this->getCacheKey(), ['FINDOLOGIC'], self::CACHE_LIFETIME);
         }
     }

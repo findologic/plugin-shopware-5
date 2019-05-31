@@ -13,6 +13,12 @@ use Zend_Cache_Core;
 
 class ConfigLoaderTest extends TestCase
 {
+    protected static $ensureLoadedPlugins = [
+        'FinSearchUnified' => [
+            'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ'
+        ],
+    ];
+
     /**
      * @var string
      */
@@ -127,11 +133,12 @@ class ConfigLoaderTest extends TestCase
      * @dataProvider warmUpCacheProvider
      *
      * @param int $responseCode
-     * @param string|null $expectedConfig
+     * @param string|null $responseBody
+     * @param array $expectedConfig
      *
      * @throws ReflectionException
      */
-    public function testWarmUpCache($responseCode, $responseBody, $expectedConfig)
+    public function testWarmUpCache($responseCode, $responseBody, array $expectedConfig)
     {
         $httpResponse = new Response($responseCode, [], $responseBody);
         $httpClientMock = $this->createMock(GuzzleHttpClient::class);
@@ -147,19 +154,20 @@ class ConfigLoaderTest extends TestCase
             ->will($this->onConsecutiveCalls($responseCallback));
 
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
-        $args = [
+        $expectedArgs = [
             $expectedConfig,
             sprintf('%s_%s', 'fin_service_config', strtoupper(Shopware()->Config()->offsetGet('ShopKey'))),
             ['FINDOLOGIC'],
-            84600
+            86400,
+            8
 
         ];
 
         if (empty($expectedConfig)) {
             $mockedCache->expects($this->never())->method('save');
         } else {
-            $cacheCallback = $this->returnCallback(function () use ($args) {
-                Assert::assertSame($args, func_get_args());
+            $cacheCallback = $this->returnCallback(function () use ($expectedArgs) {
+                Assert::assertEquals($expectedArgs, func_get_args());
 
                 return true;
             });
@@ -182,7 +190,7 @@ class ConfigLoaderTest extends TestCase
     public function warmUpCacheProvider()
     {
         return [
-            'Config file is empty or null' => [200, null, null],
+            'Config file is empty or null' => [200, null, []],
             'Config file returns extra parameters' => [
                 200,
                 json_encode([
@@ -192,5 +200,226 @@ class ConfigLoaderTest extends TestCase
                 ['isStagingShop' => false, 'directIntegration' => ['enabled' => false]]
             ],
         ];
+    }
+
+    /**
+     * @dataProvider cacheTestProvider
+     *
+     * @param int|bool $cacheTestResponse
+     *
+     * @throws ReflectionException
+     */
+    public function testCacheWithCorrectKey($cacheTestResponse)
+    {
+        $config = ['isStagingShop' => false, 'directIntegration' => ['enabled' => false]];
+        $mockedCache = $this->createMock(Zend_Cache_Core::class);
+        $expectedCacheKey =
+            sprintf('%s_%s', 'fin_service_config', strtoupper(Shopware()->Config()->offsetGet('ShopKey')));
+
+        $testCacheCallback = $this->returnCallback(function ($key) use ($expectedCacheKey, $cacheTestResponse) {
+            Assert::assertSame($expectedCacheKey, $key);
+
+            return $cacheTestResponse;
+        });
+
+        $loadCacheCallback = $this->returnCallback(function ($key) use ($expectedCacheKey, $config) {
+            Assert::assertSame($expectedCacheKey, $key);
+
+            return $config;
+        });
+
+        if ($cacheTestResponse === false) {
+            $mockedCache->expects($this->once())
+                ->method('save');
+
+            $httpResponse = new Response(200, [], json_encode($config));
+            $httpClient = $this->createMock(GuzzleHttpClient::class);
+            $httpClient->expects($this->once())->method('get')->willReturn($httpResponse);
+        } else {
+            $mockedCache->expects($this->never())
+                ->method('save');
+
+            $httpClient = Shopware()->Container()->get('http_client');
+        }
+        $mockedCache->expects($this->once())
+            ->method('test')
+            ->will($this->onConsecutiveCalls($testCacheCallback));
+
+        $mockedCache->expects($this->once())
+            ->method('load')
+            ->will($this->onConsecutiveCalls($loadCacheCallback));
+
+        $configLoader = new ConfigLoader(
+            $mockedCache,
+            $httpClient,
+            Shopware()->Config()
+        );
+
+        $reflector = new ReflectionObject($configLoader);
+        $method = $reflector->getMethod('get');
+        $method->setAccessible(true);
+        $result = $method->invoke($configLoader, 'directIntegration', 'test');
+
+        $this->assertFalse($result);
+    }
+
+    /**
+     * @dataProvider cacheLoadProvider
+     *
+     * @param int|bool $cacheResponse
+     *
+     * @throws ReflectionException
+     */
+    public function testCacheWithNonExistingKey($cacheResponse)
+    {
+        $mockedCache = $this->createMock(Zend_Cache_Core::class);
+        $expectedCacheKey =
+            sprintf('%s_%s', 'fin_service_config', strtoupper(Shopware()->Config()->offsetGet('ShopKey')));
+
+        $testCacheCallback = $this->returnCallback(function ($key) use ($expectedCacheKey, $cacheResponse) {
+            Assert::assertSame($expectedCacheKey, $key);
+
+            return 0;
+        });
+
+        $loadCacheCallback = $this->returnCallback(function ($key) use ($expectedCacheKey, $cacheResponse) {
+            Assert::assertSame($expectedCacheKey, $key);
+
+            return $cacheResponse;
+        });
+
+        $mockedCache->expects($this->never())
+            ->method('save');
+
+        $httpClient = Shopware()->Container()->get('http_client');
+
+        $mockedCache->expects($this->once())
+            ->method('test')
+            ->will($this->onConsecutiveCalls($testCacheCallback));
+
+        $mockedCache->expects($this->once())
+            ->method('load')
+            ->will($this->onConsecutiveCalls($loadCacheCallback));
+
+        $configLoader = new ConfigLoader(
+            $mockedCache,
+            $httpClient,
+            Shopware()->Config()
+        );
+
+        $reflector = new ReflectionObject($configLoader);
+        $method = $reflector->getMethod('get');
+        $method->setAccessible(true);
+        $config = $method->invoke($configLoader, 'iDoNotExist', 'test');
+
+        $this->assertSame('test', $config);
+    }
+
+    public function cacheTestProvider()
+    {
+        return [
+            'Cache test return 0' => [0],
+            'Cache test return false' => [false]
+        ];
+    }
+
+    public function cacheLoadProvider()
+    {
+        return [
+            'Cache load return 0' => [0],
+            'Cache load return config' => [['isStagingShop' => false, 'directIntegration' => ['enabled' => false]]]
+        ];
+    }
+
+    public function testDirectIntegration()
+    {
+        $config = ['isStagingShop' => false, 'directIntegration' => ['enabled' => false]];
+        $mockedCache = $this->createMock(Zend_Cache_Core::class);
+        $expectedCacheKey =
+            sprintf('%s_%s', 'fin_service_config', strtoupper(Shopware()->Config()->offsetGet('ShopKey')));
+
+        $testCacheCallback = $this->returnCallback(function ($key) use ($expectedCacheKey) {
+            Assert::assertSame($expectedCacheKey, $key);
+
+            return 0;
+        });
+
+        $loadCacheCallback = $this->returnCallback(function ($key) use ($expectedCacheKey, $config) {
+            Assert::assertSame($expectedCacheKey, $key);
+
+            return $config;
+        });
+
+        $mockedCache->expects($this->never())
+            ->method('save');
+
+        $httpClient = Shopware()->Container()->get('http_client');
+
+        $mockedCache->expects($this->once())
+            ->method('test')
+            ->will($this->onConsecutiveCalls($testCacheCallback));
+
+        $mockedCache->expects($this->once())
+            ->method('load')
+            ->will($this->onConsecutiveCalls($loadCacheCallback));
+
+        $configLoader = new ConfigLoader(
+            $mockedCache,
+            $httpClient,
+            Shopware()->Config()
+        );
+
+        $reflector = new ReflectionObject($configLoader);
+        $method = $reflector->getMethod('directIntegrationEnabled');
+        $method->setAccessible(true);
+        $result = $method->invoke($configLoader);
+
+        $this->assertFalse($result);
+    }
+
+    public function testIsStagingShop()
+    {
+        $config = ['isStagingShop' => false, 'directIntegration' => ['enabled' => false]];
+        $mockedCache = $this->createMock(Zend_Cache_Core::class);
+        $expectedCacheKey =
+            sprintf('%s_%s', 'fin_service_config', strtoupper(Shopware()->Config()->offsetGet('ShopKey')));
+
+        $testCacheCallback = $this->returnCallback(function ($key) use ($expectedCacheKey) {
+            Assert::assertSame($expectedCacheKey, $key);
+
+            return 0;
+        });
+
+        $loadCacheCallback = $this->returnCallback(function ($key) use ($expectedCacheKey, $config) {
+            Assert::assertSame($expectedCacheKey, $key);
+
+            return $config;
+        });
+
+        $mockedCache->expects($this->never())
+            ->method('save');
+
+        $httpClient = Shopware()->Container()->get('http_client');
+
+        $mockedCache->expects($this->once())
+            ->method('test')
+            ->will($this->onConsecutiveCalls($testCacheCallback));
+
+        $mockedCache->expects($this->once())
+            ->method('load')
+            ->will($this->onConsecutiveCalls($loadCacheCallback));
+
+        $configLoader = new ConfigLoader(
+            $mockedCache,
+            $httpClient,
+            Shopware()->Config()
+        );
+
+        $reflector = new ReflectionObject($configLoader);
+        $method = $reflector->getMethod('isStagingShop');
+        $method->setAccessible(true);
+        $result = $method->invoke($configLoader);
+
+        $this->assertFalse($result);
     }
 }
