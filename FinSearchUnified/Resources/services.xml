@@ -16,7 +16,9 @@
             <tag name="shopware.event_subscriber" />
         </service>
 
-        <service id="fin_search_unified.sdym_criteria_request_handler">
+        <service id="fin_search_unified.sdym_criteria_request_handler"
+                 class="FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler\SdymCriteriaRequestHandler.php"
+        >
             <tag name="criteria_request_handler"/>
         </service>
 
