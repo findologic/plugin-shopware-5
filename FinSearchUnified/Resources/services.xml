@@ -20,7 +20,7 @@
             id="fin_search_unified.sdym_criteria_request_handler"
             class="FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler\SdymCriteriaRequestHandler"
         >
-            <tag name="criteria_request_handler"/>
+            <tag name="criteria_request_handler" />
         </service>
 
         <service

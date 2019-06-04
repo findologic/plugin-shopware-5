@@ -281,7 +281,6 @@ abstract class QueryBuilder
     }
 
     /**
-     * Add a key - value pair to the parameters
      * @param string $key
      * @param mixed $value
      */
