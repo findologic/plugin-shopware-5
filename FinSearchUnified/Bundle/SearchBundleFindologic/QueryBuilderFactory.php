@@ -7,6 +7,7 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\CategoryCond
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\PriceConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\ProductAttributeConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\SearchTermConditionHandler;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\SimpleConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\PopularitySortingHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\PriceSortingHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\ProductNameSortingHandler;
@@ -19,7 +20,6 @@ use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use Shopware\Components\HttpClient\HttpClientInterface;
 use Shopware_Components_Config;
-use SimpleConditionHandler;
 
 class QueryBuilderFactory implements QueryBuilderFactoryInterface
 {

@@ -1,5 +1,7 @@
 <?php
 
+namespace FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler;
+
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use Shopware\Bundle\SearchBundle\Condition\SimpleCondition;
@@ -33,6 +35,6 @@ class SimpleConditionHandler implements ConditionHandlerInterface
         QueryBuilder $query,
         ShopContextInterface $context
     ) {
-        QueryBuilder::addFlag($condition->getName(), true);
+        $query->addFlag($condition->getName(), true);
     }
 }

@@ -12,6 +12,7 @@ use Shopware\Bundle\SearchBundle\Condition\IsAvailableCondition;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
+use Shopware\Bundle\SearchBundle\Condition\SimpleCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Sorting\PopularitySorting;
 use Shopware\Bundle\SearchBundle\Sorting\SimpleSorting;
@@ -132,6 +133,16 @@ class QueryBuilderFactoryTest extends TestCase
         $this->assertSame('blubbergurke', $params['query'], 'Expected search query to be "blubbergurke"');
 
         $this->assertCount(3, $attrib, 'Expected attributes to not contain any other parameters');
+    }
+
+    public function testSimpleCondition()
+    {
+        $criteria = new Criteria();
+        $criteria->addCondition(new SimpleCondition('ye'));
+        $query = $this->factory->createQuery($criteria, $this->context);
+        $params = $query->getParameters();
+        $this->assertArrayHasKey('ye', $params);
+        $this->assertEquals(true, $params['ye']);
     }
 
     /**
