@@ -167,23 +167,23 @@ class SearchQueryBuilderTest extends TestCase
     public function queryBuilderAddFlagDataProvider()
     {
         return [
-            'value set' => [
+            'Value set' => [
                 true,
                 true
             ],
-            'value false' => [
+            'Value false' => [
                 false,
                 false
             ],
-            'value null' => [
+            'Value null' => [
                 null,
                 false
             ],
-            'value empty string' => [
+            'Value empty string' => [
                 '',
                 false
             ],
-            'value is non empty string' => [
+            'Value is non empty string' => [
                 'non empty string',
                 true
             ]
@@ -192,6 +192,8 @@ class SearchQueryBuilderTest extends TestCase
 
     /**
      * @dataProvider queryBuilderAddFlagDataProvider
+     * @param mixed $value The Flag value
+     * @param bool $expected The expected outcome
      */
     public function testQueryBuilderAddFlag($value, $expected)
     {

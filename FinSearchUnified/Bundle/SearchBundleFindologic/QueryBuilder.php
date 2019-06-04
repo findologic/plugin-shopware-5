@@ -280,8 +280,7 @@ abstract class QueryBuilder
         $this->parameters['usergrouphash'] = StaticHelper::calculateUsergroupHash($this->shopKey, $usergroup);
     }
 
-
-    public function addFlag(string $key, $value)
+    public function addFlag($key, $value)
     {
         $this->parameters[$key] = (bool)$value;
     }

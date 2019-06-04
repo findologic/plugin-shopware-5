@@ -139,8 +139,10 @@ class QueryBuilderFactoryTest extends TestCase
     {
         $criteria = new Criteria();
         $criteria->addCondition(new SimpleCondition('ye'));
+
         $query = $this->factory->createQuery($criteria, $this->context);
         $params = $query->getParameters();
+
         $this->assertArrayHasKey('ye', $params);
         $this->assertEquals(true, $params['ye']);
     }

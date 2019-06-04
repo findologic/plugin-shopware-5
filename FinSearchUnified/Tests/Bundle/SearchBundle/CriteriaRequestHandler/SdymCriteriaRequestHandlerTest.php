@@ -11,37 +11,34 @@ use Shopware\Tests\Functional\Bundle\StoreFrontBundle\TestContext;
 
 class SdymCriteriaRequestHandlerTest extends TestCase
 {
-    /** @var RequestHttp */
+    /**
+     * @var RequestHttp
+     */
     public $request;
-    /** @var Criteria */
+
+    /**
+     * @var Criteria
+     */
     public $criteria;
-    /** @var TestContext */
+
+    /**
+     * @var TestContext
+     */
     public $context;
-    /** @var SdymCriteriaRequestHandler */
+
+    /**
+     * @var SdymCriteriaRequestHandler
+     */
     public $handler;
 
     protected function setUp()
     {
         parent::setUp();
 
-
         $this->criteria = new Criteria();
-        $this->context = $this->getContext();
+        $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
+        $this->context = $contextService->getShopContext();
         $this->handler = new SdymCriteriaRequestHandler();
-    }
-
-    public function getContext()
-    {
-        $helper = new Helper();
-        $tax = $helper->createTax();
-        $customerGroup = $helper->createCustomerGroup();
-        $shop = $helper->getShop(1);
-
-        return $helper->createContext(
-            $customerGroup,
-            $shop,
-            [$tax]
-        );
     }
 
     public function handleDataProvider()
@@ -49,23 +46,28 @@ class SdymCriteriaRequestHandlerTest extends TestCase
         return [
             'Value is true' => [
                 true,
-                true
+                true,
+                Constants::SDYM_PARAM_FORCE_QUERY
             ],
             'Value is false' => [
                 false,
-                false
+                false,
+                Constants::SDYM_PARAM_FORCE_QUERY
             ],
             'Value is null' => [
                 null,
-                false
+                false,
+                Constants::SDYM_PARAM_FORCE_QUERY
             ],
             'Value is empty string' => [
                 '',
-                false
+                false,
+                Constants::SDYM_PARAM_FORCE_QUERY
             ],
             'Value is non empty string' => [
                 'hey there boi',
-                true
+                true,
+                Constants::SDYM_PARAM_FORCE_QUERY
             ],
             'ParamKey is something different' => [
                 true,
@@ -78,7 +80,7 @@ class SdymCriteriaRequestHandlerTest extends TestCase
     /**
      * @dataProvider handleDataProvider
      */
-    public function testHandle($paramValue, $shouldExist, $paramKey = Constants::SDYM_PARAM_FORCE_QUERY)
+    public function testHandle($paramValue, $shouldExist, $paramKey)
     {
         $request = new RequestHttp();
         $request->setParams([$paramKey => $paramValue]);
@@ -86,11 +88,9 @@ class SdymCriteriaRequestHandlerTest extends TestCase
         $this->handler->handleRequest($request, $this->criteria, $this->context);
 
         if ($shouldExist) {
-            $this->assertEquals(Constants::SDYM_PARAM_FORCE_QUERY, $this->criteria->getConditions()[0]->getName());
-            $this->assertEquals(SimpleCondition::class, get_class($this->criteria->getConditions()[0]));
+            $this->assertTrue($this->criteria->hasCondition(Constants::SDYM_PARAM_FORCE_QUERY));
         } else {
             $this->assertEmpty($this->criteria->getConditions());
-            $this->assertEquals('array', gettype($this->criteria->getConditions()));
         }
     }
 }

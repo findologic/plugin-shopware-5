@@ -41,17 +41,17 @@ class SimpleConditionHandlerTest extends TestCase
      */
     public function testGenerateCondition()
     {
-        $term = 'ye';
+        $name = 'ye';
         $handler = new SimpleConditionHandler();
         $handler->generateCondition(
-            new SimpleCondition($term),
+            new SimpleCondition($name),
             $this->querybuilder,
             $this->context
         );
 
         $params = $this->querybuilder->getParameters();
 
-        $this->assertArrayHasKey('ye', $params, '"query" was not found in querybuilder parameters array');
-        $this->assertSame(true, $params['ye'], 'Expected "query" parameter to contain "searchterm"');
+        $this->assertArrayHasKey($name, $params, '"ye" was not found in the params');
+        $this->assertSame(true, $params[$name], 'Expected "ye" to be true');
     }
 }
