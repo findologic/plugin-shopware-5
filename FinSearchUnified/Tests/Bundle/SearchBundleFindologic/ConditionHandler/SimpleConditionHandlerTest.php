@@ -51,7 +51,7 @@ class SimpleConditionHandlerTest extends TestCase
 
         $params = $this->querybuilder->getParameters();
 
-        $this->assertArrayHasKey($name, $params, '"ye" was not found in the params');
-        $this->assertSame(true, $params[$name], 'Expected "ye" to be true');
+        $this->assertArrayHasKey($name, $params, 'Expected parameter for simple condition not found');
+        $this->assertSame(true, $params[$name], 'Expected parameter to be true');
     }
 }

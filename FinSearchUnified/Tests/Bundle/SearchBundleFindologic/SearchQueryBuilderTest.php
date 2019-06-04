@@ -192,6 +192,7 @@ class SearchQueryBuilderTest extends TestCase
 
     /**
      * @dataProvider queryBuilderAddFlagDataProvider
+     *
      * @param mixed $value The Flag value
      * @param bool $expected The expected outcome
      */

@@ -79,6 +79,10 @@ class SdymCriteriaRequestHandlerTest extends TestCase
 
     /**
      * @dataProvider handleDataProvider
+     *
+     * @param mixed $paramValue
+     * @param bool $shouldExist
+     * @param string $paramKey
      */
     public function testHandle($paramValue, $shouldExist, $paramKey)
     {
