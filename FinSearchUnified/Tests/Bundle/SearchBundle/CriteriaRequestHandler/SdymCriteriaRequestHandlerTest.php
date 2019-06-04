@@ -2,11 +2,12 @@
 
 use FinSearchUnified\Constants;
 use Shopware\Bundle\SearchBundle\Condition\SimpleCondition;
-use Shopware\Bundle\StoreFrontBundle\Service\Core\ProductService as RandomContext;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler\SdymCriteriaRequestHandler;
+use Shopware\Tests\Functional\Bundle\StoreFrontBundle\Helper;
+use Shopware\Tests\Functional\Bundle\StoreFrontBundle\TestContext;
 
 class SdymCriteriaRequestHandlerTest extends TestCase
 {
@@ -14,7 +15,7 @@ class SdymCriteriaRequestHandlerTest extends TestCase
     public $request;
     /** @var Criteria */
     public $criteria;
-    /** @var RandomContext */
+    /** @var TestContext */
     public $context;
     /** @var SdymCriteriaRequestHandler */
     public $handler;
@@ -22,9 +23,25 @@ class SdymCriteriaRequestHandlerTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
+
+
         $this->criteria = new Criteria();
-        $this->context = new RandomContext();
+        $this->context = $this->getContext();
         $this->handler = new SdymCriteriaRequestHandler();
+    }
+
+    public function getContext()
+    {
+        $helper = new Helper();
+        $tax = $helper->createTax();
+        $customerGroup = $helper->createCustomerGroup();
+        $shop = $helper->getShop(1);
+
+        return $helper->createContext(
+            $customerGroup,
+            $shop,
+            [$tax]
+        );
     }
 
     public function handleDataProvider()
