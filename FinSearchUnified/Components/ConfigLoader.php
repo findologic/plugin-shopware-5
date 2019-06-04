@@ -59,7 +59,7 @@ class ConfigLoader
      */
     private function getUrl()
     {
-        return self::CDN_URL . strtoupper(md5($this->shopkey)) . self::CONFIG_FILE;
+        return sprintf('%s/%s/%s', self::CDN_URL, strtoupper(md5($this->shopkey)), self::CONFIG_FILE);
     }
 
     /**
@@ -92,9 +92,12 @@ class ConfigLoader
         return $payload;
     }
 
+    /**
+     * @return string
+     */
     private function getCacheKey()
     {
-        return sprintf('%s_%s', self::CACHE_ID, strtoupper($this->shopkey));
+        return sprintf('%s_%s', self::CACHE_ID, $this->shopkey);
     }
 
     /**
@@ -119,10 +122,11 @@ class ConfigLoader
     private function get($key, $default = null)
     {
         $id = $this->getCacheKey();
-        if ($this->cache->test($id) === false) {
+        if (($config = $this->cache->load($id)) === false) {
             $this->warmUpCache();
+            $config = $this->cache->load($id);
         }
-        $config = $this->cache->load($id);
+
         if ($config === false) {
             return $default;
         }
