@@ -70,10 +70,6 @@ abstract class QueryBuilder
      */
     public function execute()
     {
-        if (isset($_GET[Constants::SDYM_PARAM_FORCE_QUERY])) {
-            $this->parameters[Constants::SDYM_PARAM_FORCE_QUERY] = $_GET[Constants::SDYM_PARAM_FORCE_QUERY] ? 1 : 0;
-        }
-
         $url = sprintf(
             '%s/%s/%s?%s',
             self::BASE_URL,
@@ -282,5 +278,14 @@ abstract class QueryBuilder
     public function addUserGroup($usergroup)
     {
         $this->parameters['usergrouphash'] = StaticHelper::calculateUsergroupHash($this->shopKey, $usergroup);
+    }
+
+    /**
+     * @param string $key
+     * @param mixed $value
+     */
+    public function addFlag($key, $value)
+    {
+        $this->parameters[$key] = (bool)$value;
     }
 }

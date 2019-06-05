@@ -29,14 +29,14 @@ class WidgetsTest extends TestCase
      * @dataProvider searchParameterProvider
      *
      * @param array $requestParameters
-     * @param string|null $expectedSearchParameter
+     * @param array $expectedRequestParameters
      * @param string $expectedMessage
      *
      * @throws ReflectionException
      */
     public function testBeforeListingCountActionIfFindologicSearchIsActive(
         array $requestParameters,
-        $expectedSearchParameter,
+        array $expectedRequestParameters,
         $expectedMessage
     ) {
         $request = new Enlight_Controller_Request_RequestHttp();
@@ -67,15 +67,10 @@ class WidgetsTest extends TestCase
 
         $params = $subject->Request()->getParams();
 
-        foreach ($requestParameters as $key => $value) {
-            $this->assertArrayHasKey($key, $params, sprintf('Expected %s to be present', $key));
-            $this->assertSame($value, $params[$key], sprintf('Expected %s to have correct values', $key));
-        }
-
-        if ($expectedSearchParameter === null) {
+        if (empty($expectedRequestParameters)) {
             $this->assertArrayNotHasKey('sSearch', $params, 'Expected no query parameter to be set');
         } else {
-            $this->assertSame($expectedSearchParameter, $params['sSearch'], $expectedMessage);
+            $this->assertSame($expectedRequestParameters, $params, $expectedMessage);
         }
     }
 
@@ -116,17 +111,22 @@ class WidgetsTest extends TestCase
         return [
             'Only category ID 5 was requested' => [
                 ['sCategory' => 5],
-                null,
+                [],
                 'Expected only "sCategory" to be present'
             ],
             'Only search term "blubbergurke" was requested' => [
                 ['sSearch' => 'blubbergurke'],
-                'blubbergurke',
+                ['sSearch' => 'blubbergurke'],
                 'Expected only "sSearch" parameter to be present'
             ],
             'Neither search nor category listing was requested' => [
                 [],
-                ' ',
+                ['sSearch' => ' '],
+                'Expected "sSearch" to be present with single whitespace character'
+            ],
+            'Search has an empty string value' => [
+                ['sSearch' => ''],
+                ['sSearch' => ' '],
                 'Expected "sSearch" to be present with single whitespace character'
             ],
         ];
