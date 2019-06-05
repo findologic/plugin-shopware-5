@@ -52,5 +52,16 @@
             id="fin_search_unified.business_logic.export_factory"
             class="FinSearchUnified\BusinessLogic\ExportFactory"
         />
+        <service
+            id="fin_search_unified.sdym_criteria_request_handler"
+            class="FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler\SdymCriteriaRequestHandler"
+        >
+            <tag name="criteria_request_handler" />
+        </service>
+        <service class="FinSearchUnified\Components\ConfigLoader" id="fin_search_unified.config_loader">
+            <argument id="cache" type="service" />
+            <argument id="http_client" type="service" />
+            <argument id="config" type="service" />
+        </service>
     </services>
 </container>

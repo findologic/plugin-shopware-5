@@ -68,16 +68,12 @@ abstract class QueryBuilder
      */
     public function execute()
     {
-        if (isset($_GET[Constants::SDYM_PARAM_FORCE_QUERY])) {
-            $this->parameters[Constants::SDYM_PARAM_FORCE_QUERY] = $_GET[Constants::SDYM_PARAM_FORCE_QUERY] ? 1 : 0;
-        }
-
         $url = sprintf(
             '%s/%s/%s?%s',
             self::BASE_URL,
             $this->shopUrl,
             static::ENDPOINT,
-            http_build_query($this->parameters)
+            http_build_query($this->parameters, null, '&', PHP_QUERY_RFC3986)
         );
 
         $payload = null;
@@ -182,12 +178,13 @@ abstract class QueryBuilder
     }
 
     /**
+     * @param string $key
      * @param float $min
      * @param float $max
      */
-    public function addPrice($min, $max)
+    public function addRangeFilter($key, $min, $max)
     {
-        $this->addParameter('price', ['min' => urldecode($min), 'max' => urldecode($max)]);
+        $this->addParameter($key, ['min' => urldecode($min), 'max' => urldecode($max)]);
     }
 
     /**
@@ -279,5 +276,14 @@ abstract class QueryBuilder
     public function addUserGroup($usergroup)
     {
         $this->parameters['usergrouphash'] = StaticHelper::calculateUsergroupHash($this->shopKey, $usergroup);
+    }
+
+    /**
+     * @param string $key
+     * @param mixed $value
+     */
+    public function addFlag($key, $value)
+    {
+        $this->parameters[$key] = (bool)$value;
     }
 }

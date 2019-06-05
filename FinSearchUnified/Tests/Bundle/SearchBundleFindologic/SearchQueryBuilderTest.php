@@ -46,6 +46,19 @@ class SearchQueryBuilderTest extends TestCase
         );
     }
 
+    protected function tearDown()
+    {
+        parent::tearDown();
+
+        if (isset($_SERVER['HTTP_CLIENT_IP'])) {
+            unset($_SERVER['HTTP_CLIENT_IP']);
+        }
+
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            unset($_SERVER['HTTP_X_FORWARDED_FOR']);
+        }
+    }
+
     /**
      * Data provider for testing scenarios of findologic request execution
      *
@@ -151,14 +164,53 @@ class SearchQueryBuilderTest extends TestCase
         $this->assertSame($expectedResult, $parameters['query'], sprintf('Expected query to be "%s"', $expectedResult));
     }
 
+    public function queryBuilderAddFlagDataProvider()
+    {
+        return [
+            'Value set' => [
+                true,
+                true
+            ],
+            'Value false' => [
+                false,
+                false
+            ],
+            'Value null' => [
+                null,
+                false
+            ],
+            'Value empty string' => [
+                '',
+                false
+            ],
+            'Value is non empty string' => [
+                'non empty string',
+                true
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider queryBuilderAddFlagDataProvider
+     *
+     * @param mixed $value The Flag value
+     * @param bool $expected The expected outcome
+     */
+    public function testQueryBuilderAddFlag($value, $expected)
+    {
+        $this->querybuilder->addFlag('forceOriginalQuery', $value);
+        $parameters = $this->querybuilder->getParameters();
+        $this->assertEquals($parameters['forceOriginalQuery'], $expected);
+    }
+
     /**
      * @throws Exception
      */
-    public function testAddPriceMethod()
+    public function testAddRangeFilterMethod()
     {
         $price = ['min' => 12.69, 'max' => 42];
 
-        $this->querybuilder->addPrice($price['min'], $price['max']);
+        $this->querybuilder->addRangeFilter('price', $price['min'], $price['max']);
         $parameters = $this->querybuilder->getParameters();
         $this->assertArrayHasKey('attrib', $parameters);
         $this->assertArrayHasKey('price', $parameters['attrib']);
@@ -344,43 +396,116 @@ class SearchQueryBuilderTest extends TestCase
         ];
     }
 
+    public function testOutputAdapterIsExplicitlySetToXml()
+    {
+        $parameters = $this->querybuilder->getParameters();
+
+        $this->assertArrayHasKey('outputAdapter', $parameters);
+        $this->assertEquals('XML_2.0', $parameters['outputAdapter']);
+    }
+
     /**
-     * @return array
+     * @param string $field
+     * @param string $ipAddress The ip address to set.
      */
-    public function forceOriginalQueryProvider()
+    private function setIpHeader($field, $ipAddress)
+    {
+        $_SERVER[$field] = $ipAddress;
+    }
+
+    /**
+     * Scenarios of IPs which should be filtered
+     *
+     * @return array Cases with the value to be filtered and the expected return value.
+     */
+    public function ipAddressProvider()
     {
         return [
-            'forceOriginalQuery not present' => [null],
-            'forceOriginalQuery present and truthy' => [1],
-            'forceOriginalQuery present and falsy' => [0]
+            'Single IP' => ['192.168.0.1', '192.168.0.1'],
+            'Same IP twice separated by comma' => ['192.168.0.1,192.168.0.1', '192.168.0.1'],
+            'Same IP twice separated by comma and space' => ['192.168.0.1, 192.168.0.1', '192.168.0.1'],
+            'Different IPs separated by comma' => ['192.168.0.1,10.10.0.200', '192.168.0.1,10.10.0.200'],
+            'Different IPs separated by comma and space' => ['192.168.0.1, 10.10.0.200', '192.168.0.1,10.10.0.200']
         ];
     }
 
     /**
-     * @dataProvider forceOriginalQueryProvider
+     * Scenarios of proxy IPs which should be filtered
      *
-     * @param int|null $forceOriginalQuery
+     * @return array
+     */
+    public function reverseProxyIpAddressProvider()
+    {
+        return [
+            'Single IP' => ['192.168.0.1'],
+            'Same IP twice separated by comma' => ['192.168.0.1,192.168.0.1'],
+            'Same IP twice separated by comma and space' => ['192.168.0.1, 192.168.0.1'],
+            'Different IPs separated by comma' => ['192.168.0.1,10.10.0.200'],
+            'Different IPs separated by comma and space' => ['192.168.0.1, 10.10.0.200']
+        ];
+    }
+
+    /**
+     * @dataProvider ipAddressProvider
+     *
+     * @param string $unfilteredIp
+     * @param string $expectedValue
      *
      * @throws Exception
      */
-    public function testQuerybuilderForceOriginalQuery($forceOriginalQuery)
+    public function testSendOnlyUniqueUserIps($unfilteredIp, $expectedValue)
     {
-        $httpResponse = new Response(200, [], 'alive');
-        $httpClientMock = $this->createMock(GuzzleHttpClient::class);
-        $httpClientMock->expects($this->exactly(2))
-            ->method('get')
-            ->willReturn($httpResponse);
-
-        $_GET['forceOriginalQuery'] = $forceOriginalQuery;
+        $this->setIpHeader('HTTP_CLIENT_IP', $unfilteredIp);
 
         $querybuilder = new SearchQueryBuilder(
-            $httpClientMock,
+            Shopware()->Container()->get('http_client'),
             $this->installerService,
             $this->config
         );
 
-        $querybuilder->execute();
         $parameters = $querybuilder->getParameters();
-        $this->assertSame($forceOriginalQuery, $parameters['forceOriginalQuery']);
+
+        $this->assertArrayHasKey('userip', $parameters);
+        $this->assertEquals($expectedValue, $parameters['userip']);
+    }
+
+    /**
+     * @dataProvider reverseProxyIpAddressProvider
+     *
+     * @param string $unfilteredIp
+     *
+     * @throws Exception
+     */
+    public function testSendsOnlyClientIpFromReverseProxy($unfilteredIp)
+    {
+        $this->setIpHeader('HTTP_X_FORWARDED_FOR', $unfilteredIp);
+
+        $querybuilder = new SearchQueryBuilder(
+            Shopware()->Container()->get('http_client'),
+            $this->installerService,
+            $this->config
+        );
+
+        $parameters = $querybuilder->getParameters();
+
+        $this->assertArrayHasKey('userip', $parameters);
+        $this->assertEquals('192.168.0.1', $parameters['userip']);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testHandlesUnknownClientIp()
+    {
+        $querybuilder = new SearchQueryBuilder(
+            Shopware()->Container()->get('http_client'),
+            $this->installerService,
+            $this->config
+        );
+
+        $parameters = $querybuilder->getParameters();
+
+        $this->assertArrayHasKey('userip', $parameters);
+        $this->assertEquals('UNKNOWN', $parameters['userip']);
     }
 }

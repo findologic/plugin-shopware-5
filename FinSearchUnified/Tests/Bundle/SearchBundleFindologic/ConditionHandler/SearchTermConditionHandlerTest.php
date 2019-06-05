@@ -4,7 +4,7 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\ConditionHandler;
 
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\SearchTermConditionHandler;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
 use Shopware\Components\Test\Plugin\TestCase;
@@ -12,7 +12,7 @@ use Shopware\Components\Test\Plugin\TestCase;
 class SearchTermConditionHandlerTest extends TestCase
 {
     /**
-     * @var QueryBuilder
+     * @var SearchQueryBuilder
      */
     private $querybuilder;
 
@@ -27,7 +27,7 @@ class SearchTermConditionHandlerTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
-        $this->querybuilder = new QueryBuilder(
+        $this->querybuilder = new SearchQueryBuilder(
             Shopware()->Container()->get('http_client'),
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
             Shopware()->Config()

@@ -10,6 +10,8 @@ use FinSearchUnified\Helper\StaticHelper;
 
 class Frontend implements SubscriberInterface
 {
+    const WHITE_LIST = ['listing', 'search', 'media'];
+
     /**
      * @var string
      */
@@ -54,7 +56,7 @@ class Frontend implements SubscriberInterface
         /** @var Request $request */
         $request = $subject->Request();
 
-        $controllerName = $request->getControllerName();
+        $controllerName = strtolower($request->getControllerName());
 
         if ($this->isSearchPage($request)) {
             Shopware()->Session()->offsetSet('isSearchPage', true);
@@ -62,8 +64,7 @@ class Frontend implements SubscriberInterface
         } elseif ($this->isCategoryPage($request)) {
             Shopware()->Session()->offsetSet('isCategoryPage', true);
             Shopware()->Session()->offsetSet('isSearchPage', false);
-        } elseif ($this->isManufacturerPage($request) ||
-            ($controllerName !== 'listing' && $controllerName !== 'search')
+        } elseif ($this->isManufacturerPage($request) || !(in_array($controllerName, self::WHITE_LIST, true))
         ) {
             Shopware()->Session()->offsetSet('isCategoryPage', false);
             Shopware()->Session()->offsetSet('isSearchPage', false);

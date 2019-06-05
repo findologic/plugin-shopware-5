@@ -7,6 +7,7 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\CategoryCond
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\PriceConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\ProductAttributeConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\SearchTermConditionHandler;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\SimpleConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\PopularitySortingHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\PriceSortingHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\ProductNameSortingHandler;
@@ -91,6 +92,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
         $conditionHandlers[] = new PriceConditionHandler();
         $conditionHandlers[] = new ProductAttributeConditionHandler();
         $conditionHandlers[] = new SearchTermConditionHandler();
+        $conditionHandlers[] = new SimpleConditionHandler();
 
         return $conditionHandlers;
     }
