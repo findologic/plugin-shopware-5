@@ -26,9 +26,9 @@ class Widgets implements SubscriberInterface
             /** @var \Shopware_Controllers_Widgets_Listing $subject */
             $subject = $args->getSubject();
 
-            $params = $subject->Request()->getParams();
+            $request = $subject->Request();
 
-            if (!isset($params['sSearch']) && !isset($params['sCategory'])) {
+            if (!$request->getParam('sSearch') && !$request->getParam('sCategory')) {
                 $subject->Request()->setParam('sSearch', ' ');
             }
         }
