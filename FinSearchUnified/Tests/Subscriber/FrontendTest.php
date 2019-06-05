@@ -7,7 +7,10 @@ use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use Enlight_Controller_Response_ResponseHttp;
 use Enlight_Event_EventArgs;
 use Enlight_Hook_HookArgs;
+use PHPUnit\Framework\Assert;
+use ReflectionException;
 use Shopware\Components\Test\Plugin\TestCase;
+use Shopware_Controllers_Frontend_Media;
 use Shopware_Controllers_Widgets_Listing;
 
 class FrontendTest extends TestCase
@@ -58,12 +61,12 @@ class FrontendTest extends TestCase
     {
         return [
             'Check values after listingCount call on Search Page' => [
-                'sSearch' => 'Yes',
-                'sCategory' => null
+                'isSearch' => true,
+                'isCategory' => false
             ],
             'Check values after listingCount call in Category Page' => [
-                'sSearch' => null,
-                'sCategory' => 3
+                'isSearch' => false,
+                'isCategory' => true
             ]
         ];
     }
@@ -143,27 +146,18 @@ class FrontendTest extends TestCase
     /**
      * @dataProvider listingCountConditionProvider
      *
-     * @param string $sSearch
-     * @param int|null $sCategory
+     * @param bool $isSearch
+     * @param bool $isCategory
      *
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
-    public function testSessionValuesAfterListingCount($sSearch, $sCategory)
+    public function testSessionValuesAfterListingCount($isSearch, $isCategory)
     {
-        $isSearch = isset($sSearch);
-        $isCategory = isset($sCategory);
-
         // Create Request object to be passed in the mocked Subject
         $request = new RequestHttp();
         $request->setControllerName('listing')
             ->setActionName('listingCount')
             ->setModuleName('widgets');
-
-        if ($isSearch) {
-            $request->setParam('sSearch', $sSearch);
-        } else {
-            $request->setParam('sCategory', $sCategory);
-        }
 
         $subject = Shopware_Controllers_Widgets_Listing::Instance(
             Shopware_Controllers_Widgets_Listing::class,
@@ -199,7 +193,6 @@ class FrontendTest extends TestCase
 
     /**
      * @dataProvider vendorProvider
-     * @doesNotPerformAssertions
      *
      * @param string $vendor
      */
@@ -229,7 +222,7 @@ class FrontendTest extends TestCase
             ->willReturn($request);
         $subject->method('redirect')
             ->with($this->callback(function ($requestUrl) use ($vendor) {
-                \PHPUnit\Framework\Assert::assertContains(
+                Assert::assertContains(
                     http_build_query(['vendor' => rawurldecode($vendor)]),
                     $requestUrl
                 );
@@ -247,5 +240,37 @@ class FrontendTest extends TestCase
 
         $frontend = Shopware()->Container()->get('fin_search_unified.subscriber.frontend');
         $frontend->beforeSearchIndexAction($args);
+    }
+
+    public function testMediaRequestDoesNotResetPageFlags()
+    {
+        Shopware()->Session()->isSearchPage = true;
+        Shopware()->Session()->isCategoryPage = false;
+
+        // Create Request object to be passed in the mocked Subject
+        $request = new RequestHttp();
+        $request->setControllerName('media')
+            ->setActionName('fallback')
+            ->setModuleName('frontend');
+
+        $subject = Shopware_Controllers_Frontend_Media::Instance(
+            Shopware_Controllers_Frontend_Media::class,
+            [
+                $request,
+                new Enlight_Controller_Response_ResponseHttp()
+            ]
+        );
+
+        $args = new Enlight_Event_EventArgs(['subject' => $subject]);
+
+        $frontend = Shopware()->Container()->get('fin_search_unified.subscriber.frontend');
+        $frontend->onFrontendPreDispatch($args);
+
+        // Check session values after FrontendPreDispatch Call
+        $isCategoryPage = Shopware()->Session()->isCategoryPage;
+        $isSearchPage = Shopware()->Session()->isSearchPage;
+
+        $this->assertTrue($isSearchPage, "Expected isSearchPage to remain 'true' after media request");
+        $this->assertFalse($isCategoryPage, "Expected isCategoryPage to remain 'false' after media request");
     }
 }
