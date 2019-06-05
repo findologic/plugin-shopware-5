@@ -164,6 +164,45 @@ class SearchQueryBuilderTest extends TestCase
         $this->assertSame($expectedResult, $parameters['query'], sprintf('Expected query to be "%s"', $expectedResult));
     }
 
+    public function queryBuilderAddFlagDataProvider()
+    {
+        return [
+            'Value set' => [
+                true,
+                true
+            ],
+            'Value false' => [
+                false,
+                false
+            ],
+            'Value null' => [
+                null,
+                false
+            ],
+            'Value empty string' => [
+                '',
+                false
+            ],
+            'Value is non empty string' => [
+                'non empty string',
+                true
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider queryBuilderAddFlagDataProvider
+     *
+     * @param mixed $value The Flag value
+     * @param bool $expected The expected outcome
+     */
+    public function testQueryBuilderAddFlag($value, $expected)
+    {
+        $this->querybuilder->addFlag('forceOriginalQuery', $value);
+        $parameters = $this->querybuilder->getParameters();
+        $this->assertEquals($parameters['forceOriginalQuery'], $expected);
+    }
+
     /**
      * @throws Exception
      */
@@ -355,46 +394,6 @@ class SearchQueryBuilderTest extends TestCase
             'Response is 200' => [200, 2, 'alive'],
             'Response is 500' => [500, 1, null],
         ];
-    }
-
-    /**
-     * @return array
-     */
-    public function forceOriginalQueryProvider()
-    {
-        return [
-            'forceOriginalQuery not present' => [null],
-            'forceOriginalQuery present and truthy' => [1],
-            'forceOriginalQuery present and falsy' => [0]
-        ];
-    }
-
-    /**
-     * @dataProvider forceOriginalQueryProvider
-     *
-     * @param int|null $forceOriginalQuery
-     *
-     * @throws Exception
-     */
-    public function testQuerybuilderForceOriginalQuery($forceOriginalQuery)
-    {
-        $httpResponse = new Response(200, [], 'alive');
-        $httpClientMock = $this->createMock(GuzzleHttpClient::class);
-        $httpClientMock->expects($this->exactly(2))
-            ->method('get')
-            ->willReturn($httpResponse);
-
-        $_GET['forceOriginalQuery'] = $forceOriginalQuery;
-
-        $querybuilder = new SearchQueryBuilder(
-            $httpClientMock,
-            $this->installerService,
-            $this->config
-        );
-
-        $querybuilder->execute();
-        $parameters = $querybuilder->getParameters();
-        $this->assertSame($forceOriginalQuery, $parameters['forceOriginalQuery']);
     }
 
     public function testOutputAdapterIsExplicitlySetToXml()
