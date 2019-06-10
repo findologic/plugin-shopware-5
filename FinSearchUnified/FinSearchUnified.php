@@ -2,19 +2,13 @@
 
 namespace FinSearchUnified;
 
-use FinSearchUnified\Helper\UrlBuilder;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Components\Plugin;
 use Shopware\Components\Plugin\Context\DeactivateContext;
 use Shopware\Components\Plugin\Context\UninstallContext;
-use Shopware\Components\Plugin\Context\UpdateContext;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Shopware\Models;
-use FinSearchUnified\Helper\StaticHelper;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-/**
- * Shopware-Plugin FinSearchUnified.
- */
 class FinSearchUnified extends Plugin
 {
     /**
