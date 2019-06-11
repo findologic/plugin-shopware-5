@@ -13,10 +13,17 @@ use SimpleXMLElement;
 
 class TextFacetHandler implements PartialFacetHandlerInterface
 {
+    /**
+     * @param FacetInterface $facet
+     * @param Criteria $criteria
+     * @param SimpleXMLElement $filter
+     *
+     * @return RadioFacetResult|ValueListFacetResult|null
+     */
     public function generatePartialFacet(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filter)
     {
         /** @var ProductAttributeFacet $facet */
-        switch ((string)$facet->getMode()) {
+        switch ($facet->getMode()) {
             case ProductAttributeFacet::MODE_VALUE_LIST_RESULT:
                 $result = $this->createValueListFacetResult($facet, $criteria, $filter);
                 break;
@@ -30,11 +37,23 @@ class TextFacetHandler implements PartialFacetHandlerInterface
         return $result;
     }
 
+    /**
+     * @param SimpleXMLElement $filter
+     *
+     * @return bool
+     */
     public function supportsFilter(SimpleXMLElement $filter)
     {
         return ((string)$filter->name !== 'cat' && in_array((string)$filter->type, ['select', 'label']));
     }
 
+    /**
+     * @param FacetInterface $facet
+     * @param Criteria $criteria
+     * @param SimpleXMLElement $filterItems
+     *
+     * @return ValueListItem[]
+     */
     private function getValueListItems(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filterItems)
     {
         $items = [];
@@ -83,6 +102,13 @@ class TextFacetHandler implements PartialFacetHandlerInterface
         return $items;
     }
 
+    /**
+     * @param FacetInterface $facet
+     * @param Criteria $criteria
+     * @param SimpleXMLElement $filter
+     *
+     * @return ValueListFacetResult
+     */
     private function createValueListFacetResult(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filter)
     {
         $values = $this->getValueListItems($facet, $criteria, $filter->items->item);
@@ -97,6 +123,13 @@ class TextFacetHandler implements PartialFacetHandlerInterface
         );
     }
 
+    /**
+     * @param FacetInterface $facet
+     * @param Criteria $criteria
+     * @param SimpleXMLElement $filter
+     *
+     * @return RadioFacetResult
+     */
     private function createRadioFacetResult(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filter)
     {
         /** @var ProductAttributeFacet $facet */
