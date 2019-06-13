@@ -87,21 +87,7 @@ class TextFacetHandlerTest extends TestCase
             $criteria->addCondition($condition);
         }
 
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $filter = new SimpleXMLElement($data);
-        foreach ($filterData as $key => $value) {
-            if (is_array($value)) {
-                $items = $filter->addChild('items');
-                foreach ($value as $itemData) {
-                    $item = $items->addChild('item');
-                    foreach ($itemData as $k => $v) {
-                        $item->addChild($k, $v);
-                    }
-                }
-            } else {
-                $filter->addChild($key, $value);
-            }
-        }
+        $filter = $this->generateFilter($filterData);
 
         $facetHandler = new TextFacetHandler();
         $result = $facetHandler->generatePartialFacet($facet, $criteria, $filter);
@@ -132,21 +118,7 @@ class TextFacetHandlerTest extends TestCase
             $criteria->addCondition($condition);
         }
 
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $filter = new SimpleXMLElement($data);
-        foreach ($filterData as $key => $value) {
-            if (is_array($value)) {
-                $items = $filter->addChild('items');
-                foreach ($value as $itemData) {
-                    $item = $items->addChild('item');
-                    foreach ($itemData as $k => $v) {
-                        $item->addChild($k, $v);
-                    }
-                }
-            } else {
-                $filter->addChild($key, $value);
-            }
-        }
+        $filter = $this->generateFilter($filterData);
 
         $facetHandler = new TextFacetHandler();
         $result = $facetHandler->generatePartialFacet($facet, $criteria, $filter);
@@ -356,5 +328,33 @@ class TextFacetHandlerTest extends TestCase
                 )
             ]
         ];
+    }
+
+    /**
+     * @param array $filterData
+     *
+     * @return SimpleXMLElement
+     */
+    public function generateFilter(array $filterData)
+    {
+        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
+        $filter = new SimpleXMLElement($data);
+
+        // Loop through the data to generate filter xml
+        foreach ($filterData as $key => $value) {
+            if (is_array($value)) {
+                $items = $filter->addChild('items');
+                foreach ($value as $itemData) {
+                    $item = $items->addChild('item');
+                    foreach ($itemData as $k => $v) {
+                        $item->addChild($k, $v);
+                    }
+                }
+            } else {
+                $filter->addChild($key, $value);
+            }
+        }
+
+        return $filter;
     }
 }
