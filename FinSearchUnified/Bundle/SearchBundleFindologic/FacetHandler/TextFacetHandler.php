@@ -9,6 +9,7 @@ use Shopware\Bundle\SearchBundle\FacetInterface;
 use Shopware\Bundle\SearchBundle\FacetResult\RadioFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\ValueListFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\ValueListItem;
+use Shopware\Bundle\SearchBundle\FacetResultInterface;
 use SimpleXMLElement;
 
 class TextFacetHandler implements PartialFacetHandlerInterface
@@ -20,7 +21,7 @@ class TextFacetHandler implements PartialFacetHandlerInterface
      * @param Criteria $criteria
      * @param SimpleXMLElement $filter
      *
-     * @return RadioFacetResult|ValueListFacetResult|null
+     * @return FacetResultInterface|null
      */
     public function generatePartialFacet(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filter)
     {
@@ -63,6 +64,7 @@ class TextFacetHandler implements PartialFacetHandlerInterface
 
         /** @var ProductAttributeFacet $facet */
         $condition = $criteria->getCondition($facet->getName());
+
         if ($condition !== null) {
             $actives = $condition->getValue();
         }
@@ -75,6 +77,7 @@ class TextFacetHandler implements PartialFacetHandlerInterface
             $name = (string)$filterItem->name;
             $freq = (int)$filterItem->frequency;
             $index = array_search($name, $actives);
+
             if ($index === false) {
                 $active = false;
             } else {
@@ -87,6 +90,7 @@ class TextFacetHandler implements PartialFacetHandlerInterface
             } else {
                 $label = $name;
             }
+
             $valueListItem = new ValueListItem(
                 $name,
                 $label,

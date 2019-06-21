@@ -234,7 +234,7 @@ class TextFacetHandlerTest extends TestCase
                     'vendor'
                 ),
                 ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
-                new ProductAttributeCondition('vendor', ConditionInterface::OPERATOR_EQ, ['FINDOLOGIC']),
+                new ProductAttributeCondition('vendor', ConditionInterface::OPERATOR_EQ, 'FINDOLOGIC'),
             ],
             'Facet with condition and missing filter value' => [
                 [
@@ -268,7 +268,7 @@ class TextFacetHandlerTest extends TestCase
                     'vendor'
                 ),
                 ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
-                new ProductAttributeCondition('vendor', ConditionInterface::OPERATOR_EQ, ['FINDOLOGIC']),
+                new ProductAttributeCondition('vendor', ConditionInterface::OPERATOR_EQ, 'FINDOLOGIC'),
             ],
             'Facet with filter without condition' => [
                 [
