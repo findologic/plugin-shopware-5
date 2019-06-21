@@ -13,6 +13,8 @@ use SimpleXMLElement;
 
 class TextFacetHandler implements PartialFacetHandlerInterface
 {
+    const ALLOWED_FILTER_TYPES = ['select', 'label'];
+
     /**
      * @param FacetInterface $facet
      * @param Criteria $criteria
@@ -44,7 +46,7 @@ class TextFacetHandler implements PartialFacetHandlerInterface
      */
     public function supportsFilter(SimpleXMLElement $filter)
     {
-        return ((string)$filter->name !== 'cat' && in_array((string)$filter->type, ['select', 'label']));
+        return ((string)$filter->name !== 'cat' && in_array((string)$filter->type, self::ALLOWED_FILTER_TYPES));
     }
 
     /**
@@ -62,17 +64,22 @@ class TextFacetHandler implements PartialFacetHandlerInterface
         /** @var ProductAttributeFacet $facet */
         $condition = $criteria->getCondition($facet->getName());
         if ($condition !== null) {
-            $actives[] = $condition->getValue();
+            $actives = $condition->getValue();
+        }
+
+        if (!is_array($actives)) {
+            $actives = [$actives];
         }
 
         foreach ($filterItems as $filterItem) {
             $name = (string)$filterItem->name;
             $freq = (int)$filterItem->frequency;
-            if ($index = array_search($name, $actives) === false) {
+            $index = array_search($name, $actives);
+            if ($index === false) {
                 $active = false;
             } else {
                 $active = true;
-                array_splice($actives, $index, 1);
+                unset($actives[$index]);
             }
 
             if ($freq && !$active) {

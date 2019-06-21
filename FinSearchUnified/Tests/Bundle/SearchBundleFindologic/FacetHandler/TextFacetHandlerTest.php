@@ -10,6 +10,7 @@ use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\SearchBundle\FacetResult\RadioFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\ValueListFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\ValueListItem;
+use Shopware\Bundle\SearchBundle\FacetResultInterface;
 use Shopware\Components\Test\Plugin\TestCase;
 use SimpleXMLElement;
 
@@ -41,7 +42,7 @@ class TextFacetHandlerTest extends TestCase
         return [
             'Category filter with "select" type' => ['cat', 'select', false],
             'Category filter with "label" type' => ['cat', 'label', false],
-            'Vendor filter with "select" type' => ['vendor', 'label', true],
+            'Vendor filter with "select" type' => ['vendor', 'select', true],
             'Vendor filter with "label" type' => ['vendor', 'label', true],
         ];
     }
@@ -66,50 +67,22 @@ class TextFacetHandlerTest extends TestCase
 
     /**
      * @dataProvider valueListDataProvider
-     *
-     * @param array $filterData
-     * @param ValueListFacetResult $facetResult
-     * @param ConditionInterface|null $condition
-     */
-    public function testFacetModeForListFacetResult(
-        array $filterData,
-        ValueListFacetResult $facetResult,
-        ConditionInterface $condition = null
-    ) {
-        $facet = new ProductAttributeFacet(
-            'vendor',
-            ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
-            'vendor',
-            'Manufacturer'
-        );
-        $criteria = new Criteria();
-        if ($condition !== null) {
-            $criteria->addCondition($condition);
-        }
-
-        $filter = $this->generateFilter($filterData);
-
-        $facetHandler = new TextFacetHandler();
-        $result = $facetHandler->generatePartialFacet($facet, $criteria, $filter);
-
-        $this->assertEquals($facetResult, $result);
-    }
-
-    /**
      * @dataProvider radioListDataProvider
      *
      * @param array $filterData
-     * @param RadioFacetResult $facetResult
+     * @param FacetResultInterface $facetResult
+     * @param string $mode
      * @param ConditionInterface|null $condition
      */
-    public function testFacetModeForRadioFacetResult(
+    public function testGeneratesPartialFacetBasedOnFilterDataAndActiveConditions(
         array $filterData,
-        RadioFacetResult $facetResult,
+        FacetResultInterface $facetResult,
+        $mode,
         ConditionInterface $condition = null
     ) {
         $facet = new ProductAttributeFacet(
             'vendor',
-            ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
+            $mode,
             'vendor',
             'Manufacturer'
         );
@@ -155,7 +128,8 @@ class TextFacetHandlerTest extends TestCase
                     ],
                     'vendor'
                 ),
-                new ProductAttributeCondition('vendor', ConditionInterface::OPERATOR_EQ, 'FINDOLOGIC'),
+                ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
+                new ProductAttributeCondition('vendor', ConditionInterface::OPERATOR_EQ, ['FINDOLOGIC']),
             ],
             'Facet with condition and missing filter value' => [
                 [
@@ -188,7 +162,8 @@ class TextFacetHandlerTest extends TestCase
                     ],
                     'vendor'
                 ),
-                new ProductAttributeCondition('vendor', ConditionInterface::OPERATOR_EQ, 'FINDOLOGIC'),
+                ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
+                new ProductAttributeCondition('vendor', ConditionInterface::OPERATOR_EQ, ['FINDOLOGIC']),
             ],
             'Facet with filter without condition' => [
                 [
@@ -223,7 +198,8 @@ class TextFacetHandlerTest extends TestCase
                         ),
                     ],
                     'vendor'
-                )
+                ),
+                ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
             ]
         ];
     }
@@ -257,7 +233,8 @@ class TextFacetHandlerTest extends TestCase
                     ],
                     'vendor'
                 ),
-                new ProductAttributeCondition('vendor', ConditionInterface::OPERATOR_EQ, 'FINDOLOGIC'),
+                ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
+                new ProductAttributeCondition('vendor', ConditionInterface::OPERATOR_EQ, ['FINDOLOGIC']),
             ],
             'Facet with condition and missing filter value' => [
                 [
@@ -290,7 +267,8 @@ class TextFacetHandlerTest extends TestCase
                     ],
                     'vendor'
                 ),
-                new ProductAttributeCondition('vendor', ConditionInterface::OPERATOR_EQ, 'FINDOLOGIC'),
+                ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
+                new ProductAttributeCondition('vendor', ConditionInterface::OPERATOR_EQ, ['FINDOLOGIC']),
             ],
             'Facet with filter without condition' => [
                 [
@@ -325,7 +303,8 @@ class TextFacetHandlerTest extends TestCase
                         ),
                     ],
                     'vendor'
-                )
+                ),
+                ProductAttributeFacet::MODE_RADIO_LIST_RESULT
             ]
         ];
     }
