@@ -29,10 +29,10 @@ class RangeFacetHandler implements PartialFacetHandlerInterface
         $activeMin = (float)$filter->attributes->selectedRange->min;
         $activeMax = (float)$filter->attributes->selectedRange->max;
 
-        $minFieldName = 'min' . $facet->name;
-        $maxFieldName = 'max' . $facet->name;
+        $minFieldName = 'min' . (string)$filter->name;
+        $maxFieldName = 'max' . (string)$filter->name;
 
-        if ($facet->name === 'price') {
+        if ((string)$filter->name === 'price') {
             $minFieldName = 'min';
             $maxFieldName = 'max';
         }
