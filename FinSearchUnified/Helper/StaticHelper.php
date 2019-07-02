@@ -737,11 +737,12 @@ class StaticHelper
     {
         $configLoader = Shopware()->Container()->get('fin_search_unified.config_loader');
 
-        $integrationType = Shopware()->Config()->offsetGet(Constants::INTEGRATION_TYPE);
+        $integrationType = Shopware()->Config()->offsetGet(Constants::CONFIG_KEY_INTEGRATION_TYPE);
         $isDirectIntegration =
             $configLoader->directIntegrationEnabled($integrationType === Constants::INTEGRATION_TYPE_DI);
 
-        self::storeIntegrationType($isDirectIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API);
+        self::storeIntegrationType($isDirectIntegration ?
+            Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API);
 
         return $isDirectIntegration;
     }
@@ -759,10 +760,10 @@ class StaticHelper
             $plugin = $pluginManager->getPluginByName('FinSearchUnified');
             $config = $pluginManager->getPluginConfig($plugin);
 
-            if (array_key_exists(Constants::INTEGRATION_TYPE, $config) &&
-                $config[Constants::INTEGRATION_TYPE] !== $currentIntegrationType
+            if (array_key_exists(Constants::CONFIG_KEY_INTEGRATION_TYPE, $config) &&
+                $config[Constants::CONFIG_KEY_INTEGRATION_TYPE] !== $currentIntegrationType
             ) {
-                $config[Constants::INTEGRATION_TYPE] = $currentIntegrationType;
+                $config[Constants::CONFIG_KEY_INTEGRATION_TYPE] = $currentIntegrationType;
                 $pluginManager->savePluginConfig($plugin, $config);
             }
         } catch (Exception $exception) {
