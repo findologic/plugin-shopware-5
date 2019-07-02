@@ -2,7 +2,6 @@
 
 namespace FinSearchUnified\Components;
 
-use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Components\HttpClient\HttpClientInterface;
 use Shopware\Components\HttpClient\RequestException;
 use Shopware\Components\HttpClient\Response;
@@ -98,7 +97,7 @@ class ConfigLoader
      */
     private function getCacheKey()
     {
-        return StaticHelper::removeSpecialCharacters(sprintf('%s_%s', self::CACHE_ID, $this->shopkey));
+        return sprintf('%s_%s', self::CACHE_ID, $this->shopkey);
     }
 
     /**

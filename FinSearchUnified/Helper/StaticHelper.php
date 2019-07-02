@@ -853,14 +853,4 @@ class StaticHelper
             ]);
         }
     }
-
-    public static function removeSpecialCharacters($name, $replace = '')
-    {
-        $name = iconv('utf-8', 'ascii//translit', $name);
-        $name = preg_replace('#[^A-z0-9\-_]#', $replace, $name);
-        $name = preg_replace('#-{2,}#', $replace, $name);
-        $name = trim($name, $replace);
-
-        return mb_substr($name, 0, 180);
-    }
 }

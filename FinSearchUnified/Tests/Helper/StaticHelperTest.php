@@ -83,9 +83,9 @@ class StaticHelperTest extends TestCase
                 'isCategoryPage' => null,
                 'expected' => true
             ],
-            "Shopkey is 'Findologic ShopKey'" => [
+            "Shopkey is 'Findologic Shopkey'" => [
                 'ActivateFindologic' => true,
-                'ShopKey' => 'Findologic ShopKey',
+                'ShopKey' => 'Findologic Shopkey',
                 'ActivateFindologicForCategoryPages' => true,
                 'findologicDI' => false,
                 'isSearchPage' => null,
