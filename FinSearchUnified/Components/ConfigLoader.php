@@ -164,10 +164,12 @@ class ConfigLoader
     }
 
     /**
+     * Recursively computes the intersection of arrays using keys for comparison.
+     *
      * @param array $array1
      * @param array $array2
      *
-     * @return array
+     * @return array Contains all the entries of array1 which have keys that are present in array2.
      */
     private function filterConfigs(array $array1, array $array2)
     {
