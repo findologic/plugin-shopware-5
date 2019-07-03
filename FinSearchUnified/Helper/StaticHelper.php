@@ -13,7 +13,6 @@ use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use SimpleXMLElement;
 use Zend_Http_Client;
 use Zend_Http_Client_Exception;
-use Zend_Http_Response;
 
 class StaticHelper
 {
@@ -736,18 +735,16 @@ class StaticHelper
 
     public static function checkDirectIntegration()
     {
-        $session = Shopware()->Session();
+        $configLoader = Shopware()->Container()->get('fin_search_unified.config_loader');
 
-        if ($session->offsetExists('findologicDI') === false) {
-            $urlBuilder = new UrlBuilder();
-            $isDI = $urlBuilder->getConfigStatus();
-            $session->offsetSet('findologicDI', $isDI);
-            $currentIntegrationType = $isDI ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API;
+        $integrationType = Shopware()->Config()->offsetGet(Constants::CONFIG_KEY_INTEGRATION_TYPE);
+        $isDirectIntegration =
+            $configLoader->directIntegrationEnabled($integrationType === Constants::INTEGRATION_TYPE_DI);
 
-            self::storeIntegrationType($currentIntegrationType);
-        }
+        self::storeIntegrationType($isDirectIntegration ?
+            Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API);
 
-        return $session->offsetGet('findologicDI');
+        return $isDirectIntegration;
     }
 
     /**
@@ -763,10 +760,10 @@ class StaticHelper
             $plugin = $pluginManager->getPluginByName('FinSearchUnified');
             $config = $pluginManager->getPluginConfig($plugin);
 
-            if (array_key_exists('IntegrationType', $config) &&
-                $config['IntegrationType'] !== $currentIntegrationType
+            if (array_key_exists(Constants::CONFIG_KEY_INTEGRATION_TYPE, $config) &&
+                $config[Constants::CONFIG_KEY_INTEGRATION_TYPE] !== $currentIntegrationType
             ) {
-                $config['IntegrationType'] = $currentIntegrationType;
+                $config[Constants::CONFIG_KEY_INTEGRATION_TYPE] = $currentIntegrationType;
                 $pluginManager->savePluginConfig($plugin, $config);
             }
         } catch (Exception $exception) {

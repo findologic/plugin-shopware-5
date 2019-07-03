@@ -107,7 +107,7 @@ class ConfigLoader
     {
         $config = json_decode($this->getConfigFile(), true);
         if ($config) {
-            $data = array_intersect_key(self::WHITE_LIST, $config);
+            $data = self::filterConfigs($config, self::WHITE_LIST);
             $this->cache->save($data, $this->getCacheKey(), ['FINDOLOGIC'], self::CACHE_LIFETIME);
         }
     }
@@ -161,5 +161,26 @@ class ConfigLoader
     public function isStagingShop($default = null)
     {
         return $this->get('isStagingShop', $default);
+    }
+
+    /**
+     * Recursively computes the intersection of arrays using keys for comparison.
+     *
+     * @param array $array1
+     * @param array $array2
+     *
+     * @return array Contains all the entries of array1 which have keys that are present in array2.
+     */
+    private function filterConfigs(array $array1, array $array2)
+    {
+        $array1 = array_intersect_key($array1, $array2);
+
+        foreach ($array1 as $key => &$value) {
+            if (is_array($value) && is_array($array2[$key])) {
+                $value = $this->filterConfigs($value, $array2[$key]);
+            }
+        }
+
+        return $array1;
     }
 }
