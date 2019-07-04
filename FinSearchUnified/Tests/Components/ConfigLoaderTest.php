@@ -179,10 +179,10 @@ class ConfigLoaderTest extends TestCase
             'Config file returns extra parameters' => [
                 200,
                 json_encode([
-                    'isStagingShop' => false,
+                    'isStagingShop' => true,
                     'directIntegration' => ['enabled' => false, 'iShouldNotBeHere' => true]
                 ]),
-                ['isStagingShop' => false, 'directIntegration' => ['enabled' => false]]
+                ['isStagingShop' => true, 'directIntegration' => ['enabled' => false]]
             ],
         ];
     }

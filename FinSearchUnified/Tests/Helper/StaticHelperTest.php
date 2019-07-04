@@ -9,16 +9,25 @@ use Enlight_Controller_Plugins_ViewRenderer_Bootstrap as ViewRenderer;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use Enlight_Plugin_Namespace_Loader as Plugins;
 use Enlight_View_Default as View;
+use Exception;
+use FinSearchUnified\Components\ConfigLoader;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
 use PHPUnit\Framework\Assert;
+use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
+use Shopware\Components\Api\Exception\CustomValidationException;
+use Shopware\Components\Api\Exception\NotFoundException;
+use Shopware\Components\Api\Exception\ParameterMissingException;
+use Shopware\Components\Api\Exception\ValidationException;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource;
+use Shopware\Components\HttpClient\GuzzleHttpClient;
 use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Models\Category\Category;
 use Shopware_Components_Config as Config;
 use SimpleXMLElement;
+use Zend_Cache_Core;
 use Zend_Http_Client_Exception;
 
 class StaticHelperTest extends TestCase
@@ -46,8 +55,6 @@ class StaticHelperTest extends TestCase
         Shopware()->Container()->load('session');
         Shopware()->Container()->reset('config');
         Shopware()->Container()->load('config');
-
-        Shopware()->Session()->offsetUnset('findologicDI');
     }
 
     /**
@@ -76,9 +83,9 @@ class StaticHelperTest extends TestCase
                 'isCategoryPage' => null,
                 'expected' => true
             ],
-            "Shopkey is 'Findologic ShopKey'" => [
+            "Shopkey is 'Findologic Shopkey'" => [
                 'ActivateFindologic' => true,
-                'ShopKey' => 'Findologic ShopKey',
+                'ShopKey' => 'Findologic Shopkey',
                 'ActivateFindologicForCategoryPages' => true,
                 'findologicDI' => false,
                 'isSearchPage' => null,
@@ -439,6 +446,10 @@ class StaticHelperTest extends TestCase
      * @param string $category
      * @param string $expected
      *
+     * @throws CustomValidationException
+     * @throws NotFoundException
+     * @throws ParameterMissingException
+     * @throws ValidationException
      */
     public function testBuildCategoryName($categoryId, $category, $expected)
     {
@@ -465,6 +476,11 @@ class StaticHelperTest extends TestCase
      *
      * @param Category $parent
      * @param bool $restore
+     *
+     * @throws CustomValidationException
+     * @throws NotFoundException
+     * @throws ParameterMissingException
+     * @throws ValidationException
      */
     private function updateParentCategoryName(Category $parent, $restore = true)
     {
@@ -795,6 +811,76 @@ class StaticHelperTest extends TestCase
                 'min',
                 'max'
             ]
+        ];
+    }
+
+    /**
+     * @dataProvider directIntegrationProvider
+     *
+     * @param string $integrationType
+     * @param string $expectedResult
+     * @param bool $directIntegration
+     *
+     * @throws Exception
+     */
+    public function testDirectIntegration($integrationType, $expectedResult, $directIntegration)
+    {
+        // Create mock client to avoid accidentally performing a real HTTP request
+        $httpClientMock = $this->createMock(GuzzleHttpClient::class);
+
+        // Create Mock object for Shopware Config
+        $mockConfig = $this->getMockBuilder(Config::class)
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $configArray = [
+            ['IntegrationType', $integrationType]
+        ];
+
+        $mockedCache = $this->createMock(Zend_Cache_Core::class);
+
+        $config = ['directIntegration' => ['enabled' => $directIntegration]];
+
+        $mockedCache->expects($this->once())
+            ->method('load')
+            ->willReturn($config);
+
+        $mockConfig->method('offsetGet')->willReturnMap($configArray);
+        $configLoader = new ConfigLoader(
+            $mockedCache,
+            $httpClientMock,
+            $mockConfig
+        );
+
+        Shopware()->Container()->set('fin_search_unified.config_loader', $configLoader);
+        Shopware()->Container()->set('config', $mockConfig);
+
+        $isDirectIntegration = StaticHelper::checkDirectIntegration();
+
+        $this->assertSame($directIntegration, $isDirectIntegration);
+
+        /** @var InstallerService $pluginManager */
+        $pluginManager = Shopware()->Container()->get('shopware_plugininstaller.plugin_manager');
+        $plugin = $pluginManager->getPluginByName('FinSearchUnified');
+
+        // Fetch the config to assert the integration type config after calling checkDirectIntegration
+        $config = $pluginManager->getPluginConfig($plugin);
+
+        $this->assertSame($expectedResult, $config['IntegrationType']);
+
+        // Reset this service directly here as it is being overridden only for this test
+        Shopware()->Container()->reset('fin_search_unified.config_loader');
+        Shopware()->Container()->load('fin_search_unified.config_loader');
+    }
+
+    public function directIntegrationProvider()
+    {
+        return [
+            'Integration type is API and DI is not enabled' => ['API', 'API', false],
+            'Integration type is DI and DI is enabled' => ['Direct Integration', 'Direct Integration', true],
+            'Integration type is API but DI is enabled' => ['API', 'Direct Integration', true],
+            'Integration type is DI but DI is not enabled' => ['Direct Integration', 'API', false],
         ];
     }
 }
