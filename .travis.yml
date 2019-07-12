@@ -33,7 +33,6 @@ install:
   - composer install
 
 before_script:
-  - chmod 777 ${PLUGIN_DIRECTORY}/travis/before-script.sh
   - cd ${PLUGIN_DIRECTORY}/travis
   - ./before-script.sh
 
