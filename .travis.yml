@@ -1,9 +1,9 @@
 language: php
 
 php:
-  - 5.6
-  - 7.0
-  - 7.1
+  - "5.6"
+  - "7.0"
+  - "7.1"
 
 sudo: required
 
@@ -35,7 +35,6 @@ install:
 before_script:
   - cd ..
   - ./travis/before-script.sh
-  - cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
 
 
 jobs:

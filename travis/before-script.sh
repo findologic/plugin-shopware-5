@@ -12,4 +12,5 @@ if [[ ${TRAVIS_BUILD_STAGE_NAME} != "Lint" ]]; then
     php ${SHOPWARE_DIRECTORY}/bin/console sw:plugin:activate ${PLUGIN_NAME}
     php ${SHOPWARE_DIRECTORY}/bin/console sw:cache:clear
     ${SHOPWARE_DIRECTORY}/var/cache/clear_cache.sh
+    cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
 fi
