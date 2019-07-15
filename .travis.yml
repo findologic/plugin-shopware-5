@@ -12,7 +12,7 @@ services:
 
 stages:
   - test
-  - lint
+  #- lint
 
 env:
   matrix:
@@ -40,9 +40,9 @@ before_script:
 
 jobs:
   include:
-    - stage: lint
-      script:
-        - composer lint
+    #- stage: lint
+    #  script:
+    #    - composer lint
     - stage: test
       script:
-        - composer test
+        - composer lint && composer test
