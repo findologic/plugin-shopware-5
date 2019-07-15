@@ -33,6 +33,7 @@ install:
   - composer install
 
 before_script:
+  - cd ..
   - ./travis/before-script.sh
 
 jobs:
