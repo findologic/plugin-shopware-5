@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -ev
 
-cd ${PLUGIN_NAME}
-
 if [[ ${TRAVIS_BUILD_STAGE_NAME} != "Lint" ]]; then
     if [[ "$(php --version | grep -cim1 xdebug)" -ge 1 ]]; then phpenv config-rm xdebug.ini; fi
 

@@ -35,6 +35,7 @@ install:
 before_script:
   - cd ..
   - ./travis/before-script.sh
+  - cd ${PLUGIN_NAME}
 
 jobs:
   include:
