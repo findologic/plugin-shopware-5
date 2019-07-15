@@ -44,4 +44,5 @@ jobs:
         - composer lint
     - stage: test
       script:
+        - cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
         - composer test
