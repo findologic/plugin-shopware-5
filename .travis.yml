@@ -12,7 +12,7 @@ services:
 
 stages:
   - test
-  - lint
+  # - lint
 
 env:
   matrix:
@@ -35,14 +35,14 @@ install:
 before_script:
   - cd ..
   - ./travis/before-script.sh
+  - cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
 
 
 jobs:
   include:
-    - stage: lint
-      script:
-        - composer lint
+    #- stage: lint
+    #  script:
+    #    - composer lint
     - stage: test
       script:
-        - cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
-        - composer test
+        - composer lint && composer test
