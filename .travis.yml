@@ -40,7 +40,9 @@ jobs:
   include:
     - stage: lint
       script:
+        - echo pwd
         - composer lint
     - stage: test
       script:
+        - echo pwd
         - composer test
