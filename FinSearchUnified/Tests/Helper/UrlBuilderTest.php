@@ -81,7 +81,10 @@ class UrlBuilderTest extends TestCase
         ];
 
         // Create Mock object for Shopware Config
-        $config = $this->getMockBuilder(Shopware_Components_Config::class)->setMethods(['offsetGet'])->disableOriginalConstructor()->getMock();
+        $config = $this->getMockBuilder(Shopware_Components_Config::class)
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
         $config->expects($this->atLeastOnce())
             ->method('offsetGet')
             ->willReturnMap($configArray);
