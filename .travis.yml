@@ -10,10 +10,6 @@ sudo: required
 services:
   - mysql
 
-stages:
-  - test
-  #- lint
-
 env:
   matrix:
     - SHOPWARE_VERSION="5.3"
@@ -23,6 +19,8 @@ env:
     - PLUGIN_NAME=FinSearchUnified
     - SHOPWARE_DIRECTORY=${HOME}/shopware
     - PLUGIN_DIRECTORY=${SHOPWARE_DIRECTORY}/custom/plugins
+  - TEST_SUITE="composer lint"
+  - TEST_SUITE="composer test"
 
 cache:
   directories:
@@ -37,12 +35,4 @@ before_script:
   - ./travis/before-script.sh
   - cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
 
-
-jobs:
-  include:
-    #- stage: lint
-    #  script:
-    #    - composer lint
-    - stage: test
-      script:
-        - composer lint && composer test
+script: $TEST_SUITE
