@@ -35,14 +35,14 @@ install:
 before_script:
   - cd ..
   - ./travis/before-script.sh
+  - cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
+
 
 jobs:
   include:
     - stage: lint
       script:
-        - echo pwd
         - composer lint
     - stage: test
       script:
-        - echo pwd
         - composer test

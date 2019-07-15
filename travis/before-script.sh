@@ -13,5 +13,3 @@ if [[ ${TRAVIS_BUILD_STAGE_NAME} != "Lint" ]]; then
     php ${SHOPWARE_DIRECTORY}/bin/console sw:cache:clear
     ${SHOPWARE_DIRECTORY}/var/cache/clear_cache.sh
 fi
-
-cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
