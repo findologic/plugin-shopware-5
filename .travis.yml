@@ -33,8 +33,7 @@ install:
   - composer install
 
 before_script:
-  - cd ${PLUGIN_DIRECTORY}/travis
-  - ./before-script.sh
+  - ./travis/before-script.sh
 
 jobs:
   include:
