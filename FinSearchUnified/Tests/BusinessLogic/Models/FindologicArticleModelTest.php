@@ -17,14 +17,14 @@ class FindologicArticleModelTest extends TestCase
     /** @var FindologicArticleFactory */
     private $articleFactory;
 
-    protected function setUp()
+    protected function setUp():void
     {
         parent::setUp();
         $this->manager = new Manager();
         $this->articleFactory = new FindologicArticleFactory();
     }
 
-    protected function tearDown()
+    protected function tearDown():void
     {
         parent::tearDown();
         Utility::sResetArticles();

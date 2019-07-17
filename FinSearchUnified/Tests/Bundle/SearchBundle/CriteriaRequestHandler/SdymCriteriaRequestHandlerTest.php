@@ -31,7 +31,7 @@ class SdymCriteriaRequestHandlerTest extends TestCase
      */
     public $handler;
 
-    protected function setUp()
+    protected function setUp():void
     {
         parent::setUp();
 

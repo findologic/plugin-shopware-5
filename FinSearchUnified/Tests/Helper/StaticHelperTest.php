@@ -37,7 +37,7 @@ class StaticHelperTest extends TestCase
      */
     private $categoryResource;
 
-    protected function setUp()
+    protected function setUp():void
     {
         parent::setUp();
 
@@ -45,7 +45,7 @@ class StaticHelperTest extends TestCase
         $this->categoryResource = $manager->getResource('Category');
     }
 
-    protected function tearDown()
+    protected function tearDown():void
     {
         parent::tearDown();
 

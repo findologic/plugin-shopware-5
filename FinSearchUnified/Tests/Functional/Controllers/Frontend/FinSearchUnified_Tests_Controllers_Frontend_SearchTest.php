@@ -61,7 +61,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         Utility::sResetArticles();
     }
 
-    public function setUp()
+    protected function setUp():void
     {
         parent::setUp();
 
@@ -70,7 +70,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         $this->setConfig('ShopKey', '0000000000000000ZZZZZZZZZZZZZZZZ');
     }
 
-    protected function tearDown()
+    protected function tearDown():void
     {
         parent::tearDown();
 

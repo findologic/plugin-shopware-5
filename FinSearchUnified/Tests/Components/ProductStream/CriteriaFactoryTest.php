@@ -15,7 +15,7 @@ use Shopware_Components_Config;
 
 class CriteriaFactoryTest extends TestCase
 {
-    public function tearDown()
+    protected function tearDown():void
     {
         parent::tearDown();
 

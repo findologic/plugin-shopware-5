@@ -36,7 +36,7 @@ class QueryBuilderFactoryTest extends TestCase
     /**
      * @throws Exception
      */
-    protected function setUp()
+    protected function setUp():void
     {
         parent::setUp();
 
@@ -54,7 +54,7 @@ class QueryBuilderFactoryTest extends TestCase
         $this->context = $contextService->getShopContext();
     }
 
-    protected function tearDown()
+    protected function tearDown():void
     {
         parent::tearDown();
 

@@ -15,7 +15,7 @@ use SimpleXMLElement;
 
 class ProductNumberSearchTest extends TestCase
 {
-    public function setUp()
+    protected function setUp():void
     {
         parent::setUp();
 
@@ -35,7 +35,7 @@ class ProductNumberSearchTest extends TestCase
         Shopware()->Container()->set('config', $mockConfig);
     }
 
-    protected function tearDown()
+    protected function tearDown():void
     {
         parent::tearDown();
 

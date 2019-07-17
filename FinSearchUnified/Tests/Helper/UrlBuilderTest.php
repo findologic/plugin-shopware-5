@@ -19,7 +19,7 @@ class UrlBuilderTest extends TestCase
      */
     private $httpClient;
 
-    protected function setUp()
+    protected function setUp():void
     {
         parent::setUp();
 
@@ -28,7 +28,7 @@ class UrlBuilderTest extends TestCase
             ->getMock();
     }
 
-    protected function tearDown()
+    protected function tearDown():void
     {
         parent::tearDown();
 
