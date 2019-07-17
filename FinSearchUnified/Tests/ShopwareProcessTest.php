@@ -12,7 +12,7 @@ use ReflectionException;
 use ReflectionObject;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
 use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
-use Shopware\Components\Test\Plugin\TestCase;
+use FinSearchUnified\Tests\TestCase;
 use Shopware\Models\Category\Category;
 use Shopware\Models\ProductStream\ProductStream;
 

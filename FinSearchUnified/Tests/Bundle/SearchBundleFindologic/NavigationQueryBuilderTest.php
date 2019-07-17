@@ -8,7 +8,7 @@ use PHPUnit\Framework\Assert;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Components\HttpClient\GuzzleHttpClient;
 use Shopware\Components\HttpClient\Response;
-use Shopware\Components\Test\Plugin\TestCase;
+use FinSearchUnified\Tests\TestCase;
 use Shopware_Components_Config;
 
 class NavigationQueryBuilderTest extends TestCase

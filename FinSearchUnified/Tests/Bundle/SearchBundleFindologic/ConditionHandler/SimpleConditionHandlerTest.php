@@ -7,7 +7,7 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\SimpleCondit
 use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
 use Shopware\Bundle\SearchBundle\Condition\SimpleCondition;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
-use Shopware\Components\Test\Plugin\TestCase;
+use FinSearchUnified\Tests\TestCase;
 
 class SimpleConditionHandlerTest extends TestCase
 {

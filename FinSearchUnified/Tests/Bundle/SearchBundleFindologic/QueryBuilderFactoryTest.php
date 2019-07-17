@@ -19,7 +19,7 @@ use Shopware\Bundle\SearchBundle\Sorting\SimpleSorting;
 use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
-use Shopware\Components\Test\Plugin\TestCase;
+use FinSearchUnified\Tests\TestCase;
 
 class QueryBuilderFactoryTest extends TestCase
 {

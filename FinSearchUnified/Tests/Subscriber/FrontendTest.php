@@ -9,7 +9,7 @@ use Enlight_Event_EventArgs;
 use Enlight_Hook_HookArgs;
 use PHPUnit\Framework\Assert;
 use ReflectionException;
-use Shopware\Components\Test\Plugin\TestCase;
+use FinSearchUnified\Tests\TestCase;
 use Shopware_Controllers_Frontend_Media;
 use Shopware_Controllers_Widgets_Listing;
 

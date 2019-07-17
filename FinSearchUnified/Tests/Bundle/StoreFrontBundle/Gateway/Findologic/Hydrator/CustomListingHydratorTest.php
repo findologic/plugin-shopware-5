@@ -4,7 +4,7 @@ namespace FinSearchUnified\Tests\Bundle\StoreFrontBundle\Gateway\Findologic\Hydr
 
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
-use Shopware\Components\Test\Plugin\TestCase;
+use FinSearchUnified\Tests\TestCase;
 use SimpleXMLElement;
 
 class CustomListingHydratorTest extends TestCase

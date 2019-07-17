@@ -5,7 +5,7 @@ use FinSearchUnified\BusinessLogic\Models\FindologicArticleModel;
 use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource\Article as ArticleResource;
-use Shopware\Components\Test\Plugin\TestCase;
+use FinSearchUnified\Tests\TestCase;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Category\Category;
 

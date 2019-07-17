@@ -7,7 +7,7 @@ use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource\Article;
-use Shopware\Components\Test\Plugin\TestCase;
+use FinSearchUnified\Tests\TestCase;
 use SimpleXMLElement;
 
 class PluginTest extends TestCase

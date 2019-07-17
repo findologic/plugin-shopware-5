@@ -5,7 +5,7 @@ namespace FinSearchUnified\Tests\Helper;
 use Exception;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\UrlBuilder;
-use Shopware\Components\Test\Plugin\TestCase;
+use FinSearchUnified\Tests\TestCase;
 use Shopware_Components_Config;
 use Zend_Http_Client;
 use Zend_Http_Client_Exception;

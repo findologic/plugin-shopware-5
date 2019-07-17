@@ -6,7 +6,7 @@ use Enlight_Controller_Request_RequestHttp;
 use Enlight_Controller_Response_ResponseHttp;
 use Enlight_Hook_HookArgs;
 use ReflectionException;
-use Shopware\Components\Test\Plugin\TestCase;
+use FinSearchUnified\Tests\TestCase;
 use Shopware_Controllers_Widgets_Listing;
 
 class WidgetsTest extends TestCase

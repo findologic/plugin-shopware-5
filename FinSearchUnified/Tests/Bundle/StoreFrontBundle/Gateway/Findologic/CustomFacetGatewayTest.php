@@ -13,7 +13,7 @@ use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\StoreFrontBundle\Gateway\DBAL;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
-use Shopware\Components\Test\Plugin\TestCase;
+use FinSearchUnified\Tests\TestCase;
 use Shopware_Components_Config;
 use SimpleXMLElement;
 

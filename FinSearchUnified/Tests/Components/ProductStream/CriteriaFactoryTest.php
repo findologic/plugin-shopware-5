@@ -10,7 +10,7 @@ use FinSearchUnified\Constants;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
-use Shopware\Components\Test\Plugin\TestCase;
+use FinSearchUnified\Tests\TestCase;
 use Shopware_Components_Config;
 
 class CriteriaFactoryTest extends TestCase

@@ -9,7 +9,7 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\ReleaseDateSor
 use Shopware\Bundle\SearchBundle\Sorting\ReleaseDateSorting;
 use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
-use Shopware\Components\Test\Plugin\TestCase;
+use FinSearchUnified\Tests\TestCase;
 
 class ReleaseDateSortingHandlerTest extends TestCase
 {

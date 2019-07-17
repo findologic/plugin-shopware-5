@@ -23,7 +23,7 @@ use Shopware\Components\Api\Exception\ValidationException;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource;
 use Shopware\Components\HttpClient\GuzzleHttpClient;
-use Shopware\Components\Test\Plugin\TestCase;
+use FinSearchUnified\Tests\TestCase;
 use Shopware\Models\Category\Category;
 use Shopware_Components_Config as Config;
 use SimpleXMLElement;

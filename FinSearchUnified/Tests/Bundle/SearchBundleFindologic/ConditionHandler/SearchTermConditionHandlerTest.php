@@ -7,7 +7,7 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\SearchTermCo
 use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
-use Shopware\Components\Test\Plugin\TestCase;
+use FinSearchUnified\Tests\TestCase;
 
 class SearchTermConditionHandlerTest extends TestCase
 {

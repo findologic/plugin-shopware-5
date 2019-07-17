@@ -7,7 +7,7 @@ use Enlight_Controller_Request_RequestHttp;
 use Enlight_Exception;
 use FinSearchUnified\Components\ProductStream\Repository;
 use Shopware\Bundle\SearchBundle\Criteria;
-use Shopware\Components\Test\Plugin\TestCase;
+use FinSearchUnified\Tests\TestCase;
 use Shopware_Components_Config;
 
 class RepositoryTest extends TestCase

@@ -9,7 +9,7 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\ProductNameSor
 use Shopware\Bundle\SearchBundle\Sorting\ProductNameSorting;
 use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
-use Shopware\Components\Test\Plugin\TestCase;
+use FinSearchUnified\Tests\TestCase;
 
 class ProductNameSortingHandlerTest extends TestCase
 {
