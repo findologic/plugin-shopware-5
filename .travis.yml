@@ -9,6 +9,7 @@ services:
   - mysql
 
 stages:
+  - test
   - lint
 
 env:
@@ -44,3 +45,6 @@ jobs:
     - stage: lint
       script:
         - composer lint
+    - stage: test
+      script:
+        - composer test
