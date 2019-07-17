@@ -18,7 +18,7 @@ class WidgetsTest extends TestCase
         Shopware()->Container()->get('config_writer')->save('ActivateFindologic', true);
     }
 
-    protected function tearDown():void
+    protected function tearDown()
     {
         parent::tearDown();
 

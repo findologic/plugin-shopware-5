@@ -21,7 +21,7 @@ class PluginTest extends TestCase
     /** @var Manager */
     private $manager;
 
-    protected function setUp():void
+    protected function setUp()
     {
         parent::setUp();
         $this->manager = new Manager();
@@ -163,7 +163,7 @@ class PluginTest extends TestCase
     /**
      * Reset articles data after each test
      */
-    protected function tearDown():void
+    protected function tearDown()
     {
         parent::tearDown();
 

@@ -19,7 +19,7 @@ use SimpleXMLElement;
 
 class CustomFacetGatewayTest extends TestCase
 {
-    protected function tearDown():void
+    protected function tearDown()
     {
         parent::tearDown();
 

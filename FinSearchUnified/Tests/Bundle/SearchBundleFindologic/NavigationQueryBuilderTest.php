@@ -23,7 +23,7 @@ class NavigationQueryBuilderTest extends TestCase
      */
     private $installerService;
 
-    protected function setUp():void
+    protected function setUp()
     {
         parent::setUp();
 
@@ -32,7 +32,7 @@ class NavigationQueryBuilderTest extends TestCase
         Shopware()->Session()->offsetSet('isSearchPage', false);
     }
 
-    protected function tearDown():void
+    protected function tearDown()
     {
         parent::tearDown();
 

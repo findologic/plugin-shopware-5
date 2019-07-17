@@ -32,7 +32,7 @@ class SearchQueryBuilderTest extends TestCase
     /**
      * @throws Exception
      */
-    protected function setUp():void
+    protected function setUp()
     {
         parent::setUp();
 
@@ -46,7 +46,7 @@ class SearchQueryBuilderTest extends TestCase
         );
     }
 
-    protected function tearDown():void
+    protected function tearDown()
     {
         parent::tearDown();
 

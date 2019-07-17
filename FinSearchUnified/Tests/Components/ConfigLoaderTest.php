@@ -28,7 +28,7 @@ class ConfigLoaderTest extends TestCase
      */
     private $shopkey;
 
-    protected function setUp():void
+    protected function setUp()
     {
         parent::setUp();
 

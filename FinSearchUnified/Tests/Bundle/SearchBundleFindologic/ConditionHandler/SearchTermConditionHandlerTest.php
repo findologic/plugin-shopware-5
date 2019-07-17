@@ -24,7 +24,7 @@ class SearchTermConditionHandlerTest extends TestCase
     /**
      * @throws Exception
      */
-    protected function setUp():void
+    protected function setUp()
     {
         parent::setUp();
         $this->querybuilder = new SearchQueryBuilder(

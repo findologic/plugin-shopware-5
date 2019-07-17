@@ -15,7 +15,7 @@ use Shopware_Controllers_Widgets_Listing;
 
 class FrontendTest extends TestCase
 {
-    protected function tearDown():void
+    protected function tearDown()
     {
         parent::tearDown();
 

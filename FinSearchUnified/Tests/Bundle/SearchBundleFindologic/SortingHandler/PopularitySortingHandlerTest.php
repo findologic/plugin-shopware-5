@@ -26,7 +26,7 @@ class PopularitySortingHandlerTest extends TestCase
     /**
      * @throws Exception
      */
-    protected function setUp():void
+    protected function setUp()
     {
         parent::setUp();
 
