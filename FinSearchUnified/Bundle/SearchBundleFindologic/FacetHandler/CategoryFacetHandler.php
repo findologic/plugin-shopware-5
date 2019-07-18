@@ -21,7 +21,7 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
     public function generatePartialFacet(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filter)
     {
         $categories = $this->getActives($facet, $criteria);
-        $this->parseCategories($filter->items->item, $categories);
+        $categories = $this->parseCategories($filter->items->item, $categories);
 
         return new TreeFacetResult(
             $facet->getField(),
@@ -64,10 +64,28 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
             $actives = [$actives];
         }
 
-        $categories = [];
+        $categories = $this->prepareCategoryTree($actives);
 
+        return $categories;
+    }
+
+    /**
+     * Helper method to recursively create category tree
+     *
+     * @param $actives
+     * @param array $categories
+     *
+     * @return mixed
+     */
+    private function prepareCategoryTree($actives, array $categories = [])
+    {
         foreach ($actives as $active) {
-            $categories[] = $this->prepareCategoryTree($active);
+            list($parent, $child) = explode('_', $active);
+
+            $categories[$parent] = [
+                'active' => $child ? false : true,
+                'children' => $child ? self::prepareCategoryTree([$child], $categories) : []
+            ];
         }
 
         return $categories;
@@ -78,8 +96,10 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
      *
      * @param SimpleXMLElement $filterItems
      * @param array $actives
+     *
+     * @return array
      */
-    private function parseCategories(SimpleXMLElement $filterItems, array &$actives)
+    private function parseCategories(SimpleXMLElement $filterItems, array $actives)
     {
         foreach ($filterItems as $filterItem) {
             $name = (string)$filterItem->name;
@@ -87,10 +107,12 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
 
             // Only add the items of $filterItems that are not already present in $actives
             $index = array_search($name, $actives);
+
             if ($index === false) {
                 $category = [
                     'active' => $filterItem->items->item ? false : true,
-                    'children' => $filterItem->items->item ? self::parseCategories($filterItem, $actives) : []
+                    'children' => $filterItem->items->item ? self::parseCategories($filterItem->items->item,
+                        $actives) : []
                 ];
 
                 if ($frequency) {
@@ -100,34 +122,15 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
                 $actives[$name] = $category;
             }
         }
-    }
 
-    /**
-     * Helper method to recursively create category tree
-     *
-     * @param $active
-     *
-     * @return mixed
-     */
-    private function prepareCategoryTree($active)
-    {
-        $categories = [];
-
-        list($parent, $child) = explode('_', $active);
-
-        $categories[$parent] = [
-            'active' => $child ? false : true,
-            'children' => $child ? self::prepareCategoryTree($child) : []
-        ];
-
-        return $categories;
+        return $actives;
     }
 
     /**
      * Convert the array of categories to an array of tree items
      *
      * @param array $categories
-     * @param null $parent
+     * @param string|null $parent
      *
      * @return array
      */
