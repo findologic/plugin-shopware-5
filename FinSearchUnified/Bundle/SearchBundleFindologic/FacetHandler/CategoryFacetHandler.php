@@ -21,7 +21,8 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
     public function generatePartialFacet(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filter)
     {
         $categories = $this->getActives($facet, $criteria);
-        $categories = $this->parseCategories($filter->items->item, $categories);
+        $parsed = $this->parseCategories($filter->items->item, $categories);
+        $categories = array_merge($categories, $parsed);
 
         return new TreeFacetResult(
             $facet->getField(),
@@ -101,29 +102,29 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
      */
     private function parseCategories(SimpleXMLElement $filterItems, array $actives)
     {
+        $inactives = [];
+
         foreach ($filterItems as $filterItem) {
             $name = (string)$filterItem->name;
             $frequency = (int)$filterItem->frequency;
 
             // Only add the items of $filterItems that are not already present in $actives
-            $index = array_search($name, $actives);
+            $index = $this->key_exists($name, $actives);
 
             if ($index === false) {
-                $category = [
-                    'active' => $filterItem->items->item ? false : true,
+                $inactives[$name] = [
+                    'active' => false,
                     'children' => $filterItem->items->item ? self::parseCategories($filterItem->items->item,
                         $actives) : []
                 ];
 
                 if ($frequency) {
-                    $category['frequency'] = $frequency;
+                    $inactives[$name]['frequency'] = $frequency;
                 }
-
-                $actives[$name] = $category;
             }
         }
 
-        return $actives;
+        return $inactives;
     }
 
     /**
@@ -162,5 +163,21 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
         }
 
         return $items;
+    }
+
+    private function key_exists($needle, array $array)
+    {
+        foreach ($array as $key => $value) {
+            if ($key === $needle) {
+                return $value;
+            }
+            if (is_array($value)) {
+                if ($x = $this->key_exists($key, $value)) {
+                    return $x;
+                }
+            }
+        }
+
+        return false;
     }
 }
