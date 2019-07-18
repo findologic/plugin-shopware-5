@@ -20,9 +20,11 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
      */
     public function generatePartialFacet(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filter)
     {
-        $categories = $this->getActives($facet, $criteria);
-        $parsed = $this->parseCategories($filter->items->item, $categories);
-        $categories = array_merge($categories, $parsed);
+        // Get active categories from criteria and parse it into structured array
+        $actives = $this->getActives($facet, $criteria);
+
+        // Put additional categories from filterItems into the active categories array
+        $categories = array_replace_recursive($this->parseCategories($filter->items->item, $actives), $actives);
 
         return new TreeFacetResult(
             $facet->getField(),
@@ -57,6 +59,7 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
 
         $condition = $criteria->getCondition($facet->getName());
 
+        // Get active categories from condition
         if ($condition !== null) {
             $actives = $condition->getValue();
         }
@@ -65,6 +68,7 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
             $actives = [$actives];
         }
 
+        // Parse active array into structured category tree array
         $categories = $this->prepareCategoryTree($actives);
 
         return $categories;
@@ -83,6 +87,7 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
         foreach ($actives as $active) {
             list($parent, $child) = explode('_', $active);
 
+            // Create structured array and recursively create category tree
             $categories[$parent] = [
                 'active' => $child ? false : true,
                 'children' => $child ? self::prepareCategoryTree([$child], $categories) : []
@@ -102,29 +107,26 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
      */
     private function parseCategories(SimpleXMLElement $filterItems, array $actives)
     {
-        $inactives = [];
+        $categories = [];
 
         foreach ($filterItems as $filterItem) {
             $name = (string)$filterItem->name;
             $frequency = (int)$filterItem->frequency;
 
-            // Only add the items of $filterItems that are not already present in $actives
-            $index = $this->key_exists($name, $actives);
+            // If category is in actives array, then set active to true
+            // And recursively parse child categories
+            $isActive = $this->key_exists($name, $actives);
+            $categories[$name] = [
+                'active' => $isActive,
+                'children' => $filterItem->items->item ? self::parseCategories($filterItem->items->item, $actives) : []
+            ];
 
-            if ($index === false) {
-                $inactives[$name] = [
-                    'active' => false,
-                    'children' => $filterItem->items->item ? self::parseCategories($filterItem->items->item,
-                        $actives) : []
-                ];
-
-                if ($frequency) {
-                    $inactives[$name]['frequency'] = $frequency;
-                }
+            if ($frequency) {
+                $categories[$name]['frequency'] = $frequency;
             }
         }
 
-        return $inactives;
+        return $categories;
     }
 
     /**
@@ -165,15 +167,24 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
         return $items;
     }
 
-    private function key_exists($needle, array $array)
+    /**
+     * Helper method to check if needle exists in array recursively
+     *
+     * @param mixed $needle
+     * @param array $haystack
+     *
+     * @return bool
+     */
+    private function key_exists($needle, array $haystack)
     {
-        foreach ($array as $key => $value) {
+        foreach ($haystack as $key => $value) {
             if ($key === $needle) {
-                return $value;
+                return true;
             }
+
             if (is_array($value)) {
                 if ($x = $this->key_exists($key, $value)) {
-                    return $x;
+                    return true;
                 }
             }
         }

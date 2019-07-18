@@ -146,13 +146,10 @@ class CategoryFacetHandlerTest extends TestCase
                                             'Child 2 (2)',
                                             false,
                                             []
-
                                         )
                                     ]
-
                                 )
                             ]
-
                         ),
                         new TreeItem(
                             'Category 2',
@@ -164,24 +161,20 @@ class CategoryFacetHandlerTest extends TestCase
                                     'Child 3 (30)',
                                     false,
                                     []
-
                                 ),
                                 new TreeItem(
                                     'Category 2_Child 4',
                                     'Child 4 (4)',
                                     false,
                                     []
-
                                 )
                             ]
-
                         ),
                         new TreeItem(
                             'Category 3',
                             'Category 3 (42)',
                             false,
                             []
-
                         )
                     ]
                 )
@@ -258,13 +251,10 @@ class CategoryFacetHandlerTest extends TestCase
                                             'Child 2 (2)',
                                             false,
                                             []
-
                                         )
                                     ]
-
                                 )
                             ]
-
                         ),
                         new TreeItem(
                             'Category 2',
@@ -276,30 +266,29 @@ class CategoryFacetHandlerTest extends TestCase
                                     'Child 3 (30)',
                                     false,
                                     []
-
                                 ),
                                 new TreeItem(
                                     'Category 2_Child 4',
                                     'Child 4 (4)',
                                     false,
                                     []
-
                                 )
                             ]
-
                         ),
                         new TreeItem(
                             'Category 3',
                             'Category 3',
                             true,
                             []
-
                         )
                     ]
                 ),
                 // $condition
-                new ProductAttributeCondition('cat', ConditionInterface::OPERATOR_EQ,
-                    ['Category 1_Child 1', 'Category 3'])
+                new ProductAttributeCondition(
+                    'cat',
+                    ConditionInterface::OPERATOR_EQ,
+                    ['Category 1_Child 1', 'Category 3']
+                )
             ],
             'Facet with filter without frequency but with category condition' => [
                 // $filterData
@@ -366,13 +355,10 @@ class CategoryFacetHandlerTest extends TestCase
                                             'Child 2',
                                             false,
                                             []
-
                                         )
                                     ]
-
                                 )
                             ]
-
                         ),
                         new TreeItem(
                             'Category 2',
@@ -384,35 +370,36 @@ class CategoryFacetHandlerTest extends TestCase
                                     'Child 3',
                                     false,
                                     []
-
                                 ),
                                 new TreeItem(
                                     'Category 2_Child 4',
                                     'Child 4',
                                     false,
                                     []
-
                                 )
                             ]
-
                         ),
                         new TreeItem(
                             'Category 3',
                             'Category 3',
                             true,
                             []
-
                         )
                     ]
                 ),
                 // $condition
-                new ProductAttributeCondition('cat', ConditionInterface::OPERATOR_EQ,
-                    ['Category 1_Child 1', 'Category 3'])
+                new ProductAttributeCondition(
+                    'cat',
+                    ConditionInterface::OPERATOR_EQ,
+                    ['Category 1_Child 1', 'Category 3']
+                )
             ]
         ];
     }
 
     /**
+     * Helper method to generate filter XML based on the filter data
+     *
      * @param array $filterData
      *
      * @return SimpleXMLElement
@@ -434,6 +421,12 @@ class CategoryFacetHandlerTest extends TestCase
         return $filter;
     }
 
+    /**
+     * Helper method to recursively create child items in filter XML
+     *
+     * @param SimpleXMLElement $filter
+     * @param $value
+     */
     private function addItems(SimpleXMLElement $filter, $value)
     {
         $items = $filter->addChild('items');
