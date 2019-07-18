@@ -115,7 +115,7 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
 
             // If category is in actives array, then set active to true
             // And recursively parse child categories
-            $isActive = $this->key_exists($name, $actives);
+            $isActive = $this->keyExists($name, $actives);
             $categories[$name] = [
                 'active' => $isActive,
                 'children' => $filterItem->items->item ? self::parseCategories($filterItem->items->item, $actives) : []
@@ -175,7 +175,7 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
      *
      * @return bool
      */
-    private function key_exists($needle, array $haystack)
+    private function keyExists($needle, array $haystack)
     {
         foreach ($haystack as $key => $value) {
             if ($key === $needle) {
@@ -183,7 +183,7 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
             }
 
             if (is_array($value)) {
-                if ($x = $this->key_exists($key, $value)) {
+                if ($x = $this->keyExists($key, $value)) {
                     return true;
                 }
             }
