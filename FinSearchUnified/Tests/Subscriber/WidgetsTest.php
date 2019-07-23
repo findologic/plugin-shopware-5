@@ -50,13 +50,9 @@ class WidgetsTest extends TestCase
         Shopware()->Session()->isSearchPage = true;
 
         /** @var Shopware_Controllers_Widgets_Listing $subject */
-        $subject = Shopware_Controllers_Widgets_Listing::Instance(
-            Shopware_Controllers_Widgets_Listing::class,
-            [
-                $request,
-                new Enlight_Controller_Response_ResponseHttp()
-            ]
-        );
+        $subject = Shopware_Controllers_Widgets_Listing::Instance(Shopware_Controllers_Widgets_Listing::class);
+
+        $subject->initController($request, new Enlight_Controller_Response_ResponseHttp());
 
         // Create mocked args for getting Subject and Request due to backwards compatibility
         $args = $this->createMock(Enlight_Hook_HookArgs::class);
@@ -85,13 +81,9 @@ class WidgetsTest extends TestCase
             ->setModuleName('widgets');
 
         /** @var Shopware_Controllers_Widgets_Listing $subject */
-        $subject = Shopware_Controllers_Widgets_Listing::Instance(
-            Shopware_Controllers_Widgets_Listing::class,
-            [
-                $request,
-                new Enlight_Controller_Response_ResponseHttp()
-            ]
-        );
+        $subject = Shopware_Controllers_Widgets_Listing::Instance(Shopware_Controllers_Widgets_Listing::class);
+
+        $subject->initController($request, new Enlight_Controller_Response_ResponseHttp());
 
         // Create mocked args for getting Subject and Request due to backwards compatibility
         $args = $this->createMock(Enlight_Hook_HookArgs::class);

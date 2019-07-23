@@ -159,13 +159,9 @@ class FrontendTest extends TestCase
             ->setActionName('listingCount')
             ->setModuleName('widgets');
 
-        $subject = Shopware_Controllers_Widgets_Listing::Instance(
-            Shopware_Controllers_Widgets_Listing::class,
-            [
-                $request,
-                new Enlight_Controller_Response_ResponseHttp()
-            ]
-        );
+        $subject = Shopware_Controllers_Widgets_Listing::Instance(Shopware_Controllers_Widgets_Listing::class);
+
+        $subject->initController($request, new Enlight_Controller_Response_ResponseHttp());
 
         $args = new Enlight_Event_EventArgs(['subject' => $subject]);
 
@@ -253,13 +249,9 @@ class FrontendTest extends TestCase
             ->setActionName('fallback')
             ->setModuleName('frontend');
 
-        $subject = Shopware_Controllers_Frontend_Media::Instance(
-            Shopware_Controllers_Frontend_Media::class,
-            [
-                $request,
-                new Enlight_Controller_Response_ResponseHttp()
-            ]
-        );
+        $subject = Shopware_Controllers_Frontend_Media::Instance(Shopware_Controllers_Frontend_Media::class);
+
+        $subject->initController($request, new Enlight_Controller_Response_ResponseHttp());
 
         $args = new Enlight_Event_EventArgs(['subject' => $subject]);
 
