@@ -1,28 +1,31 @@
 language: php
 
 php:
-  - 7.2
+  - "5.6"
+  - "7.0"
+  - "7.1"
 
 sudo: required
+
+stages:
+  - lint
 
 services:
   - mysql
 
-stages:
-  - test
-  - lint
-
 env:
   matrix:
-    - SHOPWARE_VERSION="5.6"
+    - SHOPWARE_VERSION="5.3"
+    - SHOPWARE_VERSION="5.4"
+    - SHOPWARE_VERSION="5.5"
   global:
     - PLUGIN_NAME=FinSearchUnified
     - SHOPWARE_DIRECTORY=${HOME}/shopware
     - PLUGIN_DIRECTORY=${SHOPWARE_DIRECTORY}/custom/plugins
 
 cache:
-   directories:
-     - ${HOME}/.composer/cache/files
+  directories:
+    - ${HOME}/.composer/cache/files
 
 install:
   - cd ${PLUGIN_NAME}
@@ -40,11 +43,16 @@ before_script:
   - ${SHOPWARE_DIRECTORY}/var/cache/clear_cache.sh
   - cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
 
+script:
+  - composer test
+
 jobs:
   include:
     - stage: lint
-      script:
-        - composer lint
-    - stage: test
-      script:
-        - composer test
+      before_script: skip
+      script: composer lint
+    - stage: Test SW 5.6
+      php:
+        - "7.3"
+      matrix:
+        - SHOPWARE_VERSION="5.6"
