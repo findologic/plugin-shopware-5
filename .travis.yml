@@ -1,18 +1,17 @@
 language: php
 
 php:
-  - 5.6
-  - 7.0
-  - 7.1
+  - "5.6"
+  - "7.0"
+  - "7.1"
 
 sudo: required
 
+stages:
+  - lint
+
 services:
   - mysql
-
-stages:
-  - test
-  - lint
 
 env:
   matrix:
@@ -25,8 +24,8 @@ env:
     - PLUGIN_DIRECTORY=${SHOPWARE_DIRECTORY}/custom/plugins
 
 cache:
-   directories:
-     - ${HOME}/.composer/cache/files
+  directories:
+    - ${HOME}/.composer/cache/files
 
 install:
   - cd ${PLUGIN_NAME}
@@ -47,8 +46,5 @@ before_script:
 jobs:
   include:
     - stage: lint
-      script:
-        - composer lint
-    - stage: test
-      script:
-        - composer test
+      before_script: skip
+      script: composer lint
