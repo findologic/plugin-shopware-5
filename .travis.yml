@@ -51,9 +51,7 @@ jobs:
     - stage: lint
       before_script: skip
       script: composer lint
-    - stage: sw-5.6
-      name: "Test SW 5.6"
-      php:
-        - 7.3
-      matrix:
+    - stage: Shopware 5.6
+      php: 7.3
+      env:
         - SHOPWARE_VERSION="5.6"
