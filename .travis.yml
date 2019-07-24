@@ -1,5 +1,4 @@
 language: php
-install: ant
 
 php:
   - "5.6"
@@ -27,6 +26,9 @@ env:
 cache:
   directories:
     - ${HOME}/.composer/cache/files
+
+before_install:
+  - echo $(ant -version)
 
 install:
   - cd ${PLUGIN_NAME}
