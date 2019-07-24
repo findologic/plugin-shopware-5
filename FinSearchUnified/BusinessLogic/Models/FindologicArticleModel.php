@@ -716,26 +716,22 @@ class FindologicArticleModel
             $allProperties[] = new Property('release_date', ['' => $releaseDate]);
         }
 
-        $configurations = [];
-
-        /** @var \Shopware\Models\Article\Configurator\Set $configuratorSet */
-        if ($configuratorSet = $this->baseArticle->getConfiguratorSet()) {
-            /** @var \Shopware\Models\Article\Configurator\Option $option */
-            foreach ($configuratorSet->getOptions() as $option) {
-                if (array_key_exists($option->getGroup()->getName(), $configurations)) {
-                    $configurations[$option->getGroup()->getName()][] = $option->getName();
-                } else {
-                    $configurations[$option->getGroup()->getName()] = [$option->getName()];
+        /** @var \Shopware\Models\Attribute\Article $attributes */
+        $attributes = $this->baseVariant->getAttribute();
+        if ($attributes) {
+            for ($i = 1; $i < 21; $i++) {
+                $value = '';
+                $methodName = "getAttr$i";
+                if (method_exists($attributes, $methodName)) {
+                    $value = $attributes->$methodName();
+                }
+                if ($value instanceof \DateTime) {
+                    $value = $value->format(DATE_ATOM);
+                }
+                if (self::checkIfHasValue($value)) {
+                    $allProperties[] = new Property("attr$i", ['' => StaticHelper::removeControlCharacters($value)]);
                 }
             }
-        }
-
-        foreach ($configurations as $property => $values) {
-            if (empty($values)) {
-                continue;
-            }
-
-            $allAttributes[] = new Property($property, $values);
         }
 
         $wishListUrl = $rewrtieLink . self::WISHLIST_URL . $this->baseVariant->getNumber();
