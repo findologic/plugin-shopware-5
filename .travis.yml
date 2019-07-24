@@ -1,4 +1,5 @@
 language: php
+install: ant
 
 php:
   - "5.6"
