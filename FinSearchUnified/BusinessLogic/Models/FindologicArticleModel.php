@@ -717,7 +717,12 @@ class FindologicArticleModel
         }
 
         /** @var \Shopware\Models\Attribute\Article $attributes */
-        $attributes = $this->baseVariant->getAttribute();
+        if (method_exists('getAttribute', $this->baseArticle)) {
+            $attributes = $this->baseArticle->getAttribute();
+        } else {
+            $attributes = $this->baseVariant->getAttribute();
+        }
+
         if ($attributes) {
             for ($i = 1; $i < 21; $i++) {
                 $value = '';
