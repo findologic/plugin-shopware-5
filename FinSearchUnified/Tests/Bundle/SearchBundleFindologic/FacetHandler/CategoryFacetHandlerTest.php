@@ -75,324 +75,324 @@ class CategoryFacetHandlerTest extends TestCase
     {
         return [
             'Facet with filter without condition' => [
-                // $filterData
-                [
-                    'name' => 'cat',
-                    'display' => 'Category',
-                    'select' => 'single',
-                    'type' => 'label',
-                    'items' => [
-                        [
-                            'name' => 'Category 1',
-                            'frequency' => 2,
-                            'items' => [
-                                [
-                                    'name' => 'Child 1',
-                                    'frequency' => 2,
-                                    'items' => [
-                                        [
-                                            'name' => 'Child 2',
-                                            'frequency' => 2,
-                                            'items' => []
+                'Filter Data' =>
+                    [
+                        'name' => 'cat',
+                        'display' => 'Category',
+                        'select' => 'single',
+                        'type' => 'label',
+                        'items' => [
+                            [
+                                'name' => 'Category 1',
+                                'frequency' => 2,
+                                'items' => [
+                                    [
+                                        'name' => 'Child 1',
+                                        'frequency' => 2,
+                                        'items' => [
+                                            [
+                                                'name' => 'Child 2',
+                                                'frequency' => 2,
+                                                'items' => []
+                                            ]
                                         ]
                                     ]
                                 ]
-                            ]
-                        ],
-                        [
-                            'name' => 'Category 2',
-                            'frequency' => 34,
-                            'items' => [
-                                [
-                                    'name' => 'Child 3',
-                                    'frequency' => 30,
-                                    'items' => []
-                                ],
-                                [
-                                    'name' => 'Child 4',
-                                    'frequency' => 4,
-                                    'items' => []
-                                ]
-                            ]
-                        ],
-                        [
-                            'name' => 'Category 3',
-                            'frequency' => 42,
-                            'items' => []
-                        ],
-                    ]
-                ],
-                // $mode
-                ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
-                // $facetResult
-                new TreeFacetResult(
-                    'cat',
-                    'cat',
-                    false,
-                    'Category',
-                    [
-                        new TreeItem(
-                            'Category 1',
-                            'Category 1 (2)',
-                            false,
+                            ],
                             [
-                                new TreeItem(
-                                    'Category 1_Child 1',
-                                    'Child 1 (2)',
-                                    false,
+                                'name' => 'Category 2',
+                                'frequency' => 34,
+                                'items' => [
                                     [
-                                        new TreeItem(
-                                            'Category 1_Child 1_Child 2',
-                                            'Child 2 (2)',
-                                            false,
-                                            []
-                                        )
+                                        'name' => 'Child 3',
+                                        'frequency' => 30,
+                                        'items' => []
+                                    ],
+                                    [
+                                        'name' => 'Child 4',
+                                        'frequency' => 4,
+                                        'items' => []
                                     ]
-                                )
-                            ]
-                        ),
-                        new TreeItem(
-                            'Category 2',
-                            'Category 2 (34)',
-                            false,
+                                ]
+                            ],
                             [
-                                new TreeItem(
-                                    'Category 2_Child 3',
-                                    'Child 3 (30)',
-                                    false,
-                                    []
-                                ),
-                                new TreeItem(
-                                    'Category 2_Child 4',
-                                    'Child 4 (4)',
-                                    false,
-                                    []
-                                )
-                            ]
-                        ),
-                        new TreeItem(
-                            'Category 3',
-                            'Category 3 (42)',
-                            false,
-                            []
-                        )
-                    ]
-                )
+                                'name' => 'Category 3',
+                                'frequency' => 42,
+                                'items' => []
+                            ],
+                        ]
+                    ],
+                'Mode' =>
+                    ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
+                'Facet Result' =>
+                    new TreeFacetResult(
+                        'cat',
+                        'cat',
+                        false,
+                        'Category',
+                        [
+                            new TreeItem(
+                                'Category 1',
+                                'Category 1 (2)',
+                                false,
+                                [
+                                    new TreeItem(
+                                        'Category 1_Child 1',
+                                        'Child 1 (2)',
+                                        false,
+                                        [
+                                            new TreeItem(
+                                                'Category 1_Child 1_Child 2',
+                                                'Child 2 (2)',
+                                                false,
+                                                []
+                                            )
+                                        ]
+                                    )
+                                ]
+                            ),
+                            new TreeItem(
+                                'Category 2',
+                                'Category 2 (34)',
+                                false,
+                                [
+                                    new TreeItem(
+                                        'Category 2_Child 3',
+                                        'Child 3 (30)',
+                                        false,
+                                        []
+                                    ),
+                                    new TreeItem(
+                                        'Category 2_Child 4',
+                                        'Child 4 (4)',
+                                        false,
+                                        []
+                                    )
+                                ]
+                            ),
+                            new TreeItem(
+                                'Category 3',
+                                'Category 3 (42)',
+                                false,
+                                []
+                            )
+                        ]
+                    )
             ],
             'Facet with filter and category condition' => [
-                // $filterData
-                [
-                    'name' => 'cat',
-                    'display' => 'Category',
-                    'select' => 'single',
-                    'type' => 'select',
-                    'items' => [
-                        [
-                            'name' => 'Category 1',
-                            'frequency' => 2,
-                            'items' => [
-                                [
-                                    'name' => 'Child 1',
-                                    'frequency' => 2,
-                                    'items' => [
-                                        [
-                                            'name' => 'Child 2',
-                                            'frequency' => 2,
-                                            'items' => []
+                'Filter Data' =>
+                    [
+                        'name' => 'cat',
+                        'display' => 'Category',
+                        'select' => 'single',
+                        'type' => 'select',
+                        'items' => [
+                            [
+                                'name' => 'Category 1',
+                                'frequency' => 2,
+                                'items' => [
+                                    [
+                                        'name' => 'Child 1',
+                                        'frequency' => 2,
+                                        'items' => [
+                                            [
+                                                'name' => 'Child 2',
+                                                'frequency' => 2,
+                                                'items' => []
+                                            ]
                                         ]
                                     ]
                                 ]
-                            ]
-                        ],
-                        [
-                            'name' => 'Category 2',
-                            'frequency' => 34,
-                            'items' => [
-                                [
-                                    'name' => 'Child 3',
-                                    'frequency' => 30,
-                                    'items' => []
-                                ],
-                                [
-                                    'name' => 'Child 4',
-                                    'frequency' => 4,
-                                    'items' => []
-                                ]
-                            ]
-                        ],
-                        [
-                            'name' => 'Category 3',
-                            'frequency' => 42,
-                            'items' => []
-                        ]
-                    ]
-                ],
-                // $mode
-                ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
-                // $facetResult
-                new TreeFacetResult(
-                    'cat',
-                    'cat',
-                    true,
-                    'Category',
-                    [
-                        new TreeItem(
-                            'Category 1',
-                            'Category 1 (2)',
-                            false,
+                            ],
                             [
-                                new TreeItem(
-                                    'Category 1_Child 1',
-                                    'Child 1',
-                                    true,
+                                'name' => 'Category 2',
+                                'frequency' => 34,
+                                'items' => [
                                     [
-                                        new TreeItem(
-                                            'Category 1_Child 1_Child 2',
-                                            'Child 2 (2)',
-                                            false,
-                                            []
-                                        )
+                                        'name' => 'Child 3',
+                                        'frequency' => 30,
+                                        'items' => []
+                                    ],
+                                    [
+                                        'name' => 'Child 4',
+                                        'frequency' => 4,
+                                        'items' => []
                                     ]
-                                )
-                            ]
-                        ),
-                        new TreeItem(
-                            'Category 2',
-                            'Category 2 (34)',
-                            false,
+                                ]
+                            ],
                             [
-                                new TreeItem(
-                                    'Category 2_Child 3',
-                                    'Child 3 (30)',
-                                    false,
-                                    []
-                                ),
-                                new TreeItem(
-                                    'Category 2_Child 4',
-                                    'Child 4 (4)',
-                                    false,
-                                    []
-                                )
+                                'name' => 'Category 3',
+                                'frequency' => 42,
+                                'items' => []
                             ]
-                        ),
-                        new TreeItem(
-                            'Category 3',
-                            'Category 3',
-                            true,
-                            []
-                        )
-                    ]
-                ),
-                // $condition
-                new ProductAttributeCondition(
-                    'cat',
-                    ConditionInterface::OPERATOR_EQ,
-                    ['Category 1_Child 1', 'Category 3']
-                )
+                        ]
+                    ],
+                'Mode' =>
+                    ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
+                'Facet Result' =>
+                    new TreeFacetResult(
+                        'cat',
+                        'cat',
+                        true,
+                        'Category',
+                        [
+                            new TreeItem(
+                                'Category 1',
+                                'Category 1 (2)',
+                                false,
+                                [
+                                    new TreeItem(
+                                        'Category 1_Child 1',
+                                        'Child 1',
+                                        true,
+                                        [
+                                            new TreeItem(
+                                                'Category 1_Child 1_Child 2',
+                                                'Child 2 (2)',
+                                                false,
+                                                []
+                                            )
+                                        ]
+                                    )
+                                ]
+                            ),
+                            new TreeItem(
+                                'Category 2',
+                                'Category 2 (34)',
+                                false,
+                                [
+                                    new TreeItem(
+                                        'Category 2_Child 3',
+                                        'Child 3 (30)',
+                                        false,
+                                        []
+                                    ),
+                                    new TreeItem(
+                                        'Category 2_Child 4',
+                                        'Child 4 (4)',
+                                        false,
+                                        []
+                                    )
+                                ]
+                            ),
+                            new TreeItem(
+                                'Category 3',
+                                'Category 3',
+                                true,
+                                []
+                            )
+                        ]
+                    ),
+                'Condition' =>
+                    new ProductAttributeCondition(
+                        'cat',
+                        ConditionInterface::OPERATOR_EQ,
+                        ['Category 1_Child 1', 'Category 3']
+                    )
             ],
             'Facet with filter without frequency but with category condition' => [
-                // $filterData
-                [
-                    'name' => 'cat',
-                    'display' => 'Category',
-                    'select' => 'single',
-                    'type' => 'select',
-                    'items' => [
-                        [
-                            'name' => 'Category 1',
-                            'items' => [
-                                [
-                                    'name' => 'Child 1',
-                                    'items' => [
-                                        [
-                                            'name' => 'Child 2',
-                                            'items' => []
+                'Filter Data' =>
+                    [
+                        'name' => 'cat',
+                        'display' => 'Category',
+                        'select' => 'single',
+                        'type' => 'select',
+                        'items' => [
+                            [
+                                'name' => 'Category 1',
+                                'items' => [
+                                    [
+                                        'name' => 'Child 1',
+                                        'items' => [
+                                            [
+                                                'name' => 'Child 2',
+                                                'items' => []
+                                            ]
                                         ]
                                     ]
                                 ]
-                            ]
-                        ],
-                        [
-                            'name' => 'Category 2',
-                            'items' => [
-                                [
-                                    'name' => 'Child 3',
-                                    'items' => []
-                                ],
-                                [
-                                    'name' => 'Child 4',
-                                    'items' => []
-                                ]
-                            ]
-                        ],
-                        [
-                            'name' => 'Category 3',
-                            'items' => []
-                        ]
-                    ]
-                ],
-                // $mode
-                ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
-                // $facetResult
-                new TreeFacetResult(
-                    'cat',
-                    'cat',
-                    true,
-                    'Category',
-                    [
-                        new TreeItem(
-                            'Category 1',
-                            'Category 1',
-                            false,
+                            ],
                             [
-                                new TreeItem(
-                                    'Category 1_Child 1',
-                                    'Child 1',
-                                    true,
+                                'name' => 'Category 2',
+                                'items' => [
                                     [
-                                        new TreeItem(
-                                            'Category 1_Child 1_Child 2',
-                                            'Child 2',
-                                            false,
-                                            []
-                                        )
+                                        'name' => 'Child 3',
+                                        'items' => []
+                                    ],
+                                    [
+                                        'name' => 'Child 4',
+                                        'items' => []
                                     ]
-                                )
-                            ]
-                        ),
-                        new TreeItem(
-                            'Category 2',
-                            'Category 2',
-                            false,
+                                ]
+                            ],
                             [
-                                new TreeItem(
-                                    'Category 2_Child 3',
-                                    'Child 3',
-                                    false,
-                                    []
-                                ),
-                                new TreeItem(
-                                    'Category 2_Child 4',
-                                    'Child 4',
-                                    false,
-                                    []
-                                )
+                                'name' => 'Category 3',
+                                'items' => []
                             ]
-                        ),
-                        new TreeItem(
-                            'Category 3',
-                            'Category 3',
-                            true,
-                            []
-                        )
-                    ]
-                ),
-                // $condition
-                new ProductAttributeCondition(
-                    'cat',
-                    ConditionInterface::OPERATOR_EQ,
-                    ['Category 1_Child 1', 'Category 3']
-                )
+                        ]
+                    ],
+                'Mode' =>
+                    ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
+                'Facet Result' =>
+                    new TreeFacetResult(
+                        'cat',
+                        'cat',
+                        true,
+                        'Category',
+                        [
+                            new TreeItem(
+                                'Category 1',
+                                'Category 1',
+                                false,
+                                [
+                                    new TreeItem(
+                                        'Category 1_Child 1',
+                                        'Child 1',
+                                        true,
+                                        [
+                                            new TreeItem(
+                                                'Category 1_Child 1_Child 2',
+                                                'Child 2',
+                                                false,
+                                                []
+                                            )
+                                        ]
+                                    )
+                                ]
+                            ),
+                            new TreeItem(
+                                'Category 2',
+                                'Category 2',
+                                false,
+                                [
+                                    new TreeItem(
+                                        'Category 2_Child 3',
+                                        'Child 3',
+                                        false,
+                                        []
+                                    ),
+                                    new TreeItem(
+                                        'Category 2_Child 4',
+                                        'Child 4',
+                                        false,
+                                        []
+                                    )
+                                ]
+                            ),
+                            new TreeItem(
+                                'Category 3',
+                                'Category 3',
+                                true,
+                                []
+                            )
+                        ]
+                    ),
+                'Condition' =>
+                    new ProductAttributeCondition(
+                        'cat',
+                        ConditionInterface::OPERATOR_EQ,
+                        ['Category 1_Child 1', 'Category 3']
+                    )
             ]
         ];
     }

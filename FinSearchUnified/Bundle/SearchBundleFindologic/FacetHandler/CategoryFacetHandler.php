@@ -77,20 +77,21 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
     /**
      * Helper method to recursively create category tree
      *
-     * @param $actives
+     * @param array $actives
      * @param array $categories
      *
      * @return mixed
      */
-    private function prepareCategoryTree($actives, array $categories = [])
+    private function prepareCategoryTree(array $actives, array $categories = [])
     {
         foreach ($actives as $active) {
+            // Only the first child will be in the $child variable
             list($parent, $child) = explode('_', $active);
 
             // Create structured array and recursively create category tree
             $categories[$parent] = [
-                'active' => $child ? false : true,
-                'children' => $child ? self::prepareCategoryTree([$child], $categories) : []
+                'active' => !$child,
+                'children' => $child ? $this->prepareCategoryTree([$child], $categories) : []
             ];
         }
 
@@ -113,12 +114,11 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
             $name = (string)$filterItem->name;
             $frequency = (int)$filterItem->frequency;
 
-            // If category is in actives array, then set active to true
-            // And recursively parse child categories
+            // If category is in actives array, then set active to true and recursively parse child categories
             $isActive = $this->keyExists($name, $actives);
             $categories[$name] = [
                 'active' => $isActive,
-                'children' => $filterItem->items->item ? self::parseCategories($filterItem->items->item, $actives) : []
+                'children' => $filterItem->items->item ? $this->parseCategories($filterItem->items->item, $actives) : []
             ];
 
             if ($frequency) {
@@ -158,7 +158,7 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
                 $id,
                 $label,
                 $category['active'],
-                self::getTreeItems($category['children'], $id)
+                $this->getTreeItems($category['children'], $id)
             );
 
             $items[] = $item;
@@ -183,9 +183,7 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
             }
 
             if (is_array($value)) {
-                if ($x = $this->keyExists($key, $value)) {
-                    return true;
-                }
+                return $this->keyExists($key, $value);
             }
         }
 
