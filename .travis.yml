@@ -27,6 +27,9 @@ cache:
   directories:
     - ${HOME}/.composer/cache/files
 
+before_install:
+  - sudo apt-get install ant
+
 install:
   - cd ${PLUGIN_NAME}
   - composer install
@@ -43,8 +46,12 @@ before_script:
   - ${SHOPWARE_DIRECTORY}/var/cache/clear_cache.sh
   - cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
 
+script:
+  - composer test
+
 jobs:
   include:
     - stage: lint
+      before_install: skip
       before_script: skip
       script: composer lint
