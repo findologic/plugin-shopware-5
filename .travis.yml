@@ -28,6 +28,9 @@ cache:
    directories:
      - ${HOME}/.composer/cache/files
 
+before_install:
+  - sudo apt-get install ant
+
 install:
   - cd ${PLUGIN_NAME}
   - composer install
@@ -47,6 +50,7 @@ before_script:
 jobs:
   include:
     - stage: lint
+      before_install: skip
       script:
         - composer lint
     - stage: test
