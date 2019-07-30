@@ -84,14 +84,12 @@ class UrlBuilder
                 $jsonResponse = json_decode($response, true);
                 $isDirectIntegration = (bool)$jsonResponse[self::JSON_PATH]['enabled'];
             } else {
-                $isDirectIntegration = Shopware()
-                        ->Config()
-                        ->offsetGet('IntegrationType') === Constants::INTEGRATION_TYPE_DI;
+                $isDirectIntegration =
+                    Shopware()->Config()->offsetGet('IntegrationType') === Constants::INTEGRATION_TYPE_DI;
             }
         } catch (Zend_Http_Client_Exception $e) {
-            $isDirectIntegration = Shopware()
-                    ->Config()
-                    ->offsetGet('IntegrationType') === Constants::INTEGRATION_TYPE_DI;
+            $isDirectIntegration =
+                Shopware()->Config()->offsetGet('IntegrationType') === Constants::INTEGRATION_TYPE_DI;
         }
 
         return $isDirectIntegration;
