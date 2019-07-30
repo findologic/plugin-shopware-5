@@ -12,6 +12,13 @@ use SimpleXMLElement;
 
 class ColorFacetHandler implements PartialFacetHandlerInterface
 {
+    /**
+     * @param FacetInterface $facet
+     * @param Criteria $criteria
+     * @param SimpleXMLElement $filter
+     *
+     * @return MediaListFacetResult
+     */
     public function generatePartialFacet(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filter)
     {
         $actives = [];
@@ -38,11 +45,22 @@ class ColorFacetHandler implements PartialFacetHandlerInterface
         );
     }
 
+    /**
+     * @param SimpleXMLElement $filter
+     *
+     * @return bool
+     */
     public function supportsFilter(SimpleXMLElement $filter)
     {
         return (string)$filter->type === 'color' && !isset($filter->items->item[0]->image);
     }
 
+    /**
+     * @param SimpleXMLElement $filterItems
+     * @param array $actives
+     *
+     * @return array
+     */
     private function getColorItems(SimpleXMLElement $filterItems, array $actives)
     {
         $items = [];
@@ -68,13 +86,11 @@ class ColorFacetHandler implements PartialFacetHandlerInterface
         }
 
         foreach ($actives as $active) {
-            $colorListItem = new ColorListItem(
+            $items[] = new ColorListItem(
                 $active,
                 $active,
                 true
             );
-
-            $items[] = $colorListItem;
         }
 
         return $items;

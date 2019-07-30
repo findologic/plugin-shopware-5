@@ -12,13 +12,13 @@ class ColorListItem extends FacetResult\MediaListItem
     protected $colorcode;
 
     /**
-     * @param int|string  $id
-     * @param string      $label
-     * @param bool        $active
+     * @param int|string $id
+     * @param string $label
+     * @param bool $active
      * @param string|null $color
-     * @param Attribute[] $attributes
+     * @param array $attributes
      */
-    public function __construct($id, $label, $active, $color = null, $attributes = [])
+    public function __construct($id, $label, $active, $color = null, array $attributes = [])
     {
         parent::__construct($id, $label, $active, null, $attributes);
         $this->colorcode = $color;
