@@ -46,6 +46,9 @@ before_script:
   - ${SHOPWARE_DIRECTORY}/var/cache/clear_cache.sh
   - cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
 
+script:
+  - composer test
+
 jobs:
   include:
     - stage: lint
