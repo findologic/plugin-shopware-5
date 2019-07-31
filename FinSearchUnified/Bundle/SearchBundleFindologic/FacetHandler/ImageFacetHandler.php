@@ -5,6 +5,7 @@ namespace FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Event\CompleteEvent;
+use GuzzleHttp\Event\ErrorEvent;
 use GuzzleHttp\Pool;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\FacetInterface;
@@ -87,19 +88,16 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
         $requests = [];
 
         foreach ($filterItems as $filterItem) {
-
             $name = (string)$filterItem->name;
             $isActive = array_search($name, $active) !== false;
 
             if (empty($filterItem->image)) {
-
                 $listItems[] = new MediaListItem(
                     $name,
                     $name,
                     $isActive
                 );
             } else {
-
                 $url = (string)$filterItem->image;
 
                 $items[$url] = [
@@ -108,39 +106,39 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
                 ];
 
                 $requests[] = $this->guzzleClient->createRequest('HEAD', $url);
-
-                $options = [
-                    'complete' => function (CompleteEvent $event) use ($items) {
-
-                        $url = $event->getRequest()->getUrl();
-                        $data = $items[$url];
-
-                        $media = new Media();
-                        $media->setFile($url);
-
-                        $listItems[] = new MediaListItem(
-                            $data['name'],
-                            $data['name'],
-                            $data['active'],
-                            $media
-                        );
-                    },
-                    'error' => function (CompleteEvent $event) use ($items) {
-
-                        $url = $event->getRequest()->getUrl();
-                        $data = $items[$url];
-
-                        $listItems[] = new MediaListItem(
-                            $data['name'],
-                            $data['name'],
-                            $data['active']
-                        );
-                    }
-                ];
-
-                Pool::send($this->guzzleClient, $requests, $options);
             }
         }
+
+        $options = [
+            'complete' => function (CompleteEvent $event) use ($items, &$listItems) {
+
+                $url = $event->getRequest()->getUrl();
+                $data = $items[$url];
+
+                $media = new Media();
+                $media->setFile($url);
+
+                $listItems[] = new MediaListItem(
+                    $data['name'],
+                    $data['name'],
+                    $data['active'],
+                    $media
+                );
+            },
+            'error' => function (ErrorEvent $event) use ($items, &$listItems) {
+
+                $url = $event->getRequest()->getUrl();
+                $data = $items[$url];
+
+                $listItems[] = new MediaListItem(
+                    $data['name'],
+                    $data['name'],
+                    $data['active']
+                );
+            }
+        ];
+
+        Pool::send($this->guzzleClient, $requests, $options);
 
         return $listItems;
     }

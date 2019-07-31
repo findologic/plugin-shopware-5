@@ -88,8 +88,9 @@ class ImageFacetHandlerTest extends TestCase
         $responses = [];
 
         foreach ($filterData as $filterDatum) {
-
-            $responses[] = new Response($filterDatum['status']);
+            if ($filterDatum['image']) {
+                $responses[] = new Response($filterDatum['status']);
+            }
         }
 
         $client = new Client();
@@ -110,7 +111,6 @@ class ImageFacetHandlerTest extends TestCase
         $mediaListItems = [];
 
         foreach ($facetData as $facetDatum) {
-
             if ($facetDatum[2] !== null) {
                 $media = new Media();
                 $media->setFile($facetDatum[2]);
@@ -123,7 +123,11 @@ class ImageFacetHandlerTest extends TestCase
         }
 
         $facetResult = new MediaListFacetResult(
-            'product_attribute_vendor', $active, 'Manufacturer', $mediaListItems, 'vendor'
+            'product_attribute_vendor',
+            $active,
+            'Manufacturer',
+            $mediaListItems,
+            'vendor'
         );
 
         $this->assertEquals($facetResult, $result);
@@ -135,15 +139,18 @@ class ImageFacetHandlerTest extends TestCase
             'Image filter with condition' => [
                 [
                     ['name' => 'Red', 'image' => '', 'status' => 404],
-                    ['name' => 'Green', 'image' => '', 'status', 404],
+                    ['name' => 'Green', 'image' => '', 'status' => 404],
                     ['name' => 'Zima Blue', 'image' => 'https://example.com/zima-blue.gif', 'status' => 200],
                     ['name' => 'Yellow', 'image' => 'https://example.com/yellow.gif', 'status' => 200],
                     ['name' => 'Purple', 'image' => 'https://example.com/purple.gif', 'status' => 404],
                     ['name' => 'Light Purple', 'image' => 'https://example.com/light-purple.gif', 'status' => 404],
                 ],
                 // Condition
-                new ProductAttributeCondition('vendor', ConditionInterface::OPERATOR_EQ,
-                    ['Red', 'Zima Blue', 'Purple']),
+                new ProductAttributeCondition(
+                    'vendor',
+                    ConditionInterface::OPERATOR_EQ,
+                    ['Red', 'Zima Blue', 'Purple']
+                ),
                 // Facet data
                 [
                     ['Red', true, null],
@@ -186,7 +193,6 @@ class ImageFacetHandlerTest extends TestCase
         $items = $filter->addChild('items');
         // Loop through the data to generate filter xml
         foreach ($filterData as $key => $value) {
-
             $item = $items->addChild('item');
             $item->addChild('name', $value['name']);
             $item->addChild('image', $value['image']);
