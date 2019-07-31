@@ -111,14 +111,14 @@ class ImageFacetHandlerTest extends TestCase
         $mediaListItems = [];
 
         foreach ($facetData as $facetDatum) {
-            if ($facetDatum[2] !== null) {
+            if ($facetDatum['media'] !== null) {
                 $media = new Media();
-                $media->setFile($facetDatum[2]);
+                $media->setFile($facetDatum['media']);
             } else {
                 $media = null;
             }
 
-            $mediaItem = new MediaListItem($facetDatum[0], $facetDatum[0], $facetDatum[1], $media);
+            $mediaItem = new MediaListItem($facetDatum['id'], $facetDatum['id'], $facetDatum['active'], $media);
             $mediaListItems[] = $mediaItem;
         }
 
@@ -137,7 +137,7 @@ class ImageFacetHandlerTest extends TestCase
     {
         return [
             'Image filter with condition' => [
-                [
+                'filterData' => [
                     ['name' => 'Red', 'image' => '', 'status' => 404],
                     ['name' => 'Green', 'image' => '', 'status' => 404],
                     ['name' => 'Zima Blue', 'image' => 'https://example.com/zima-blue.gif', 'status' => 200],
@@ -145,32 +145,31 @@ class ImageFacetHandlerTest extends TestCase
                     ['name' => 'Purple', 'image' => 'https://example.com/purple.gif', 'status' => 404],
                     ['name' => 'Light Purple', 'image' => 'https://example.com/light-purple.gif', 'status' => 404],
                 ],
-                // Condition
-                new ProductAttributeCondition(
-                    'vendor',
-                    ConditionInterface::OPERATOR_EQ,
-                    ['Red', 'Zima Blue', 'Purple']
-                ),
-                // Facet data
-                [
-                    ['Red', true, null],
-                    ['Green', false, null],
-                    ['Zima Blue', true, 'https://example.com/zima-blue.gif'],
-                    ['Yellow', false, 'https://example.com/yellow.gif'],
-                    ['Purple', true, null],
-                    ['Light Purple', false, null],
-                ]
+                'condition' =>
+                    new ProductAttributeCondition(
+                        'vendor',
+                        ConditionInterface::OPERATOR_EQ,
+                        ['Red', 'Zima Blue', 'Purple']
+                    ),
+                'facetData' =>
+                    [
+                        ['id' => 'Red', 'active' => true, 'media' => null],
+                        ['id' => 'Green', 'active' => false, 'media' => null],
+                        ['id' => 'Zima Blue', 'active' => true, 'media' => 'https://example.com/zima-blue.gif'],
+                        ['id' => 'Yellow', 'active' => false, 'media' => 'https://example.com/yellow.gif'],
+                        ['id' => 'Purple', 'active' => true, 'media' => null],
+                        ['id' => 'Light Purple', 'active' => false, 'media' => null],
+                    ]
             ],
             'Image filter without condition' => [
-                [
-                    ['name' => 'Red', 'image' => ''],
+                'filterData' => [
+                    ['name' => 'Red', 'image' => '', 'status' => 404],
                 ],
-                // Condition
-                null,
-                // Facet data
-                [
-                    ['Red', false, null]
-                ]
+                'condition' => null,
+                'facetData' =>
+                    [
+                        ['id' => 'Red', 'active' => false, 'media' => null]
+                    ]
             ],
         ];
     }

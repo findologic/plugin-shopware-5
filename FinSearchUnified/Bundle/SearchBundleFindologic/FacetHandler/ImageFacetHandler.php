@@ -89,7 +89,7 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
 
         foreach ($filterItems as $filterItem) {
             $name = (string)$filterItem->name;
-            $isActive = array_search($name, $active) !== false;
+            $isActive = in_array($name, $active);
 
             if (empty($filterItem->image)) {
                 $listItems[] = new MediaListItem(
