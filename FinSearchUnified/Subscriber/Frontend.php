@@ -147,12 +147,17 @@ class Frontend implements SubscriberInterface
         $groupKey = Shopware()->Session()->get('sUserGroup', 'EK');
         $hash = StaticHelper::calculateUsergroupHash($this->getShopKey(), $groupKey);
 
+        $searchResultContainer = Shopware()->Config()->get('SearchResultContainer');
+        $navigationContainer = Shopware()->Config()->get('NavigationContainer');
+
         try {
             /** @var \Enlight_Controller_ActionEventArgs $args */
             $view = $args->getSubject()->View();
             $view->extendsTemplate('frontend/fin_search_unified/header.tpl');
             $view->assign('userGroupHash', $hash);
             $view->assign('hashedShopkey', strtoupper(md5($this->getShopKey())));
+            $view->assign('searchResultContainer', $searchResultContainer);
+            $view->assign('navigationContainer', $navigationContainer);
         } catch (\Enlight_Exception $e) {
             //TODO LOGGING
         }
