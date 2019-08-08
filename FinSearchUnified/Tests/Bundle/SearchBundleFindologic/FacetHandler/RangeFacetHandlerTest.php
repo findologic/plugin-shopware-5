@@ -3,13 +3,13 @@
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\FacetHandler;
 
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\RangeFacetHandler;
+use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResultInterface;
-use Shopware\Components\Test\Plugin\TestCase;
 use SimpleXMLElement;
 
 class RangeFacetHandlerTest extends TestCase

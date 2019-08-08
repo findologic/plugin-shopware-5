@@ -5,9 +5,9 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\ConditionHandler;
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\SearchTermConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
+use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
-use Shopware\Components\Test\Plugin\TestCase;
 
 class SearchTermConditionHandlerTest extends TestCase
 {

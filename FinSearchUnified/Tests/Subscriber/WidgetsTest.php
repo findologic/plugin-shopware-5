@@ -5,8 +5,8 @@ namespace FinSearchUnified\Tests\Subscriber;
 use Enlight_Controller_Request_RequestHttp;
 use Enlight_Controller_Response_ResponseHttp;
 use Enlight_Hook_HookArgs;
+use FinSearchUnified\Tests\TestCase;
 use ReflectionException;
-use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Controllers_Widgets_Listing;
 
 class WidgetsTest extends TestCase
