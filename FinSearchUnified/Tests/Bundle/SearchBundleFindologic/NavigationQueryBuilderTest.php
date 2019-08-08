@@ -4,11 +4,11 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic;
 
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\NavigationQueryBuilder;
+use FinSearchUnified\Tests\TestCase;
 use PHPUnit\Framework\Assert;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Components\HttpClient\GuzzleHttpClient;
 use Shopware\Components\HttpClient\Response;
-use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Components_Config;
 
 class NavigationQueryBuilderTest extends TestCase

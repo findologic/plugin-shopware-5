@@ -6,10 +6,10 @@ use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\ReleaseDateSortingHandler;
+use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Sorting\ReleaseDateSorting;
 use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
-use Shopware\Components\Test\Plugin\TestCase;
 
 class ReleaseDateSortingHandlerTest extends TestCase
 {

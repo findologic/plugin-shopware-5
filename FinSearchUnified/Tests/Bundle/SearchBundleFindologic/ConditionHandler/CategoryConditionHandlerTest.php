@@ -6,9 +6,9 @@ use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\CategoryConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
+use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
-use Shopware\Components\Test\Plugin\TestCase;
 
 class CategoryConditionHandlerTest extends TestCase
 {

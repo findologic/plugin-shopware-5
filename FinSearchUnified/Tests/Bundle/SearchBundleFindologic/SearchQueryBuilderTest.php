@@ -5,11 +5,11 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic;
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
 use FinSearchUnified\Helper\StaticHelper;
+use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Components\HttpClient\GuzzleHttpClient;
 use Shopware\Components\HttpClient\RequestException;
 use Shopware\Components\HttpClient\Response;
-use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Components_Config;
 
 class SearchQueryBuilderTest extends TestCase
