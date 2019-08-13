@@ -135,5 +135,7 @@
             <argument id="config" type="service" />
         </service>
 
+        <service class="FinSearchUnified\Components\StagingManager" id="fin_search_unified.staging_manager" />
+
     </services>
 </container>

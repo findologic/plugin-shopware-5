@@ -5,12 +5,15 @@ namespace FinSearchUnified\Helper;
 use Enlight_View_Default;
 use Exception;
 use FinSearchUnified\Bundle\FacetResult as FinFacetResult;
+use FinSearchUnified\Components\ConfigLoader;
+use FinSearchUnified\Components\StagingManager;
 use FinSearchUnified\Constants;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\StoreFrontBundle;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use SimpleXMLElement;
+use Zend_Cache_Exception;
 use Zend_Http_Client;
 use Zend_Http_Client_Exception;
 
@@ -698,26 +701,47 @@ class StaticHelper
     }
 
     /**
-     * Checks if the FINDOLOGIC search should actually be performed.
+     * Returns `true` if the shop search should be used. If FINDOLOGIC can be used `false` is returned.
+     *
+     * Shop search will be used if the search was triggered
+     * * via CLI.
+     * * in the Shopware Backend.
+     * * in "Einkaufswelten" aka. "Emotion".
+     * * with FINDOLOGIC being disabled in the plugin config or no shopkey was set.
+     * * when the shop is Direct Integration (Direct Integration will handle any search requests).
+     * * on neither a search nor a navigation page.
+     * * on a category page but FINDOLOGIC is disabled in category pages in the plugin config.
+     * * when the shop is in Staging Mode and parameter `findologic=on` is not set.
      *
      * @return bool
+     * @throws Zend_Cache_Exception
      */
     public static function useShopSearch()
     {
+        $isCLIMode = Shopware()->Front()->Request() === null;
+        $isInBackend = Shopware()->Front()->Request()->getModuleName() === 'backend';
+        $isEmotionPage = Shopware()->Front()->Request()->getControllerName() === 'emotion';
+        $isFindologicActive = self::isFindologicActive();
+        $isDirectIntegration = self::checkDirectIntegration();
+
+        $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
+        $isNoSearchAndCategoryPage = !$isCategoryPage && !Shopware()->Session()->offsetGet('isSearchPage');
+        $isCategoryPageButDisabledInConfig = $isCategoryPage &&
+            !(bool)Shopware()->Config()->get('ActivateFindologicForCategoryPages');
+
+        /** @var StagingManager $stagingManager */
+        $stagingManager = Shopware()->Container()->get('fin_search_unified.staging_manager');
+        $isStagingMode = $stagingManager->isStaging();
+
         return (
-            Shopware()->Front()->Request() === null ||
-            Shopware()->Front()->Request()->getModuleName() === 'backend' ||
-            Shopware()->Front()->Request()->getControllerName() === 'emotion' ||
-            !self::isFindologicActive() ||
-            self::checkDirectIntegration() ||
-            (
-                !Shopware()->Session()->offsetGet('isCategoryPage') &&
-                !Shopware()->Session()->offsetGet('isSearchPage')
-            ) ||
-            (
-                Shopware()->Session()->offsetGet('isCategoryPage') &&
-                !(bool)Shopware()->Config()->get('ActivateFindologicForCategoryPages')
-            )
+            $isCLIMode ||
+            $isInBackend ||
+            $isEmotionPage ||
+            !$isFindologicActive ||
+            $isDirectIntegration ||
+            $isNoSearchAndCategoryPage ||
+            $isCategoryPageButDisabledInConfig ||
+            $isStagingMode
         );
     }
 
@@ -728,13 +752,14 @@ class StaticHelper
      */
     public static function isFindologicActive()
     {
-        return (bool)Shopware()->Config()->get('ActivateFindologic') &&
-            !empty(trim(Shopware()->Config()->get('ShopKey'))) &&
-            Shopware()->Config()->get('ShopKey') !== 'Findologic Shopkey';
+        return (bool)Shopware()->Config()->get('ActivateFindologic') && // Config.
+            !empty(trim(Shopware()->Config()->get('ShopKey'))) && // No Shopkey.
+            Shopware()->Config()->get('ShopKey') !== 'Findologic Shopkey'; // Can probably be dropped.
     }
 
     public static function checkDirectIntegration()
     {
+        /** @var ConfigLoader $configLoader */
         $configLoader = Shopware()->Container()->get('fin_search_unified.config_loader');
 
         $integrationType = Shopware()->Config()->offsetGet(Constants::CONFIG_KEY_INTEGRATION_TYPE);

@@ -6,6 +6,7 @@ use Enlight\Event\SubscriberInterface;
 use Enlight_Controller_Request_Request as Request;
 use Enlight_Event_EventArgs;
 use Enlight_Hook_HookArgs;
+use FinSearchUnified\Components\StagingManager;
 use FinSearchUnified\Helper\StaticHelper;
 
 class Frontend implements SubscriberInterface
@@ -57,6 +58,10 @@ class Frontend implements SubscriberInterface
         $request = $subject->Request();
 
         $controllerName = strtolower($request->getControllerName());
+
+        /** @var StagingManager $stagingManager */
+        $stagingManager = Shopware()->Container()->get('fin_search_unified.staging_manager');
+        $stagingManager->setStagingFlagByRequest($request);
 
         if ($this->isSearchPage($request)) {
             Shopware()->Session()->offsetSet('isSearchPage', true);
