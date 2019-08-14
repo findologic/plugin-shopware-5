@@ -393,8 +393,9 @@ class StaticHelperTest extends TestCase
             ->setMethods(['offsetGet'])
             ->disableOriginalConstructor()
             ->getMock();
-        $config->expects($this->never())
-            ->method('offsetGet');
+        $config->expects($this->exactly(2))
+            ->method('offsetGet')
+            ->withConsecutive(['ActivateFindologic'], ['IntegrationType']);
 
         // Assign mocked config variable to application container
         Shopware()->Container()->set('config', $config);
@@ -403,8 +404,9 @@ class StaticHelperTest extends TestCase
         $session = $this->getMockBuilder(Session::class)
             ->setMethods(['offsetGet'])
             ->getMock();
-        $session->expects($this->never())
-            ->method('offsetGet');
+        $session->expects($this->exactly(3))
+            ->method('offsetGet')
+            ->withConsecutive(['isCategoryPage'], ['isSearchPage'], ['stagingFlag']);
 
         // Assign mocked session variable to application container
         Shopware()->Container()->set('session', $session);

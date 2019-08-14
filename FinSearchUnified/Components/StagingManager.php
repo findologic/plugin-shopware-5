@@ -5,9 +5,6 @@ namespace FinSearchUnified\Components;
 use Enlight_Controller_Request_Request as Request;
 use Zend_Cache_Exception;
 
-/**
- * Manages FINDOLOGIC Staging.
- */
 class StagingManager
 {
     /**
@@ -29,8 +26,7 @@ class StagingManager
     }
 
     /**
-     * Returns false if the shop is no staging shop or the staging flag is enabled, to ignore this check.
-     * Otherwise true is returned.
+     * Returns false if the shop is no staging shop or the staging flag is enabled. Otherwise true is returned.
      *
      * @return bool
      * @throws Zend_Cache_Exception

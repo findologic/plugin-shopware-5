@@ -719,6 +719,10 @@ class StaticHelper
     public static function useShopSearch()
     {
         $isCLIMode = Shopware()->Front()->Request() === null;
+        if ($isCLIMode) {
+            return true;
+        }
+
         $isInBackend = Shopware()->Front()->Request()->getModuleName() === 'backend';
         $isEmotionPage = Shopware()->Front()->Request()->getControllerName() === 'emotion';
         $isFindologicActive = self::isFindologicActive();
@@ -734,7 +738,6 @@ class StaticHelper
         $isStagingMode = $stagingManager->isStaging();
 
         return (
-            $isCLIMode ||
             $isInBackend ||
             $isEmotionPage ||
             !$isFindologicActive ||
