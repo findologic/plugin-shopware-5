@@ -749,15 +749,16 @@ class StaticHelper
     }
 
     /**
-     * Checks if FINDOLOGIC search has been activated properly
+     * Checks if FINDOLOGIC search has been activated properly.
+     * * In the config FINDOLOGIC needs to be marked as enabled.
+     * * A shopkey needs to be entered in the config.
      *
      * @return bool
      */
     public static function isFindologicActive()
     {
-        return (bool)Shopware()->Config()->get('ActivateFindologic') && // Config.
-            !empty(trim(Shopware()->Config()->get('ShopKey'))) && // No Shopkey.
-            Shopware()->Config()->get('ShopKey') !== 'Findologic Shopkey'; // Can probably be dropped.
+        return (bool)Shopware()->Config()->get('ActivateFindologic') &&
+            !empty(trim(Shopware()->Config()->get('ShopKey')));
     }
 
     public static function checkDirectIntegration()
