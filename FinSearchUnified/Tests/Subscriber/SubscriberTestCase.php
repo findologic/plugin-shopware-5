@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Tests\Subscriber;
 
+use Enlight_Controller_Action;
 use Enlight_Controller_Request_RequestHttp;
 use Enlight_Controller_Response_ResponseHttp;
 use FinSearchUnified\Tests\TestCase;
@@ -15,7 +16,7 @@ class SubscriberTestCase extends TestCase
      * @param Enlight_Controller_Request_RequestHttp $request
      * @param Enlight_Controller_Response_ResponseHttp|null $response
      *
-     * @return mixed
+     * @return Enlight_Controller_Action
      * @throws ReflectionException
      */
     protected function getControllerInstance(
@@ -23,15 +24,16 @@ class SubscriberTestCase extends TestCase
         Enlight_Controller_Request_RequestHttp $request,
         Enlight_Controller_Response_ResponseHttp $response = null
     ) {
-
         if (is_null($response)) {
             $response = new Enlight_Controller_Response_ResponseHttp();
         }
 
         $reflectionMethod = new ReflectionMethod($controller, 'Instance');
+
+        /** @var Enlight_Controller_Action $subject */
         $subject = $reflectionMethod->invoke(null, $controller, [$request, $response]);
 
-        if (method_exists($subject, 'initController')) {
+        if (is_callable([$subject, 'initController'])) {
             $subject->initController($request, $response);
         }
 
