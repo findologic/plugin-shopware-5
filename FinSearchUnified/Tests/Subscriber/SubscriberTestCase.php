@@ -33,7 +33,7 @@ class SubscriberTestCase extends TestCase
         /** @var Enlight_Controller_Action $subject */
         $subject = $reflectionMethod->invoke(null, $controller, [$request, $response]);
 
-        if (is_callable([$subject, 'initController'])) {
+        if (method_exists($subject, 'initController')) {
             $subject->initController($request, $response);
         }
 
