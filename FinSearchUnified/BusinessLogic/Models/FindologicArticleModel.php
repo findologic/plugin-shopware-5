@@ -214,7 +214,6 @@ class FindologicArticleModel
 
     protected function setVariantOrdernumbers()
     {
-
         /** @var Detail $detail */
         foreach ($this->variantArticles as $detail) {
             if (!($detail instanceof Detail)) {
@@ -721,7 +720,7 @@ class FindologicArticleModel
             $allProperties[] = new Property('release_date', ['' => $releaseDate]);
         }
 
-        if (is_callable($this->baseArticle, 'getAttribute')) {
+        if (is_callable([$this->baseArticle, 'getAttribute']) && !is_null($this->baseArticle->getAttribute())) {
             $attributes = $this->baseArticle->getAttribute();
         } else {
             $attributes = $this->baseVariant->getAttribute();

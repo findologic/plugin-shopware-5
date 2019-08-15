@@ -173,10 +173,9 @@ class FindologicArticleModelTest extends TestCase
         $reflector = new ReflectionClass(Item::class);
         $properties = $reflector->getProperty('properties');
         $properties->setAccessible(true);
-
         $properties = $properties->getValue($xmlArticle);
-
         $propertiesArray = current($properties);
+
         $this->assertArrayHasKey('attr1', $propertiesArray);
         $this->assertSame($expected, $propertiesArray['attr1']);
     }
