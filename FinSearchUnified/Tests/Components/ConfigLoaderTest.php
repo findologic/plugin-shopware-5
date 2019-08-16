@@ -1,7 +1,8 @@
 <?php
 
-namespace FinSearchUnified\Components;
+namespace FinSearchUnified\Tests\Components;
 
+use FinSearchUnified\Components\ConfigLoader;
 use FinSearchUnified\Tests\TestCase;
 use ReflectionException;
 use ReflectionObject;
