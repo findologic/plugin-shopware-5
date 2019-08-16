@@ -5,11 +5,10 @@ namespace FinSearchUnified\Tests\Subscriber;
 use Enlight_Controller_Request_RequestHttp;
 use Enlight_Controller_Response_ResponseHttp;
 use Enlight_Hook_HookArgs;
-use FinSearchUnified\Tests\TestCase;
 use ReflectionException;
 use Shopware_Controllers_Widgets_Listing;
 
-class WidgetsTest extends TestCase
+class WidgetsTest extends SubscriberTestCase
 {
     public static function setUpBeforeClass()
     {
@@ -49,14 +48,7 @@ class WidgetsTest extends TestCase
         Shopware()->Container()->get('front')->setRequest($request);
         Shopware()->Session()->isSearchPage = true;
 
-        /** @var Shopware_Controllers_Widgets_Listing $subject */
-        $subject = Shopware_Controllers_Widgets_Listing::Instance(
-            Shopware_Controllers_Widgets_Listing::class,
-            [
-                $request,
-                new Enlight_Controller_Response_ResponseHttp()
-            ]
-        );
+        $subject = $this->getControllerInstance(Shopware_Controllers_Widgets_Listing::class, $request);
 
         // Create mocked args for getting Subject and Request due to backwards compatibility
         $args = $this->createMock(Enlight_Hook_HookArgs::class);
