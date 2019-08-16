@@ -720,6 +720,11 @@ class FindologicArticleModel
             $allProperties[] = new Property('release_date', ['' => $releaseDate]);
         }
 
+        // Even though the getAttribute is callable in the baseArticle, the value is consistently null due
+        // to the fact that Shopware is setting the attribute to the baseVariant of the article even if the attribute
+        // is provided for the baseArticle. If the value is set correctly, then the baseArticle attribute will be used
+        // Reference is provided here -
+        // \Shopware\Components\Api\Resource\Article::prepareAttributeAssociatedData
         if (is_callable([$this->baseArticle, 'getAttribute']) && !is_null($this->baseArticle->getAttribute())) {
             $attributes = $this->baseArticle->getAttribute();
         } else {

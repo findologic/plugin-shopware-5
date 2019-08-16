@@ -188,7 +188,7 @@ class FindologicArticleModelTest extends TestCase
                     'name' => 'FindologicArticle 1',
                     'active' => true,
                     'tax' => 19,
-                    'supplier' => "Findologic",
+                    'supplier' => 'Findologic',
                     'categories' => [
                         ['id' => 3],
                         ['id' => 5],
@@ -219,7 +219,7 @@ class FindologicArticleModelTest extends TestCase
                     'name' => 'FindologicArticle 2',
                     'active' => true,
                     'tax' => 19,
-                    'supplier' => "Findologic",
+                    'supplier' => 'Findologic',
                     'categories' => [
                         ['id' => 3],
                         ['id' => 5],
