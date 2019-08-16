@@ -76,14 +76,7 @@ class WidgetsTest extends SubscriberTestCase
             ->setActionName('listingCount')
             ->setModuleName('widgets');
 
-        /** @var Shopware_Controllers_Widgets_Listing $subject */
-        $subject = Shopware_Controllers_Widgets_Listing::Instance(
-            Shopware_Controllers_Widgets_Listing::class,
-            [
-                $request,
-                new Enlight_Controller_Response_ResponseHttp()
-            ]
-        );
+        $subject = $this->getControllerInstance(Shopware_Controllers_Widgets_Listing::class, $request);
 
         // Create mocked args for getting Subject and Request due to backwards compatibility
         $args = $this->createMock(Enlight_Hook_HookArgs::class);
