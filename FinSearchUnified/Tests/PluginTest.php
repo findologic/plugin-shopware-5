@@ -2,12 +2,13 @@
 
 namespace FinSearchUnified\Tests;
 
+use Exception;
 use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
+use FinSearchUnified\ShopwareProcess;
 use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource\Article;
-use Shopware\Components\Test\Plugin\TestCase;
 use SimpleXMLElement;
 
 class PluginTest extends TestCase
@@ -129,7 +130,7 @@ class PluginTest extends TestCase
             $article = $resource->create($testArticle);
 
             return $article;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             echo sprintf("Exception: %s", $e->getMessage());
         }
     }
@@ -144,7 +145,7 @@ class PluginTest extends TestCase
     {
         try {
             $shopKey = '0000000000000000ZZZZZZZZZZZZZZZZ';
-            /** @var \FinSearchUnified\ShopwareProcess $blController */
+            /** @var ShopwareProcess $blController */
             $blController = Shopware()->Container()->get('fin_search_unified.shopware_process');
             $blController->setShopKey($shopKey);
             $xmlDocument = $blController->getFindologicXml();
@@ -153,7 +154,7 @@ class PluginTest extends TestCase
             $xml = new SimpleXMLElement($xmlDocument);
 
             return (int)$xml->items->attributes()->count;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             echo sprintf("Exception: %s", $e->getMessage());
         }
 

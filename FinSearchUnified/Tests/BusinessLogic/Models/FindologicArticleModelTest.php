@@ -1,11 +1,17 @@
 <?php
 
+namespace FinSearchUnified\Tests\BusinessLogic\Models;
+
+use Exception;
+use FINDOLOGIC\Export\Data\Item;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use FinSearchUnified\BusinessLogic\Models\FindologicArticleModel;
 use FinSearchUnified\Tests\Helper\Utility;
+use FinSearchUnified\Tests\TestCase;
+use ReflectionClass;
+use ReflectionException;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource\Article as ArticleResource;
-use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Category\Category;
 
@@ -137,5 +143,108 @@ class FindologicArticleModelTest extends TestCase
             $baseCategory
         );
         $this->assertEquals(get_class($findologicArticle), FindologicArticleModel::class);
+    }
+
+    /**
+     * @dataProvider articlesWithAttributeProvider
+     *
+     * @param array $articleConfiguration
+     * @param string $expected
+     *
+     * @throws ReflectionException
+     */
+    public function testArticleWithAttributes(array $articleConfiguration, $expected)
+    {
+        $baseCategory = new Category();
+        $baseCategory->setId(5);
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+        $reflector = new ReflectionClass(Item::class);
+        $properties = $reflector->getProperty('properties');
+        $properties->setAccessible(true);
+        $properties = $properties->getValue($xmlArticle);
+        $propertiesArray = current($properties);
+
+        $this->assertArrayHasKey('attr1', $propertiesArray);
+        $this->assertSame($expected, $propertiesArray['attr1']);
+    }
+
+    public function articlesWithAttributeProvider()
+    {
+        return [
+            'Article Attribute' => [
+                [
+                    'name' => 'FindologicArticle 1',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC1',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ]
+                    ],
+                    'attribute' => [
+                        'attr1' => 'Article Attribute'
+                    ]
+                ],
+                'Article Attribute'
+            ],
+            'Variant Attribute' => [
+                [
+                    'name' => 'FindologicArticle 2',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ],
+                        'attribute' => [
+                            'attr1' => 'Variant Attribute'
+                        ]
+                    ]
+                ],
+                'Variant Attribute'
+            ]
+        ];
     }
 }

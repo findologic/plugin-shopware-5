@@ -8,14 +8,14 @@ use Exception;
 use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
+use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Criteria;
-use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Components_Config;
 use SimpleXMLElement;
 
 class ProductNumberSearchTest extends TestCase
 {
-    public function setUp()
+    protected function setUp()
     {
         parent::setUp();
 

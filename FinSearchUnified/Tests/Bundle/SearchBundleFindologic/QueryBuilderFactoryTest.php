@@ -7,6 +7,7 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\NavigationQueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
 use FinSearchUnified\Helper\StaticHelper;
+use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Condition\IsAvailableCondition;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
@@ -19,7 +20,6 @@ use Shopware\Bundle\SearchBundle\Sorting\SimpleSorting;
 use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
-use Shopware\Components\Test\Plugin\TestCase;
 
 class QueryBuilderFactoryTest extends TestCase
 {
