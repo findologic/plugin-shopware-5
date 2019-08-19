@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\FacetHandler;
 
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\ImageFacetHandler;
+use FinSearchUnified\Tests\TestCase;
 use GuzzleHttp\Client;
 use GuzzleHttp\Message\Response;
 use GuzzleHttp\Subscriber\Mock;
@@ -14,7 +15,6 @@ use Shopware\Bundle\SearchBundle\FacetResult\MediaListFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\MediaListItem;
 use Shopware\Bundle\StoreFrontBundle\Struct\Media;
 use Shopware\Components\HttpClient\GuzzleFactory;
-use Shopware\Components\Test\Plugin\TestCase;
 use SimpleXMLElement;
 
 class ImageFacetHandlerTest extends TestCase

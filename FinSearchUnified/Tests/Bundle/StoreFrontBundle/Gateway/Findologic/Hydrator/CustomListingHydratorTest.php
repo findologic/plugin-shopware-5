@@ -3,8 +3,8 @@
 namespace FinSearchUnified\Tests\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator;
 
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
+use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
-use Shopware\Components\Test\Plugin\TestCase;
 use SimpleXMLElement;
 
 class CustomListingHydratorTest extends TestCase

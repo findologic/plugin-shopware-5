@@ -6,10 +6,10 @@ use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\ProductAttributeConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
+use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
-use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
-use Shopware\Components\Test\Plugin\TestCase;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
+use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
 
 class ProductAttributeConditionHandlerTest extends TestCase
 {
