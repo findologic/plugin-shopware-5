@@ -121,7 +121,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      */
     protected static function setFallbackFlag($status)
     {
-        setcookie('Fallback', $status);
+        setcookie('Fallback', $status, 0, '', '', true);
     }
 
     /**
