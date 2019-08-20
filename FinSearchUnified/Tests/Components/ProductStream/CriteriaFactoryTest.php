@@ -7,15 +7,15 @@ use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use Enlight_Exception;
 use FinSearchUnified\Components\ProductStream\CriteriaFactory;
 use FinSearchUnified\Constants;
+use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
-use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Components_Config;
 
 class CriteriaFactoryTest extends TestCase
 {
-    public function tearDown()
+    protected function tearDown()
     {
         parent::tearDown();
 

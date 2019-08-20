@@ -4,16 +4,14 @@ namespace FinSearchUnified\Tests\Subscriber;
 
 use Enlight_Controller_Action;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
-use Enlight_Controller_Response_ResponseHttp;
 use Enlight_Event_EventArgs;
 use Enlight_Hook_HookArgs;
 use PHPUnit\Framework\Assert;
 use ReflectionException;
-use Shopware\Components\Test\Plugin\TestCase;
 use Shopware_Controllers_Frontend_Media;
 use Shopware_Controllers_Widgets_Listing;
 
-class FrontendTest extends TestCase
+class FrontendTest extends SubscriberTestCase
 {
     protected function tearDown()
     {
@@ -159,13 +157,7 @@ class FrontendTest extends TestCase
             ->setActionName('listingCount')
             ->setModuleName('widgets');
 
-        $subject = Shopware_Controllers_Widgets_Listing::Instance(
-            Shopware_Controllers_Widgets_Listing::class,
-            [
-                $request,
-                new Enlight_Controller_Response_ResponseHttp()
-            ]
-        );
+        $subject = $this->getControllerInstance(Shopware_Controllers_Widgets_Listing::class, $request);
 
         $args = new Enlight_Event_EventArgs(['subject' => $subject]);
 
@@ -242,6 +234,9 @@ class FrontendTest extends TestCase
         $frontend->beforeSearchIndexAction($args);
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function testMediaRequestDoesNotResetPageFlags()
     {
         Shopware()->Session()->isSearchPage = true;
@@ -253,13 +248,7 @@ class FrontendTest extends TestCase
             ->setActionName('fallback')
             ->setModuleName('frontend');
 
-        $subject = Shopware_Controllers_Frontend_Media::Instance(
-            Shopware_Controllers_Frontend_Media::class,
-            [
-                $request,
-                new Enlight_Controller_Response_ResponseHttp()
-            ]
-        );
+        $subject = $this->getControllerInstance(Shopware_Controllers_Frontend_Media::class, $request);
 
         $args = new Enlight_Event_EventArgs(['subject' => $subject]);
 

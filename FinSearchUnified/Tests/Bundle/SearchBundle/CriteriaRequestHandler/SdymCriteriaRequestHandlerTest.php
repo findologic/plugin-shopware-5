@@ -1,12 +1,10 @@
 <?php
 
-use FinSearchUnified\Constants;
-use Shopware\Bundle\SearchBundle\Condition\SimpleCondition;
-use Shopware\Components\Test\Plugin\TestCase;
-use Shopware\Bundle\SearchBundle\Criteria;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler\SdymCriteriaRequestHandler;
-use Shopware\Tests\Functional\Bundle\StoreFrontBundle\Helper;
+use FinSearchUnified\Constants;
+use FinSearchUnified\Tests\TestCase;
+use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Tests\Functional\Bundle\StoreFrontBundle\TestContext;
 
 class SdymCriteriaRequestHandlerTest extends TestCase

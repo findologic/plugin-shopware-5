@@ -2,10 +2,13 @@
 
 namespace FinSearchUnified\BusinessLogic\Models;
 
+use DateTime;
 use Doctrine\ORM\PersistentCollection;
+use Exception;
 use FINDOLOGIC\Export\Data\Attribute;
 use FINDOLOGIC\Export\Data\DateAdded;
 use FINDOLOGIC\Export\Data\Description;
+use FINDOLOGIC\Export\Data\Image as ExportImage;
 use FINDOLOGIC\Export\Data\Item;
 use FINDOLOGIC\Export\Data\Keyword;
 use FINDOLOGIC\Export\Data\Name;
@@ -16,13 +19,15 @@ use FINDOLOGIC\Export\Data\SalesFrequency;
 use FINDOLOGIC\Export\Data\Summary;
 use FINDOLOGIC\Export\Data\Url;
 use FINDOLOGIC\Export\Data\Usergroup;
-use FINDOLOGIC\Export\Data\Image as ExportImage;
 use FINDOLOGIC\Export\Exporter;
 use FINDOLOGIC\Export\XML\XMLExporter;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
-use Shopware\Components\Logger;
+use RuntimeException;
+use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
 use Shopware\Bundle\StoreFrontBundle\Struct\Product;
+use Shopware\Components\Logger;
+use Shopware\Components\Model\ModelRepository;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Article\Detail;
 use Shopware\Models\Article\Image;
@@ -30,7 +35,8 @@ use Shopware\Models\Category\Category;
 use Shopware\Models\Customer\Group;
 use Shopware\Models\Media\Media;
 use Shopware\Models\Order\Detail as OrderDetail;
-use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
+use sRewriteTable;
+use Zend_Cache_Core;
 
 class FindologicArticleModel
 {
@@ -54,7 +60,7 @@ class FindologicArticleModel
     public $baseArticle;
 
     /**
-     * @var \Shopware\Models\Article\Detail
+     * @var Detail
      */
     public $baseVariant;
 
@@ -79,7 +85,7 @@ class FindologicArticleModel
     public $salesFrequency;
 
     /**
-     * @var \sRewriteTable
+     * @var sRewriteTable
      */
     public $seoRouter;
 
@@ -102,12 +108,12 @@ class FindologicArticleModel
     protected $productStruct;
 
     /**
-     * @var \Shopware\Components\Model\ModelRepository
+     * @var ModelRepository
      */
     protected $orderDetailRepository;
 
     /**
-     * @var \Zend_Cache_Core
+     * @var Zend_Cache_Core
      */
     protected $cache;
 
@@ -180,7 +186,7 @@ class FindologicArticleModel
         try {
             $mainProductNumber = $productNumberService->getMainProductNumberById($this->baseArticle->getId());
             $this->productStruct = $productService->get($mainProductNumber, $context);
-        } catch (\RuntimeException $exception) {
+        } catch (RuntimeException $exception) {
             $this->logger->warn(sprintf(
                 'Skipped product with ID %d: %s',
                 $this->baseArticle->getId(),
@@ -208,7 +214,6 @@ class FindologicArticleModel
 
     protected function setVariantOrdernumbers()
     {
-
         /** @var Detail $detail */
         foreach ($this->variantArticles as $detail) {
             if (!($detail instanceof Detail)) {
@@ -277,7 +282,7 @@ class FindologicArticleModel
             if ($detail->getActive() == 1) {
                 /** @var \Shopware\Models\Article\Price $price */
                 foreach ($detail->getPrices() as $price) {
-                    /** @var \Shopware\Models\Customer\Group $customerGroup */
+                    /** @var Group $customerGroup */
                     $customerGroup = $price->getCustomerGroup();
                     if ($customerGroup) {
                         $priceArray[$customerGroup->getKey()][] = $price->getPrice();
@@ -289,7 +294,7 @@ class FindologicArticleModel
         // main prices per customergroup
         foreach ($this->baseVariant->getPrices() as $price) {
             if ($price->getCustomerGroup()) {
-                /** @var \Shopware\Models\Customer\Group $customerGroup */
+                /** @var Group $customerGroup */
                 $customerGroup = $price->getCustomerGroup();
                 if ($customerGroup) {
                     $priceArray[$customerGroup->getKey()][] = $price->getPrice();
@@ -310,7 +315,7 @@ class FindologicArticleModel
 
             // Add taxes if needed
             if ($userGroup->getTax()) {
-                $price *= (1 + (float) $tax->getTax() / 100);
+                $price *= (1 + (float)$tax->getTax() / 100);
             }
 
             $xmlPrice = new Price();
@@ -330,7 +335,7 @@ class FindologicArticleModel
     {
         $dateAddedValue = $this->baseArticle->getAdded();
 
-        if ($dateAddedValue instanceof \DateTime) {
+        if ($dateAddedValue instanceof DateTime) {
             $dateAdded = new DateAdded();
             $dateAdded->setDateValue($dateAddedValue);
             $this->xmlArticle->setDateAdded($dateAdded);
@@ -407,7 +412,7 @@ class FindologicArticleModel
                 try {
                     $imageDetails = $imageRaw->getThumbnailFilePaths();
                     $imageDefault = $imageRaw->getPath();
-                } catch (\Exception $ex) {
+                } catch (Exception $ex) {
                     // Entitiy removed
                     continue;
                 }
@@ -472,14 +477,14 @@ class FindologicArticleModel
         $catArray = [];
 
         /** @var Category[] $categories */
-        $categories = $this->baseArticle->getCategories();
+        $categories = $this->baseArticle->getCategories()->toArray();
 
         $id = sprintf('%s_%s', Constants::CACHE_ID_PRODUCT_STREAMS, $this->shopKey);
         $productStreams = $this->cache->load($id);
 
         if ($productStreams != false && array_key_exists($this->baseArticle->getId(), $productStreams)) {
             foreach ($productStreams[$this->baseArticle->getId()] as $cat) {
-                $categories->add($cat);
+                $categories[] = $cat;
             }
         }
 
@@ -715,8 +720,17 @@ class FindologicArticleModel
             $allProperties[] = new Property('release_date', ['' => $releaseDate]);
         }
 
-        /** @var \Shopware\Models\Attribute\Article $attributes */
-        $attributes = $this->baseArticle->getAttribute();
+        // While the method \Shopware\Models\Article\Article::getAttribute does exist until Shopware 5.5,
+        // it will only return attributes if they were configured before the upgrade to Shopware 5.3.
+        // Since Shopware 5.3, attributes are assigned to the articles main details. Already existing ones aren't
+        // touched.
+        // \Shopware\Models\Article\Article::getAttribute has been removed in Shopware 5.6 entirely.
+        if (is_callable([$this->baseArticle, 'getAttribute']) && !is_null($this->baseArticle->getAttribute())) {
+            $attributes = $this->baseArticle->getAttribute();
+        } else {
+            $attributes = $this->baseVariant->getAttribute();
+        }
+
         if ($attributes) {
             for ($i = 1; $i < 21; $i++) {
                 $value = '';
@@ -726,7 +740,7 @@ class FindologicArticleModel
                     $value = $attributes->$methodName();
                 }
 
-                if ($value instanceof \DateTime) {
+                if ($value instanceof DateTime) {
                     $value = $value->format(DATE_ATOM);
                 }
 
