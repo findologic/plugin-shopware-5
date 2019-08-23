@@ -3,14 +3,30 @@
 namespace FinSearchUnified\Subscriber;
 
 use Enlight\Event\SubscriberInterface;
+use Enlight_Controller_ActionEventArgs;
+use Enlight_Controller_Request_Request;
 use Enlight_Controller_Request_Request as Request;
 use Enlight_Event_EventArgs;
+use Enlight_Exception;
 use Enlight_Hook_HookArgs;
+use Enlight_Template_Manager;
 use FinSearchUnified\Helper\StaticHelper;
+use Shopware_Controllers_Frontend_Search;
 
 class Frontend implements SubscriberInterface
 {
-    const WHITE_LIST = ['listing', 'search', 'media'];
+    const WHITE_LIST = [
+        'listing',
+        'search',
+        'media',
+        'checkout' => [
+            'ajaxAddArticle',
+            'ajaxAddArticleCart',
+            'ajaxDeleteArticleCart',
+            'ajaxCart',
+            'ajaxAmount'
+        ]
+    ];
 
     /**
      * @var string
@@ -23,15 +39,15 @@ class Frontend implements SubscriberInterface
     private $pluginDirectory;
 
     /**
-     * @var \Enlight_Template_Manager
+     * @var Enlight_Template_Manager
      */
     private $templateManager;
 
     /**
      * @param string $pluginDirectory
-     * @param \Enlight_Template_Manager $templateManager
+     * @param Enlight_Template_Manager $templateManager
      */
-    public function __construct($pluginDirectory, \Enlight_Template_Manager $templateManager)
+    public function __construct($pluginDirectory, Enlight_Template_Manager $templateManager)
     {
         $this->pluginDirectory = $pluginDirectory;
         $this->templateManager = $templateManager;
@@ -56,15 +72,13 @@ class Frontend implements SubscriberInterface
         /** @var Request $request */
         $request = $subject->Request();
 
-        $controllerName = strtolower($request->getControllerName());
-
         if ($this->isSearchPage($request)) {
             Shopware()->Session()->offsetSet('isSearchPage', true);
             Shopware()->Session()->offsetSet('isCategoryPage', false);
         } elseif ($this->isCategoryPage($request)) {
             Shopware()->Session()->offsetSet('isCategoryPage', true);
             Shopware()->Session()->offsetSet('isSearchPage', false);
-        } elseif ($this->isManufacturerPage($request) || !(in_array($controllerName, self::WHITE_LIST, true))
+        } elseif ($this->isManufacturerPage($request) || !$this->isWhiteListed($request)
         ) {
             Shopware()->Session()->offsetSet('isCategoryPage', false);
             Shopware()->Session()->offsetSet('isSearchPage', false);
@@ -75,7 +89,7 @@ class Frontend implements SubscriberInterface
 
     public function beforeSearchIndexAction(Enlight_Hook_HookArgs $args)
     {
-        /** @var \Shopware_Controllers_Frontend_Search $subject */
+        /** @var Shopware_Controllers_Frontend_Search $subject */
         $subject = $args->getSubject();
         $request = $subject->Request();
         $params = $request->getParams();
@@ -151,7 +165,7 @@ class Frontend implements SubscriberInterface
         $navigationContainer = Shopware()->Config()->get('NavigationContainer');
 
         try {
-            /** @var \Enlight_Controller_ActionEventArgs $args */
+            /** @var Enlight_Controller_ActionEventArgs $args */
             $view = $args->getSubject()->View();
             $view->addTemplateDir($this->pluginDirectory . '/Resources/views/');
             $view->extendsTemplate('frontend/fin_search_unified/header.tpl');
@@ -159,7 +173,7 @@ class Frontend implements SubscriberInterface
             $view->assign('hashedShopkey', strtoupper(md5($this->getShopKey())));
             $view->assign('searchResultContainer', $searchResultContainer);
             $view->assign('navigationContainer', $navigationContainer);
-        } catch (\Enlight_Exception $e) {
+        } catch (Enlight_Exception $e) {
             //TODO LOGGING
         }
     }
@@ -175,7 +189,7 @@ class Frontend implements SubscriberInterface
         return $this->shopKey;
     }
 
-    public function onFindologicController(\Enlight_Event_EventArgs $args)
+    public function onFindologicController(Enlight_Event_EventArgs $args)
     {
         return $this->pluginDirectory . 'Controllers/Frontend/Findologic.php';
     }
@@ -218,5 +232,29 @@ class Frontend implements SubscriberInterface
     private function isManufacturerPage(Request $request)
     {
         return $request->getControllerName() === 'listing' && $request->getActionName() === 'manufacturer';
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @return bool
+     */
+    public function isWhiteListed(Enlight_Controller_Request_Request $request)
+    {
+        $controllerName = strtolower($request->getControllerName());
+
+        foreach (self::WHITE_LIST as $key => $value) {
+            if (!is_array($value)) {
+                if ($controllerName === $value) {
+                    return true;
+                }
+            } else {
+                if ($controllerName === $key && in_array($request->getActionName(), $value)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
