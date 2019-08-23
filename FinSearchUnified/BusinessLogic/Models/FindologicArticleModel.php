@@ -346,6 +346,9 @@ class FindologicArticleModel
     {
         $baseLink = Shopware()->Config()->get('baseFile') . '?sViewport=detail&sArticle=' . $this->baseArticle->getId();
         $seoUrl = Shopware()->Modules()->Core()->sRewriteLink($baseLink, $this->baseArticle->getName());
+        $urlPath = ltrim(parse_url($seoUrl, PHP_URL_PATH), '/');
+        $shopUrl = str_replace($urlPath, '', $seoUrl);
+        $seoUrl = $shopUrl . rawurlencode($urlPath);
         $xmlUrl = new Url();
         $xmlUrl->setValue($seoUrl);
         $this->xmlArticle->setUrl($xmlUrl);
