@@ -14,7 +14,6 @@ use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource\Article as ArticleResource;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Category\Category;
-use sRewriteTable;
 
 class FindologicArticleModelTest extends TestCase
 {
@@ -264,14 +263,7 @@ class FindologicArticleModelTest extends TestCase
 
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
-        $repository = Shopware()->Container()->get('models')->getRepository('Shopware\Models\Shop\Shop');
-        $shop = $repository->getDefault();
-        $shop->registerResources();
-        Shopware()->Container()->set('shop', $shop);
-
-        /** @var sRewriteTable $rewriteTableModule */
-        $rewriteTableModule = Shopware()->Container()->get('modules')->sRewriteTable();
-        $rewriteTableModule->sInsertUrl(
+        Shopware()->Modules()->RewriteTable()->sInsertUrl(
             'sViewport=detail&sArticle=' . $articleFromConfiguration->getId(),
             $articleFromConfiguration->getName() . '/'
         );
