@@ -14,6 +14,7 @@ use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource\Article as ArticleResource;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Category\Category;
+use sRewriteTable;
 
 class FindologicArticleModelTest extends TestCase
 {
@@ -263,7 +264,17 @@ class FindologicArticleModelTest extends TestCase
 
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
-        echo exec('/app/bin/console sw:cron:run -f RefreshSeoIndex');
+        // Need to register shop as it is being used in the Rewrite table
+        $repository = Shopware()->Container()->get('models')->getRepository('Shopware\Models\Shop\Shop');
+        $shop = $repository->getDefault();
+        $shop->registerResources();
+
+        /** @var sRewriteTable $rewriteTableModule */
+        $rewriteTableModule = Shopware()->Container()->get('modules')->sRewriteTable();
+        $rewriteTableModule->sInsertUrl(
+            'sViewport=detail&sArticle=' . $articleFromConfiguration->getId(),
+            $articleFromConfiguration->getName() . '/'
+        );
 
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
@@ -281,7 +292,8 @@ class FindologicArticleModelTest extends TestCase
         $values = $properties->getValue($xmlArticle);
         $actualUrl = current($values->getValues());
 
-        $this->assertEquals($expectedUrl, $actualUrl);
+        $url = explode(Shopware()->Config()->get('basePath'), $actualUrl)[1];
+        $this->assertEquals($expectedUrl, $url);
     }
 
     public function articleSEOUrlProvider()
@@ -313,7 +325,7 @@ class FindologicArticleModelTest extends TestCase
                         ]
                     ],
                 ],
-                'http://localhost/abdr%C3%BCckklotz-f%C3%BCr%2Bbutler%20reifenmontierger%C3%A4t'
+                '/abdr%C3%BCckklotz-f%C3%BCr%2Bbutler%20reifenmontierger%C3%A4t%2F'
             ],
             'SEO URL without special characters' => [
                 [
@@ -341,7 +353,7 @@ class FindologicArticleModelTest extends TestCase
                         ]
                     ],
                 ],
-                'http://localhost/reifenmontage'
+                '/reifenmontage%2F'
             ]
         ];
     }
