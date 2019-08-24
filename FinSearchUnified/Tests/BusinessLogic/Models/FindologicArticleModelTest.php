@@ -264,10 +264,10 @@ class FindologicArticleModelTest extends TestCase
 
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
-        // Need to register shop as it is being used in the Rewrite table
         $repository = Shopware()->Container()->get('models')->getRepository('Shopware\Models\Shop\Shop');
         $shop = $repository->getDefault();
         $shop->registerResources();
+        Shopware()->Container()->set('shop', $shop);
 
         /** @var sRewriteTable $rewriteTableModule */
         $rewriteTableModule = Shopware()->Container()->get('modules')->sRewriteTable();
