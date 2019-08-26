@@ -247,4 +247,61 @@ class FindologicArticleModelTest extends TestCase
             ]
         ];
     }
+
+    public function testArticleKeywords()
+    {
+        $articleConfiguration = [
+            'name' => 'FindologicArticle 1',
+            'active' => true,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5],
+            ],
+            'images' => [
+                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC1',
+                'active' => true,
+                'inStock' => 16,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+            'keywords' => "I'm a simple string,½"
+        ];
+
+        $baseCategory = new Category();
+        $baseCategory->setId(5);
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+        $reflector = new ReflectionClass(Item::class);
+        $properties = $reflector->getProperty('keywords');
+        $properties->setAccessible(true);
+        $keywords = $properties->getValue($xmlArticle);
+        $values = $keywords->getValues();
+        $this->assertNotEmpty($values);
+        foreach ($values as $value) {
+            foreach ($value as $item) {
+                $this->assertSame("I'm a simple string", $item->getValue());
+            }
+        }
+    }
 }

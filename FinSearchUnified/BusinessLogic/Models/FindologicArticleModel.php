@@ -369,8 +369,9 @@ class FindologicArticleModel
             $articleKeywords = explode(',', $keywords);
             $xmlKeywords = [];
             foreach ($articleKeywords as $keyword) {
-                if (self::checkIfHasValue($keyword)) {
-                    $xmlKeyword = new Keyword(StaticHelper::removeControlCharacters($keyword));
+                $cleanKeyword = StaticHelper::removeControlCharacters($keyword);
+                if (self::checkIfHasValue($cleanKeyword)) {
+                    $xmlKeyword = new Keyword($cleanKeyword);
                     $xmlKeywords[] = $xmlKeyword;
                 }
             }
