@@ -5,11 +5,10 @@ namespace FinSearchUnified\Subscriber;
 use Enlight\Event\SubscriberInterface;
 use Enlight_Controller_ActionEventArgs;
 use Enlight_Controller_Request_Request;
-use Enlight_Controller_Request_Request as Request;
 use Enlight_Event_EventArgs;
-use Enlight_Exception;
 use Enlight_Hook_HookArgs;
 use Enlight_Template_Manager;
+use Exception;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware_Controllers_Frontend_Search;
 
@@ -65,11 +64,12 @@ class Frontend implements SubscriberInterface
         ];
     }
 
+    /**
+     * @param Enlight_Event_EventArgs $args
+     */
     public function onFrontendPreDispatch(Enlight_Event_EventArgs $args)
     {
         $subject = $args->getSubject();
-
-        /** @var Request $request */
         $request = $subject->Request();
 
         if ($this->isSearchPage($request)) {
@@ -87,6 +87,11 @@ class Frontend implements SubscriberInterface
         }
     }
 
+    /**
+     * @param Enlight_Hook_HookArgs $args
+     *
+     * @throws Exception
+     */
     public function beforeSearchIndexAction(Enlight_Hook_HookArgs $args)
     {
         /** @var Shopware_Controllers_Frontend_Search $subject */
@@ -152,6 +157,9 @@ class Frontend implements SubscriberInterface
         $this->templateManager->addTemplateDir($this->pluginDirectory . '/Resources/views');
     }
 
+    /**
+     * @param Enlight_Event_EventArgs $args
+     */
     public function onFrontendPostDispatch(Enlight_Event_EventArgs $args)
     {
         if (!(bool)Shopware()->Config()->get('ActivateFindologic')) {
@@ -164,20 +172,19 @@ class Frontend implements SubscriberInterface
         $searchResultContainer = Shopware()->Config()->get('SearchResultContainer');
         $navigationContainer = Shopware()->Config()->get('NavigationContainer');
 
-        try {
-            /** @var Enlight_Controller_ActionEventArgs $args */
-            $view = $args->getSubject()->View();
-            $view->addTemplateDir($this->pluginDirectory . '/Resources/views/');
-            $view->extendsTemplate('frontend/fin_search_unified/header.tpl');
-            $view->assign('userGroupHash', $hash);
-            $view->assign('hashedShopkey', strtoupper(md5($this->getShopKey())));
-            $view->assign('searchResultContainer', $searchResultContainer);
-            $view->assign('navigationContainer', $navigationContainer);
-        } catch (Enlight_Exception $e) {
-            //TODO LOGGING
-        }
+        /** @var Enlight_Controller_ActionEventArgs $args */
+        $view = $args->getSubject()->View();
+        $view->addTemplateDir($this->pluginDirectory . '/Resources/views/');
+        $view->extendsTemplate('frontend/fin_search_unified/header.tpl');
+        $view->assign('userGroupHash', $hash);
+        $view->assign('hashedShopkey', strtoupper(md5($this->getShopKey())));
+        $view->assign('searchResultContainer', $searchResultContainer);
+        $view->assign('navigationContainer', $navigationContainer);
     }
 
+    /**
+     * @return mixed
+     */
     private function getShopKey()
     {
         $shopKey = Shopware()->Config()->get('ShopKey');
@@ -189,11 +196,19 @@ class Frontend implements SubscriberInterface
         return $this->shopKey;
     }
 
+    /**
+     * @param Enlight_Event_EventArgs $args
+     *
+     * @return string
+     */
     public function onFindologicController(Enlight_Event_EventArgs $args)
     {
         return $this->pluginDirectory . 'Controllers/Frontend/Findologic.php';
     }
 
+    /**
+     * @return bool
+     */
     public function onAjaxSearchIndexAction()
     {
         if (StaticHelper::isFindologicActive()) {
@@ -204,38 +219,38 @@ class Frontend implements SubscriberInterface
     }
 
     /**
-     * @param Request $request
+     * @param Enlight_Controller_Request_Request $request
      *
      * @return bool
      */
-    private function isSearchPage(Request $request)
+    private function isSearchPage(Enlight_Controller_Request_Request $request)
     {
         return array_key_exists('sSearch', $request->getParams());
     }
 
     /**
-     * @param Request $request
+     * @param Enlight_Controller_Request_Request $request
      *
      * @return bool
      */
-    private function isCategoryPage(Request $request)
+    private function isCategoryPage(Enlight_Controller_Request_Request $request)
     {
         return $request->getControllerName() === 'listing' && $request->getActionName() !== 'manufacturer' &&
             array_key_exists('sCategory', $request->getParams());
     }
 
     /**
-     * @param Request $request
+     * @param Enlight_Controller_Request_Request $request
      *
      * @return bool
      */
-    private function isManufacturerPage(Request $request)
+    private function isManufacturerPage(Enlight_Controller_Request_Request $request)
     {
         return $request->getControllerName() === 'listing' && $request->getActionName() === 'manufacturer';
     }
 
     /**
-     * @param Request $request
+     * @param Enlight_Controller_Request_Request $request
      *
      * @return bool
      */
@@ -243,15 +258,13 @@ class Frontend implements SubscriberInterface
     {
         $controllerName = strtolower($request->getControllerName());
 
-        foreach (self::WHITE_LIST as $key => $value) {
-            if (!is_array($value)) {
-                if ($controllerName === $value) {
+        foreach (self::WHITE_LIST as $name => $actions) {
+            if (!is_array($actions)) {
+                if ($controllerName === $actions) {
                     return true;
                 }
-            } else {
-                if ($controllerName === $key && in_array($request->getActionName(), $value)) {
-                    return true;
-                }
+            } elseif ($controllerName === $name && in_array($request->getActionName(), $actions)) {
+                return true;
             }
         }
 
