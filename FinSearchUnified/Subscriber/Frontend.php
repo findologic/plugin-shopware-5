@@ -265,8 +265,13 @@ class Frontend implements SubscriberInterface
 
         foreach (self::WHITE_LIST as $name => $actions) {
             // If the requested controller and actions are whitelisted then return true
-            return $controllerName === $actions ||
-                ($controllerName === $name && in_array($request->getActionName(), $actions));
+            if (!is_array($actions)) {
+                if ($controllerName === $actions) {
+                    return true;
+                }
+            } elseif ($controllerName === $name && in_array($request->getActionName(), $actions)) {
+                return true;
+            }
         }
 
         return false;
