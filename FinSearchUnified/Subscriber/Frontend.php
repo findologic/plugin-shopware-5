@@ -70,6 +70,8 @@ class Frontend implements SubscriberInterface
     public function onFrontendPreDispatch(Enlight_Event_EventArgs $args)
     {
         $subject = $args->getSubject();
+
+        /** @var Enlight_Controller_Request_Request $request */
         $request = $subject->Request();
 
         if ($this->isSearchPage($request)) {
@@ -78,8 +80,7 @@ class Frontend implements SubscriberInterface
         } elseif ($this->isCategoryPage($request)) {
             Shopware()->Session()->offsetSet('isCategoryPage', true);
             Shopware()->Session()->offsetSet('isSearchPage', false);
-        } elseif ($this->isManufacturerPage($request) || !$this->isWhiteListed($request)
-        ) {
+        } elseif ($this->isManufacturerPage($request) || !$this->isWhiteListed($request)) {
             Shopware()->Session()->offsetSet('isCategoryPage', false);
             Shopware()->Session()->offsetSet('isSearchPage', false);
         } else {
@@ -172,14 +173,18 @@ class Frontend implements SubscriberInterface
         $searchResultContainer = Shopware()->Config()->get('SearchResultContainer');
         $navigationContainer = Shopware()->Config()->get('NavigationContainer');
 
-        /** @var Enlight_Controller_ActionEventArgs $args */
-        $view = $args->getSubject()->View();
-        $view->addTemplateDir($this->pluginDirectory . '/Resources/views/');
-        $view->extendsTemplate('frontend/fin_search_unified/header.tpl');
-        $view->assign('userGroupHash', $hash);
-        $view->assign('hashedShopkey', strtoupper(md5($this->getShopKey())));
-        $view->assign('searchResultContainer', $searchResultContainer);
-        $view->assign('navigationContainer', $navigationContainer);
+        try {
+            /** @var Enlight_Controller_ActionEventArgs $args */
+            $view = $args->getSubject()->View();
+            $view->addTemplateDir($this->pluginDirectory . '/Resources/views/');
+            $view->extendsTemplate('frontend/fin_search_unified/header.tpl');
+            $view->assign('userGroupHash', $hash);
+            $view->assign('hashedShopkey', strtoupper(md5($this->getShopKey())));
+            $view->assign('searchResultContainer', $searchResultContainer);
+            $view->assign('navigationContainer', $navigationContainer);
+        } catch (Exception $e) {
+            //TODO LOGGING
+        }
     }
 
     /**
@@ -259,13 +264,9 @@ class Frontend implements SubscriberInterface
         $controllerName = strtolower($request->getControllerName());
 
         foreach (self::WHITE_LIST as $name => $actions) {
-            if (!is_array($actions)) {
-                if ($controllerName === $actions) {
-                    return true;
-                }
-            } elseif ($controllerName === $name && in_array($request->getActionName(), $actions)) {
-                return true;
-            }
+            // If the requested controller and actions are whitelisted then return true
+            return $controllerName === $actions ||
+                ($controllerName === $name && in_array($request->getActionName(), $actions));
         }
 
         return false;
