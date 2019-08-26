@@ -286,7 +286,11 @@ class FindologicArticleModelTest extends TestCase
         $properties->setAccessible(true);
         $values = $properties->getValue($xmlArticle);
         $actualUrl = current($values->getValues());
-        $this->assertEquals($expectedUrl, $actualUrl);
+
+        // Remove the host from the URL for assertion
+        $actualUrl = explode(Shopware()->Shop()->getHost(), $actualUrl)[1];
+
+        $this->assertSame($expectedUrl, $actualUrl);
     }
 
     public function articleSEOUrlProvider()
@@ -318,7 +322,7 @@ class FindologicArticleModelTest extends TestCase
                         ]
                     ],
                 ],
-                'http://localhost/abdr%C3%BCckklotz-f%C3%BCr%2Bbutler%20reifenmontierger%C3%A4t%2F'
+                '/abdr%C3%BCckklotz-f%C3%BCr%2Bbutler%20reifenmontierger%C3%A4t%2F'
             ],
             'SEO URL without special characters' => [
                 [
@@ -346,7 +350,7 @@ class FindologicArticleModelTest extends TestCase
                         ]
                     ],
                 ],
-                'http://localhost/reifenmontage%2F'
+                '/reifenmontage%2F'
             ]
         ];
     }
