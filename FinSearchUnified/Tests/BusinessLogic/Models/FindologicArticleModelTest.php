@@ -263,6 +263,9 @@ class FindologicArticleModelTest extends TestCase
 
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
+        $shop = Manager::getResource('Shop')->getRepository()->find(1);
+        $shop->registerResources();
+
         Shopware()->Modules()->RewriteTable()->sInsertUrl(
             'sViewport=detail&sArticle=' . $articleFromConfiguration->getId(),
             $articleFromConfiguration->getName() . '/'
