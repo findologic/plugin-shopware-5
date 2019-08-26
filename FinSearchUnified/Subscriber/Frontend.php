@@ -56,20 +56,18 @@ class Frontend implements SubscriberInterface
         /** @var Request $request */
         $request = $subject->Request();
 
-        $controllerName = strtolower($request->getControllerName());
-
-        if ($this->isSearchPage($request)) {
-            Shopware()->Session()->offsetSet('isSearchPage', true);
-            Shopware()->Session()->offsetSet('isCategoryPage', false);
-        } elseif ($this->isCategoryPage($request)) {
-            Shopware()->Session()->offsetSet('isCategoryPage', true);
-            Shopware()->Session()->offsetSet('isSearchPage', false);
-        } elseif ($this->isManufacturerPage($request) || !(in_array($controllerName, self::WHITE_LIST, true))
-        ) {
-            Shopware()->Session()->offsetSet('isCategoryPage', false);
-            Shopware()->Session()->offsetSet('isSearchPage', false);
+        if ($this->isLegacySearch($request)) {
+            $params = $request->getQuery();
+            unset($params['module']);
+            unset($params['controller']);
+            unset($params['action']);
+            $url = '/search?' . http_build_query($params, null, '&', PHP_QUERY_RFC3986);
+            // Perform a redirect to the actual search path and tell the client that it moved permanently.
+            // The legacy parameters (relevant for search) will be mapped automatically by the corresponding
+            // event handler.
+            $subject->redirect($url, ['code' => 301]);
         } else {
-            // Keep the flags as they are since these might be subsequent requests from the same page.
+            $this->setPageFlags($request);
         }
     }
 
@@ -218,5 +216,43 @@ class Frontend implements SubscriberInterface
     private function isManufacturerPage(Request $request)
     {
         return $request->getControllerName() === 'listing' && $request->getActionName() === 'manufacturer';
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @return bool
+     */
+    private function isLegacySearch(Request $request)
+    {
+        $params = $request->getQuery();
+
+        if ($params['controller'] === 'FinSearchAPI' && $params['action'] === 'search') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param Request $request
+     */
+    private function setPageFlags(Request $request)
+    {
+        $controllerName = strtolower($request->getControllerName());
+
+        if ($this->isSearchPage($request)) {
+            Shopware()->Session()->offsetSet('isSearchPage', true);
+            Shopware()->Session()->offsetSet('isCategoryPage', false);
+        } elseif ($this->isCategoryPage($request)) {
+            Shopware()->Session()->offsetSet('isCategoryPage', true);
+            Shopware()->Session()->offsetSet('isSearchPage', false);
+        } elseif ($this->isManufacturerPage($request) || !(in_array($controllerName, self::WHITE_LIST, true))
+        ) {
+            Shopware()->Session()->offsetSet('isCategoryPage', false);
+            Shopware()->Session()->offsetSet('isSearchPage', false);
+        } else {
+            // Keep the flags as they are since these might be subsequent requests from the same page.
+        }
     }
 }
