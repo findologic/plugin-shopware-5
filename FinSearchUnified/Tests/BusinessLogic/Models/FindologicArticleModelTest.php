@@ -274,9 +274,10 @@ class FindologicArticleModelTest extends TestCase
                     ],
                 ]
             ],
-            'keywords' => "I'm a simple string,\xC2\xBD"
+            'keywords' => "I'm a simple string,\xC2\xBD,\xC2\x80"
         ];
 
+        $expectedKeywords = ["I'm a simple string", "\xC2\xBD"];
         $baseCategory = new Category();
         $baseCategory->setId(5);
 
@@ -298,9 +299,10 @@ class FindologicArticleModelTest extends TestCase
         $keywords = $properties->getValue($xmlArticle);
         $values = $keywords->getValues();
         $this->assertNotEmpty($values);
+
         foreach ($values as $value) {
             foreach ($value as $item) {
-                $this->assertSame("I'm a simple string", $item->getValue());
+                $this->assertTrue(in_array($item->getValue(), $expectedKeywords));
             }
         }
     }
