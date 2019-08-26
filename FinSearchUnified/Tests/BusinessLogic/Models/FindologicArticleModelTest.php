@@ -274,7 +274,7 @@ class FindologicArticleModelTest extends TestCase
                     ],
                 ]
             ],
-            'keywords' => "I'm a simple string,½"
+            'keywords' => "I'm a simple string,\xC2\xBD"
         ];
 
         $baseCategory = new Category();
