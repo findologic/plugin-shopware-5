@@ -82,7 +82,7 @@ class FrontendTest extends SubscriberTestCase
     public function legacyUrlProvider()
     {
         return [
-            'Normal search query' => [
+            'Query without filters' => [
                 'params' => [
                     'controller' => 'FinSearchAPI',
                     'action' => 'search',
@@ -110,9 +110,9 @@ class FrontendTest extends SubscriberTestCase
                     'attrib' => ['vendor' => ['Shopware / Österreich#%']],
                 ],
                 'expectedUrl' => '/search?' . http_build_query([
-                        'sSearch' => 'test',
-                        'attrib' => ['vendor' => ['Shopware / Österreich#%']],
-                    ], null, '&', PHP_QUERY_RFC3986)
+                    'sSearch' => 'test',
+                    'attrib' => ['vendor' => ['Shopware / Österreich#%']],
+                ], null, '&', PHP_QUERY_RFC3986)
             ],
             'Lowercase controller' => [
                 'params' => [
@@ -323,15 +323,10 @@ class FrontendTest extends SubscriberTestCase
         if ($expectedUrl === null) {
             $subject->expects($this->never())->method('redirect');
         } else {
-            $subject->method('redirect')->with($expectedUrl, ['code' => 301]);
+            $subject->expects($this->once())->method('redirect')->with($expectedUrl, ['code' => 301]);
         }
 
-        // Create mocked args for getting Subject and Request
-        $args = $this->getMockBuilder(Enlight_Event_EventArgs::class)
-            ->setMethods(['getSubject', 'getRequest'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $args->method('getSubject')->willReturn($subject);
+        $args = new Enlight_Event_EventArgs(['subject' => $subject]);
 
         $frontend = Shopware()->Container()->get('fin_search_unified.subscriber.frontend');
         $frontend->onFrontendPreDispatch($args);
