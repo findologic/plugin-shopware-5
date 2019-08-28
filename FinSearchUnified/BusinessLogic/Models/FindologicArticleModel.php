@@ -347,8 +347,19 @@ class FindologicArticleModel
         $baseLink = Shopware()->Config()->get('baseFile') . '?sViewport=detail&sArticle=' . $this->baseArticle->getId();
         $seoUrl = Shopware()->Modules()->Core()->sRewriteLink($baseLink, $this->baseArticle->getName());
         $urlPath = ltrim(parse_url($seoUrl, PHP_URL_PATH), '/');
-        $shopUrl = str_replace($urlPath, '', $seoUrl);
-        $seoUrl = $shopUrl . rawurlencode($urlPath);
+        $shopUrl = rtrim(str_replace($urlPath, '', $seoUrl), '/');
+
+        // This will only encode parts of the URL path and leave separator itself untouched.
+        $seoUrl = $shopUrl . array_reduce(explode('/', $urlPath), function ($encodedPath, $item) {
+            $encodedPath .= '/';
+
+            if ($item) {
+                $encodedPath .= rawurlencode($item);
+            }
+
+            return $encodedPath;
+        });
+
         $xmlUrl = new Url();
         $xmlUrl->setValue($seoUrl);
         $this->xmlArticle->setUrl($xmlUrl);

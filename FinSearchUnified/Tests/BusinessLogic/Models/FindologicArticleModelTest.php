@@ -321,7 +321,7 @@ class FindologicArticleModelTest extends TestCase
                         ]
                     ],
                 ],
-                sprintf('http://%s/abdr%%C3%%BCckklotz-f%%C3%%BCr%%2Bbutler%%20reifenmontierger%%C3%%A4t%%2F', $host)
+                sprintf('http://%s/abdr%%C3%%BCckklotz-f%%C3%%BCr%%2Bbutler%%20reifenmontierger%%C3%%A4t/', $host)
             ],
             'SEO URL without special characters' => [
                 [
@@ -349,7 +349,7 @@ class FindologicArticleModelTest extends TestCase
                         ]
                     ],
                 ],
-                sprintf('http://%s/reifenmontage%%2F', $host)
+                sprintf('http://%s/reifenmontage/', $host)
             ]
         ];
     }
