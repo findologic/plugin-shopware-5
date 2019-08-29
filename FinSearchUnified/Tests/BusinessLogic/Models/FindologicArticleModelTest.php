@@ -247,4 +247,110 @@ class FindologicArticleModelTest extends TestCase
             ]
         ];
     }
+
+    /**
+     * @dataProvider articleSEOUrlProvider
+     *
+     * @param array $articleConfiguration
+     * @param string $expectedUrl
+     *
+     * @throws ReflectionException
+     */
+    public function testArticleWithSEOUrl(array $articleConfiguration, $expectedUrl)
+    {
+        $baseCategory = new Category();
+        $baseCategory->setId(5);
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $shop = Manager::getResource('Shop')->getRepository()->find(1);
+        $shop->registerResources();
+
+        Shopware()->Modules()->RewriteTable()->sInsertUrl(
+            'sViewport=detail&sArticle=' . $articleFromConfiguration->getId(),
+            $articleFromConfiguration->getName() . '/'
+        );
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+        $reflector = new ReflectionClass(Item::class);
+        $properties = $reflector->getProperty('url');
+        $properties->setAccessible(true);
+        $values = $properties->getValue($xmlArticle);
+        $actualUrl = current($values->getValues());
+
+        $this->assertSame($expectedUrl, $actualUrl);
+    }
+
+    public function articleSEOUrlProvider()
+    {
+        $host = Shopware()->Shop()->getHost();
+
+        return [
+            'SEO URL with special characters' => [
+                [
+                    'name' => 'abdrückklotz-für+butler reifenmontiergerät',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ]
+                    ],
+                ],
+                sprintf('http://%s/abdr%%C3%%BCckklotz-f%%C3%%BCr%%2Bbutler%%20reifenmontierger%%C3%%A4t/', $host)
+            ],
+            'SEO URL without special characters' => [
+                [
+                    'name' => 'Reifenmontage',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ]
+                    ],
+                ],
+                sprintf('http://%s/reifenmontage/', $host)
+            ]
+        ];
+    }
 }
