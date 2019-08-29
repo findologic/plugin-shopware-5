@@ -380,11 +380,12 @@ class FindologicArticleModel
         }
 
         if ($keywords) {
-            $articleKeywords = explode(',', $keywords);
+            // Remove control characters before exploding the string
+            $articleKeywords = explode(',', StaticHelper::removeControlCharacters($keywords));
             $xmlKeywords = [];
             foreach ($articleKeywords as $keyword) {
                 if (self::checkIfHasValue($keyword)) {
-                    $xmlKeyword = new Keyword(StaticHelper::removeControlCharacters($keyword));
+                    $xmlKeyword = new Keyword($keyword);
                     $xmlKeywords[] = $xmlKeyword;
                 }
             }
