@@ -55,6 +55,39 @@ class FrontendTest extends SubscriberTestCase
         ];
     }
 
+    /**
+     * @return array
+     */
+    public function ajaxCartRequestProvider()
+    {
+        return [
+            'Add article to cart' => [
+                'sSearch' => 'Yes',
+                'sCategory' => null,
+                'sController' => 'checkout',
+                'sAction' => 'ajaxAddArticleCart'
+            ],
+            'Remove article from cart' => [
+                'sSearch' => 'Yes',
+                'sCategory' => null,
+                'sController' => 'checkout',
+                'sAction' => 'ajaxDeleteArticleCart'
+            ],
+            'Load cart content' => [
+                'sSearch' => 'Yes',
+                'sCategory' => null,
+                'sController' => 'checkout',
+                'sAction' => 'ajaxCart'
+            ],
+            'Get current cart amount' => [
+                'sSearch' => 'Yes',
+                'sCategory' => null,
+                'sController' => 'checkout',
+                'sAction' => 'ajaxAmount'
+            ]
+        ];
+    }
+
     public function listingCountConditionProvider()
     {
         return [
@@ -143,6 +176,7 @@ class FrontendTest extends SubscriberTestCase
 
     /**
      * @dataProvider frontendPreDispatchProvider
+     * @dataProvider ajaxCartRequestProvider
      *
      * @param string $sSearch
      * @param int|null $sCategory

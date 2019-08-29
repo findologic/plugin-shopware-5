@@ -3,14 +3,29 @@
 namespace FinSearchUnified\Subscriber;
 
 use Enlight\Event\SubscriberInterface;
-use Enlight_Controller_Request_Request as Request;
+use Enlight_Controller_ActionEventArgs;
+use Enlight_Controller_Request_Request;
 use Enlight_Event_EventArgs;
 use Enlight_Hook_HookArgs;
+use Enlight_Template_Manager;
+use Exception;
 use FinSearchUnified\Helper\StaticHelper;
+use Shopware_Controllers_Frontend_Search;
 
 class Frontend implements SubscriberInterface
 {
-    const WHITE_LIST = ['listing', 'search', 'media'];
+    const WHITE_LIST = [
+        'listing',
+        'search',
+        'media',
+        'checkout' => [
+            'ajaxAddArticle',
+            'ajaxAddArticleCart',
+            'ajaxDeleteArticleCart',
+            'ajaxCart',
+            'ajaxAmount'
+        ]
+    ];
 
     /**
      * @var string
@@ -23,15 +38,15 @@ class Frontend implements SubscriberInterface
     private $pluginDirectory;
 
     /**
-     * @var \Enlight_Template_Manager
+     * @var Enlight_Template_Manager
      */
     private $templateManager;
 
     /**
      * @param string $pluginDirectory
-     * @param \Enlight_Template_Manager $templateManager
+     * @param Enlight_Template_Manager $templateManager
      */
-    public function __construct($pluginDirectory, \Enlight_Template_Manager $templateManager)
+    public function __construct($pluginDirectory, Enlight_Template_Manager $templateManager)
     {
         $this->pluginDirectory = $pluginDirectory;
         $this->templateManager = $templateManager;
@@ -49,11 +64,14 @@ class Frontend implements SubscriberInterface
         ];
     }
 
+    /**
+     * @param Enlight_Event_EventArgs $args
+     */
     public function onFrontendPreDispatch(Enlight_Event_EventArgs $args)
     {
         $subject = $args->getSubject();
 
-        /** @var Request $request */
+        /** @var Enlight_Controller_Request_Request $request */
         $request = $subject->Request();
 
         if ($this->isLegacySearch($request)) {
@@ -74,9 +92,14 @@ class Frontend implements SubscriberInterface
         }
     }
 
+    /**
+     * @param Enlight_Hook_HookArgs $args
+     *
+     * @throws Exception
+     */
     public function beforeSearchIndexAction(Enlight_Hook_HookArgs $args)
     {
-        /** @var \Shopware_Controllers_Frontend_Search $subject */
+        /** @var Shopware_Controllers_Frontend_Search $subject */
         $subject = $args->getSubject();
         $request = $subject->Request();
         $params = $request->getParams();
@@ -139,6 +162,9 @@ class Frontend implements SubscriberInterface
         $this->templateManager->addTemplateDir($this->pluginDirectory . '/Resources/views');
     }
 
+    /**
+     * @param Enlight_Event_EventArgs $args
+     */
     public function onFrontendPostDispatch(Enlight_Event_EventArgs $args)
     {
         if (!(bool)Shopware()->Config()->get('ActivateFindologic')) {
@@ -152,7 +178,7 @@ class Frontend implements SubscriberInterface
         $navigationContainer = Shopware()->Config()->get('NavigationContainer');
 
         try {
-            /** @var \Enlight_Controller_ActionEventArgs $args */
+            /** @var Enlight_Controller_ActionEventArgs $args */
             $view = $args->getSubject()->View();
             $view->addTemplateDir($this->pluginDirectory . '/Resources/views/');
             $view->extendsTemplate('frontend/fin_search_unified/header.tpl');
@@ -160,11 +186,14 @@ class Frontend implements SubscriberInterface
             $view->assign('hashedShopkey', strtoupper(md5($this->getShopKey())));
             $view->assign('searchResultContainer', $searchResultContainer);
             $view->assign('navigationContainer', $navigationContainer);
-        } catch (\Enlight_Exception $e) {
+        } catch (Exception $e) {
             //TODO LOGGING
         }
     }
 
+    /**
+     * @return mixed
+     */
     private function getShopKey()
     {
         $shopKey = Shopware()->Config()->get('ShopKey');
@@ -176,11 +205,19 @@ class Frontend implements SubscriberInterface
         return $this->shopKey;
     }
 
-    public function onFindologicController(\Enlight_Event_EventArgs $args)
+    /**
+     * @param Enlight_Event_EventArgs $args
+     *
+     * @return string
+     */
+    public function onFindologicController(Enlight_Event_EventArgs $args)
     {
         return $this->pluginDirectory . 'Controllers/Frontend/Findologic.php';
     }
 
+    /**
+     * @return bool
+     */
     public function onAjaxSearchIndexAction()
     {
         if (StaticHelper::isFindologicActive()) {
@@ -191,42 +228,62 @@ class Frontend implements SubscriberInterface
     }
 
     /**
-     * @param Request $request
+     * @param Enlight_Controller_Request_Request $request
      *
      * @return bool
      */
-    private function isSearchPage(Request $request)
+    private function isSearchPage(Enlight_Controller_Request_Request $request)
     {
         return array_key_exists('sSearch', $request->getParams());
     }
 
     /**
-     * @param Request $request
+     * @param Enlight_Controller_Request_Request $request
      *
      * @return bool
      */
-    private function isCategoryPage(Request $request)
+    private function isCategoryPage(Enlight_Controller_Request_Request $request)
     {
         return $request->getControllerName() === 'listing' && $request->getActionName() !== 'manufacturer' &&
             array_key_exists('sCategory', $request->getParams());
     }
 
     /**
-     * @param Request $request
+     * @param Enlight_Controller_Request_Request $request
      *
      * @return bool
      */
-    private function isManufacturerPage(Request $request)
+    private function isManufacturerPage(Enlight_Controller_Request_Request $request)
     {
         return $request->getControllerName() === 'listing' && $request->getActionName() === 'manufacturer';
     }
 
     /**
-     * @param Request $request
+     * @param Enlight_Controller_Request_Request $request
      *
      * @return bool
      */
-    private function isLegacySearch(Request $request)
+    public function isWhiteListed(Enlight_Controller_Request_Request $request)
+    {
+        $controllerName = strtolower($request->getControllerName());
+
+        foreach (self::WHITE_LIST as $name => $actions) {
+            // If the requested controller and actions are whitelisted then return true
+            if ($controllerName === $actions ||
+                ($controllerName === $name && in_array($request->getActionName(), $actions))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param Enlight_Controller_Request_Request $request
+     *
+     * @return bool
+     */
+    private function isLegacySearch(Enlight_Controller_Request_Request $request)
     {
         $params = $request->getQuery();
 
@@ -234,20 +291,17 @@ class Frontend implements SubscriberInterface
     }
 
     /**
-     * @param Request $request
+     * @param Enlight_Controller_Request_Request $request
      */
-    private function setPageFlags(Request $request)
+    private function setPageFlags(Enlight_Controller_Request_Request $request)
     {
-        $controllerName = strtolower($request->getControllerName());
-
         if ($this->isSearchPage($request)) {
             Shopware()->Session()->offsetSet('isSearchPage', true);
             Shopware()->Session()->offsetSet('isCategoryPage', false);
         } elseif ($this->isCategoryPage($request)) {
             Shopware()->Session()->offsetSet('isCategoryPage', true);
             Shopware()->Session()->offsetSet('isSearchPage', false);
-        } elseif ($this->isManufacturerPage($request) || !(in_array($controllerName, self::WHITE_LIST, true))
-        ) {
+        } elseif ($this->isManufacturerPage($request) || !$this->isWhiteListed($request)) {
             Shopware()->Session()->offsetSet('isCategoryPage', false);
             Shopware()->Session()->offsetSet('isSearchPage', false);
         } else {
