@@ -25,6 +25,8 @@ class CustomFacetGatewayTest extends TestCase
 
         Shopware()->Container()->reset('front');
         Shopware()->Container()->load('front');
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->load('config');
         Shopware()->Session()->offsetUnset('isSearchPage');
         Shopware()->Session()->offsetUnset('isCategoryPage');
         Shopware()->Session()->offsetUnset('findologicDI');
