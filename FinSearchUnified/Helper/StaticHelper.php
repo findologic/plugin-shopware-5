@@ -694,7 +694,7 @@ class StaticHelper
     {
         $result = preg_replace('/[\x00-\x1F]|[\x7F]|[\xC2\x80-\xC2\x9F]/u', '', $value);
 
-        return $result ?: $value;
+        return $result === null ? $value : $result;
     }
 
     /**
