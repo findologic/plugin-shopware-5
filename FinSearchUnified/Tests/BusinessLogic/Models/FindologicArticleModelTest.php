@@ -301,6 +301,8 @@ class FindologicArticleModelTest extends TestCase
         $this->assertNotEmpty($values);
 
         foreach ($values as $value) {
+            // Make sure all the expected keywords are available in the value
+            $this->assertCount(count($expectedKeywords), $value);
             foreach ($value as $item) {
                 $this->assertTrue(in_array($item->getValue(), $expectedKeywords));
             }
