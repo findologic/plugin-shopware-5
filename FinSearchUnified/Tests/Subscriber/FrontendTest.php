@@ -79,6 +79,68 @@ class FrontendTest extends SubscriberTestCase
         ];
     }
 
+    public function legacyUrlProvider()
+    {
+        return [
+            'Query without filters' => [
+                'params' => [
+                    'controller' => 'FinSearchAPI',
+                    'action' => 'search',
+                    'sSearch' => 'test'
+                ],
+                'expectedUrl' => '/search?sSearch=test'
+            ],
+            'Query with filter' => [
+                'params' => [
+                    'controller' => 'FinSearchAPI',
+                    'action' => 'search',
+                    'sSearch' => 'test',
+                    'attrib' => ['vendor' => ['Shopware']],
+                ],
+                'expectedUrl' => '/search?' . http_build_query([
+                    'sSearch' => 'test',
+                    'attrib' => ['vendor' => ['Shopware']],
+                ], null, '&', PHP_QUERY_RFC3986)
+            ],
+            'Query with filter and special characters' => [
+                'params' => [
+                    'controller' => 'FinSearchAPI',
+                    'action' => 'search',
+                    'sSearch' => 'test',
+                    'attrib' => ['vendor' => ['Shopware / Österreich#%']],
+                ],
+                'expectedUrl' => '/search?' . http_build_query([
+                    'sSearch' => 'test',
+                    'attrib' => ['vendor' => ['Shopware / Österreich#%']],
+                ], null, '&', PHP_QUERY_RFC3986)
+            ],
+            'Lowercase controller' => [
+                'params' => [
+                    'controller' => 'finsearchapi',
+                    'action' => 'search',
+                    'sSearch' => 'test'
+                ],
+                'expectedUrl' => null
+            ],
+            'Uppercase controller' => [
+                'params' => [
+                    'controller' => 'FINSEARCHAPI',
+                    'action' => 'search',
+                    'sSearch' => 'test'
+                ],
+                'expectedUrl' => null
+            ],
+            'Random controller' => [
+                'params' => [
+                    'controller' => 'fInsEarCHApI',
+                    'action' => 'search',
+                    'sSearch' => 'test'
+                ],
+                'expectedUrl' => null
+            ],
+        ];
+    }
+
     /**
      * @dataProvider frontendPreDispatchProvider
      *
@@ -232,6 +294,42 @@ class FrontendTest extends SubscriberTestCase
 
         $frontend = Shopware()->Container()->get('fin_search_unified.subscriber.frontend');
         $frontend->beforeSearchIndexAction($args);
+    }
+
+    /**
+     * @dataProvider legacyUrlProvider
+     *
+     * @param array $params
+     * @param string $expectedUrl
+     */
+
+    public function testLegacyUrls(array $params, $expectedUrl)
+    {
+        // Create Request object to be passed in the mocked Subject
+        $request = new RequestHttp();
+        $request->setControllerName($params['controller'])
+            ->setActionName($params['action'])
+            ->setQuery($params)
+            ->setBaseUrl(rtrim(Shopware()->Shop()->getHost(), ' / '));
+
+        // Create mocked Subject to be passed in mocked args
+        $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
+            ->setMethods(['Request', 'redirect'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $subject->method('Request')
+            ->willReturn($request);
+
+        if ($expectedUrl === null) {
+            $subject->expects($this->never())->method('redirect');
+        } else {
+            $subject->expects($this->once())->method('redirect')->with($expectedUrl, ['code' => 301]);
+        }
+
+        $args = new Enlight_Event_EventArgs(['subject' => $subject]);
+
+        $frontend = Shopware()->Container()->get('fin_search_unified.subscriber.frontend');
+        $frontend->onFrontendPreDispatch($args);
     }
 
     /**
