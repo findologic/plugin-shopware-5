@@ -296,16 +296,15 @@ class FindologicArticleModelTest extends TestCase
         $reflector = new ReflectionClass(Item::class);
         $properties = $reflector->getProperty('keywords');
         $properties->setAccessible(true);
-        $keywords = $properties->getValue($xmlArticle);
-        $values = $keywords->getValues();
-        $this->assertNotEmpty($values);
 
-        foreach ($values as $value) {
-            // Make sure all the expected keywords are available in the value
-            $this->assertCount(count($expectedKeywords), $value);
-            foreach ($value as $item) {
-                $this->assertTrue(in_array($item->getValue(), $expectedKeywords));
-            }
+        $keywords = [];
+
+        foreach ($properties->getValue($xmlArticle)->getValues() as $value) {
+            $keywords = array_merge($keywords, array_map(function ($item) {
+                return $item->getValue();
+            }, $value));
         }
+
+        $this->assertSame($expectedKeywords, $keywords);
     }
 }
