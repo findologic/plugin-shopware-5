@@ -80,11 +80,6 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             StaticHelper::setSmartDidYouMean($xmlResponse);
 
             $this->facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
-            $facetsInterfaces = StaticHelper::getFindologicFacets($xmlResponse);
-
-            foreach ($facetsInterfaces as $facetsInterface) {
-                $criteria->addFacet($facetsInterface->getFacet());
-            }
 
             $this->setSelectedFacets($criteria);
             $criteria->resetConditions();
