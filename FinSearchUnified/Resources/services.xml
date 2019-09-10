@@ -133,5 +133,16 @@
             <argument id="config" type="service" />
         </service>
 
+        <service id="fin_search_unified.custom_facet_criteria_request_handler" class="FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler\FacetCriteriaRequestHandler">
+            <argument type="service" id="config" />
+            <argument type="service" id="fin_search_unified.custom_facet_service" />
+            <argument type="service" id="dbal_connection" />
+            <tag name="criteria_request_handler" />
+        </service>
+
+        <service id="fin_search_unified.custom_facet_service" class="FinSearchUnified\Bundle\StoreFrontBundle\Service\Core\CustomFacetService">
+            <argument type="service" id="FinSearchUnified.findologic_facet_gateway" />
+        </service>
+
     </services>
 </container>
