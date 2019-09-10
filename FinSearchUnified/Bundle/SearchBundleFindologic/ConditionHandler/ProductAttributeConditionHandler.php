@@ -35,7 +35,7 @@ class ProductAttributeConditionHandler implements ConditionHandlerInterface
     public function generateCondition(ConditionInterface $condition, QueryBuilder $query, ShopContextInterface $context)
     {
         /** @var ProductAttributeCondition $condition */
-        if ($condition->getOperator() === ConditionInterface::OPERATOR_BETWEEN) {
+        if ($condition->getOperator() === 'BETWEEN') {
             $values = $condition->getValue();
 
             $query->addRangeFilter(
