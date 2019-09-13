@@ -10,6 +10,7 @@ use Enlight_Hook_HookArgs;
 use Enlight_Template_Manager;
 use Exception;
 use FinSearchUnified\Helper\StaticHelper;
+use Shopware\Components\Theme\LessDefinition;
 use Shopware_Controllers_Frontend_Search;
 
 class Frontend implements SubscriberInterface
@@ -60,8 +61,17 @@ class Frontend implements SubscriberInterface
             'Enlight_Controller_Action_Frontend_AjaxSearch_Index' => 'onAjaxSearchIndexAction',
             'Enlight_Controller_Action_PostDispatchSecure_Frontend' => 'onFrontendPostDispatch',
             'Enlight_Controller_Dispatcher_ControllerPath_Findologic' => 'onFindologicController',
-            'Enlight_Controller_Action_PreDispatch_Frontend' => 'onFrontendPreDispatch'
+            'Enlight_Controller_Action_PreDispatch_Frontend' => 'onFrontendPreDispatch',
+            'Theme_Compiler_Collect_Plugin_Less' => 'onCollectPluginLess'
         ];
+    }
+
+    public function onCollectPluginLess(Enlight_Event_EventArgs $args)
+    {
+        return new LessDefinition(
+            [],
+            [$this->pluginDirectory . '/Resources/views/frontend/less/all.less']
+        );
     }
 
     /**

@@ -6,18 +6,3 @@
         (document,'{$hashedShopkey}','{$userGroupHash}','.{$navigationContainer}','fl-reveal',3000,'.3s','//cdn.findologic.com',window,'.{$searchResultContainer}');
     </script>
 {/block}
-
-{block name="frontend_index_header_css_screen" append}
-    <link
-        type="text/css"
-        media="all"
-        rel="stylesheet"
-        href="{link file='custom/plugins/FinSearchUnified/Resources/views/frontend/_resources/css/smartsuggest.css'}"
-    />
-    <link
-        type="text/css"
-        media="all"
-        rel="stylesheet"
-        href="{link file='custom/plugins/FinSearchUnified/Resources/views/frontend/_resources/css/findologic.css'}"
-    />
-{/block}
