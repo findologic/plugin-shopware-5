@@ -3,6 +3,9 @@
 use FinSearchUnified\FinSearchUnified;
 use FinSearchUnified\Tests\TestCase;
 use PHPUnit\Framework\Assert;
+use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
+use Shopware\Components\Logger;
+use Shopware\Components\Plugin\Context\DeactivateContext;
 use Shopware\Components\Plugin\Context\InstallContext;
 use Shopware\Components\Plugin\Context\UninstallContext;
 use Shopware\Components\Plugin\Context\UpdateContext;
@@ -34,6 +37,7 @@ class FinSearchUnifiedTest extends TestCase
     public function testPluginUninstall()
     {
         $context = $this->createMock(UninstallContext::class);
+
         $context->expects($this->at(0))
             ->method('scheduleClearCache')
             ->with([UninstallContext::CACHE_TAG_THEME]);
@@ -85,4 +89,70 @@ class FinSearchUnifiedTest extends TestCase
             'Update with new version' => ['version' => '8.5.0', 'invokeCount' => 1],
         ];
     }
+
+    /**
+     * @dataProvider customPluginProvider
+     *
+     * @param bool $isActive
+     */
+    public function testPluginDeactivateWithCustomPlugin($isActive)
+    {
+        // We use a custom class created below to replicate the custom plugin functionality
+        $plugin = new ExtendFinSearchUnified();
+        $plugin->setActive($isActive);
+
+        $mockManager = $this->createMock(InstallerService::class);
+
+        // We mock the plugin manager to return our custom plugin instance
+        $mockManager->expects($this->once())
+            ->method('getPluginByName')
+            ->with('ExtendFinSearchUnified')
+            ->willReturn($plugin);
+
+        // Extend plugin should not be deactivated if it is not active
+        $invokeCount = $isActive ? $this->once() : $this->never();
+        $mockManager->expects($invokeCount)
+            ->method('deactivatePlugin')
+            ->with($plugin);
+
+        Shopware()->Container()->set('shopware_plugininstaller.plugin_manager', $mockManager);
+
+        $context = $this->createMock(DeactivateContext::class);
+        $context->expects($this->once())->method('scheduleClearCache')->with(DeactivateContext::CACHE_LIST_DEFAULT);
+        $this->plugin->deactivate($context);
+    }
+
+    public function testPluginDeactivationWithCustomPluginException()
+    {
+        // We check for the logger method being invoked instead of checking for exception as it is being handled
+        // by the method internally
+        $mockLogger = $this->createMock(Logger::class);
+        $mockLogger->expects($this->once())->method('info');
+        Shopware()->Container()->set('pluginlogger', $mockLogger);
+
+        $context = $this->createMock(DeactivateContext::class);
+        $context->expects($this->once())->method('scheduleClearCache')->with(DeactivateContext::CACHE_LIST_DEFAULT);
+        $this->plugin->deactivate($context);
+    }
+
+    protected function tearDown()
+    {
+        Shopware()->Container()->reset('shopware_plugininstaller.plugin_manager');
+        Shopware()->Container()->load('shopware_plugininstaller.plugin_manager');
+        Shopware()->Container()->reset('pluginlogger');
+        Shopware()->Container()->load('pluginlogger');
+        parent::tearDown();
+    }
+
+    public function customPluginProvider()
+    {
+        return [
+            'Custom plugin exists and active' => [true],
+            'Custom plugin exists but not active' => [false]
+        ];
+    }
+}
+
+class ExtendFinSearchUnified extends Plugin
+{
 }
