@@ -9,12 +9,12 @@ use Shopware\Components\Plugin\Context\DeactivateContext;
 use Shopware\Components\Plugin\Context\InstallContext;
 use Shopware\Components\Plugin\Context\UninstallContext;
 use Shopware\Components\Plugin\Context\UpdateContext;
-use Shopware\Models\Plugin\Plugin;
+use Shopware\Models\Plugin\Plugin as PluginModel;
 
 class FinSearchUnifiedTest extends TestCase
 {
     /**
-     * @var Plugin
+     * @var PluginModel
      */
     private $plugin;
 
@@ -98,7 +98,7 @@ class FinSearchUnifiedTest extends TestCase
     public function testPluginDeactivateWithCustomPlugin($isActive)
     {
         // We use a custom class created below to replicate the custom plugin functionality
-        $plugin = new Shopware\Models\Plugin\Plugin();
+        $plugin = new PluginModel();
         $plugin->setName('ExtendFinSearchUnified');
         $plugin->setActive($isActive);
 
