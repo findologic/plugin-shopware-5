@@ -52,15 +52,15 @@ class FinSearchUnifiedTest extends TestCase
      * @dataProvider versionProvider
      *
      * @param string $currentVersion
-     * @param int $invokeCount
+     * @param bool $clearThemeCache
      */
-    public function testPluginUpdate($currentVersion, $invokeCount)
+    public function testPluginUpdate($currentVersion, $clearThemeCache)
     {
         $updatedVersion = '8.5.0';
         $context = $this->createMock(UpdateContext::class);
 
-        if ($invokeCount === 1) {
-            $context->expects($this->exactly(1))
+        if (!$clearThemeCache) {
+            $context->expects($this->once())
                 ->method('scheduleClearCache')
                 ->with(UpdateContext::CACHE_LIST_DEFAULT);
         } else {
@@ -85,8 +85,8 @@ class FinSearchUnifiedTest extends TestCase
     public function versionProvider()
     {
         return [
-            'Update with old version' => ['version' => '8.0.0', 'invokeCount' => 2],
-            'Update with new version' => ['version' => '8.5.0', 'invokeCount' => 1],
+            'Update with old version' => ['version' => '8.0.0', 'clearThemeCache' => true],
+            'Update with new version' => ['version' => '8.5.0', 'clearThemeCache' => false],
         ];
     }
 
@@ -98,7 +98,8 @@ class FinSearchUnifiedTest extends TestCase
     public function testPluginDeactivateWithCustomPlugin($isActive)
     {
         // We use a custom class created below to replicate the custom plugin functionality
-        $plugin = new ExtendFinSearchUnified();
+        $plugin = new Shopware\Models\Plugin\Plugin();
+        $plugin->setName('ExtendFinSearchUnified');
         $plugin->setActive($isActive);
 
         $mockManager = $this->createMock(InstallerService::class);
@@ -151,8 +152,4 @@ class FinSearchUnifiedTest extends TestCase
             'Custom plugin exists but not active' => [false]
         ];
     }
-}
-
-class ExtendFinSearchUnified extends Plugin
-{
 }
