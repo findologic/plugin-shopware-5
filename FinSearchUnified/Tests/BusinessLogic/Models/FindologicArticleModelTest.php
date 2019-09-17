@@ -308,7 +308,7 @@ class FindologicArticleModelTest extends TestCase
 
         $this->assertSame($expectedKeywords, $keywords);
     }
-  
+
     /**
      * @dataProvider articleSEOUrlProvider
      *
@@ -413,5 +413,248 @@ class FindologicArticleModelTest extends TestCase
                 sprintf('http://%s/reifenmontage/', $host)
             ]
         ];
+    }
+
+    public function freeTextFieldArticleProvider()
+    {
+        return [
+            'Both attribute and legacy attribute is empty' => [
+                [
+                    'name' => 'FindologicArticle 1',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC1',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ],
+                        'attribute' => [
+                            'attr1' => ''
+                        ]
+                    ],
+                    'attribute' => [
+                        'attr1' => ''
+                    ]
+                ],
+                null
+            ],
+            'Both attribute and legacy attribute has value' => [
+                [
+                    'name' => 'FindologicArticle 2',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ],
+                        'attribute' => [
+                            'attr1' => 'Attribute'
+                        ]
+                    ],
+                    'attribute' => [
+                        'attr1' => 'Legacy'
+                    ]
+                ],
+                'Attribute'
+            ],
+            'Attribute is empty and only legacy attribute has value' => [
+                [
+                    'name' => 'FindologicArticle 2',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ],
+                        'attribute' => [
+                            'attr1' => ''
+                        ]
+                    ],
+                    'attribute' => [
+                        'attr1' => 'Legacy'
+                    ]
+                ],
+                'Legacy'
+            ],
+            'Attribute has value and legacy attribute is empty' => [
+                [
+                    'name' => 'FindologicArticle 2',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ],
+                        'attribute' => [
+                            'attr1' => 'Attribute'
+                        ]
+                    ],
+                    'attribute' => [
+                        'attr1' => ''
+                    ]
+                ],
+                'Attribute'
+            ],
+            'Attribute is null but legacy attribute has value' => [
+                [
+                    'name' => 'FindologicArticle 2',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ]
+                    ],
+                    'attribute' => [
+                        'attr1' => 'Legacy'
+                    ]
+                ],
+                'Legacy'
+            ],
+            'Attribute has value but legacy attribute is null' => [
+                [
+                    'name' => 'FindologicArticle 2',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ],
+                        'attribute' => [
+                            'attr1' => 'Attribute'
+                        ]
+                    ]
+                ],
+                'Attribute'
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider freeTextFieldArticleProvider
+     *
+     * @param array $articleConfiguration
+     * @param string $expected
+     *
+     * @throws ReflectionException
+     */
+    public function testArticleFreeTextFieldAttributes(array $articleConfiguration, $expected)
+    {
+        $baseCategory = new Category();
+        $baseCategory->setId(100);
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+        $reflector = new ReflectionClass(Item::class);
+        $attributes = $reflector->getProperty('attributes');
+        $attributes->setAccessible(true);
+        $values = $attributes->getValue($xmlArticle);
+
+        if (is_null($expected)) {
+            $this->assertArrayNotHasKey('attr1', $values);
+        } else {
+            $this->assertArrayHasKey('attr1', $values);
+            $attr1 = $values['attr1'];
+            $this->assertSame($expected, current($attr1->getValues()));
+        }
     }
 }

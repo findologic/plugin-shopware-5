@@ -351,13 +351,13 @@ class FindologicArticleModel
 
         // This will only encode parts of the URL path and leave separator itself untouched.
         $seoUrl = $shopUrl . array_reduce(explode('/', $urlPath), function ($encodedPath, $item) {
-            $encodedPath .= '/';
+                $encodedPath .= '/';
 
             if ($item) {
                 $encodedPath .= rawurlencode($item);
             }
 
-            return $encodedPath;
+                return $encodedPath;
         });
 
         $xmlUrl = new Url();
@@ -669,6 +669,9 @@ class FindologicArticleModel
         $hasPseudoPrice = $cheapestPrice->getCalculatedPseudoPrice() > $cheapestPrice->getCalculatedPrice();
         $onSale = $this->productStruct->isCloseouts() || $hasPseudoPrice;
         $allAttributes[] = new Attribute('sale', [(int)$onSale]);
+
+        $allAttributes = $this->getAttributes();
+
         /** @var Attribute $attribute */
         foreach ($allAttributes as $attribute) {
             $this->xmlArticle->addAttribute($attribute);
@@ -794,6 +797,122 @@ class FindologicArticleModel
         foreach ($allProperties as $attribute) {
             $this->xmlArticle->addProperty($attribute);
         }
+    }
+
+    /**
+     * @param \Shopware\Models\Attribute\Article $attributes
+     *
+     * @return array
+     */
+    protected function getAttributesByInstance(\Shopware\Models\Attribute\Article $attributes = null)
+    {
+        if (!$attributes) {
+            return [];
+        }
+
+        $allAttributes = [];
+        $rewrtieLink = Shopware()->Modules()->Core()->sRewriteLink();
+        if (self::checkIfHasValue($this->baseArticle->getHighlight())) {
+            $allAttributes[] = new Attribute('highlight', [$this->baseArticle->getHighlight()]);
+        }
+        if (self::checkIfHasValue($this->baseArticle->getTax())) {
+            $allAttributes[] = new Attribute('tax', [$this->baseArticle->getTax()->getTax()]);
+        }
+        if (self::checkIfHasValue($this->baseVariant->getShippingTime())) {
+            $allAttributes[] = new Attribute('shippingtime', [$this->baseVariant->getShippingTime()]);
+        }
+        if (self::checkIfHasValue($this->baseVariant->getPurchaseUnit())) {
+            $allAttributes[] = new Attribute('purchaseunit', [$this->baseVariant->getPurchaseUnit()]);
+        }
+        if (self::checkIfHasValue($this->baseVariant->getReferenceUnit())) {
+            $allAttributes[] = new Attribute('referenceunit', [$this->baseVariant->getReferenceUnit()]);
+        }
+        if (self::checkIfHasValue($this->baseVariant->getPackUnit())) {
+            $allAttributes[] = new Attribute('packunit', [$this->baseVariant->getPackUnit()]);
+        }
+        if (self::checkIfHasValue($this->baseVariant->getInStock())) {
+            $allAttributes[] = new Attribute('quantity', [$this->baseVariant->getInStock()]);
+        }
+        if (self::checkIfHasValue($this->baseVariant->getWeight())) {
+            $allAttributes[] = new Attribute('weight', [$this->baseVariant->getWeight()]);
+        }
+        if (self::checkIfHasValue($this->baseVariant->getWidth())) {
+            $allAttributes[] = new Attribute('width', [$this->baseVariant->getWidth()]);
+        }
+        if (self::checkIfHasValue($this->baseVariant->getHeight())) {
+            $allAttributes[] = new Attribute('height', [$this->baseVariant->getHeight()]);
+        }
+        if (self::checkIfHasValue($this->baseVariant->getLen())) {
+            $allAttributes[] = new Attribute('length', [$this->baseVariant->getLen()]);
+        }
+        if (self::checkIfHasValue($this->baseVariant->getReleaseDate())) {
+            $releaseDate = $this->baseVariant->getReleaseDate()->format(DATE_ATOM);
+            $allAttributes[] = new Attribute('release_date', [$releaseDate]);
+        }
+
+        for ($i = 1; $i < 21; $i++) {
+            $value = '';
+            $methodName = "getAttr$i";
+
+            if (method_exists($attributes, $methodName)) {
+                $value = $attributes->$methodName();
+            }
+
+            if ($value instanceof DateTime) {
+                $value = $value->format(DATE_ATOM);
+            }
+
+            if (self::checkIfHasValue($value)) {
+                $attributeKey = "attr$i";
+                $attributeValue = StaticHelper::removeControlCharacters($value);
+                $allAttributes[$attributeKey] = new Attribute($attributeKey, [$attributeValue]);
+            }
+        }
+
+        $wishListUrl = $rewrtieLink . self::WISHLIST_URL . $this->baseVariant->getNumber();
+        $compareUrl = $rewrtieLink . self::COMPARE_URL . $this->baseArticle->getId();
+        $cartUrl = $rewrtieLink . self::CART_URL . $this->baseVariant->getNumber();
+
+        $allAttributes[] = new Attribute('wishlistUrl', [$wishListUrl]);
+        $allAttributes[] = new Attribute('compareUrl', [$compareUrl]);
+        $allAttributes[] = new Attribute('addToCartUrl', [$cartUrl]);
+
+        // Supplier
+        /** @var Product\Manufacturer $supplier */
+        $supplier = $this->productStruct->getManufacturer();
+        if ($supplier) {
+            $brandImage = $supplier->getCoverFile();
+
+            if (self::checkIfHasValue($brandImage)) {
+                $allAttributes[] = new Attribute('brand_image', [$brandImage]);
+            }
+        }
+
+        $cheapestPrice = $this->productStruct->getListingPrice();
+
+        if ($cheapestPrice->getCalculatedPseudoPrice() > $cheapestPrice->getCalculatedPrice()) {
+            $allAttributes[] = new Attribute('old_price', [$cheapestPrice->getCalculatedPseudoPrice()]);
+        }
+
+        /** @var Attribute $attribute */
+        foreach ($allAttributes as $attribute) {
+            $this->xmlArticle->addAttribute($attribute);
+        }
+
+        return $allAttributes;
+    }
+
+    protected function getAttributes()
+    {
+        $attribute = $this->baseVariant->getAttribute();
+        $attributes = $this->getAttributesByInstance($attribute);
+        $legacyAttributes = [];
+        if (is_callable([$this->baseArticle, 'getAttribute']) && !is_null($this->baseArticle->getAttribute())) {
+            $legacyAttribute = $this->baseArticle->getAttribute();
+            $legacyAttributes = $this->getAttributesByInstance($legacyAttribute);
+        }
+
+        return array_merge($legacyAttributes, $attributes);
     }
 
     public function getXmlRepresentation()
