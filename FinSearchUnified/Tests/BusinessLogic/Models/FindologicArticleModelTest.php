@@ -633,7 +633,6 @@ class FindologicArticleModelTest extends TestCase
         $baseCategory->setId(100);
 
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
-
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
             'ABCD0815',
