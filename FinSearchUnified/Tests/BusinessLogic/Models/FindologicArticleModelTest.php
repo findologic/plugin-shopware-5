@@ -644,15 +644,15 @@ class FindologicArticleModelTest extends TestCase
         $detail = $this->createMock(Detail::class);
 
         $articleAttribute = $this->createMock(\Shopware\Models\Attribute\Article::class);
-        $articleAttribute->method('getAttr1')->willReturn($legacyAttribute);
+        $articleAttribute->expects($this->once())->method('getAttr1')->willReturn($legacyAttribute);
 
         $detailAttribute = $this->createMock(\Shopware\Models\Attribute\Article::class);
-        $detailAttribute->method('getAttr1')->willReturn($variantAttribute);
+        $detailAttribute->expects($this->once())->method('getAttr1')->willReturn($variantAttribute);
 
-        $article->method('getAttribute')->willReturn($articleAttribute);
+        $article->expects($this->exactly(2))->method('getAttribute')->willReturn($articleAttribute);
         $article->method('getId')->willReturn(1);
 
-        $detail->method('getAttribute')->willReturn($detailAttribute);
+        $detail->expects($this->once())->method('getAttribute')->willReturn($detailAttribute);
         $detail->method('getId')->willReturn(1);
 
         $article->method('getMainDetail')->willReturn($detail);

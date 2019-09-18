@@ -408,16 +408,15 @@ class FindologicArticleModel
     {
         $imagesArray = [];
         $articleMainImages = [];
-        $replacements = [];
         $baseLink = Shopware()->Modules()->Core()->sRewriteLink();
         $mediaService = Shopware()->Container()->get('shopware_media.media_service');
+        $replacements = [
+            '[' => '%5B',
+            ']' => '%5D'
+        ];
 
         if ($this->baseArticle->getImages() !== null) {
             $articleMainImages = $this->baseArticle->getImages()->getValues();
-            $replacements = [
-                '[' => '%5B',
-                ']' => '%5D'
-            ];
         }
 
         /** @var Image $articleImage */
@@ -664,7 +663,7 @@ class FindologicArticleModel
         $allAttributes[] = $xmlNewFlag;
 
         // Add free_shipping
-        if ($this->baseVariant->getShippingFree() === '') {
+        if ($this->baseVariant->getShippingFree() == '') {
             $freeShipping = 0;
         } else {
             $freeShipping = $this->baseArticle->getMainDetail()->getShippingFree();
@@ -744,36 +743,6 @@ class FindologicArticleModel
         if (self::checkIfHasValue($this->baseVariant->getReleaseDate())) {
             $releaseDate = $this->baseVariant->getReleaseDate()->format(DATE_ATOM);
             $allProperties[] = new Property('release_date', ['' => $releaseDate]);
-        }
-
-        // While the method \Shopware\Models\Article\Article::getAttribute does exist until Shopware 5.5,
-        // it will only return attributes if they were configured before the upgrade to Shopware 5.3.
-        // Since Shopware 5.3, attributes are assigned to the articles main details. Already existing ones aren't
-        // touched.
-        // \Shopware\Models\Article\Article::getAttribute has been removed in Shopware 5.6 entirely.
-        if (is_callable([$this->baseArticle, 'getAttribute']) && $this->baseArticle->getAttribute() !== null) {
-            $attributes = $this->baseArticle->getAttribute();
-        } else {
-            $attributes = $this->baseVariant->getAttribute();
-        }
-
-        if ($attributes) {
-            for ($i = 1; $i < 21; $i++) {
-                $value = '';
-                $methodName = "getAttr$i";
-
-                if (method_exists($attributes, $methodName)) {
-                    $value = $attributes->$methodName();
-                }
-
-                if ($value instanceof DateTime) {
-                    $value = $value->format(DATE_ATOM);
-                }
-
-                if (self::checkIfHasValue($value)) {
-                    $allProperties[] = new Property("attr$i", ['' => StaticHelper::removeControlCharacters($value)]);
-                }
-            }
         }
 
         $wishListUrl = $rewrtieLink . self::WISHLIST_URL . $this->baseVariant->getNumber();
