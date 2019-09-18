@@ -13,6 +13,7 @@ use ReflectionException;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource\Article as ArticleResource;
 use Shopware\Models\Article\Article;
+use Shopware\Models\Article\Detail;
 use Shopware\Models\Category\Category;
 
 class FindologicArticleModelTest extends TestCase
@@ -626,15 +627,38 @@ class FindologicArticleModelTest extends TestCase
      * @param string $expected
      *
      * @throws ReflectionException
+     * @throws Exception
      */
     public function testArticleFreeTextFieldAttributes(array $articleConfiguration, $expected)
     {
+        $legacyAttribute = $articleConfiguration['attribute']['attr1'];
+        $variantAttribute = $articleConfiguration['mainDetail']['attribute']['attr1'];
         $baseCategory = new Category();
         $baseCategory->setId(100);
 
-        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+        // We will create the article in the database here for bypassing the setUpStruct method in model constructor
+        // but will use the mock for actual attribute testing
+        $this->createTestProduct($articleConfiguration);
+
+        $article = $this->createMock(Article::class);
+        $detail = $this->createMock(Detail::class);
+
+        $articleAttribute = $this->createMock(\Shopware\Models\Attribute\Article::class);
+        $articleAttribute->method('getAttr1')->willReturn($legacyAttribute);
+
+        $detailAttribute = $this->createMock(\Shopware\Models\Attribute\Article::class);
+        $detailAttribute->method('getAttr1')->willReturn($variantAttribute);
+
+        $article->method('getAttribute')->willReturn($articleAttribute);
+        $article->method('getId')->willReturn(1);
+
+        $detail->method('getAttribute')->willReturn($detailAttribute);
+        $detail->method('getId')->willReturn(1);
+
+        $article->method('getMainDetail')->willReturn($detail);
+
         $findologicArticle = $this->articleFactory->create(
-            $articleFromConfiguration,
+            $article,
             'ABCD0815',
             [],
             [],
@@ -648,7 +672,7 @@ class FindologicArticleModelTest extends TestCase
         $attributes->setAccessible(true);
         $values = $attributes->getValue($xmlArticle);
 
-        if (is_null($expected)) {
+        if ($expected === null) {
             $this->assertArrayNotHasKey('attr1', $values);
         } else {
             $this->assertArrayHasKey('attr1', $values);

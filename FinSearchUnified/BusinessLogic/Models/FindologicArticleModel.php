@@ -323,7 +323,7 @@ class FindologicArticleModel
             $xmlPrice->setValue(sprintf('%.2f', $price), $usergroupHash);
             $this->xmlArticle->addPrice(sprintf('%.2f', $price), $usergroupHash);
 
-            if ($userGroup->getKey() == 'EK') {
+            if ($userGroup->getKey() === 'EK') {
                 $basePrice = new Price();
                 $basePrice->setValue(sprintf('%.2f', $price));
                 $this->xmlArticle->addPrice(sprintf('%.2f', $price));
@@ -406,18 +406,23 @@ class FindologicArticleModel
 
     protected function setImages()
     {
-        $articleMainImages = $this->baseArticle->getImages()->getValues();
-        $mediaService = Shopware()->Container()->get('shopware_media.media_service');
-        $baseLink = Shopware()->Modules()->Core()->sRewriteLink();
         $imagesArray = [];
-        $replacements = [
-            '[' => '%5B',
-            ']' => '%5D'
-        ];
+        $articleMainImages = [];
+        $replacements = [];
+        $baseLink = Shopware()->Modules()->Core()->sRewriteLink();
+        $mediaService = Shopware()->Container()->get('shopware_media.media_service');
+
+        if ($this->baseArticle->getImages() !== null) {
+            $articleMainImages = $this->baseArticle->getImages()->getValues();
+            $replacements = [
+                '[' => '%5B',
+                ']' => '%5D'
+            ];
+        }
 
         /** @var Image $articleImage */
         foreach ($articleMainImages as $articleImage) {
-            if ($articleImage->getMedia() != null) {
+            if ($articleImage->getMedia() !== null) {
                 /** @var Image $imageRaw */
                 $imageRaw = $articleImage->getMedia();
                 if (!($imageRaw instanceof Media) || $imageRaw === null) {
@@ -435,7 +440,7 @@ class FindologicArticleModel
                 if (count($imageDetails) > 0) {
                     $imagePath = strtr($mediaService->getUrl($imageDefault), $replacements);
                     $imagePathThumb = strtr($mediaService->getUrl(array_values($imageDetails)[0]), $replacements);
-                    if ($imagePathThumb != '') {
+                    if ($imagePathThumb !== '') {
                         $xmlImagePath = new ExportImage($imagePath, ExportImage::TYPE_DEFAULT);
                         $imagesArray[] = $xmlImagePath;
                         $xmlImageThumb = new ExportImage($imagePathThumb, ExportImage::TYPE_THUMBNAIL);
@@ -490,14 +495,17 @@ class FindologicArticleModel
 
         $catUrlArray = [];
         $catArray = [];
+        $categories = [];
 
-        /** @var Category[] $categories */
-        $categories = $this->baseArticle->getCategories()->toArray();
+        if ($this->baseArticle->getCategories() !== null) {
+            /** @var Category[] $categories */
+            $categories = $this->baseArticle->getCategories()->toArray();
+        }
 
         $id = sprintf('%s_%s', Constants::CACHE_ID_PRODUCT_STREAMS, $this->shopKey);
         $productStreams = $this->cache->load($id);
 
-        if ($productStreams != false && array_key_exists($this->baseArticle->getId(), $productStreams)) {
+        if ($productStreams !== false && array_key_exists($this->baseArticle->getId(), $productStreams)) {
             foreach ($productStreams[$this->baseArticle->getId()] as $cat) {
                 $categories[] = $cat;
             }
@@ -656,7 +664,7 @@ class FindologicArticleModel
         $allAttributes[] = $xmlNewFlag;
 
         // Add free_shipping
-        if ($this->baseVariant->getShippingFree() == '') {
+        if ($this->baseVariant->getShippingFree() === '') {
             $freeShipping = 0;
         } else {
             $freeShipping = $this->baseArticle->getMainDetail()->getShippingFree();
@@ -743,7 +751,7 @@ class FindologicArticleModel
         // Since Shopware 5.3, attributes are assigned to the articles main details. Already existing ones aren't
         // touched.
         // \Shopware\Models\Article\Article::getAttribute has been removed in Shopware 5.6 entirely.
-        if (is_callable([$this->baseArticle, 'getAttribute']) && !is_null($this->baseArticle->getAttribute())) {
+        if (is_callable([$this->baseArticle, 'getAttribute']) && $this->baseArticle->getAttribute() !== null) {
             $attributes = $this->baseArticle->getAttribute();
         } else {
             $attributes = $this->baseVariant->getAttribute();
@@ -839,7 +847,7 @@ class FindologicArticleModel
         $attribute = $this->baseVariant->getAttribute();
         $attributes = $this->getAttributesByInstance($attribute);
         $legacyAttributes = [];
-        if (is_callable([$this->baseArticle, 'getAttribute']) && !is_null($this->baseArticle->getAttribute())) {
+        if (is_callable([$this->baseArticle, 'getAttribute']) && $this->baseArticle->getAttribute() !== null) {
             $legacyAttribute = $this->baseArticle->getAttribute();
             $legacyAttributes = $this->getAttributesByInstance($legacyAttribute);
         }
