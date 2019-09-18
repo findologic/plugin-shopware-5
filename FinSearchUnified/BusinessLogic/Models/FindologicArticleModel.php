@@ -353,12 +353,12 @@ class FindologicArticleModel
         $seoUrl = $shopUrl . array_reduce(explode('/', $urlPath), function ($encodedPath, $item) {
                 $encodedPath .= '/';
 
-                if ($item) {
-                    $encodedPath .= rawurlencode($item);
-                }
+            if ($item) {
+                $encodedPath .= rawurlencode($item);
+            }
 
                 return $encodedPath;
-            });
+        });
 
         $xmlUrl = new Url();
         $xmlUrl->setValue($seoUrl);
