@@ -7,9 +7,6 @@ use Shopware\Components\Plugin;
 use Shopware\Components\Plugin\Context\DeactivateContext;
 use Shopware\Components\Plugin\Context\UninstallContext;
 use Shopware\Models;
-use Symfony\Component\Config\FileLocator;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 
 class FinSearchUnified extends Plugin
 {
