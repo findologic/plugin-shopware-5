@@ -14,6 +14,7 @@ use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource\Article as ArticleResource;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Article\Detail;
+use Shopware\Models\Attribute\Article as ArticleAttribute;
 use Shopware\Models\Category\Category;
 
 class FindologicArticleModelTest extends TestCase
@@ -535,19 +536,26 @@ class FindologicArticleModelTest extends TestCase
 
         // We will create the article in the database here for bypassing the setUpStruct method in model constructor
         // but will use the mock for actual attribute testing
-        $this->createTestProduct($articleConfiguration);
+        $testArticle = $this->createTestProduct($articleConfiguration);
 
         $article = $this->createMock(Article::class);
         $detail = $this->createMock(Detail::class);
 
-        $articleAttribute = $this->createMock(\Shopware\Models\Attribute\Article::class);
-        $articleAttribute->expects($this->once())->method('getAttr1')->willReturn($legacyAttribute);
+        // While the method \Shopware\Models\Article\Article::getAttribute does exist until Shopware 5.5,
+        // it will only return attributes if they were configured before the upgrade to Shopware 5.3.
+        // Since Shopware 5.3, attributes are assigned to the articles main details. Already existing ones aren't
+        // touched.
+        // \Shopware\Models\Article\Article::getAttribute has been removed in Shopware 5.6 entirely.
+        if (is_callable([$testArticle, 'getAttribute'])) {
+            $articleAttribute = $this->createMock(ArticleAttribute::class);
+            $articleAttribute->expects($this->once())->method('getAttr1')->willReturn($legacyAttribute);
+            $article->expects($this->exactly(2))->method('getAttribute')->willReturn($articleAttribute);
+        }
 
-        $detailAttribute = $this->createMock(\Shopware\Models\Attribute\Article::class);
-        $detailAttribute->expects($this->once())->method('getAttr1')->willReturn($variantAttribute);
-
-        $article->expects($this->exactly(2))->method('getAttribute')->willReturn($articleAttribute);
         $article->method('getId')->willReturn(1);
+
+        $detailAttribute = $this->createMock(ArticleAttribute::class);
+        $detailAttribute->expects($this->once())->method('getAttr1')->willReturn($variantAttribute);
 
         $detail->expects($this->once())->method('getAttribute')->willReturn($detailAttribute);
         $detail->method('getId')->willReturn(1);
