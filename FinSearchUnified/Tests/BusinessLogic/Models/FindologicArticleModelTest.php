@@ -577,7 +577,9 @@ class FindologicArticleModelTest extends TestCase
         $attributes->setAccessible(true);
         $values = $attributes->getValue($xmlArticle);
 
-        if ($expected === null) {
+        // Since \Shopware\Models\Article\Article::getAttribute has been removed in Shopware 5.6
+        // we will not have the legacy attribute in array if the variant attribute is empty or null
+        if ($expected === null || !is_callable([$testArticle, 'getAttribute'])) {
             $this->assertArrayNotHasKey('attr1', $values);
         } else {
             $this->assertArrayHasKey('attr1', $values);
