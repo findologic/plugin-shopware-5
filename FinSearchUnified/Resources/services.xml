@@ -36,14 +36,6 @@
             class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator"
         />
 
-        <service
-            class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGateway"
-            id="FinSearchUnified.findologic_facet_gateway"
-        >
-            <argument type="service" id="fin_search_unified.custom_listing_hydrator" />
-            <argument type="service" id="fin_search_unified.query_builder_factory" />
-        </service>
-
         <service id="fin_search_unified.shopware_process" class="FinSearchUnified\ShopwareProcess">
             <argument type="service" id="cache" />
             <argument type="service" id="shopware_product_stream.repository" />
@@ -66,36 +58,8 @@
             class="FinSearchUnified\Bundle\FacetResult\ColorPickerFacetResult"
         />
 
-        <service
-            id="fin_search_unified.product_number_search"
-            class="FinSearchUnified\Bundle\ProductNumberSearch"
-            decorates="shopware_search.product_number_search"
-            public="false"
-        >
-            <argument type="service" id="fin_search_unified.product_number_search.inner" />
-            <argument type="service" id="fin_search_unified.query_builder_factory" />
-        </service>
-
-        <service
-            id="fin_search_unified_es.product_number_search"
-            class="FinSearchUnified\Bundle\ProductNumberSearch"
-            decorates="shopware_search_es.product_number_search"
-            public="false"
-        >
-            <argument type="service" id="fin_search_unified_es.product_number_search.inner" />
-            <argument type="service" id="fin_search_unified.query_builder_factory" />
-        </service>
-
         <service id="fin_search_unified.commands.export_command" class="FinSearchUnified\Commands\ExportCommand">
             <tag name="console.command" />
-        </service>
-
-        <service
-            id="fin_search_unified.product_search"
-            class="Shopware\Bundle\SearchBundle\ProductSearch"
-            decorates="shopware_search.product_search">
-            <argument type="service" id="shopware_storefront.list_product_service" />
-            <argument type="service" id="fin_search_unified.product_number_search" />
         </service>
 
         <service
@@ -132,17 +96,5 @@
             <argument id="http_client" type="service" />
             <argument id="config" type="service" />
         </service>
-
-        <service id="fin_search_unified.custom_facet_criteria_request_handler" class="FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler\FacetCriteriaRequestHandler">
-            <argument type="service" id="config" />
-            <argument type="service" id="fin_search_unified.custom_facet_service" />
-            <argument type="service" id="dbal_connection" />
-            <tag name="criteria_request_handler" />
-        </service>
-
-        <service id="fin_search_unified.custom_facet_service" class="FinSearchUnified\Bundle\StoreFrontBundle\Service\Core\CustomFacetService">
-            <argument type="service" id="FinSearchUnified.findologic_facet_gateway" />
-        </service>
-
     </services>
 </container>

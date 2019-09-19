@@ -36,9 +36,11 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
      * @param QueryBuilderFactoryInterface $queryBuilderFactory
      */
     public function __construct(
+        CustomFacetGatewayInterface $service,
         CustomListingHydrator $hydrator,
         QueryBuilderFactoryInterface $queryBuilderFactory
     ) {
+        $this->originalService = $service;
         $this->hydrator = $hydrator;
         $this->queryBuilderFactory = $queryBuilderFactory;
     }

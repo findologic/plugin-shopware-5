@@ -7,7 +7,9 @@ use Shopware\Components\Plugin;
 use Shopware\Components\Plugin\Context\DeactivateContext;
 use Shopware\Components\Plugin\Context\UninstallContext;
 use Shopware\Models;
+use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 
 class FinSearchUnified extends Plugin
 {
@@ -17,7 +19,7 @@ class FinSearchUnified extends Plugin
     public function build(ContainerBuilder $container)
     {
         parent::build($container);
-        $container->setParameter('fin_search_unified.plugin_dir', $this->getPath());
+        $this->prepareContainer($container);
     }
 
     public function deactivate(DeactivateContext $context)
@@ -48,6 +50,19 @@ class FinSearchUnified extends Plugin
             }
         } catch (\Exception $exception) {
             Shopware()->PluginLogger()->info("ExtendFinSearchUnified plugin doesn't exist!");
+        }
+    }
+
+    private function prepareContainer($container)
+    {
+        $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/Bundle/'));
+
+        $loader->load('SearchBundle/services.xml');
+        $loader->load('StoreFrontBundle/services.xml');
+
+        if (version_compare(\Shopware::VERSION, '5.3.0') < 0) {
+            $loader->load('StoreFrontBundle/Gateway/DBAL/services.xml');
+            $loader->load('SearchBundle/CriteriaRequestHandler/services.xml');
         }
     }
 }

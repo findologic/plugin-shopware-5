@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<container
+        xmlns="http://symfony.com/schema/dic/services"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd"
+>
+
+    <services>
+        <service
+            decorates="shopware_storefront.custom_facet_gateway"
+            class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGateway"
+            id="FinSearchUnified.findologic_facet_gateway"
+        >
+            <argument type="service" id="FinSearchUnified.findologic_facet_gateway.inner" />
+            <argument type="service" id="fin_search_unified.custom_listing_hydrator" />
+            <argument type="service" id="fin_search_unified.query_builder_factory" />
+        </service>
+        <service id="fin_search_unified.custom_facet_service" class="FinSearchUnified\Bundle\StoreFrontBundle\Service\Core\CustomFacetService">
+            <argument type="service" id="FinSearchUnified.findologic_facet_gateway" />
+        </service>
+        <service
+            id="fin_search_unified.product_number_search"
+            class="FinSearchUnified\Bundle\ProductNumberSearch"
+            decorates="shopware_search.product_number_search"
+            public="false"
+        >
+            <argument type="service" id="fin_search_unified.product_number_search.inner" />
+            <argument type="service" id="fin_search_unified.query_builder_factory" />
+        </service>
+        <service
+            id="fin_search_unified_es.product_number_search"
+            class="FinSearchUnified\Bundle\ProductNumberSearch"
+            decorates="shopware_search_es.product_number_search"
+            public="false"
+        >
+            <argument type="service" id="fin_search_unified_es.product_number_search.inner" />
+            <argument type="service" id="fin_search_unified.query_builder_factory" />
+        </service>
+    </services>
+</container>
