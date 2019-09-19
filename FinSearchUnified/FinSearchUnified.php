@@ -13,15 +13,6 @@ use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 
 class FinSearchUnified extends Plugin
 {
-    /**
-     * @param ContainerBuilder $container
-     */
-    public function build(ContainerBuilder $container)
-    {
-        parent::build($container);
-        $this->prepareContainer($container);
-    }
-
     public function deactivate(DeactivateContext $context)
     {
         $this->deactivateCustomizedPlugin();
@@ -50,19 +41,6 @@ class FinSearchUnified extends Plugin
             }
         } catch (\Exception $exception) {
             Shopware()->PluginLogger()->info("ExtendFinSearchUnified plugin doesn't exist!");
-        }
-    }
-
-    private function prepareContainer($container)
-    {
-        $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/Bundle/'));
-
-        $loader->load('SearchBundle/services.xml');
-        $loader->load('StoreFrontBundle/services.xml');
-
-        if (version_compare(\Shopware::VERSION, '5.3.0') < 0) {
-            $loader->load('StoreFrontBundle/Gateway/DBAL/services.xml');
-            $loader->load('SearchBundle/CriteriaRequestHandler/services.xml');
         }
     }
 }

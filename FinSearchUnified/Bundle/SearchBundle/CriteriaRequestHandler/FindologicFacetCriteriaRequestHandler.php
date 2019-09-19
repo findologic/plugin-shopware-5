@@ -3,42 +3,26 @@
 
 namespace FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler;
 
-use Doctrine\DBAL\Connection;
 use FinSearchUnified\Bundle\StoreFrontBundle\Service\CustomFacetServiceInterface;
-use Shopware\Bundle\SearchBundle\Condition\CombinedCondition;
+use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
-use Shopware\Bundle\SearchBundle\Facet\CombinedConditionFacet;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use Enlight_Controller_Request_RequestHttp as Request;
 
-class FacetCriteriaRequestHandler
+class FindologicFacetCriteriaRequestHandler
 {
-    /**
-     * @var \Shopware_Components_Config
-     */
-    private $config;
-
     /**
      * @var CustomFacetServiceInterface
      */
     private $facetService;
 
-    /**
-     * @var Connection
-     */
-    private $connection;
-
     public function __construct(
-        \Shopware_Components_Config $config,
-        CustomFacetServiceInterface $facetService,
-        Connection $connection
+        CustomFacetServiceInterface $facetService
     ) {
-        $this->config = $config;
         $this->facetService = $facetService;
-        $this->connection = $connection;
     }
 
     /**
@@ -49,17 +33,16 @@ class FacetCriteriaRequestHandler
         Criteria $criteria,
         ShopContextInterface $context
     ) {
-        if ($this->isSearchPage($request)) {
-            $ids = $this->config->get('searchFacets', '');
-            /** @var int[] $ids */
-            $ids = array_filter(explode('|', $ids));
-            $customFacets = $this->facetService->getList($ids, $context);
+        if (StaticHelper::useShopSearch()) {
+            return;
+        } elseif ($this->isSearchPage($request)) {
+            $customFacets = $this->facetService->getList([], $context);
         } elseif ($this->isCategoryListing($request)) {
             $categoryId = (int) $request->getParam('sCategory');
             $customFacets = $this->facetService->getFacetsOfCategories([$categoryId], $context);
             $customFacets = array_shift($customFacets);
         } else {
-            $customFacets = $this->facetService->getAllCategoryFacets($context);
+            return;
         }
 
         /** @var CustomFacet[] $customFacets */
@@ -72,8 +55,6 @@ class FacetCriteriaRequestHandler
 
             if ($facet instanceof ProductAttributeFacet) {
                 $this->handleProductAttributeFacet($request, $criteria, $facet);
-            } elseif ($facet instanceof CombinedConditionFacet) {
-                $this->handleCombinedConditionFacet($request, $criteria, $facet);
             }
         }
     }
@@ -163,21 +144,6 @@ class FacetCriteriaRequestHandler
             default:
                 return;
         }
-    }
-
-    private function handleCombinedConditionFacet(
-        Request $request,
-        Criteria $criteria,
-        CombinedConditionFacet $facet
-    ) {
-        if (!$request->has($facet->getRequestParameter())) {
-            return;
-        }
-        $criteria->addCondition(
-            new CombinedCondition(
-                $facet->getConditions()
-            )
-        );
     }
 
     /**

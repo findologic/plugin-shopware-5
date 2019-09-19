@@ -26,21 +26,14 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
     protected $queryBuilderFactory;
 
     /**
-     * @var CustomFacetGatewayInterface
-     */
-    private $originalService;
-
-    /**
      * @param CustomFacetGatewayInterface $service
      * @param CustomListingHydrator $hydrator
      * @param QueryBuilderFactoryInterface $queryBuilderFactory
      */
     public function __construct(
-        $service,
         CustomListingHydrator $hydrator,
         QueryBuilderFactoryInterface $queryBuilderFactory
     ) {
-        $this->originalService = $service;
         $this->hydrator = $hydrator;
         $this->queryBuilderFactory = $queryBuilderFactory;
     }
@@ -53,10 +46,6 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
      */
     public function getList(array $ids, ShopContextInterface $context)
     {
-        if (StaticHelper::useShopSearch()) {
-            return $this->originalService->getList($ids, $context);
-        }
-
         $criteria = new Criteria();
         $criteria->offset(0)->limit(1);
 
@@ -70,7 +59,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
 
             return $this->hydrate($xmlResponse->filters->filter);
         } else {
-            return $this->originalService->getList($ids, $context);
+            return [];
         }
     }
 
@@ -82,10 +71,6 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
      */
     public function getFacetsOfCategories(array $categoryIds, ShopContextInterface $context)
     {
-        if (StaticHelper::useShopSearch()) {
-            return $this->originalService->getFacetsOfCategories($categoryIds, $context);
-        }
-
         $categoryId = $categoryIds[0];
 
         $criteria = new Criteria();
@@ -103,7 +88,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
             return $categoryFacets;
         }
 
-        return $this->originalService->getFacetsOfCategories($categoryIds, $context);
+        return [];
     }
 
     /**
@@ -113,7 +98,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
      */
     public function getAllCategoryFacets(ShopContextInterface $context)
     {
-        return $this->originalService->getAllCategoryFacets($context);
+        return [];
     }
 
     /**
