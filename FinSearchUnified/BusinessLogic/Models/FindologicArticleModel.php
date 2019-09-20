@@ -352,13 +352,13 @@ class FindologicArticleModel
 
         // This will only encode parts of the URL path and leave separator itself untouched.
         $seoUrl = $shopUrl . array_reduce(explode('/', $urlPath), function ($encodedPath, $item) {
-                $encodedPath .= '/';
+            $encodedPath .= '/';
 
             if ($item) {
                 $encodedPath .= rawurlencode($item);
             }
 
-                return $encodedPath;
+            return $encodedPath;
         });
 
         $xmlUrl = new Url();
