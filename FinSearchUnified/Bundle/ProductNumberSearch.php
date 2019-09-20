@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Bundle;
 
 use Exception;
+use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle;
@@ -127,7 +128,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     protected function setSelectedFacets(Criteria $criteria)
     {
         foreach ($criteria->getConditions() as $condition) {
-            if (($condition instanceof SearchBundle\Condition\ProductAttributeCondition) === false) {
+            if (($condition instanceof ProductAttributeCondition) === false) {
                 continue;
             }
 

@@ -5,7 +5,7 @@ namespace FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler;
 
 use FinSearchUnified\Bundle\StoreFrontBundle\Service\CustomFacetServiceInterface;
 use FinSearchUnified\Helper\StaticHelper;
-use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
+use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
