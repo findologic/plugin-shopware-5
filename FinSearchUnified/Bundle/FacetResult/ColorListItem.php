@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Bundle\FacetResult;
 
 use Shopware\Bundle\SearchBundle\FacetResult;
+use Shopware\Bundle\StoreFrontBundle\Struct\Attribute;
 
 class ColorListItem extends FacetResult\MediaListItem
 {

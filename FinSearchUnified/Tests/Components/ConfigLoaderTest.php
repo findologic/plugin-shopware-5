@@ -1,13 +1,14 @@
 <?php
 
-namespace FinSearchUnified\Components;
+namespace FinSearchUnified\Tests\Components;
 
+use FinSearchUnified\Components\ConfigLoader;
+use FinSearchUnified\Tests\TestCase;
 use ReflectionException;
 use ReflectionObject;
 use Shopware\Components\HttpClient\GuzzleHttpClient;
 use Shopware\Components\HttpClient\RequestException;
 use Shopware\Components\HttpClient\Response;
-use Shopware\Components\Test\Plugin\TestCase;
 use Zend_Cache_Core;
 
 class ConfigLoaderTest extends TestCase

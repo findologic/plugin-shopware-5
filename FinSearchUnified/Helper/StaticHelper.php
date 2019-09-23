@@ -695,9 +695,9 @@ class StaticHelper
      */
     public static function removeControlCharacters($value)
     {
-        $result = preg_replace('/[\x00-\x1F]|[\x7F]|[\xC2\x80-\xC2\x9F]/u', '', $value);
+        $result = preg_replace('/[\x{0000}-\x{001F}]|[\x{007F}]|[\x{0080}-\x{009F}]/u', '', $value);
 
-        return $result ?: $value;
+        return $result === null ? $value : $result;
     }
 
     /**

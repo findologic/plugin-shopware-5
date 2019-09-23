@@ -4,6 +4,7 @@ namespace FinSearchUnified\Components\ProductStream;
 
 use Enlight_Controller_Request_Request as Request;
 use FinSearchUnified\Helper\StaticHelper;
+use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\StoreFrontCriteriaFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use Shopware\Components\ProductStream\CriteriaFactoryInterface;

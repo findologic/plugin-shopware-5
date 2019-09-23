@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\FacetHandler;
 
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\TextFacetHandler;
+use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -11,7 +12,6 @@ use Shopware\Bundle\SearchBundle\FacetResult\RadioFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\ValueListFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\ValueListItem;
 use Shopware\Bundle\SearchBundle\FacetResultInterface;
-use Shopware\Components\Test\Plugin\TestCase;
 use SimpleXMLElement;
 
 class TextFacetHandlerTest extends TestCase
