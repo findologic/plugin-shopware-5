@@ -1,4 +1,6 @@
 # FINDOLOGIC Shopware 5 Plugin
+[![Build Status](https://travis-ci.org/findologic/plugin-shopware-5.svg?branch=master)](https://travis-ci.org/findologic/plugin-shopware-5)
+
 Needs to be installed in Shopware 5 eShop in order to export products and its data for a successful integration of the
 FINDOLOGIC search.
 
@@ -8,9 +10,6 @@ This plugin goes through all the shop's data to find suitable products for the e
 * Product stock must be greater than zero
 * Product must not be configured as variant
 * Product categories must be active
-
-# Build Status
-[![Build Status](https://travis-ci.org/findologic/plugin-shopware-unified.svg?branch=master)](https://travis-ci.org/findologic/plugin-shopware-unified)
 
 # Installation
 FINDOLOGIC Shopware 5 plugin installation procedure is basically the same as for any other Shopware plugin. It can be
@@ -53,7 +52,7 @@ to test customizations.
 
 See the official Shopware [documentation](https://developers.shopware.com/developers-guide/plugin-extension-by-plugin/) for more information.
 
-# Deployment
+# Deployment & Release
 Before starting the deployment make sure that a release is already created.
 
 1. Run `git fetch` and ensure that the release tag is available locally. Make sure
