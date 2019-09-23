@@ -53,5 +53,21 @@ to test customizations.
 
 See the official Shopware [documentation](https://developers.shopware.com/developers-guide/plugin-extension-by-plugin/) for more information.
 
+# Deployment
+Before starting the deployment make sure that a release is already created.
+
+1. Run `git fetch` and ensure that the release tag is available locally. Make sure
+ that the file `./FinSearchUnified/plugin.xml` contains the correct version constraint.
+1. Run `./archive.sh` which will automatically create a plugin zip.
+1. Upload this version to Google Drive `Development/Modul-Entwicklung/Unified Module/Shopware` and move the old
+ version to `alte Versionen`.
+1. Go to https://account.shopware.com and login. Go to
+ `Manufacturer area > Plugins > FINDOLOGIC Search & Navigation` and select *Versions*. Click
+ on *Upload new version* and fill out all necessary fields. In the second step mark the plugin as compatible
+ for Shopware 5.3 and newer. Last but not least upload the plugins' zip file and mark all
+ required checkboxes.
+1. Once the release is available require an *automatic code review*.
+1. Notify everyone at Basecamp that the new release is available.
+
 # License
 Please see [License File](LICENSE) for more information.
