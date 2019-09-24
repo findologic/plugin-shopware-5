@@ -5,13 +5,14 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\FacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\CategoryFacetHandler;
 use FinSearchUnified\Tests\TestCase;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
-use FinSearchUnified\Bundle\SearchBundle\ConditionInterface;
+use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeItem;
 use Shopware\Bundle\SearchBundle\FacetResultInterface;
 use SimpleXMLElement;
+use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 
 class CategoryFacetHandlerTest extends TestCase
 {
@@ -286,7 +287,7 @@ class CategoryFacetHandlerTest extends TestCase
                 'Condition' =>
                     new ProductAttributeCondition(
                         'cat',
-                        ConditionInterface::OPERATOR_EQ,
+                        Operator::EQ,
                         ['Category 1_Child 1', 'Category 3']
                     )
             ],
@@ -390,7 +391,7 @@ class CategoryFacetHandlerTest extends TestCase
                 'Condition' =>
                     new ProductAttributeCondition(
                         'cat',
-                        ConditionInterface::OPERATOR_EQ,
+                        Operator::EQ,
                         ['Category 1_Child 1', 'Category 3']
                     )
             ]

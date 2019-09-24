@@ -13,7 +13,7 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\PriceSortingHa
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\ProductNameSortingHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\ReleaseDateSortingHandler;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
-use FinSearchUnified\Bundle\SearchBundle\ConditionInterface;
+use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;

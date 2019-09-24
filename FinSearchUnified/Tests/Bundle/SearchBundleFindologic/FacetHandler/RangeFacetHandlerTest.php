@@ -5,12 +5,13 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\FacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\RangeFacetHandler;
 use FinSearchUnified\Tests\TestCase;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
-use FinSearchUnified\Bundle\SearchBundle\ConditionInterface;
+use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResultInterface;
 use SimpleXMLElement;
+use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 
 class RangeFacetHandlerTest extends TestCase
 {
@@ -154,7 +155,7 @@ class RangeFacetHandlerTest extends TestCase
                 'Length',
                 new ProductAttributeCondition(
                     'attr6',
-                    ConditionInterface::OPERATOR_EQ,
+                    Operator::EQ,
                     ['min' => 4.20, 'max' => 6.09]
                 ),
                 new RangeFacetResult(

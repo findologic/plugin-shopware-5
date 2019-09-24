@@ -6,7 +6,7 @@ use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
-use FinSearchUnified\Bundle\SearchBundle\ConditionInterface;
+use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
 class SearchTermConditionHandler implements ConditionHandlerInterface

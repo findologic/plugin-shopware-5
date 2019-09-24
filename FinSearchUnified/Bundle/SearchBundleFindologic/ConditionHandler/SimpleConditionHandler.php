@@ -5,7 +5,7 @@ namespace FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use Shopware\Bundle\SearchBundle\Condition\SimpleCondition;
-use FinSearchUnified\Bundle\SearchBundle\ConditionInterface;
+use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
 class SimpleConditionHandler implements ConditionHandlerInterface

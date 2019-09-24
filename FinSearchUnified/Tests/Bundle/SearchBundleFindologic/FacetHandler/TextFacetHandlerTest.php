@@ -5,7 +5,7 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\FacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\TextFacetHandler;
 use FinSearchUnified\Tests\TestCase;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
-use FinSearchUnified\Bundle\SearchBundle\ConditionInterface;
+use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\SearchBundle\FacetResult\RadioFacetResult;
@@ -13,6 +13,7 @@ use Shopware\Bundle\SearchBundle\FacetResult\ValueListFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\ValueListItem;
 use Shopware\Bundle\SearchBundle\FacetResultInterface;
 use SimpleXMLElement;
+use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 
 class TextFacetHandlerTest extends TestCase
 {
@@ -129,7 +130,7 @@ class TextFacetHandlerTest extends TestCase
                     'vendor'
                 ),
                 ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
-                new ProductAttributeCondition('vendor', ConditionInterface::OPERATOR_EQ, ['FINDOLOGIC']),
+                new ProductAttributeCondition('vendor', Operator::EQ, ['FINDOLOGIC']),
             ],
             'Facet with condition and missing filter value' => [
                 [
@@ -163,7 +164,7 @@ class TextFacetHandlerTest extends TestCase
                     'vendor'
                 ),
                 ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
-                new ProductAttributeCondition('vendor', ConditionInterface::OPERATOR_EQ, ['FINDOLOGIC']),
+                new ProductAttributeCondition('vendor', Operator::EQ, ['FINDOLOGIC']),
             ],
             'Facet with filter without condition' => [
                 [
@@ -234,7 +235,7 @@ class TextFacetHandlerTest extends TestCase
                     'vendor'
                 ),
                 ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
-                new ProductAttributeCondition('vendor', ConditionInterface::OPERATOR_EQ, 'FINDOLOGIC'),
+                new ProductAttributeCondition('vendor', Operator::EQ, 'FINDOLOGIC'),
             ],
             'Facet with condition and missing filter value' => [
                 [
@@ -268,7 +269,7 @@ class TextFacetHandlerTest extends TestCase
                     'vendor'
                 ),
                 ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
-                new ProductAttributeCondition('vendor', ConditionInterface::OPERATOR_EQ, 'FINDOLOGIC'),
+                new ProductAttributeCondition('vendor', Operator::EQ, 'FINDOLOGIC'),
             ],
             'Facet with filter without condition' => [
                 [

@@ -6,8 +6,9 @@ use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
-use FinSearchUnified\Bundle\SearchBundle\ConditionInterface;
+use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
+use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 
 class ProductAttributeConditionHandler implements ConditionHandlerInterface
 {
@@ -35,7 +36,7 @@ class ProductAttributeConditionHandler implements ConditionHandlerInterface
     public function generateCondition(ConditionInterface $condition, QueryBuilder $query, ShopContextInterface $context)
     {
         /** @var ProductAttributeCondition $condition */
-        if ($condition->getOperator() === 'BETWEEN') {
+        if ($condition->getOperator() === Operator::BETWEEN) {
             $values = $condition->getValue();
 
             $query->addRangeFilter(

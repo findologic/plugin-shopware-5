@@ -8,7 +8,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Message\Response;
 use GuzzleHttp\Subscriber\Mock;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
-use FinSearchUnified\Bundle\SearchBundle\ConditionInterface;
+use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\SearchBundle\FacetResult\MediaListFacetResult;
@@ -16,6 +16,7 @@ use Shopware\Bundle\SearchBundle\FacetResult\MediaListItem;
 use Shopware\Bundle\StoreFrontBundle\Struct\Media;
 use Shopware\Components\HttpClient\GuzzleFactory;
 use SimpleXMLElement;
+use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 
 class ImageFacetHandlerTest extends TestCase
 {
@@ -148,7 +149,7 @@ class ImageFacetHandlerTest extends TestCase
                 'condition' =>
                     new ProductAttributeCondition(
                         'vendor',
-                        ConditionInterface::OPERATOR_EQ,
+                        Operator::EQ,
                         ['Red', 'Zima Blue', 'Purple']
                     ),
                 'facetData' =>

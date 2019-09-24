@@ -11,6 +11,7 @@ use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use Enlight_Controller_Request_RequestHttp as Request;
+use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 
 class FindologicFacetCriteriaRequestHandler
 {
@@ -92,7 +93,7 @@ class FindologicFacetCriteriaRequestHandler
                 $criteria->addCondition(
                     new ProductAttributeCondition(
                         $facet->getField(),
-                        ProductAttributeCondition::OPERATOR_NOT_IN,
+                        Operator::NOT_IN,
                         [false]
                     )
                 );
@@ -103,7 +104,7 @@ class FindologicFacetCriteriaRequestHandler
                 $criteria->addCondition(
                     new ProductAttributeCondition(
                         $facet->getField(),
-                        ProductAttributeCondition::OPERATOR_EQ,
+                        Operator::EQ,
                         $data
                     )
                 );
@@ -120,7 +121,7 @@ class FindologicFacetCriteriaRequestHandler
                 }
                 $condition = new ProductAttributeCondition(
                     $facet->getField(),
-                    ProductAttributeCondition::OPERATOR_BETWEEN,
+                    Operator::BETWEEN,
                     $range
                 );
                 $criteria->addCondition($condition);
@@ -131,7 +132,7 @@ class FindologicFacetCriteriaRequestHandler
                 $criteria->addCondition(
                     new ProductAttributeCondition(
                         $facet->getField(),
-                        ProductAttributeCondition::OPERATOR_IN,
+                        Operator::IN,
                         explode('|', $data)
                     )
                 );
