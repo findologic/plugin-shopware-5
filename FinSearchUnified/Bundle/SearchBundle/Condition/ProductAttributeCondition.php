@@ -34,9 +34,6 @@ use FinSearchUnified\Bundle\SearchBundle\ConditionInterface;
  */
 class ProductAttributeCondition implements ConditionInterface, \JsonSerializable
 {
-    const OPERATOR_EQ = '=';
-    const OPERATOR_BETWEEN = 'BETWEEN';
-
     /**
      * @var string
      */
