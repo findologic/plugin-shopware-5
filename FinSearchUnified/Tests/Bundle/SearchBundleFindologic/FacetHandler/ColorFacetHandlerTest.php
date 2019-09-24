@@ -6,7 +6,7 @@ use FinSearchUnified\Bundle\SearchBundle\FacetResult\ColorListItem;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\ColorFacetHandler;
 use FinSearchUnified\Tests\TestCase;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
-use Shopware\Bundle\SearchBundle\ConditionInterface;
+use FinSearchUnified\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\SearchBundle\FacetResult\MediaListFacetResult;
@@ -166,7 +166,7 @@ class ColorFacetHandlerTest extends TestCase
                 ],
                 'Condition' => new ProductAttributeCondition(
                     'color',
-                    ProductAttributeCondition::OPERATOR_EQ,
+                    ConditionInterface::OPERATOR_EQ,
                     ['Red', 'Green']
                 ),
                 'Facet Result' => new MediaListFacetResult(
@@ -201,7 +201,7 @@ class ColorFacetHandlerTest extends TestCase
                 ],
                 'Condition' => new ProductAttributeCondition(
                     'color',
-                    ProductAttributeCondition::OPERATOR_EQ,
+                    ConditionInterface::OPERATOR_EQ,
                     ['Zima Blue']
                 ),
                 'Facet Result' => new MediaListFacetResult(

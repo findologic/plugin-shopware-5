@@ -25,7 +25,7 @@
 namespace FinSearchUnified\Bundle\SearchBundle\Condition;
 
 use Assert\Assertion;
-use Shopware\Bundle\SearchBundle\ConditionInterface;
+use FinSearchUnified\Bundle\SearchBundle\ConditionInterface;
 
 /**
  * @category Shopware

@@ -8,6 +8,7 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
 use FinSearchUnified\Tests\TestCase;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
+use FinSearchUnified\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
 
 class ProductAttributeConditionHandlerTest extends TestCase
@@ -48,14 +49,14 @@ class ProductAttributeConditionHandlerTest extends TestCase
     {
         return [
             'Vendor is "Brand+Name"' => [
-                ProductAttributeCondition::OPERATOR_EQ,
+                ConditionInterface::OPERATOR_EQ,
                 [
                     ['field' => 'vendor', 'value' => 'Brand+Name']
                 ],
                 ['vendor' => ['Brand Name']]
             ],
             'Color is "blue" and "red"' => [
-                ProductAttributeCondition::OPERATOR_EQ,
+                ConditionInterface::OPERATOR_EQ,
                 [
                     ['field' => 'color', 'value' => 'blue'],
                     ['field' => 'color', 'value' => 'red']
@@ -63,7 +64,7 @@ class ProductAttributeConditionHandlerTest extends TestCase
                 ['color' => ['blue', 'red']]
             ],
             'Vendor is "Brand+Name" and color is "red"' => [
-                ProductAttributeCondition::OPERATOR_EQ,
+                ConditionInterface::OPERATOR_EQ,
                 [
                     ['field' => 'vendor', 'value' => 'Brand+Name'],
                     ['field' => 'color', 'value' => 'red']
@@ -71,21 +72,21 @@ class ProductAttributeConditionHandlerTest extends TestCase
                 ['vendor' => ['Brand Name'], 'color' => ['red']]
             ],
             'Discount is between 12.69 and PHP_INT_MAX' => [
-                ProductAttributeCondition::OPERATOR_BETWEEN,
+                ConditionInterface::OPERATOR_BETWEEN,
                 [
                     ['field' => 'discount', 'value' => ['min' => 12.69]]
                 ],
                 ['discount' => ['min' => 12.69, 'max' => PHP_INT_MAX]]
             ],
             'Discount is between 0 and 50' => [
-                ProductAttributeCondition::OPERATOR_BETWEEN,
+                ConditionInterface::OPERATOR_BETWEEN,
                 [
                     ['field' => 'discount', 'value' => ['max' => 50]]
                 ],
                 ['discount' => ['min' => 0, 'max' => 50]]
             ],
             'Discount is between 12 and 50' => [
-                ProductAttributeCondition::OPERATOR_BETWEEN,
+                ConditionInterface::OPERATOR_BETWEEN,
                 [
                     ['field' => 'discount', 'value' => ['min' => 12, 'max' => 50]]
                 ],

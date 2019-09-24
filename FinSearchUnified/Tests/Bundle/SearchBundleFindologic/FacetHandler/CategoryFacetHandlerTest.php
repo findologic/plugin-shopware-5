@@ -5,7 +5,7 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\FacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\CategoryFacetHandler;
 use FinSearchUnified\Tests\TestCase;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
-use Shopware\Bundle\SearchBundle\ConditionInterface;
+use FinSearchUnified\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
@@ -286,7 +286,7 @@ class CategoryFacetHandlerTest extends TestCase
                 'Condition' =>
                     new ProductAttributeCondition(
                         'cat',
-                        ProductAttributeCondition::OPERATOR_EQ,
+                        ConditionInterface::OPERATOR_EQ,
                         ['Category 1_Child 1', 'Category 3']
                     )
             ],
@@ -390,7 +390,7 @@ class CategoryFacetHandlerTest extends TestCase
                 'Condition' =>
                     new ProductAttributeCondition(
                         'cat',
-                        ProductAttributeCondition::OPERATOR_EQ,
+                        ConditionInterface::OPERATOR_EQ,
                         ['Category 1_Child 1', 'Category 3']
                     )
             ]
