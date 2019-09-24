@@ -2,7 +2,7 @@
 
 namespace FinSearchUnified\Bundle\SearchBundleFindologic;
 
-use Shopware\Bundle\SearchBundle\ConditionInterface;
+use FinSearchUnified\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
 interface ConditionHandlerInterface

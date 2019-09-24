@@ -6,7 +6,7 @@ use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
-use Shopware\Bundle\SearchBundle\ConditionInterface;
+use FinSearchUnified\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
 class ProductAttributeConditionHandler implements ConditionHandlerInterface
