@@ -7,7 +7,7 @@ use FinSearchUnified\Tests\TestCase;
 use GuzzleHttp\Client;
 use GuzzleHttp\Message\Response;
 use GuzzleHttp\Subscriber\Mock;
-use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
+use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
@@ -148,7 +148,7 @@ class ImageFacetHandlerTest extends TestCase
                 'condition' =>
                     new ProductAttributeCondition(
                         'vendor',
-                        ConditionInterface::OPERATOR_EQ,
+                        ProductAttributeCondition::OPERATOR_EQ,
                         ['Red', 'Zima Blue', 'Purple']
                     ),
                 'facetData' =>
