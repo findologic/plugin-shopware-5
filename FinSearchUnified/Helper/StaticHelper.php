@@ -2,16 +2,17 @@
 
 namespace FinSearchUnified\Helper;
 
+use Enlight_View_Default;
 use Exception;
-use FinSearchUnified\Bundles\FacetResult as FinFacetResult;
+use FinSearchUnified\Bundle\FacetResult as FinFacetResult;
 use FinSearchUnified\Constants;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\StoreFrontBundle;
-use Shopware\Models\Search\CustomFacet;
+use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use SimpleXMLElement;
 use Zend_Http_Client;
-use Zend_Http_Response;
+use Zend_Http_Client_Exception;
 
 class StaticHelper
 {
@@ -58,18 +59,13 @@ class StaticHelper
     }
 
     /**
-     * @param Zend_Http_Response $response
+     * @param string $responseText
      *
      * @return SimpleXMLElement
      */
-    public static function getXmlFromResponse(Zend_Http_Response $response)
+    public static function getXmlFromResponse($responseText)
     {
-        /* TLOAD XML RESPONSE */
-        $responseText = (string)$response->getBody();
-
-        $xmlResponse = new SimpleXMLElement($responseText);
-
-        return $xmlResponse;
+        return new SimpleXMLElement($responseText);
     }
 
     /**
@@ -153,7 +149,7 @@ class StaticHelper
      * @param SimpleXMLElement $xmlResponse
      *
      * @return array
-     * @throws \Zend_Http_Client_Exception
+     * @throws Zend_Http_Client_Exception
      */
     public static function getFacetResultsFromXml(SimpleXMLElement $xmlResponse)
     {
@@ -416,7 +412,7 @@ class StaticHelper
      * @param array $facetItem
      *
      * @return SearchBundle\FacetResult\MediaListFacetResult
-     * @throws \Zend_Http_Client_Exception
+     * @throws Zend_Http_Client_Exception
      */
     private static function createMediaListFacet(array $facetItem)
     {
@@ -438,7 +434,7 @@ class StaticHelper
      * @param string $name
      *
      * @return array
-     * @throws \Zend_Http_Client_Exception
+     * @throws Zend_Http_Client_Exception
      */
     private static function prepareMediaItems($items, $name)
     {
@@ -533,8 +529,18 @@ class StaticHelper
     {
         $request = Shopware()->Front()->Request();
 
-        // Perform a loose comparison since the floating numbers could actually be integers.
-        if ($request->getParam('min') == $activeMin || $request->getParam('max') == $activeMax) {
+        $minFieldName = 'min' . $facetItem['name'];
+        $maxFieldName = 'max' . $facetItem['name'];
+
+        if ($facetItem['name'] === 'price') {
+            $minFieldName = 'min';
+            $maxFieldName = 'max';
+        }
+
+        if ($request->getParam($minFieldName) === null && $request->getParam($maxFieldName) === null) {
+            $active = false;
+        } elseif ($request->getParam($minFieldName) == $activeMin || $request->getParam($maxFieldName) == $activeMax) {
+            // Perform a loose comparison here since the floating numbers could actually be integers.
             $active = true;
         } else {
             $active = false;
@@ -548,8 +554,8 @@ class StaticHelper
             $max,
             $activeMin,
             $activeMax,
-            'min',
-            'max'
+            $minFieldName,
+            $maxFieldName
         );
 
         return $facetResult;
@@ -686,9 +692,9 @@ class StaticHelper
      */
     public static function removeControlCharacters($value)
     {
-        $result = preg_replace('/[\x00-\x1F]|[\x7F]|[\xC2\x80-\xC2\x9F]/u', '', $value);
+        $result = preg_replace('/[\x{0000}-\x{001F}]|[\x{007F}]|[\x{0080}-\x{009F}]/u', '', $value);
 
-        return $result ?: $value;
+        return $result === null ? $value : $result;
     }
 
     /**
@@ -701,6 +707,7 @@ class StaticHelper
         return (
             Shopware()->Front()->Request() === null ||
             Shopware()->Front()->Request()->getModuleName() === 'backend' ||
+            Shopware()->Front()->Request()->getControllerName() === 'emotion' ||
             !self::isFindologicActive() ||
             self::checkDirectIntegration() ||
             (
@@ -728,18 +735,16 @@ class StaticHelper
 
     public static function checkDirectIntegration()
     {
-        $session = Shopware()->Session();
+        $configLoader = Shopware()->Container()->get('fin_search_unified.config_loader');
 
-        if ($session->offsetExists('findologicDI') === false) {
-            $urlBuilder = new UrlBuilder();
-            $isDI = $urlBuilder->getConfigStatus();
-            $session->offsetSet('findologicDI', $isDI);
-            $currentIntegrationType = $isDI ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API;
+        $integrationType = Shopware()->Config()->offsetGet(Constants::CONFIG_KEY_INTEGRATION_TYPE);
+        $isDirectIntegration =
+            $configLoader->directIntegrationEnabled($integrationType === Constants::INTEGRATION_TYPE_DI);
 
-            self::storeIntegrationType($currentIntegrationType);
-        }
+        self::storeIntegrationType($isDirectIntegration ?
+            Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API);
 
-        return $session->offsetGet('findologicDI');
+        return $isDirectIntegration;
     }
 
     /**
@@ -755,10 +760,10 @@ class StaticHelper
             $plugin = $pluginManager->getPluginByName('FinSearchUnified');
             $config = $pluginManager->getPluginConfig($plugin);
 
-            if (array_key_exists('IntegrationType', $config) &&
-                $config['IntegrationType'] !== $currentIntegrationType
+            if (array_key_exists(Constants::CONFIG_KEY_INTEGRATION_TYPE, $config) &&
+                $config[Constants::CONFIG_KEY_INTEGRATION_TYPE] !== $currentIntegrationType
             ) {
-                $config['IntegrationType'] = $currentIntegrationType;
+                $config[Constants::CONFIG_KEY_INTEGRATION_TYPE] = $currentIntegrationType;
                 $pluginManager->savePluginConfig($plugin, $config);
             }
         } catch (Exception $exception) {
@@ -813,12 +818,37 @@ class StaticHelper
         $promotion = $xmlResponse->promotion;
 
         if (isset($promotion) && count($promotion->attributes()) > 0) {
-            /** @var \Enlight_View_Default $view */
-            $view = Shopware()->Container()->get('front')->Plugins()->ViewRenderer()->Action()->View();
+            /** @var Enlight_View_Default $view */
+            $view = Shopware()->Container()->get('front')->Plugins()->get('ViewRenderer')->Action()->View();
             $view->assign([
                 'finPromotion' => [
                     'image' => $promotion->attributes()->image,
                     'link' => $promotion->attributes()->link
+                ]
+            ]);
+        }
+    }
+
+    /**
+     * @param SimpleXMLElement $xmlResponse
+     */
+    public static function setSmartDidYouMean(SimpleXMLElement $xmlResponse)
+    {
+        $query = $xmlResponse->query;
+        $originalQuery = (string)$query->originalQuery;
+        $didYouMeanQuery = (string)$query->didYouMeanQuery;
+        $queryString = $query->queryString;
+        $queryStringType = (string)$queryString->attributes()->type;
+
+        if ((!empty($originalQuery) || !empty($didYouMeanQuery)) && $queryStringType !== 'forced') {
+            /** @var Enlight_View_Default $view */
+            $view = Shopware()->Front()->Plugins()->get('ViewRenderer')->Action()->View();
+            $type = !empty($didYouMeanQuery) ? 'did-you-mean' : $queryStringType;
+            $view->assign([
+                'finSmartDidYouMean' => [
+                    'type' => $type,
+                    'alternative_query' => $type === 'did-you-mean' ? $didYouMeanQuery : $queryString,
+                    'original_query' => $type === 'did-you-mean' ? '' : $originalQuery
                 ]
             ]);
         }

@@ -4,12 +4,36 @@
     <label lang="de">FINDOLOGIC Suche (Unified)</label>
     <label lang="en">FINDOLOGIC Search (Unified)</label>
 
-    <version>7.2.1</version>
-    <link>http://www.findologic.com/</link>
+    <version>8.2.0</version>
+    <link>https://www.findologic.com/</link>
     <author>FINDOLOGIC GmbH</author>
-    <support>http://www.findologic.com/</support>
-    <copyright>Copyright (c) 2015 - 2018, FINDOLOGIC GmbH</copyright>
-    <description>
+    <support>https://www.findologic.com/</support>
+    <copyright>Copyright (c) 2015 - 2019, FINDOLOGIC GmbH</copyright>
+    <description lang="de">
+        <![CDATA[
+        <table bgcolor="white" style="border: solid 0px #b7ddf2;">
+                <tr height="80px">
+                    <td width="230px">
+                        <a href="https://www.findologic.com/" target="_new">
+                            <img
+                                style="border: none"
+                                width="200px"
+                                height="60px"
+                                src="https://cdn.findologic.com/images/FINDOLOGIC_LogoRGB.jpg"
+                                alt="FINDOLOGIC GmbH"
+                            />
+                        </a>
+                  </td>
+                  <td >
+                    <p style=" font: 12px tahoma,arial,helvetica,sans-serif;">Ihr Solution-Partner der Shopware AG, hier erhalten Sie Hilfe zur Konfiguration des Plugins und weitere Angebote rund um eCommerce.</p>
+                    <br />
+                    <a style=" font: 12px tahoma,arial,helvetica,sans-serif;" href="https://www.findologic.com/" target="_new">Hier geht es zur FINDOLOGIC GmbH Webseite</a>
+                  </td>
+                </tr>
+         </table>
+        ]]>
+    </description>
+    <description lang="en">
         <![CDATA[
         <table bgcolor="white" style="border: solid 0px #b7ddf2;">
                 <tr height="80px">
@@ -25,9 +49,9 @@
                         </a>
                   </td>
                   <td >
-                    <p style=" font: 12px tahoma,arial,helvetica,sans-serif;">Ihr Solution-Partner der shopware AG, hier erhalten Sie Hilfe zur Konfiguration des Plugins und weitere Angebote rund um eCommerce.</p>
+                    <p style=" font: 12px tahoma,arial,helvetica,sans-serif;">Your Online Solution Partner of Shopware AG provides help in plugin configuration and further offers in terms of eCommerce.</p>
                     <br />
-                    <a style=" font: 12px tahoma,arial,helvetica,sans-serif;" href="http://www.findologic.com/" target="_new">Hier geht es zur FINDOLOGIC GmbH Webseite</a>
+                    <a style=" font: 12px tahoma,arial,helvetica,sans-serif;" href="http://www.findologic.com/en" target="_new">Follow the link to FINDOLOGIC GmbH website.</a>
                   </td>
                 </tr>
          </table>

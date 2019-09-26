@@ -7,11 +7,13 @@
     <services>
         <service
             id="fin_search_unified.color_picker_facet_result"
-            class="FinSearchUnified\Bundles\FacetResult\ColorPickerFacetResult"
+            class="FinSearchUnified\Bundle\FacetResult\ColorPickerFacetResult"
         />
         <service id="fin_search_unified.shopware_process" class="FinSearchUnified\ShopwareProcess">
-            <argument type="service" id="cache"/>
-            <argument type="service" id="shopware_product_stream.repository"/>
+            <argument type="service" id="cache" />
+            <argument type="service" id="shopware_product_stream.repository" />
+            <argument type="service" id="shopware_storefront.context_service" />
+            <argument type="service" id="shopware_search.product_number_search" />
         </service>
         <service
             id="fin_search_unified.article_model_factory"
@@ -20,25 +22,45 @@
         <service
             id="fin_search_unified.business_logic.export"
             class="FinSearchUnified\BusinessLogic\Export">
-            <argument type="service" id="shopware_searchdbal.dbal_query_builder_factory"/>
-        </service>
-        <service
-            class="FinSearchUnified\Bundles\SearchBundleDBAL\ConditionHandler\HasActiveCategoryConditionHandler"
-            id="fin_search_unified.search_bundle_dbal.condition.has_active_category_condition_handler">
-            <tag name="condition_handler_dbal"/>
-        </service>
-        <service
-            class="FinSearchUnified\Bundles\SearchBundleDBAL\ConditionHandler\HasActiveChildOfShopCategoryConditionHandler"
-            id="fin_search_unified.search_bundle_dbal.condition.has_active_child_of_shop_category_condition_handler">
-            <tag name="condition_handler_dbal"/>
+            <argument type="service" id="fin_search_unified.searchdbal.query_builder_factory" />
+            <argument type="service" id="shopware_storefront.product_service" />
+            <argument type="service" id="legacy_struct_converter" />
+            <argument type="service" id="shopware_storefront.context_service" />
         </service>
         <service
             id="fin_search_unified.searchdbal.query_builder_factory"
-            class="FinSearchUnified\Bundles\SearchBundleDBAL\QueryBuilderFactory"
+            class="FinSearchUnified\Bundle\SearchBundleDBAL\QueryBuilderFactory"
         >
             <argument type="service" id="dbal_connection" />
             <argument type="service" id="service_container" />
             <argument type="service" id="shopware_searchdbal.dbal_query_builder_factory" />
+        </service>
+        <service
+            id="fin_search_unified.custom_listing_hydrator"
+            class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator"
+        />
+        <service
+            id="fin_search_unified.query_builder_factory"
+            class="FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory"
+        >
+            <argument type="service" id="http_client" />
+            <argument type="service" id="shopware_plugininstaller.plugin_manager" />
+            <argument type="service" id="config" />
+        </service>
+        <service
+            id="fin_search_unified.business_logic.export_factory"
+            class="FinSearchUnified\BusinessLogic\ExportFactory"
+        />
+        <service
+            id="fin_search_unified.sdym_criteria_request_handler"
+            class="FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler\SdymCriteriaRequestHandler"
+        >
+            <tag name="criteria_request_handler" />
+        </service>
+        <service class="FinSearchUnified\Components\ConfigLoader" id="fin_search_unified.config_loader">
+            <argument id="cache" type="service" />
+            <argument id="http_client" type="service" />
+            <argument id="config" type="service" />
         </service>
     </services>
 </container>

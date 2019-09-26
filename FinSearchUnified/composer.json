@@ -11,7 +11,7 @@
   "scripts": {
     "lint": "phpcs --standard=shopware-phpcs.xml .",
     "fix": "phpcbf --standard=shopware-phpcs.xml .",
-    "test": "phpunit -c phpunit.xml.dist --colors=always"
+    "test": "../../../vendor/bin/phpunit -c phpunit.xml.dist --colors=always"
   },
   "autoload": {
     "psr-4": {
@@ -24,12 +24,5 @@
   },
   "require-dev": {
     "squizlabs/php_codesniffer": "3.3.2"
-  },
-  "archive": {
-    "exclude": [
-      "phpunit.xml.dist",
-      "shopware-phpcs.xml",
-      "/Tests"
-    ]
   }
 }
