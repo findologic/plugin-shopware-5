@@ -31,6 +31,7 @@ use Shopware\Components\Model\ModelRepository;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Article\Detail;
 use Shopware\Models\Article\Image;
+use Shopware\Models\Attribute\Article as ArticleAttribute;
 use Shopware\Models\Category\Category;
 use Shopware\Models\Customer\Group;
 use Shopware\Models\Media\Media;
@@ -323,7 +324,7 @@ class FindologicArticleModel
             $xmlPrice->setValue(sprintf('%.2f', $price), $usergroupHash);
             $this->xmlArticle->addPrice(sprintf('%.2f', $price), $usergroupHash);
 
-            if ($userGroup->getKey() == 'EK') {
+            if ($userGroup->getKey() === 'EK') {
                 $basePrice = new Price();
                 $basePrice->setValue(sprintf('%.2f', $price));
                 $this->xmlArticle->addPrice(sprintf('%.2f', $price));
@@ -406,18 +407,22 @@ class FindologicArticleModel
 
     protected function setImages()
     {
-        $articleMainImages = $this->baseArticle->getImages()->getValues();
-        $mediaService = Shopware()->Container()->get('shopware_media.media_service');
-        $baseLink = Shopware()->Modules()->Core()->sRewriteLink();
         $imagesArray = [];
+        $articleMainImages = [];
+        $baseLink = Shopware()->Modules()->Core()->sRewriteLink();
+        $mediaService = Shopware()->Container()->get('shopware_media.media_service');
         $replacements = [
             '[' => '%5B',
             ']' => '%5D'
         ];
 
+        if ($this->baseArticle->getImages() !== null) {
+            $articleMainImages = $this->baseArticle->getImages()->getValues();
+        }
+
         /** @var Image $articleImage */
         foreach ($articleMainImages as $articleImage) {
-            if ($articleImage->getMedia() != null) {
+            if ($articleImage->getMedia() !== null) {
                 /** @var Image $imageRaw */
                 $imageRaw = $articleImage->getMedia();
                 if (!($imageRaw instanceof Media) || $imageRaw === null) {
@@ -435,7 +440,7 @@ class FindologicArticleModel
                 if (count($imageDetails) > 0) {
                     $imagePath = strtr($mediaService->getUrl($imageDefault), $replacements);
                     $imagePathThumb = strtr($mediaService->getUrl(array_values($imageDetails)[0]), $replacements);
-                    if ($imagePathThumb != '') {
+                    if ($imagePathThumb !== '') {
                         $xmlImagePath = new ExportImage($imagePath, ExportImage::TYPE_DEFAULT);
                         $imagesArray[] = $xmlImagePath;
                         $xmlImageThumb = new ExportImage($imagePathThumb, ExportImage::TYPE_THUMBNAIL);
@@ -490,14 +495,17 @@ class FindologicArticleModel
 
         $catUrlArray = [];
         $catArray = [];
+        $categories = [];
 
-        /** @var Category[] $categories */
-        $categories = $this->baseArticle->getCategories()->toArray();
+        if ($this->baseArticle->getCategories() !== null) {
+            /** @var Category[] $categories */
+            $categories = $this->baseArticle->getCategories()->toArray();
+        }
 
         $id = sprintf('%s_%s', Constants::CACHE_ID_PRODUCT_STREAMS, $this->shopKey);
         $productStreams = $this->cache->load($id);
 
-        if ($productStreams != false && array_key_exists($this->baseArticle->getId(), $productStreams)) {
+        if ($productStreams !== false && array_key_exists($this->baseArticle->getId(), $productStreams)) {
             foreach ($productStreams[$this->baseArticle->getId()] as $cat) {
                 $categories[] = $cat;
             }
@@ -669,6 +677,9 @@ class FindologicArticleModel
         $hasPseudoPrice = $cheapestPrice->getCalculatedPseudoPrice() > $cheapestPrice->getCalculatedPrice();
         $onSale = $this->productStruct->isCloseouts() || $hasPseudoPrice;
         $allAttributes[] = new Attribute('sale', [(int)$onSale]);
+
+        $allAttributes = array_merge($allAttributes, $this->getAttributes());
+
         /** @var Attribute $attribute */
         foreach ($allAttributes as $attribute) {
             $this->xmlArticle->addAttribute($attribute);
@@ -735,36 +746,6 @@ class FindologicArticleModel
             $allProperties[] = new Property('release_date', ['' => $releaseDate]);
         }
 
-        // While the method \Shopware\Models\Article\Article::getAttribute does exist until Shopware 5.5,
-        // it will only return attributes if they were configured before the upgrade to Shopware 5.3.
-        // Since Shopware 5.3, attributes are assigned to the articles main details. Already existing ones aren't
-        // touched.
-        // \Shopware\Models\Article\Article::getAttribute has been removed in Shopware 5.6 entirely.
-        if (is_callable([$this->baseArticle, 'getAttribute']) && !is_null($this->baseArticle->getAttribute())) {
-            $attributes = $this->baseArticle->getAttribute();
-        } else {
-            $attributes = $this->baseVariant->getAttribute();
-        }
-
-        if ($attributes) {
-            for ($i = 1; $i < 21; $i++) {
-                $value = '';
-                $methodName = "getAttr$i";
-
-                if (method_exists($attributes, $methodName)) {
-                    $value = $attributes->$methodName();
-                }
-
-                if ($value instanceof DateTime) {
-                    $value = $value->format(DATE_ATOM);
-                }
-
-                if (self::checkIfHasValue($value)) {
-                    $allProperties[] = new Property("attr$i", ['' => StaticHelper::removeControlCharacters($value)]);
-                }
-            }
-        }
-
         $wishListUrl = $rewrtieLink . self::WISHLIST_URL . $this->baseVariant->getNumber();
         $compareUrl = $rewrtieLink . self::COMPARE_URL . $this->baseArticle->getId();
         $cartUrl = $rewrtieLink . self::CART_URL . $this->baseVariant->getNumber();
@@ -794,6 +775,54 @@ class FindologicArticleModel
         foreach ($allProperties as $attribute) {
             $this->xmlArticle->addProperty($attribute);
         }
+    }
+
+    /**
+     * @param ArticleAttribute $attributes
+     *
+     * @return array
+     */
+    protected function getAttributesByInstance(ArticleAttribute $attributes = null)
+    {
+        if (!$attributes) {
+            return [];
+        }
+
+        $allAttributes = [];
+
+        for ($i = 1; $i < 21; $i++) {
+            $value = '';
+            $methodName = "getAttr$i";
+
+            if (method_exists($attributes, $methodName)) {
+                $value = $attributes->$methodName();
+            }
+
+            if ($value instanceof DateTime) {
+                $value = $value->format(DATE_ATOM);
+            }
+
+            if (self::checkIfHasValue($value)) {
+                $attributeKey = "attr$i";
+                $attributeValue = StaticHelper::removeControlCharacters($value);
+                $allAttributes[$attributeKey] = new Attribute($attributeKey, [$attributeValue]);
+            }
+        }
+
+        return $allAttributes;
+    }
+
+    protected function getAttributes()
+    {
+        $attribute = $this->baseVariant->getAttribute();
+        $attributes = $this->getAttributesByInstance($attribute);
+        $legacyAttributes = [];
+        if (is_callable([$this->baseArticle, 'getAttribute']) && $this->baseArticle->getAttribute() !== null) {
+            $legacyAttribute = $this->baseArticle->getAttribute();
+            $legacyAttributes = $this->getAttributesByInstance($legacyAttribute);
+        }
+
+        return array_merge($legacyAttributes, $attributes);
     }
 
     public function getXmlRepresentation()
