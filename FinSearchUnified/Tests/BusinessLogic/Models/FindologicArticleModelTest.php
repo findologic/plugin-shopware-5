@@ -13,6 +13,8 @@ use ReflectionException;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource\Article as ArticleResource;
 use Shopware\Models\Article\Article;
+use Shopware\Models\Article\Detail;
+use Shopware\Models\Attribute\Article as ArticleAttribute;
 use Shopware\Models\Category\Category;
 
 class FindologicArticleModelTest extends TestCase
@@ -145,109 +147,6 @@ class FindologicArticleModelTest extends TestCase
         $this->assertEquals(get_class($findologicArticle), FindologicArticleModel::class);
     }
 
-    /**
-     * @dataProvider articlesWithAttributeProvider
-     *
-     * @param array $articleConfiguration
-     * @param string $expected
-     *
-     * @throws ReflectionException
-     */
-    public function testArticleWithAttributes(array $articleConfiguration, $expected)
-    {
-        $baseCategory = new Category();
-        $baseCategory->setId(5);
-
-        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
-
-        $findologicArticle = $this->articleFactory->create(
-            $articleFromConfiguration,
-            'ABCD0815',
-            [],
-            [],
-            $baseCategory
-        );
-
-        $xmlArticle = $findologicArticle->getXmlRepresentation();
-
-        $reflector = new ReflectionClass(Item::class);
-        $properties = $reflector->getProperty('properties');
-        $properties->setAccessible(true);
-        $properties = $properties->getValue($xmlArticle);
-        $propertiesArray = current($properties);
-
-        $this->assertArrayHasKey('attr1', $propertiesArray);
-        $this->assertSame($expected, $propertiesArray['attr1']);
-    }
-
-    public function articlesWithAttributeProvider()
-    {
-        return [
-            'Article Attribute' => [
-                [
-                    'name' => 'FindologicArticle 1',
-                    'active' => true,
-                    'tax' => 19,
-                    'supplier' => 'Findologic',
-                    'categories' => [
-                        ['id' => 3],
-                        ['id' => 5],
-                    ],
-                    'images' => [
-                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-                    ],
-                    'mainDetail' => [
-                        'number' => 'FINDOLOGIC1',
-                        'active' => true,
-                        'inStock' => 16,
-                        'prices' => [
-                            [
-                                'customerGroupKey' => 'EK',
-                                'price' => 99.34,
-                            ],
-                        ]
-                    ],
-                    'attribute' => [
-                        'attr1' => 'Article Attribute'
-                    ]
-                ],
-                'Article Attribute'
-            ],
-            'Variant Attribute' => [
-                [
-                    'name' => 'FindologicArticle 2',
-                    'active' => true,
-                    'tax' => 19,
-                    'supplier' => 'Findologic',
-                    'categories' => [
-                        ['id' => 3],
-                        ['id' => 5],
-                    ],
-                    'images' => [
-                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-                    ],
-                    'mainDetail' => [
-                        'number' => 'FINDOLOGIC2',
-                        'active' => true,
-                        'inStock' => 16,
-                        'prices' => [
-                            [
-                                'customerGroupKey' => 'EK',
-                                'price' => 99.34,
-                            ],
-                        ],
-                        'attribute' => [
-                            'attr1' => 'Variant Attribute'
-                        ]
-                    ]
-                ],
-                'Variant Attribute'
-            ]
-        ];
-    }
-
     public function testArticleKeywords()
     {
         $articleConfiguration = [
@@ -308,7 +207,7 @@ class FindologicArticleModelTest extends TestCase
 
         $this->assertSame($expectedKeywords, $keywords);
     }
-  
+
     /**
      * @dataProvider articleSEOUrlProvider
      *
@@ -413,5 +312,281 @@ class FindologicArticleModelTest extends TestCase
                 sprintf('http://%s/reifenmontage/', $host)
             ]
         ];
+    }
+
+    public function freeTextFieldArticleProvider()
+    {
+        return [
+            'Both attribute and legacy attribute is empty' => [
+                [
+                    'name' => 'FindologicArticle 1',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC1',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ],
+                        'attribute' => [
+                            'attr1' => ''
+                        ]
+                    ],
+                    'attribute' => [
+                        'attr1' => ''
+                    ]
+                ],
+                null
+            ],
+            'Both attribute and legacy attribute has value' => [
+                [
+                    'name' => 'FindologicArticle 2',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ],
+                        'attribute' => [
+                            'attr1' => 'Attribute'
+                        ]
+                    ],
+                    'attribute' => [
+                        'attr1' => 'Legacy'
+                    ]
+                ],
+                'Attribute'
+            ],
+            'Attribute is empty and only legacy attribute has value' => [
+                [
+                    'name' => 'FindologicArticle 2',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ],
+                        'attribute' => [
+                            'attr1' => ''
+                        ]
+                    ],
+                    'attribute' => [
+                        'attr1' => 'Legacy'
+                    ]
+                ],
+                'Legacy'
+            ],
+            'Attribute has value and legacy attribute is empty' => [
+                [
+                    'name' => 'FindologicArticle 2',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ],
+                        'attribute' => [
+                            'attr1' => 'Attribute'
+                        ]
+                    ],
+                    'attribute' => [
+                        'attr1' => ''
+                    ]
+                ],
+                'Attribute'
+            ],
+            'Attribute is null but legacy attribute has value' => [
+                [
+                    'name' => 'FindologicArticle 2',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ]
+                    ],
+                    'attribute' => [
+                        'attr1' => 'Legacy'
+                    ]
+                ],
+                'Legacy'
+            ],
+            'Attribute has value but legacy attribute is null' => [
+                [
+                    'name' => 'FindologicArticle 2',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ],
+                        'attribute' => [
+                            'attr1' => 'Attribute'
+                        ]
+                    ]
+                ],
+                'Attribute'
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider freeTextFieldArticleProvider
+     *
+     * @param array $articleConfiguration
+     * @param string $expected
+     *
+     * @throws ReflectionException
+     * @throws Exception
+     */
+    public function testArticleFreeTextFieldAttributes(array $articleConfiguration, $expected)
+    {
+        $legacyAttribute = $articleConfiguration['attribute']['attr1'];
+        $variantAttribute = $articleConfiguration['mainDetail']['attribute']['attr1'];
+        $baseCategory = new Category();
+        $baseCategory->setId(100);
+
+        // We will create the article in the database here for bypassing the setUpStruct method in model constructor
+        // but will use the mock for actual attribute testing
+        $testArticle = $this->createTestProduct($articleConfiguration);
+
+        $article = $this->createMock(Article::class);
+        $detail = $this->createMock(Detail::class);
+
+        // While the method \Shopware\Models\Article\Article::getAttribute does exist until Shopware 5.5,
+        // it will only return attributes if they were configured before the upgrade to Shopware 5.3.
+        // Since Shopware 5.3, attributes are assigned to the articles main details. Already existing ones aren't
+        // touched.
+        // \Shopware\Models\Article\Article::getAttribute has been removed in Shopware 5.6 entirely.
+        if (is_callable([$testArticle, 'getAttribute'])) {
+            $articleAttribute = $this->createMock(ArticleAttribute::class);
+            $articleAttribute->expects($this->once())->method('getAttr1')->willReturn($legacyAttribute);
+            $article->expects($this->exactly(2))->method('getAttribute')->willReturn($articleAttribute);
+        }
+
+        $article->method('getId')->willReturn(1);
+
+        $detailAttribute = $this->createMock(ArticleAttribute::class);
+        $detailAttribute->expects($this->once())->method('getAttr1')->willReturn($variantAttribute);
+
+        $detail->expects($this->once())->method('getAttribute')->willReturn($detailAttribute);
+        $detail->method('getId')->willReturn(1);
+
+        $article->method('getMainDetail')->willReturn($detail);
+
+        $findologicArticle = $this->articleFactory->create(
+            $article,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+        $reflector = new ReflectionClass(Item::class);
+        $attributes = $reflector->getProperty('attributes');
+        $attributes->setAccessible(true);
+        $values = $attributes->getValue($xmlArticle);
+
+        if ($expected === null) {
+            $this->assertArrayNotHasKey('attr1', $values);
+        } elseif (is_callable([$article, 'getAttribute'])) {
+            $this->assertArrayHasKey('attr1', $values);
+            $attr1 = $values['attr1'];
+            $this->assertSame($expected, current($attr1->getValues()));
+        } elseif (!$variantAttribute) {
+            // Since \Shopware\Models\Article\Article::getAttribute has been removed in Shopware 5.6
+            // we will not have the attribute in array if the variant attribute is empty or null
+            $this->assertArrayNotHasKey('attr1', $values);
+        }
     }
 }
