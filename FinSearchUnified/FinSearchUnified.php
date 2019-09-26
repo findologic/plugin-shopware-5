@@ -2,23 +2,17 @@
 
 namespace FinSearchUnified;
 
+use Exception;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Components\Plugin;
 use Shopware\Components\Plugin\Context\DeactivateContext;
+use Shopware\Components\Plugin\Context\InstallContext;
 use Shopware\Components\Plugin\Context\UninstallContext;
+use Shopware\Components\Plugin\Context\UpdateContext;
 use Shopware\Models;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class FinSearchUnified extends Plugin
 {
-    /**
-     * @param ContainerBuilder $container
-     */
-    public function build(ContainerBuilder $container)
-    {
-        parent::build($container);
-    }
-
     public function deactivate(DeactivateContext $context)
     {
         $this->deactivateCustomizedPlugin();
@@ -28,7 +22,22 @@ class FinSearchUnified extends Plugin
     public function uninstall(UninstallContext $context)
     {
         $this->deactivateCustomizedPlugin();
+        $context->scheduleClearCache([UninstallContext::CACHE_TAG_THEME]);
         parent::uninstall($context);
+    }
+
+    public function install(InstallContext $context)
+    {
+        $context->scheduleClearCache([InstallContext::CACHE_TAG_THEME]);
+        parent::install($context);
+    }
+
+    public function update(UpdateContext $context)
+    {
+        if (version_compare($context->getCurrentVersion(), $context->getUpdateVersion(), '<')) {
+            $context->scheduleClearCache([UpdateContext::CACHE_TAG_THEME]);
+        }
+        parent::update($context);
     }
 
     /**
@@ -37,7 +46,7 @@ class FinSearchUnified extends Plugin
     private function deactivateCustomizedPlugin()
     {
         /** @var InstallerService $pluginManager */
-        $pluginManager = $this->container->get('shopware_plugininstaller.plugin_manager');
+        $pluginManager = Shopware()->Container()->get('shopware_plugininstaller.plugin_manager');
 
         try {
             /** @var Models\Plugin\Plugin $plugin */
@@ -45,7 +54,7 @@ class FinSearchUnified extends Plugin
             if ($plugin->getActive()) {
                 $pluginManager->deactivatePlugin($plugin);
             }
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             Shopware()->PluginLogger()->info("ExtendFinSearchUnified plugin doesn't exist!");
         }
     }
