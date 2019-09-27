@@ -733,18 +733,13 @@ class StaticHelper
         $isCategoryPageButDisabledInConfig = $isCategoryPage &&
             !(bool)Shopware()->Config()->get('ActivateFindologicForCategoryPages');
 
-        /** @var StagingManager $stagingManager */
-        $stagingManager = Shopware()->Container()->get('fin_search_unified.staging_manager');
-        $isStagingMode = $stagingManager->isStaging();
-
         return (
             $isInBackend ||
             $isEmotionPage ||
             !$isFindologicActive ||
             $isDirectIntegration ||
             $isNoSearchAndCategoryPage ||
-            $isCategoryPageButDisabledInConfig ||
-            $isStagingMode
+            $isCategoryPageButDisabledInConfig
         );
     }
 
@@ -757,7 +752,12 @@ class StaticHelper
      */
     public static function isFindologicActive()
     {
-        return (bool)Shopware()->Config()->get('ActivateFindologic') &&
+        /** @var StagingManager $stagingManager */
+        $stagingManager = Shopware()->Container()->get('fin_search_unified.staging_manager');
+
+        $isStagingMode = $stagingManager->isStaging(Shopware()->Front()->Request());
+
+        return !$isStagingMode && (bool)Shopware()->Config()->get('ActivateFindologic') &&
             !empty(trim(Shopware()->Config()->get('ShopKey')));
     }
 

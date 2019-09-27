@@ -5,7 +5,7 @@ namespace FinSearchUnified\Components;
 use Enlight_Controller_Request_Request as Request;
 use Zend_Cache_Exception;
 
-class StagingManager
+class Environment
 {
     /**
      * Sets the current staging flag based on the request params. Query params:
@@ -14,10 +14,9 @@ class StagingManager
      *
      * @param Request $request
      */
-    public function setStagingFlagByRequest(Request $request)
+    private function setStagingFlagByRequest(Request $request)
     {
         $stagingFlag = $request->getParam('findologic');
-
         if ($stagingFlag === 'on') {
             Shopware()->Session()->offsetSet('stagingFlag', true);
         } elseif ($stagingFlag === 'off' || $stagingFlag === 'disabled') {
@@ -31,18 +30,18 @@ class StagingManager
      * @return bool
      * @throws Zend_Cache_Exception
      */
-    public function isStaging()
+    public function isStaging(Request $request)
     {
+        $this->setStagingFlagByRequest($request);
         $isStagingShop = $this->getStagingFlagFromShopConfig();
+
         $stagingFlag = Shopware()->Session()->offsetGet('stagingFlag');
 
         if (!$isStagingShop || $stagingFlag) {
             return false;
         }
-
         return true;
     }
-
     /**
      * @return bool|null
      * @throws Zend_Cache_Exception

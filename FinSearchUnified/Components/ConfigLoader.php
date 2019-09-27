@@ -88,7 +88,6 @@ class ConfigLoader
             }
         } catch (RequestException $exception) {
         }
-
         return $payload;
     }
 

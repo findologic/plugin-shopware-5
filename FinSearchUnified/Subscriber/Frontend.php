@@ -7,9 +7,9 @@ use Enlight_Controller_ActionEventArgs;
 use Enlight_Controller_Request_Request;
 use Enlight_Event_EventArgs;
 use Enlight_Hook_HookArgs;
-use FinSearchUnified\Components\StagingManager;
 use Enlight_Template_Manager;
 use Exception;
+use FinSearchUnified\Components\StagingManager;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware_Controllers_Frontend_Search;
 
@@ -79,8 +79,8 @@ class Frontend implements SubscriberInterface
             $params = $request->getQuery();
 
         /** @var StagingManager $stagingManager */
-        $stagingManager = Shopware()->Container()->get('fin_search_unified.staging_manager');
-        $stagingManager->setStagingFlagByRequest($request);
+            $stagingManager = Shopware()->Container()->get('fin_search_unified.staging_manager');
+            $stagingManager->setStagingFlagByRequest($request);
 
             unset($params['module']);
             unset($params['controller']);
