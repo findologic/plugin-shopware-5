@@ -28,6 +28,7 @@ use Shopware\Models\Category\Category;
 use Shopware_Components_Config as Config;
 use SimpleXMLElement;
 use Zend_Cache_Core;
+use Zend_Cache_Exception;
 use Zend_Http_Client_Exception;
 
 class StaticHelperTest extends TestCase
@@ -40,9 +41,7 @@ class StaticHelperTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
-
-        $manager = new Manager();
-        $this->categoryResource = $manager->getResource('Category');
+        $this->categoryResource = Manager::getResource('Category');
     }
 
     protected function tearDown()
@@ -67,36 +66,36 @@ class StaticHelperTest extends TestCase
     public function isFindologicActiveDataprovider()
     {
         return [
-            'plugin is deactivated' => [
+            'Plugin is deactivated' => [
                 'ActivateFindologic' => false,
                 'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                'Param' => null,
+                'QueryParameter' => null,
                 'Staging' => false,
-                'configStaging' => true,
+                'ConfigStaging' => true,
 
             ],
-            'FINDOLOGIC is activenoshopkey' => [
+            'FINDOLOGIC is active and shopkey is empty' => [
                 'ActivateFindologic' => true,
                 'ShopKey' => '',
-                'Param' => null,
+                'QueryParameter' => null,
                 'Staging' => false,
-                'configStaging' => true,
+                'ConfigStaging' => true,
 
             ],
-            'FINDOLOGIC is withoutparam' => [
+            'FINDOLOGIC is active without query parameter' => [
                 'ActivateFindologic' => true,
                 'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                'Param' => null,
+                'QueryParameter' => null,
                 'Staging' => false,
-                'configStaging' => true,
+                'ConfigStaging' => true,
 
             ],
-            'FINDOLOGIC is queryparam' => [
+            'FINDOLOGIC is active with query parameter' => [
                 'ActivateFindologic' => true,
                 'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                'Param' => 'on',
+                'QueryParameter' => 'on',
                 'Staging' => true,
-                'configStaging' => false,
+                'ConfigStaging' => false,
 
             ]
         ];
@@ -108,15 +107,16 @@ class StaticHelperTest extends TestCase
      * @param bool $isActive
      * @param string $shopKey
      * @param string|null $param
-     * @param bool $staging
+     * @param bool $stagingFlag
      * @param bool $configStaging
-     * @param bool $expected
+     *
+     * @throws Zend_Cache_Exception
      */
     public function testisFindologicActive(
         $isActive,
         $shopKey,
         $param,
-        $staging,
+        $stagingFlag,
         $configStaging
     ) {
         $configArray = [
@@ -127,7 +127,6 @@ class StaticHelperTest extends TestCase
         $request = new RequestHttp();
         $request->setModuleName('frontend');
         $request->setParam('findologic', $param);
-
 
         // Create Mock object for Shopware Front Request
         $front = $this->getMockBuilder(Front::class)
@@ -160,7 +159,7 @@ class StaticHelperTest extends TestCase
             ->getMock();
         $session->expects($this->any())
             ->method('offsetGet')
-            ->willReturn($staging);
+            ->willReturn($stagingFlag);
 
         // Assign mocked session variable to application container
         Shopware()->Container()->set('session', $session);
@@ -168,13 +167,14 @@ class StaticHelperTest extends TestCase
         $configloader = $this->createMock(ConfigLoader::class);
         $configloader->expects($this->once())
             ->method('isStagingShop')
-            -> willReturn($configStaging);
+            ->willReturn($configStaging);
 
         Shopware()->Container()->set('fin_search_unified.config_loader', $configloader);
 
         $result = StaticHelper::isFindologicActive();
         $this->assertFalse($result);
     }
+
     /**
      * Data provider for checking findologic behavior
      *
@@ -199,7 +199,6 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
-
                 'expected' => true
             ],
             "Shopkey is 'Findologic Shopkey'" => [
@@ -209,7 +208,6 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
-
                 'expected' => true
             ],
             'FINDOLOGIC is active but integration type is DI' => [
@@ -219,7 +217,6 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => true,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
-
                 'expected' => true
             ],
             'FINDOLOGIC is active but the current page is neither the search nor a category page' => [
@@ -229,8 +226,6 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => false,
-                'staging' => null,
-                'config' => null,
                 'expected' => true
             ],
             'FINDOLOGIC is not active on category pages' => [
@@ -240,18 +235,15 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
-
                 'expected' => true
             ],
-            'FINDOLOGIC is active in search' => [
+            'FINDOLOGIC is active on search page' => [
                 'ActivateFindologic' => true,
                 'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
                 'ActivateFindologicForCategoryPages' => false,
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
-                'staging' => null,
-                'config' => null,
                 'expected' => true
             ],
             'FINDOLOGIC is active on category pages' => [
@@ -261,7 +253,6 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
-
                 'expected' => true
             ],
             'FINDOLOGIC is active on category pages but it was disabled in the plugin config' => [
@@ -271,7 +262,6 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
-
                 'expected' => true
             ]
         ];
@@ -322,7 +312,7 @@ class StaticHelperTest extends TestCase
     {
         return [
             'String with HTML tags' => [
-                "<span>Findologic Rocks</span>",
+                '<span>Findologic Rocks</span>',
                 'Findologic Rocks',
                 'Expected HTML tags to be stripped away'
             ],
@@ -389,6 +379,7 @@ class StaticHelperTest extends TestCase
 
     /**
      * @dataProvider configDataProvider
+     *
      * @param bool $isActive
      * @param string $shopKey
      * @param bool $isActiveForCategory
@@ -396,8 +387,9 @@ class StaticHelperTest extends TestCase
      * @param bool $isSearchPage
      * @param bool $isCategoryPage
      * @param bool $expected
+     *
+     * @throws Zend_Cache_Exception
      */
-
     public function testUseShopSearch(
         $isActive,
         $shopKey,
@@ -411,20 +403,14 @@ class StaticHelperTest extends TestCase
             ['ActivateFindologic', $isActive],
             ['ShopKey', $shopKey],
             ['ActivateFindologicForCategoryPages', $isActiveForCategory],
-            ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API],
-
+            ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API]
         ];
-
         $request = new RequestHttp();
         $request->setModuleName('frontend');
 
         // Create Mock object for Shopware Front Request
-        $front = $this->getMockBuilder(Front::class)
-            ->setMethods(['Request'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $front->expects($this->any())
-            ->method('Request')
+        $front = $this->createMock(Front::class);
+        $front->method('Request')
             ->willReturn($request);
 
         // Assign mocked session variable to application container
@@ -434,48 +420,41 @@ class StaticHelperTest extends TestCase
             $sessionArray = [
                 ['isSearchPage', $isSearchPage],
                 ['isCategoryPage', $isCategoryPage],
-                ['findologicDI', $checkIntegration],
+                ['findologicDI', $checkIntegration]
             ];
 
             // Create Mock object for Shopware Session
-            $session = $this->getMockBuilder(Session::class)
-                ->setMethods(['offsetGet'])
-                ->getMock();
+            $session = $this->createMock(Session::class);
             $session->expects($this->atLeastOnce())
                 ->method('offsetGet')
                 ->willReturnMap($sessionArray);
-
             // Assign mocked session variable to application container
             Shopware()->Container()->set('session', $session);
         }
+
         // Create Mock object for Shopware Config
-        $config = $this->getMockBuilder(Config::class)
-            ->setMethods(['offsetGet', 'offsetExists'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $config = $this->createMock(Config::class);
         $config->expects($this->atLeastOnce())
             ->method('offsetGet')
             ->willReturnMap($configArray);
-        $config->expects($this->any())
-            ->method('offsetExists')
+        $config->method('offsetExists')
             ->willReturn(true);
 
         // Assign mocked config variable to application container
         Shopware()->Container()->set('config', $config);
-
         $result = StaticHelper::useShopSearch();
         $error = 'Expected %s search to be triggered but it was not';
         $shop = $expected ? 'shop' : 'FINDOLOGIC';
         $this->assertEquals($expected, $result, sprintf($error, $shop));
     }
 
+    /**
+     * @throws Zend_Cache_Exception
+     */
     public function testUseShopSearchWhenRequestIsNull()
     {
         // Create Mock object for Shopware Front Request
-        $front = $this->getMockBuilder(Front::class)
-            ->setMethods(['Request'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        $front = $this->createMock(Front::class);
         $front->expects($this->atLeastOnce())
             ->method('Request')
             ->willReturn(null);
@@ -486,12 +465,17 @@ class StaticHelperTest extends TestCase
         $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
     }
 
+    /**
+     * @throws Zend_Cache_Exception
+     */
     public function testUseShopSearchInEmotion()
     {
         Shopware()->Session()->findologicDI = false;
 
         $request = new RequestHttp();
-        $request->setModuleName('widgets')->setControllerName('emotion')->setActionName('emotionArticleSlider');
+        $request->setModuleName('widgets')
+            ->setControllerName('emotion')
+            ->setActionName('emotionArticleSlider');
 
         // Create Mock object for Shopware Front Request
         $front = $this->getMockBuilder(Front::class)
@@ -509,6 +493,9 @@ class StaticHelperTest extends TestCase
         $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
     }
 
+    /**
+     * @throws Zend_Cache_Exception
+     */
     public function testUseShopSearchForBackendRequests()
     {
         $request = new RequestHttp();
@@ -526,37 +513,13 @@ class StaticHelperTest extends TestCase
         // Assign mocked session variable to application container
         Shopware()->Container()->set('front', $front);
 
-        // Create Mock object for Shopware Config
-        $config = $this->getMockBuilder(Config::class)
-            ->setMethods(['offsetGet', 'offsetExists'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $config->expects($this->atLeastOnce())
-            ->method('offsetGet')
-            ->willReturnMap(['ActivateFindologic'], ['IntegrationType']);
-//          ->withConsecutive(['ActivateFindologic'], ['IntegrationType']);
-
-        // Assign mocked config variable to application container
-        Shopware()->Container()->set('config', $config);
-
-        // Create Mock object for Shopware Session
-        $session = $this->getMockBuilder(Session::class)
-            ->setMethods(['offsetGet'])
-            ->getMock();
-        $session->expects($this->exactly(3))
-            ->method('offsetGet')
-            ->willReturnMap(['isCategoryPage'], ['isSearchPage'], ['stagingFlag']);
-            //->withConsecutive(['isCategoryPage'], ['isSearchPage'], ['stagingFlag']);
-
-        // Assign mocked session variable to application container
-        Shopware()->Container()->set('session', $session);
-
         $result = StaticHelper::useShopSearch();
         $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
     }
 
     /**
      * @dataProvider controlCharacterProvider
+     *
      * @param string $text
      * @param string $expected
      * @param string $errorMessage
@@ -586,6 +549,7 @@ class StaticHelperTest extends TestCase
      * @param int $categoryId
      * @param string $category
      * @param string $expected
+     *
      * @throws CustomValidationException
      * @throws NotFoundException
      * @throws ParameterMissingException

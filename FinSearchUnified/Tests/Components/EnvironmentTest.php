@@ -9,64 +9,81 @@ use FinSearchUnified\Tests\TestCase;
 
 class EnvironmentTest extends TestCase
 {
-
     /**
-     * Data provider for checking isStaging behavior
-     *
      * @return array
      */
-
-    public function StagingShopDataprovider()
+    public function stagingShopDataProvider()
     {
         return [
-            'Shop is staging and no query parameter was submitted' => [
-                'Staging' => true,
-                'Param' => [],
+            'Shop is staging and FINDOLOGIC query parameter was not provided' => [
+                'param' => null,
+                'stagingFlag' => false,
+                'configStaging' => true,
+                'expected' => true
             ],
-            'Shop is staging and query parameter is findologic=off' => [
-                    'Staging' => true,
-                    'Param' => ['findologic' => 'off'],
+            'Shop is staging and FINDOLOGIC query parameter is "off"' => [
+                'param' => 'off',
+                'stagingFlag' => false,
+                'configStaging' => true,
+                'expected' => true
             ],
-            'Shop is staging and query parameter is findologic=disabled' => [
-                'Staging' => true,
-                'Param' => ['findologic' => 'disabled'],
+            'Shop is staging and FINDOLOGIC query parameter is "disabled"' => [
+                'param' => 'disabled',
+                'stagingFlag' => false,
+                'configStaging' => true,
+                'expected' => true
             ]
         ];
     }
 
-    public function NoStagingShopDataprovider()
-    {
-        return [
-            'Shop is no staging and no query parameter was submitted' => [
-                'Staging' => false,
-                'Param' => [],
-            ],
-            'Shop is no staging and query parameter is findologic=off' => [
-                'Staging' => false,
-                'Param' => ['findologic' => 'off'],
-            ],
-            'Shop is no staging and query parameter is findologic=disabled' => [
-                'Staging' => false,
-                'Param' => ['findologic' => 'disabled'],
-            ],
-            'Shop is staging and query parameter is findologic=on' => [
-                'Staging' => true,
-                'Param' => ['findologic' => 'on'],
-            ]
-        ];
-    }
     /**
-     * @dataProvider NoStagingShopDataprovider
-     * @param bool $staging
-     * @param array $param
+     * @return array
      */
-    public function testisNotStaging(
-        $staging,
-        array $param
-    ) {
+    public function noStagingShopDataProvider()
+    {
+        return [
+            'Shop is live and FINDOLOGIC query parameter was not provided' => [
+                'param' => null,
+                'stagingFlag' => true,
+                'configStaging' => false,
+                'expected' => false
+            ],
+            'Shop is live and FINDOLOGIC query parameter is "off"' => [
+                'param' => 'off',
+                'stagingFlag' => true,
+                'configStaging' => false,
+                'expected' => false
+            ],
+            'Shop is live and FINDOLOGIC query parameter is "disabled"' => [
+                'param' => 'disabled',
+                'stagingFlag' => true,
+                'configStaging' => false,
+                'expected' => false
+            ],
+            'Shop is staging and FINDOLOGIC query parameter is "on"' => [
+                'param' => 'on',
+                'stagingFlag' => true,
+                'configStaging' => false,
+                'expected' => false
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider stagingShopDataProvider
+     * @dataProvider noStagingShopDataProvider
+     *
+     * @param string|null $param
+     * @param bool $stagingFlag
+     * @param bool $configStaging
+     * @param bool $expected
+     */
+    public function testisStaging($param, $stagingFlag, $configStaging, $expected)
+    {
         $request = new RequestHttp();
         $request->setModuleName('frontend');
-        $request->setParams($param);
+        $request->setParam('findologic', $param);
+
         // Create Mock object for Shopware Session
         $session = $this->getMockBuilder(Session::class)
             ->setMethods(['offsetGet'])
@@ -74,54 +91,19 @@ class EnvironmentTest extends TestCase
         $session->expects($this->once())
             ->method('offsetGet')
             ->with('stagingFlag')
-            ->willReturn(true);
+            ->willReturn($stagingFlag);
 
         $configloader = $this->createMock(ConfigLoader::class);
         $configloader->expects($this->once())
             ->method('isStagingShop')
-            -> willReturn(false);
+            ->willReturn($configStaging);
 
         Shopware()->Container()->set('fin_search_unified.config_loader', $configloader);
 
         // Assign mocked session variable to application container
         Shopware()->Container()->set('session', $session);
-        $isNotStagingMode = Shopware()->Container()->get('fin_search_unified.staging_manager');
-        $isNotStagingMode = $isNotStagingMode->isStaging($request);
-        $this->assertFalse($isNotStagingMode, 'plugin');
-    }
-
-    /**
-     * @dataProvider StagingShopDataprovider
-     * @param bool $staging
-     * @param array $param
-     */
-    public function testisStaging(
-        $staging,
-        array $param
-    ) {
-        $request = new RequestHttp();
-        $request->setModuleName('frontend');
-        $request->setParams($param);
-        // Create Mock object for Shopware Session
-        $session = $this->getMockBuilder(Session::class)
-            ->setMethods(['offsetGet'])
-            ->getMock();
-        $session->expects($this->once())
-            ->method('offsetGet')
-            ->with('stagingFlag')
-            ->willReturn(false);
-
-        $configloader = $this->createMock(ConfigLoader::class);
-        $configloader->expects($this->once())
-            ->method('isStagingShop')
-            -> willReturn(true);
-
-        Shopware()->Container()->set('fin_search_unified.config_loader', $configloader);
-        // Assign mocked session variable to application container
-
-        Shopware()->Container()->set('session', $session);
-        $stagingManager = Shopware()->Container()->get('fin_search_unified.staging_manager');
-        $isStagingMode = $stagingManager->isStaging($request);
-        $this->assertTrue($isStagingMode, 'plugin');
+        $environment = Shopware()->Container()->get('fin_search_unified.environment');
+        $isStaging = $environment->isStaging($request);
+        $this->assertSame($expected, $isStaging);
     }
 }

@@ -9,7 +9,6 @@ use Enlight_Event_EventArgs;
 use Enlight_Hook_HookArgs;
 use Enlight_Template_Manager;
 use Exception;
-use FinSearchUnified\Components\StagingManager;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware_Controllers_Frontend_Search;
 
@@ -78,13 +77,7 @@ class Frontend implements SubscriberInterface
         if ($this->isLegacySearch($request)) {
             $params = $request->getQuery();
 
-        /** @var StagingManager $stagingManager */
-            $stagingManager = Shopware()->Container()->get('fin_search_unified.staging_manager');
-            $stagingManager->setStagingFlagByRequest($request);
-
-            unset($params['module']);
-            unset($params['controller']);
-            unset($params['action']);
+            unset($params['module'], $params['controller'], $params['action']);
 
             $url = '/search?' . http_build_query($params, null, '&', PHP_QUERY_RFC3986);
 

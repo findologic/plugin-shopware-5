@@ -6,7 +6,7 @@ use Enlight_View_Default;
 use Exception;
 use FinSearchUnified\Bundle\FacetResult as FinFacetResult;
 use FinSearchUnified\Components\ConfigLoader;
-use FinSearchUnified\Components\StagingManager;
+use FinSearchUnified\Components\Environment;
 use FinSearchUnified\Constants;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Bundle\SearchBundle;
@@ -51,7 +51,7 @@ class StaticHelper
     {
         /** @var SimpleXMLElement $landingpage */
         $landingpage = $xmlResponse->landingPage;
-        if (isset($landingpage) && $landingpage != null && count($landingpage->attributes()) > 0) {
+        if (isset($landingpage) && $landingpage !== null && count($landingpage->attributes()) > 0) {
             /** @var string $redirect */
             $redirect = (string)$landingpage->attributes()->link;
 
@@ -314,7 +314,7 @@ class StaticHelper
                 $treeName = $recurseName . '_' . $item['name'];
             }
 
-            $active = in_array($treeName, $selectedItems);
+            $active = in_array($treeName, $selectedItems, true);
 
             if ($item['frequency'] && !$active) {
                 $label = sprintf('%s (%d)', $item['name'], $item['frequency']);
@@ -510,7 +510,7 @@ class StaticHelper
         $selectedItems = self::getSelectedItems($name);
 
         foreach ($items as $item) {
-            $active = in_array($item['name'], $selectedItems);
+            $active = in_array($item['name'], $selectedItems, true);
             $color = $item['color'] ?: null;
 
             $values[] = new FinFacetResult\ColorListItem($item['name'], $item['name'], $active, $color);
@@ -702,7 +702,6 @@ class StaticHelper
 
     /**
      * Returns `true` if the shop search should be used. If FINDOLOGIC can be used `false` is returned.
-     *
      * Shop search will be used if the search was triggered
      * * via CLI.
      * * in the Shopware Backend.
@@ -718,13 +717,14 @@ class StaticHelper
      */
     public static function useShopSearch()
     {
-        $isCLIMode = Shopware()->Front()->Request() === null;
+        $request = Shopware()->Front()->Request();
+        $isCLIMode = $request === null;
         if ($isCLIMode) {
             return true;
         }
 
-        $isInBackend = Shopware()->Front()->Request()->getModuleName() === 'backend';
-        $isEmotionPage = Shopware()->Front()->Request()->getControllerName() === 'emotion';
+        $isInBackend = $request->getModuleName() === 'backend';
+        $isEmotionPage = $request->getControllerName() === 'emotion';
         $isFindologicActive = self::isFindologicActive();
         $isDirectIntegration = self::checkDirectIntegration();
 
@@ -749,18 +749,23 @@ class StaticHelper
      * * A shopkey needs to be entered in the config.
      *
      * @return bool
+     * @throws Zend_Cache_Exception
      */
     public static function isFindologicActive()
     {
-        /** @var StagingManager $stagingManager */
-        $stagingManager = Shopware()->Container()->get('fin_search_unified.staging_manager');
+        /** @var Environment $environment */
+        $environment = Shopware()->Container()->get('fin_search_unified.environment');
 
-        $isStagingMode = $stagingManager->isStaging(Shopware()->Front()->Request());
+        $isStagingMode = $environment->isStaging(Shopware()->Front()->Request());
 
         return !$isStagingMode && (bool)Shopware()->Config()->get('ActivateFindologic') &&
             !empty(trim(Shopware()->Config()->get('ShopKey')));
     }
 
+    /**
+     * @return mixed|null
+     * @throws Zend_Cache_Exception
+     */
     public static function checkDirectIntegration()
     {
         /** @var ConfigLoader $configLoader */
@@ -807,9 +812,7 @@ class StaticHelper
      */
     public static function calculateUsergroupHash($shopkey, $usergroup)
     {
-        $hash = base64_encode($shopkey ^ $usergroup);
-
-        return $hash;
+        return base64_encode($shopkey ^ $usergroup);
     }
 
     /**
