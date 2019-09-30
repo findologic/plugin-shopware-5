@@ -3,8 +3,11 @@
 namespace FinSearchUnified\Subscriber;
 
 use Enlight\Event\SubscriberInterface;
+use Enlight_Controller_ActionEventArgs;
 use Enlight_Hook_HookArgs;
 use FinSearchUnified\Helper\StaticHelper;
+use Shopware_Controllers_Widgets_Listing;
+
 
 class Widgets implements SubscriberInterface
 {
@@ -16,14 +19,15 @@ class Widgets implements SubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            'Shopware_Controllers_Widgets_Listing::listingCountAction::before' => 'beforeListingCountAction'
+            'Shopware_Controllers_Widgets_Listing::listingCountAction::before' => 'beforeListingCountAction',
+            'Enlight_Controller_Action_PreDispatch_Widgets' => 'onWidgetsPreDispatch'
         ];
     }
 
     public function beforeListingCountAction(Enlight_Hook_HookArgs $args)
     {
         if (!StaticHelper::useShopSearch()) {
-            /** @var \Shopware_Controllers_Widgets_Listing $subject */
+            /** @var Shopware_Controllers_Widgets_Listing $subject */
             $subject = $args->getSubject();
 
             $request = $subject->Request();
@@ -32,5 +36,24 @@ class Widgets implements SubscriberInterface
                 $subject->Request()->setParam('sSearch', ' ');
             }
         }
+    }
+
+    private function __construct()
+    {
+        Shopware()->Container()->get('cache');
+        Shopware()->Container()->get('shopware.routing.matchers.rewrite_matcher');
+    }
+
+    /**
+     * @param Enlight_Controller_ActionEventArgs $args
+     */
+    public function onWidgetsPreDispatch(Enlight_Controller_ActionEventArgs $args)
+    {
+        $request = $this->getRequest();
+        $request->getHeaders();
+
+        $referrer = $request->getHeader('');
+
+
     }
 }
