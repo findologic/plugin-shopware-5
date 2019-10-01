@@ -10,6 +10,7 @@ use Enlight_Hook_HookArgs;
 use Enlight_Template_Manager;
 use Exception;
 use FinSearchUnified\Helper\StaticHelper;
+use Shopware\Components\Theme\LessDefinition;
 use Shopware_Controllers_Frontend_Search;
 
 class Frontend implements SubscriberInterface
@@ -60,8 +61,38 @@ class Frontend implements SubscriberInterface
             'Enlight_Controller_Action_Frontend_AjaxSearch_Index' => 'onAjaxSearchIndexAction',
             'Enlight_Controller_Action_PostDispatchSecure_Frontend' => 'onFrontendPostDispatch',
             'Enlight_Controller_Dispatcher_ControllerPath_Findologic' => 'onFindologicController',
-            'Enlight_Controller_Action_PreDispatch_Frontend' => 'onFrontendPreDispatch'
+            'Enlight_Controller_Action_PreDispatch_Frontend' => 'onFrontendPreDispatch',
+            'Enlight_Controller_Front_RouteStartup' => 'onRouteStartup',
+            'Theme_Compiler_Collect_Plugin_Less' => 'onCollectPluginLess'
         ];
+    }
+
+    public function onCollectPluginLess(Enlight_Event_EventArgs $args)
+    {
+        return new LessDefinition(
+            [],
+            [$this->pluginDirectory . '/Resources/views/frontend/less/all.less']
+        );
+    }
+
+    /**
+     * @param Enlight_Event_EventArgs $args
+     */
+    public function onRouteStartup(Enlight_Event_EventArgs $args)
+    {
+        /** @var Enlight_Controller_Request_Request $request */
+        $request = $args->get('request');
+        if ($this->isLegacySearch($request)) {
+            $params = $request->getQuery();
+
+            unset($params['module'], $params['controller'], $params['action']);
+
+            $url = '/search?' . http_build_query($params, null, '&', PHP_QUERY_RFC3986);
+            // Perform a redirect to the actual search path and tell the client that it moved permanently.
+            // The legacy parameters (relevant for search) will be mapped automatically by the corresponding
+            // event handler.
+            $args->get('response')->setRedirect($url, 301);
+        }
     }
 
     /**
@@ -69,24 +100,19 @@ class Frontend implements SubscriberInterface
      */
     public function onFrontendPreDispatch(Enlight_Event_EventArgs $args)
     {
-        $subject = $args->getSubject();
-
         /** @var Enlight_Controller_Request_Request $request */
-        $request = $subject->Request();
-
-        if ($this->isLegacySearch($request)) {
-            $params = $request->getQuery();
-
-            unset($params['module'], $params['controller'], $params['action']);
-
-            $url = '/search?' . http_build_query($params, null, '&', PHP_QUERY_RFC3986);
-
-            // Perform a redirect to the actual search path and tell the client that it moved permanently.
-            // The legacy parameters (relevant for search) will be mapped automatically by the corresponding
-            // event handler.
-            $subject->redirect($url, ['code' => 301]);
+        $request = $args->get('request');
+        if ($this->isSearchPage($request)) {
+            Shopware()->Session()->offsetSet('isSearchPage', true);
+            Shopware()->Session()->offsetSet('isCategoryPage', false);
+        } elseif ($this->isCategoryPage($request)) {
+            Shopware()->Session()->offsetSet('isCategoryPage', true);
+            Shopware()->Session()->offsetSet('isSearchPage', false);
+        } elseif ($this->isManufacturerPage($request) || !$this->isWhiteListed($request)) {
+            Shopware()->Session()->offsetSet('isCategoryPage', false);
+            Shopware()->Session()->offsetSet('isSearchPage', false);
         } else {
-            $this->setPageFlags($request);
+            // Keep the flags as they are since these might be subsequent requests from the same page.
         }
     }
 
@@ -283,27 +309,6 @@ class Frontend implements SubscriberInterface
      */
     private function isLegacySearch(Enlight_Controller_Request_Request $request)
     {
-        $params = $request->getQuery();
-
-        return $params['controller'] === 'FinSearchAPI' && $params['action'] === 'search';
-    }
-
-    /**
-     * @param Enlight_Controller_Request_Request $request
-     */
-    private function setPageFlags(Enlight_Controller_Request_Request $request)
-    {
-        if ($this->isSearchPage($request)) {
-            Shopware()->Session()->offsetSet('isSearchPage', true);
-            Shopware()->Session()->offsetSet('isCategoryPage', false);
-        } elseif ($this->isCategoryPage($request)) {
-            Shopware()->Session()->offsetSet('isCategoryPage', true);
-            Shopware()->Session()->offsetSet('isSearchPage', false);
-        } elseif ($this->isManufacturerPage($request) || !$this->isWhiteListed($request)) {
-            Shopware()->Session()->offsetSet('isCategoryPage', false);
-            Shopware()->Session()->offsetSet('isSearchPage', false);
-        } else {
-            // Keep the flags as they are since these might be subsequent requests from the same page.
-        }
+        return substr($request->getRequestUri(), 0, strlen('/FinSearchAPI/search')) === '/FinSearchAPI/search';
     }
 }
