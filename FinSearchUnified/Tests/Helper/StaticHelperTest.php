@@ -59,7 +59,6 @@ class StaticHelperTest extends TestCase
     }
 
     /**
-     * Data provider for checking isFindologicActive behavior
      *
      * @return array
      */
@@ -67,36 +66,46 @@ class StaticHelperTest extends TestCase
     {
         return [
             'Plugin is deactivated' => [
-                'ActivateFindologic' => false,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                'QueryParameter' => null,
-                'Staging' => false,
-                'ConfigStaging' => true,
-
+                'activateFindologic' => false,
+                'shopKey' => '80AB18D4BE2654E78244106AD315DC2C',
+                'queryParameter' => null,
+                'staging' => false,
+                'configStaging' => true,
             ],
             'FINDOLOGIC is active and shopkey is empty' => [
-                'ActivateFindologic' => true,
-                'ShopKey' => '',
-                'QueryParameter' => null,
-                'Staging' => false,
-                'ConfigStaging' => true,
-
+                'activateFindologic' => true,
+                'shopKey' => '',
+                'queryParameter' => null,
+                'staging' => false,
+                'configStaging' => true,
             ],
-            'FINDOLOGIC is active without query parameter' => [
-                'ActivateFindologic' => true,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                'QueryParameter' => null,
-                'Staging' => false,
-                'ConfigStaging' => true,
-
+            'FINDOLOGIC is active if it is not a staging shop without query parameter' => [
+                'activateFindologic' => true,
+                'shopKey' => '80AB18D4BE2654E78244106AD315DC2C',
+                'queryParameter' => null,
+                'staging' => false,
+                'configStaging' => true,
             ],
-            'FINDOLOGIC is active with query parameter' => [
-                'ActivateFindologic' => true,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                'QueryParameter' => 'on',
-                'Staging' => true,
-                'ConfigStaging' => false,
-
+            'FINDOLOGIC is active if it is a staging shop with query parameter' => [
+                'activateFindologic' => true,
+                'shopKey' => '80AB18D4BE2654E78244106AD315DC2C',
+                'queryParameter' => 'on',
+                'staging' => true,
+                'configStaging' => false,
+            ],
+            'FINDOLOGIC is inactive and shopkey is set if it is not a staging mode with no query param.' => [
+                'activateFindologic' => false,
+                'shopKey' => '80AB18D4BE2654E78244106AD315DC2C',
+                'queryParameter' => null,
+                'staging' => false,
+                'configStaging' => false,
+            ],
+            'FINDOLOGIC is active and shopkey is set if it is not a staging mode with no query param.' => [
+                'activateFindologic' => true,
+                'shopKey' => '80AB18D4BE2654E78244106AD315DC2C',
+                'queryParameter' => null,
+                'staging' => false,
+                'configStaging' => false,
             ]
         ];
     }
@@ -104,29 +113,29 @@ class StaticHelperTest extends TestCase
     /**
      * @dataProvider isFindologicActiveDataprovider
      *
-     * @param bool $isActive
+     * @param bool $activateFindologic
      * @param string $shopKey
-     * @param string|null $param
-     * @param bool $stagingFlag
+     * @param string|null $queryParameter
+     * @param bool $staging
      * @param bool $configStaging
      *
      * @throws Zend_Cache_Exception
      */
-    public function testisFindologicActive(
-        $isActive,
+    public function testIsFindologicActive(
+        $activateFindologic,
         $shopKey,
-        $param,
-        $stagingFlag,
+        $queryParameter,
+        $staging,
         $configStaging
     ) {
         $configArray = [
-            ['ActivateFindologic', $isActive],
+            ['ActivateFindologic', $activateFindologic],
             ['ShopKey', $shopKey],
         ];
 
         $request = new RequestHttp();
         $request->setModuleName('frontend');
-        $request->setParam('findologic', $param);
+        $request->setParam('findologic', $queryParameter);
 
         // Create Mock object for Shopware Front Request
         $front = $this->getMockBuilder(Front::class)
@@ -159,7 +168,7 @@ class StaticHelperTest extends TestCase
             ->getMock();
         $session->expects($this->any())
             ->method('offsetGet')
-            ->willReturn($stagingFlag);
+            ->willReturn($staging);
 
         // Assign mocked session variable to application container
         Shopware()->Container()->set('session', $session);
@@ -184,85 +193,76 @@ class StaticHelperTest extends TestCase
     {
         return [
             'FINDOLOGIC is inactive' => [
-                'ActivateFindologic' => false,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                'ActivateFindologicForCategoryPages' => true,
-                'findologicDI' => false,
+                'activateFindologic' => false,
+                'shopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+                'isActiveForCategory' => true,
+                'checkIntegration' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
                 'expected' => true
             ],
             'Shopkey is empty' => [
-                'ActivateFindologic' => true,
-                'ShopKey' => '',
-                'ActivateFindologicForCategoryPages' => true,
-                'findologicDI' => false,
+                'activateFindologic' => true,
+                'shopKey' => '',
+                'isActiveForCategory' => true,
+                'checkIntegration' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
                 'expected' => true
             ],
             "Shopkey is 'Findologic Shopkey'" => [
-                'ActivateFindologic' => true,
-                'ShopKey' => 'Findologic Shopkey',
-                'ActivateFindologicForCategoryPages' => true,
-                'findologicDI' => false,
+                'activateFindologic' => true,
+                'shopKey' => 'Findologic Shopkey',
+                'isActiveForCategory' => true,
+                'checkIntegration' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
                 'expected' => true
             ],
             'FINDOLOGIC is active but integration type is DI' => [
-                'ActivateFindologic' => true,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                'ActivateFindologicForCategoryPages' => true,
-                'findologicDI' => true,
+                'activateFindologic' => true,
+                'shopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+                '$isActiveForCategory' => true,
+                'checkIntegration' => true,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
                 'expected' => true
             ],
             'FINDOLOGIC is active but the current page is neither the search nor a category page' => [
-                'ActivateFindologic' => true,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                'ActivateFindologicForCategoryPages' => true,
-                'findologicDI' => false,
+                'activateFindologic' => true,
+                'shopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+                'isActiveForCategory' => true,
+                'checkIntegration' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => false,
                 'expected' => true
             ],
             'FINDOLOGIC is not active on category pages' => [
-                'ActivateFindologic' => true,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                'ActivateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
+                'activateFindologic' => true,
+                'shopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+                'isActiveForCategory' => false,
+                'checkIntegration' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
-                'expected' => true
+                'expected' => false
             ],
             'FINDOLOGIC is active on search page' => [
-                'ActivateFindologic' => true,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                'ActivateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
+                'activateFindologic' => true,
+                'shopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+                'isActiveForCategory' => false,
+                'checkIntegration' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
-                'expected' => true
+                'expected' => false
             ],
-            'FINDOLOGIC is active on category pages' => [
-                'ActivateFindologic' => true,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                'ActivateFindologicForCategoryPages' => true,
-                'findologicDI' => false,
+            'FINDOLOGIC is active and not a search page' => [
+                'activateFindologic' => true,
+                'shopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+                'isActiveForCategory' => false,
+                'checkIntegration' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
-                'expected' => true
-            ],
-            'FINDOLOGIC is active on category pages but it was disabled in the plugin config' => [
-                'ActivateFindologic' => true,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                'ActivateFindologicForCategoryPages' => true,
-                'findologicDI' => false,
-                'isSearchPage' => false,
-                'isCategoryPage' => true,
-                'expected' => true
+                'expected' => false
             ]
         ];
     }
@@ -380,7 +380,7 @@ class StaticHelperTest extends TestCase
     /**
      * @dataProvider configDataProvider
      *
-     * @param bool $isActive
+     * @param bool $activateFindologic
      * @param string $shopKey
      * @param bool $isActiveForCategory
      * @param bool $checkIntegration
@@ -391,7 +391,7 @@ class StaticHelperTest extends TestCase
      * @throws Zend_Cache_Exception
      */
     public function testUseShopSearch(
-        $isActive,
+        $activateFindologic,
         $shopKey,
         $isActiveForCategory,
         $checkIntegration,
@@ -400,18 +400,16 @@ class StaticHelperTest extends TestCase
         $expected
     ) {
         $configArray = [
-            ['ActivateFindologic', $isActive],
+            ['ActivateFindologic', $activateFindologic],
             ['ShopKey', $shopKey],
             ['ActivateFindologicForCategoryPages', $isActiveForCategory],
             ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API]
         ];
-        $request = new RequestHttp();
-        $request->setModuleName('frontend');
 
         // Create Mock object for Shopware Front Request
         $front = $this->createMock(Front::class);
         $front->method('Request')
-            ->willReturn($request);
+            ->willReturn(null);
 
         // Assign mocked session variable to application container
         Shopware()->Container()->set('front', $front);
@@ -425,17 +423,16 @@ class StaticHelperTest extends TestCase
 
             // Create Mock object for Shopware Session
             $session = $this->createMock(Session::class);
-            $session->expects($this->atLeastOnce())
-                ->method('offsetGet')
+            $session->method('offsetGet')
                 ->willReturnMap($sessionArray);
+
             // Assign mocked session variable to application container
             Shopware()->Container()->set('session', $session);
         }
 
         // Create Mock object for Shopware Config
         $config = $this->createMock(Config::class);
-        $config->expects($this->atLeastOnce())
-            ->method('offsetGet')
+        $config->method('offsetGet')
             ->willReturnMap($configArray);
         $config->method('offsetExists')
             ->willReturn(true);
@@ -782,6 +779,7 @@ class StaticHelperTest extends TestCase
                 $filter->addChild($key, $value);
             }
         }
+
         $request = new RequestHttp();
         $request->setModuleName('frontend');
         $request->setParams($parameters);

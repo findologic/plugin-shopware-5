@@ -40,8 +40,10 @@ class Environment
         if (!$isStagingShop || $stagingFlag) {
             return false;
         }
+
         return true;
     }
+
     /**
      * @return bool|null
      * @throws Zend_Cache_Exception
@@ -50,6 +52,7 @@ class Environment
     {
         /** @var ConfigLoader $configLoader */
         $configLoader = Shopware()->Container()->get('fin_search_unified.config_loader');
+
         return $configLoader->isStagingShop();
     }
 }
