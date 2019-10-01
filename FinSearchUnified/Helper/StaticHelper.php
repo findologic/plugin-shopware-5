@@ -731,7 +731,7 @@ class StaticHelper
         $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
         $isNoSearchAndCategoryPage = !$isCategoryPage && !Shopware()->Session()->offsetGet('isSearchPage');
         $isCategoryPageButDisabledInConfig = $isCategoryPage &&
-            !(bool)Shopware()->Config()->get('ActivateFindologicForCategoryPages');
+            !(bool)Shopware()->Config()->offsetGet('ActivateFindologicForCategoryPages');
 
         return (
             $isInBackend ||
@@ -747,6 +747,7 @@ class StaticHelper
      * Checks if FINDOLOGIC search has been activated properly.
      * * In the config FINDOLOGIC needs to be marked as enabled.
      * * A shopkey needs to be entered in the config.
+     * * And shop is not staging
      *
      * @return bool
      * @throws Zend_Cache_Exception
@@ -758,8 +759,8 @@ class StaticHelper
 
         $isStagingMode = $environment->isStaging(Shopware()->Front()->Request());
 
-        return !$isStagingMode && (bool)Shopware()->Config()->get('ActivateFindologic') &&
-            !empty(trim(Shopware()->Config()->get('ShopKey')));
+        return !$isStagingMode && (bool)Shopware()->Config()->offsetGet('ActivateFindologic') &&
+            !empty(trim(Shopware()->Config()->offsetGet('ShopKey')));
     }
 
     /**

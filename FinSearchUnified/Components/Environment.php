@@ -38,10 +38,16 @@ class Environment
         $stagingFlag = Shopware()->Session()->offsetGet('stagingFlag');
 
         if (!$isStagingShop || $stagingFlag) {
+            // You only come here if the shop is configured as "live" in the FINDOLOGIC backend.
+            // or if the shop is configured as "staging" in the FINDOLOGIC backend and you
+            // have submitted "findologic=on" as URL param.
             return false;
         }
+
+        // If you came here, we want to use the Shopware search.
         return true;
     }
+
     /**
      * @return bool|null
      * @throws Zend_Cache_Exception
@@ -50,6 +56,7 @@ class Environment
     {
         /** @var ConfigLoader $configLoader */
         $configLoader = Shopware()->Container()->get('fin_search_unified.config_loader');
+
         return $configLoader->isStagingShop();
     }
 }
