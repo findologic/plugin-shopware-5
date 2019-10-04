@@ -11,6 +11,7 @@ use Shopware\Components\Routing\Context;
 use Shopware\Components\Routing\Matchers\RewriteMatcher;
 use Shopware_Controllers_Widgets_Listing;
 use Zend_Cache_Core;
+use Zend_Cache_Exception;
 
 class Widgets implements SubscriberInterface
 {
@@ -18,7 +19,6 @@ class Widgets implements SubscriberInterface
      * Returns an array of event names this subscriber wants to listen to.
      *
      * @return array The event names to listen to
-     * *last commit
      */
     public static function getSubscribedEvents()
     {
@@ -60,6 +60,7 @@ class Widgets implements SubscriberInterface
 
     /**
      * @param Enlight_Controller_ActionEventArgs $args
+     * @throws Zend_Cache_Exception
      */
     public function onWidgetsPreDispatch(Enlight_Controller_ActionEventArgs $args)
     {
@@ -106,7 +107,6 @@ class Widgets implements SubscriberInterface
     }
 
     private function parseReferUrl($referrer){
-
         $value = parse_url($referrer, PHP_URL_PATH);
         $path = explode('/',$value['path']);
         unset($path[0]);
