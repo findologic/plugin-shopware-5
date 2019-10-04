@@ -2,11 +2,12 @@
 
 namespace FinSearchUnified\Tests\Subscriber;
 
+use Enlight_Controller_ActionEventArgs;
 use Enlight_Controller_Request_RequestHttp;
-use Enlight_Controller_Response_ResponseHttp;
 use Enlight_Hook_HookArgs;
 use ReflectionException;
 use Shopware_Controllers_Widgets_Listing;
+use Zend_Cache_Core;
 
 class WidgetsTest extends SubscriberTestCase
 {
@@ -37,7 +38,8 @@ class WidgetsTest extends SubscriberTestCase
         array $requestParameters,
         array $expectedRequestParameters,
         $expectedMessage
-    ) {
+    )
+    {
         $request = new Enlight_Controller_Request_RequestHttp();
         $request->setControllerName('listing')
             ->setActionName('listingCount')
@@ -115,5 +117,241 @@ class WidgetsTest extends SubscriberTestCase
                 'Expected "sSearch" to be present with single whitespace character'
             ],
         ];
+    }
+
+    /**
+     *
+     */
+//    public function onWidgetsPreDispatch()
+//    {
+//
+//
+//    }
+//
+//        public function onWidgetsProvider()
+//    {
+//        return [
+//            'Referer is https://example.com/freizeit-elektro/?p=1 -> cache entry is present and its value is true -> isSearchPage = false, isCategoryPage = true' => [
+//                'referer' => 'https://example.com/freizeit-elektro/?p=1',
+//                'cache' => true,
+//                'isSearchPage' => false,
+//                'isCategoryPage' => true,
+//            ],
+//        ];
+//    }
+
+        public function searchPageProvider()
+        {
+            return [
+                'Referer is https://example.com/search/?q=text -> isSearchPage = true, isCategoryPage = false' => [
+                    'sSearch' => 'Yes',
+                    'sCategory' => null,
+                    'referer' => 'https://example.com/search/?q=text',
+                    'ExpectedIsSearchPage' => true,
+                    'ExpectedIsCategoryPage' => false,
+                ],
+                'Referer is http://example.com/search/?q=text -> isSearchPage = true, isCategoryPage = false' => [
+                    'sSearch' => 'Yes',
+                    'sCategory' => null,
+                    'referer' => 'http://example.com/search/?q=text',
+                    'ExpectedIsSearchPage' => true,
+                    'ExpectedIsCategoryPage' => false,
+                ],
+                'Referer is https://example.com/search?q=text -> isSearchPage = true, isCategoryPage = false' => [
+                    'sSearch' => 'Yes',
+                    'sCategory' => null,
+                    'referer' => 'https://example.com/search?q=text',
+                    'ExpectedIsSearchPage' => true,
+                    'ExpectedIsCategoryPage' => false,
+                ],
+                'Referer is https://example.com/search -> isSearchPage = true, isCategoryPage = false' => [
+                    'sSearch' => 'Yes',
+                    'sCategory' => null,
+                    'referer' => 'https://example.com/search',
+                    'expectedIsSearchPage' => true,
+                    'expectedIsCategoryPage' => false,
+                ],
+                'Referer is https://example.com/search/ -> isSearchPage = true, isCategoryPage = false' => [
+                    'sSearch' => 'Yes',
+                    'sCategory' => null,
+                    'referer' => 'https://example.com/search/',
+                    'expectedIsSearchPage' => true,
+                    'expectedIsCategoryPage' => false,
+                ],
+                'Referer is https://example.com/shop/search/?q=text -> isSearchPage = true, isCategoryPage = false' => [
+                    'sSearch' => 'Yes',
+                    'sCategory' => null,
+                    'referer' => 'https://example.com/shop/search/?q=text',
+                    'expectedIsSearchPage' => true,
+                    'expectedIsCategoryPage' => false,
+                ],
+                'Referer is https://example.com/shop/search?q=text -> isSearchPage = true, isCategoryPage = false' => [
+                    'sSearch' => 'Yes',
+                    'sCategory' => null,
+                    'referer' => 'https://example.com/shop/search?q=text',
+                    'expectedIsSearchPage' => true,
+                    'expectedIsCategoryPage' => false,
+                ],
+            ];
+        }
+
+    /**
+     * @dataProvider searchPageProvider
+     *
+     * @param string $sSearch
+     * @param string $sCategory
+     * @param string $referer
+     * @param bool $expectedIsSearchPage
+     * @param bool $expectedIsCategoryPage
+     */
+    public function testSearchPage(
+        $sSearch,
+        $sCategory,
+        $referer,
+        $expectedIsSearchPage,
+        $expectedIsCategoryPage
+    ){
+        $params['sSearch'] = $sSearch;
+        $params['sCategory'] = $sCategory;
+        $request = new Enlight_Controller_Request_RequestHttp();
+        $request->setControllerName('search')
+            ->setActionName('index')
+            ->setHeader('referer', $referer)
+            ->setModuleName('widgets')
+            ->setParams($params);
+
+        // Create mocked args for getting Subject and Request
+        $args = $this->createMock(Enlight_Controller_ActionEventArgs::class);
+        $args->method('get')->with('request')->willReturn($request);
+
+        $cache = $this->createMock(Zend_Cache_Core::class);
+        $cache->expects($this->once())
+            ->method('save');
+        $cache->expects($this->once())
+            ->method('test');
+
+        $widgets = Shopware()->Container()->get('fin_search_unified.subscriber.widgets');
+        $widgets->onWidgetsPreDispatch($args);
+
+        // Check session values after FrontendPreDispatch Call
+        $isCategoryPage = Shopware()->Session()->isCategoryPage;
+        $isSearchPage = Shopware()->Session()->isSearchPage;
+
+        $this->assertEquals(
+            $expectedIsSearchPage,
+            $isSearchPage,
+            sprintf('Expected isSearchPage to be %s', $expectedIsSearchPage ? 'true' : 'false')
+        );
+        $this->assertEquals(
+            $expectedIsCategoryPage,
+            $isCategoryPage,
+            sprintf('Expected isCategoryPage to be %s', $expectedIsCategoryPage ? 'true' : 'false')
+        );
+    }
+
+    public function categoryPageProvider()
+    {
+        return [
+            'Referer is https://example.com/freizeit-elektro/?p=1 -> isSearchPage = false, isCategoryPage = true' => [
+                'referer' => 'https://example.com/freizeit-elektro/?p=1',
+                'isSearchPage' => false,
+                'isCategoryPage' => true,
+            ],
+            'Referer is http://example.com/freizeit-elektro/?p=1 -> isSearchPage = false, isCategoryPage = true' => [
+                'referer' => 'http://example.com/freizeit-elektro/?p=1',
+                'isSearchPage' => false,
+                'isCategoryPage' => true,
+            ],
+            'Referer is https://example.com/freizeit-elektro?p=1 -> isSearchPage = false, isCategoryPage = true' => [
+                'referer' => 'https://example.com/freizeit-elektro?p=1',
+                'isSearchPage' => false,
+                'isCategoryPage' => true,
+            ],
+            'Referer is https://example.com/freizeit-elektro -> isSearchPage = false, isCategoryPage = true' => [
+                'referer' => 'https://example.com/freizeit-elektro',
+                'isSearchPage' => false,
+                'isCategoryPage' => true,
+            ],
+            'Referer is https://example.com/freizeit-elektro/ -> isSearchPage = false, isCategoryPage = true' => [
+                'referer' => 'https://example.com/freizeit-elektro/',
+                'isSearchPage' => false,
+                'isCategoryPage' => true,
+            ],
+            'Referer is https://example.com/shop/freizeit-elektro/?p=1 -> isSearchPage = false, isCategoryPage = true' => [
+                'referer' => 'https://example.com/shop/freizeit-elektro/?p=1',
+                'isSearchPage' => false,
+                'isCategoryPage' => true,
+            ],
+            'Referer is https://example.com/shop/freizeit-elektro?p=1 -> isSearchPage = false, isCategoryPage = true' => [
+                'referer' => 'https://example.com/shop/freizeit-elektro?p=1',
+                'isSearchPage' => false,
+                'isCategoryPage' => true,
+            ],
+            'Referer is https://example.com/i-do-not-exist -> isSearchPage = false, isCategoryPage = false' => [
+                'referer' => 'https://example.com/i-do-not-exist',
+                'isSearchPage' => false,
+                'isCategoryPage' => false,
+            ],
+            'Referer is https://example.com/i-do-not-exist/ -> isSearchPage = false, isCategoryPage = false' => [
+                'referer' => 'https://example.com/i-do-not-exist/',
+                'isSearchPage' => false,
+                'isCategoryPage' => false,
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider categoryPageProvider
+     *
+     * @param string $referer
+     * @param bool $isSearchPage
+     * @param bool $isCategoryPage
+     */
+    public function testCategoryPage(
+        $referer,
+        $isSearchPage,
+        $isCategoryPage
+    ){
+
+    }
+
+    public function homePageProvider()
+    {
+        return [
+            'Referer is https://example.com/ -> isSearchPage = false, isCategoryPage = false' => [
+                'referer' => 'https://example.com/',
+                'isSearchPage' => false,
+                'isCategoryPage' => false,
+            ],
+            'Referer is https://example.com -> isSearchPage = false, isCategoryPage = false' => [
+                'referer' => 'https://example.com',
+                'isSearchPage' => false,
+                'isCategoryPage' => false,
+            ],
+            'Referer is https://example.com/shop/ -> isSearchPage = false, isCategoryPage = false' => [
+                'referer' => 'https://example.com/shop/',
+                'isSearchPage' => false,
+                'isCategoryPage' => false,
+            ],
+            'Referer is https://example.com/shop -> isSearchPage = false, isCategoryPage = false' => [
+                'referer' => 'https://example.com/shop',
+                'isSearchPage' => false,
+                'isCategoryPage' => false,
+            ]
+        ];
+    }
+    /**
+     * @dataProvider homePageProvider
+     *
+     * @param string $referer
+     * @param bool $isSearchPage
+     * @param bool $isCategoryPage
+     */
+    public function testHomePage(
+        $referer,
+        $isSearchPage,
+        $isCategoryPage
+    ){
+
     }
 }
