@@ -282,8 +282,8 @@ class WidgetsTest extends SubscriberTestCase
                 'sSearch' => null,
                 'sCategory' => 'yes',
                 'referer' => 'https://example.com/freizeit-elektro/',
-                'expectedIsSearchPage' => true,
-                'expectedIsCategoryPage' => false,
+                'expectedIsSearchPage' => false,
+                'expectedIsCategoryPage' => true,
             ],
             'Referer is https://example.com/shop/freizeit-elektro/?p=1 -> isSearchPage = false, isCategoryPage = true' => [
                 'sSearch' => null,
@@ -319,12 +319,13 @@ class WidgetsTest extends SubscriberTestCase
     /**
      * @dataProvider categoryPageProvider
      *
-     * $sSearch,
-     * $sCategory,
+     * @param string $sSearch
+     * @param string $sCategory
      * @param string $referer
      * @param bool $expectedIsSearchPage
      * @param bool $expectedIsCategoryPage
      */
+
     public function testCategoryPage(
         $sSearch,
         $sCategory,
@@ -332,13 +333,13 @@ class WidgetsTest extends SubscriberTestCase
         $expectedIsSearchPage,
         $expectedIsCategoryPage
     ){
-        $params['sSearch'] = $expectedIsSearchPage;
-        $params['sCategory'] = $expectedIsCategoryPage;
+        $params['sSearch'] = $sSearch;
+        $params['sCategory'] = $sCategory;
         $request = new Enlight_Controller_Request_RequestHttp();
-        $request->setControllerName('search')
-            ->setActionName('index')
-            ->setHeader('referer', $referer)
+        $request->setControllerName('listing')
+            ->setActionName('listingCount')
             ->setModuleName('widgets')
+            ->setHeader('referer', $referer)
             ->setParams($params);
 
         // Create mocked args for getting Subject and Request
@@ -356,17 +357,14 @@ class WidgetsTest extends SubscriberTestCase
         $isCategoryPage = Shopware()->Session()->isCategoryPage;
         $isSearchPage = Shopware()->Session()->isSearchPage;
 
-        $this->assertTrue(
+        $this->assertEquals(
             $expectedIsSearchPage,
-            $isSearchPage,
-            sprintf('Expected isSearchPage to be %s', $expectedIsSearchPage ? 'true' : 'false')
+            $isSearchPage
         );
-        $this->assertFalse(
+        $this->assertEquals(
             $expectedIsCategoryPage,
-            $isCategoryPage,
-            sprintf('Expected isCategoryPage to be %s', $expectedIsCategoryPage ? 'true' : 'false')
+            $isCategoryPage
         );
-
     }
 
     public function homePageProvider()
