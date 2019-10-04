@@ -18,6 +18,7 @@ class Widgets implements SubscriberInterface
      * Returns an array of event names this subscriber wants to listen to.
      *
      * @return array The event names to listen to
+     * *last commit
      */
     public static function getSubscribedEvents()
     {
