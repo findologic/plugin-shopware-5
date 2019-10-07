@@ -54,7 +54,7 @@ class Widgets implements SubscriberInterface
         /** @var Enlight_Controller_Request_RequestHttp $request */
         $request = $args->get('request');
         $this->parseReferUrl($request);
-        $referrer = $request->getHeader('HTTP_REFERER');
+        $referrer = $request->getHeader('referer');
 
         if (strpos($referrer, 'search') !== false) {
             Shopware()->Session()->isSearchPage = true;
@@ -69,8 +69,6 @@ class Widgets implements SubscriberInterface
 
                 return;
             }
-            $this->cache->save($cacheKey, $isCategoryPage);
-
             $context = Context::createFromShop(
                 Shopware()->Container()->get('shop'),
                 Shopware()->Container()->get('config')
@@ -88,6 +86,8 @@ class Widgets implements SubscriberInterface
             } else {
                 Shopware()->Session()->isCategoryPage = false;
             }
+
+            $this->cache->save($cacheKey, Shopware()->Session()->isCategoryPage);
         }
     }
 
@@ -112,8 +112,7 @@ class Widgets implements SubscriberInterface
         unset($path[0]);
 
         $basePath = Shopware()->Container()->get('shop')->getBasePath();
-        //$basePath = Shopware()->Container()->get('shop')->getBaseUrl(rtrim(Shopware()->Shop()->getBasePath(), ' / '));
-        var_dump(['$basePath' => $basePath]);
+
         foreach ($path as $key => $value) {
             if ($value == $basePath) {
                 unset($path[$key]);
