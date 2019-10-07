@@ -3,7 +3,6 @@
 namespace FinSearchUnified\Tests\Subscriber;
 
 use Enlight_Controller_Action;
-use Enlight_Controller_ActionEventArgs;
 use Enlight_Controller_Request_RequestHttp;
 use Enlight_Controller_Response_ResponseHttp;
 use Enlight_Event_EventArgs;
@@ -26,8 +25,7 @@ class WidgetsTest extends SubscriberTestCase
         parent::tearDown();
 
         unset(Shopware()->Session()->isSearchPage);
-        unset(Shopware()->Session()->isSearchPage);
-        Shopware()->Session()->offsetUnset('isSearchPage');
+        unset(Shopware()->Session()->isCategoryPage);
     }
 
     /**
@@ -127,53 +125,25 @@ class WidgetsTest extends SubscriberTestCase
     {
         return [
             'Referer is https://example.com/search/?q=text' => [
-                'sSearch' => 'Yes',
-                'sCategory' => null,
                 'referer' => 'https://example.com/search/?q=text',
-                'ExpectedIsSearchPage' => true,
-                'ExpectedIsCategoryPage' => false,
             ],
             'Referer is http://example.com/search/?q=text' => [
-                'sSearch' => 'Yes',
-                'sCategory' => null,
                 'referer' => 'http://example.com/search/?q=text',
-                'ExpectedIsSearchPage' => true,
-                'ExpectedIsCategoryPage' => false,
             ],
             'Referer is https://example.com/search?q=text' => [
-                'sSearch' => 'Yes',
-                'sCategory' => null,
                 'referer' => 'https://example.com/search?q=text',
-                'ExpectedIsSearchPage' => true,
-                'ExpectedIsCategoryPage' => false,
             ],
             'Referer is https://example.com/search' => [
-                'sSearch' => 'Yes',
-                'sCategory' => null,
                 'referer' => 'https://example.com/search',
-                'expectedIsSearchPage' => true,
-                'expectedIsCategoryPage' => false,
             ],
             'Referer is https://example.com/search/' => [
-                'sSearch' => 'Yes',
-                'sCategory' => null,
                 'referer' => 'https://example.com/search/',
-                'expectedIsSearchPage' => true,
-                'expectedIsCategoryPage' => false,
             ],
             'Referer is https://example.com/shop/search/?q=text' => [
-                'sSearch' => 'Yes',
-                'sCategory' => null,
                 'referer' => 'https://example.com/shop/search/?q=text',
-                'expectedIsSearchPage' => true,
-                'expectedIsCategoryPage' => false,
             ],
             'Referer is https://example.com/shop/search?q=text' => [
-                'sSearch' => 'Yes',
-                'sCategory' => null,
                 'referer' => 'https://example.com/shop/search?q=text',
-                'expectedIsSearchPage' => true,
-                'expectedIsCategoryPage' => false,
             ],
         ];
     }
@@ -181,27 +151,16 @@ class WidgetsTest extends SubscriberTestCase
     /**
      * @dataProvider searchPageProvider
      *
-     * @param string $sSearch
-     * @param string $sCategory
      * @param string $referer
-     * @param bool $expectedIsSearchPage
-     * @param bool $expectedIsCategoryPage
      */
-    public function testSearchPage(
-        $sSearch,
-        $sCategory,
-        $referer,
-        $expectedIsSearchPage,
-        $expectedIsCategoryPage
-    ) {
-        $params['sSearch'] = $sSearch;
-        $params['sCategory'] = $sCategory;
+    public function testSearchPage($referer)
+    {
         $request = new Enlight_Controller_Request_RequestHttp();
         $request->setControllerName('search')
             ->setActionName('index')
             ->setHeader('referer', $referer)
             ->setModuleName('widgets')
-            ->setParams($params);
+            ->setParam('sSearch', 'text');
 
         $cache = $this->createMock(Zend_Cache_Core::class);
         $cache->expects($this->never())->method('save');
@@ -224,82 +183,47 @@ class WidgetsTest extends SubscriberTestCase
         $isCategoryPage = Shopware()->Session()->isCategoryPage;
         $isSearchPage = Shopware()->Session()->isSearchPage;
 
-        $this->assertEquals(
-            $expectedIsSearchPage,
-            $isSearchPage,
-            sprintf('Expected isSearchPage to be %s', $expectedIsSearchPage ? 'true' : 'false')
-        );
-        $this->assertEquals(
-            $expectedIsCategoryPage,
-            $isCategoryPage,
-            sprintf('Expected isCategoryPage to be %s', $expectedIsCategoryPage ? 'true' : 'false')
-        );
+        $this->assertTrue($isSearchPage, 'Expected isSearchPage to be true');
+        $this->assertFalse($isCategoryPage, 'Expected isCategoryPage to be false');
     }
 
     public function categoryPageProvider()
     {
         return [
-            'Referer is https://example.com/freizeit-elektro/?p=1 -> isSearchPage = false, isCategoryPage = true' => [
-                'sSearch' => null,
-                'sCategory' => 'yes',
+            'Referer is https://example.com/freizeit-elektro/?p=1' => [
                 'referer' => 'https://example.com/freizeit-elektro/?p=1',
-                'expectedIsSearchPage' => false,
                 'expectedIsCategoryPage' => true,
             ],
-            'Referer is http://example.com/freizeit-elektro/?p=1 -> isSearchPage = false, isCategoryPage = true' => [
-                'sSearch' => null,
-                'sCategory' => 'yes',
+            'Referer is http://example.com/freizeit-elektro/?p=1' => [
                 'referer' => 'http://example.com/freizeit-elektro/?p=1',
-                'expectedIsSearchPage' => false,
                 'expectedIsCategoryPage' => true,
             ],
-            'Referer is https://example.com/freizeit-elektro?p=1 -> isSearchPage = false, isCategoryPage = true' => [
-                'sSearch' => null,
-                'sCategory' => 'yes',
+            'Referer is https://example.com/freizeit-elektro?p=1' => [
                 'referer' => 'https://example.com/freizeit-elektro?p=1',
-                'expectedIsSearchPage' => false,
                 'expectedIsCategoryPage' => true,
             ],
-            'Referer is https://example.com/freizeit-elektro -> isSearchPage = false, isCategoryPage = true' => [
-                'sSearch' => null,
-                'sCategory' => 'yes',
+            'Referer is https://example.com/freizeit-elektro' => [
                 'referer' => 'https://example.com/freizeit-elektro',
-                'expectedIsSearchPage' => false,
                 'expectedIsCategoryPage' => true,
             ],
-            'Referer is https://example.com/freizeit-elektro/ -> isSearchPage = false, isCategoryPage = true' => [
-                'sSearch' => null,
-                'sCategory' => 'yes',
+            'Referer is https://example.com/freizeit-elektro/' => [
                 'referer' => 'https://example.com/freizeit-elektro/',
-                'expectedIsSearchPage' => false,
                 'expectedIsCategoryPage' => true,
             ],
-            'Referer is https://example.com/shop/freizeit-elektro/?p=1 -> isSearchPage = false, isCategoryPage = true' => [
-                'sSearch' => null,
-                'sCategory' => 'yes',
+            'Referer is https://example.com/shop/freizeit-elektro/?p=1' => [
                 'referer' => 'https://example.com/shop/freizeit-elektro/?p=1',
-                'expectedIsSearchPage' => false,
                 'expectedIsCategoryPage' => true,
             ],
-            'Referer is https://example.com/shop/freizeit-elektro?p=1 -> isSearchPage = false, isCategoryPage = true' => [
-                'sSearch' => null,
-                'sCategory' => 'yes',
+            'Referer is https://example.com/shop/freizeit-elektro?p=1' => [
                 'referer' => 'https://example.com/shop/freizeit-elektro?p=1',
-                'expectedIsSearchPage' => false,
                 'expectedIsCategoryPage' => true,
             ],
-            'Referer is https://example.com/i-do-not-exist -> isSearchPage = false, isCategoryPage = false' => [
-                'sSearch' => null,
-                'sCategory' => 'yes',
+            'Referer is https://example.com/i-do-not-exist' => [
                 'referer' => 'https://example.com/i-do-not-exist',
-                'expectedIsSearchPage' => false,
                 'expectedIsCategoryPage' => false,
             ],
-            'Referer is https://example.com/i-do-not-exist/ -> isSearchPage = false, isCategoryPage = false' => [
-                'sSearch' => null,
-                'sCategory' => 'yes',
+            'Referer is https://example.com/i-do-not-exist/' => [
                 'referer' => 'https://example.com/i-do-not-exist/',
-                'expectedIsSearchPage' => false,
                 'expectedIsCategoryPage' => false,
             ],
         ];
@@ -308,36 +232,32 @@ class WidgetsTest extends SubscriberTestCase
     /**
      * @dataProvider categoryPageProvider
      *
-     * @param string $sSearch
-     * @param string $sCategory
      * @param string $referer
-     * @param bool $expectedIsSearchPage
      * @param bool $expectedIsCategoryPage
      */
 
-    public function testCategoryPage(
-        $sSearch,
-        $sCategory,
-        $referer,
-        $expectedIsSearchPage,
-        $expectedIsCategoryPage
-    ) {
-        $params['sSearch'] = $sSearch;
-        $params['sCategory'] = $sCategory;
+    public function testCategoryPage($referer, $expectedIsCategoryPage)
+    {
         $request = new Enlight_Controller_Request_RequestHttp();
-        $request->setControllerName('listing')
-            ->setActionName('listingCount')
-            ->setModuleName('widgets')
+        $request->setControllerName('cat')
+            ->setActionName('index')
+            ->setModuleName('frontend')
             ->setHeader('referer', $referer)
-            ->setParams($params);
+            ->setParam('sCategory', 5);
 
-        // Create mocked args for getting Subject and Request
-        $args = $this->createMock(Enlight_Controller_ActionEventArgs::class);
-        $args->method('get')->with('request')->willReturn($request);
+        // Create mocked Subject to be passed in mocked args
+        $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $subject->method('Request')
+            ->willReturn($request);
+
+        $response = new Enlight_Controller_Response_ResponseHttp();
+        $args = new Enlight_Event_EventArgs(['subject' => $subject, 'request' => $request, 'response' => $response]);
 
         $cache = $this->createMock(Zend_Cache_Core::class);
-        $cache->method('save');
-        $cache->method('test');
+        $cache->expects($this->once())->method('save');
+        $cache->expects($this->once())->method('test')->willReturn($expectedIsCategoryPage);
 
         $widgets = Shopware()->Container()->get('fin_search_unified.subscriber.widgets');
         $widgets->onWidgetsPreDispatch($args);
@@ -346,14 +266,8 @@ class WidgetsTest extends SubscriberTestCase
         $isCategoryPage = Shopware()->Session()->isCategoryPage;
         $isSearchPage = Shopware()->Session()->isSearchPage;
 
-        $this->assertEquals(
-            $expectedIsSearchPage,
-            $isSearchPage
-        );
-        $this->assertEquals(
-            $expectedIsCategoryPage,
-            $isCategoryPage
-        );
+        $this->assertFalse($isSearchPage);
+        $this->assertEquals($expectedIsCategoryPage, $isCategoryPage);
     }
 
     public function homePageProvider()
