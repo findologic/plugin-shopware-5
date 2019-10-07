@@ -105,21 +105,21 @@ class Widgets implements SubscriberInterface
         }
     }
 
+    /**
+     * @param string $referrer
+     *
+     * @return string
+     */
     private function parseReferUrl($referrer)
     {
-        $value = parse_url($referrer, PHP_URL_PATH);
-        $path = explode('/', $value['path']);
-        unset($path[0]);
+        $url = parse_url($referrer, PHP_URL_PATH);
+        $url = str_replace('/', '', $url);
 
         $basePath = Shopware()->Container()->get('shop')->getBasePath();
+        $basePath = rtrim($basePath, '/') . '/';
 
-        foreach ($path as $key => $value) {
-            if ($value == $basePath) {
-                unset($path[$key]);
-            }
-        }
-        $str = implode("/", $path);
+        $url = str_replace($basePath, '', $url);
 
-        return $str;
+        return rtrim($url, '/') . '/';
     }
 }

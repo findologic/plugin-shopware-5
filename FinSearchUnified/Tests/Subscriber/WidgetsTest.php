@@ -26,6 +26,9 @@ class WidgetsTest extends SubscriberTestCase
 
         unset(Shopware()->Session()->isSearchPage);
         unset(Shopware()->Session()->isCategoryPage);
+
+        Shopware()->Container()->reset('cache');
+        Shopware()->Container()->load('cache');
     }
 
     /**
@@ -152,26 +155,20 @@ class WidgetsTest extends SubscriberTestCase
      * @dataProvider searchPageProvider
      *
      * @param string $referer
+     *
+     * @throws ReflectionException
      */
     public function testSearchPage($referer)
     {
         $request = new Enlight_Controller_Request_RequestHttp();
-        $request->setControllerName('search')
-            ->setActionName('index')
-            ->setHeader('referer', $referer)
-            ->setModuleName('widgets')
-            ->setParam('sSearch', 'text');
+        $request->setModuleName('widgets')->setHeader('referer', $referer)->setParam('sSearch', 'text');
 
-        $cache = $this->createMock(Zend_Cache_Core::class);
-        $cache->expects($this->never())->method('save');
-        $cache->expects($this->never())->method('test');
+        $cacheMock = $this->createMock(Zend_Cache_Core::class);
+        $cacheMock->expects($this->never())->method('save');
+        $cacheMock->expects($this->never())->method('test');
+        Shopware()->Container()->set('cache', $cacheMock);
 
-        // Create mocked Subject to be passed in mocked args
-        $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $subject->method('Request')
-            ->willReturn($request);
+        $subject = $this->getControllerInstance(Shopware_Controllers_Widgets_Listing::class, $request);
 
         $response = new Enlight_Controller_Response_ResponseHttp();
         $args = new Enlight_Event_EventArgs(['subject' => $subject, 'request' => $request, 'response' => $response]);
@@ -239,11 +236,7 @@ class WidgetsTest extends SubscriberTestCase
     public function testCategoryPage($referer, $expectedIsCategoryPage)
     {
         $request = new Enlight_Controller_Request_RequestHttp();
-        $request->setControllerName('cat')
-            ->setActionName('index')
-            ->setModuleName('frontend')
-            ->setHeader('referer', $referer)
-            ->setParam('sCategory', 5);
+        $request->setModuleName('widgets')->setHeader('referer', $referer)->setParam('sCategory', 5);
 
         // Create mocked Subject to be passed in mocked args
         $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
@@ -255,9 +248,10 @@ class WidgetsTest extends SubscriberTestCase
         $response = new Enlight_Controller_Response_ResponseHttp();
         $args = new Enlight_Event_EventArgs(['subject' => $subject, 'request' => $request, 'response' => $response]);
 
-        $cache = $this->createMock(Zend_Cache_Core::class);
-        $cache->expects($this->once())->method('save');
-        $cache->expects($this->once())->method('test')->willReturn($expectedIsCategoryPage);
+        $cacheMock = $this->createMock(Zend_Cache_Core::class);
+        $cacheMock->expects($this->once())->method('save');
+        $cacheMock->expects($this->atLeastOnce())->method('test')->willReturn($expectedIsCategoryPage);
+        Shopware()->Container()->set('cache', $cacheMock);
 
         $widgets = Shopware()->Container()->get('fin_search_unified.subscriber.widgets');
         $widgets->onWidgetsPreDispatch($args);
