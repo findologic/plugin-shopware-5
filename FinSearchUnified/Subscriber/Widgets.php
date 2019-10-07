@@ -53,15 +53,15 @@ class Widgets implements SubscriberInterface
     {
         /** @var Enlight_Controller_Request_RequestHttp $request */
         $request = $args->get('request');
-        $this->parseReferUrl($request);
         $referrer = $request->getHeader('referer');
+        $url = $this->parseReferUrl($referrer);
 
-        if (strpos($referrer, 'search') !== false) {
+        if (strpos($url, 'search') !== false) {
             Shopware()->Session()->isSearchPage = true;
             Shopware()->Session()->isCategoryPage = false;
         } else {
             Shopware()->Session()->isSearchPage = false;
-            $cacheKey = md5($referrer);
+            $cacheKey = md5($url);
             $isCategoryPage = $this->cache->test($cacheKey);
 
             if ($isCategoryPage !== false) {
@@ -74,7 +74,7 @@ class Widgets implements SubscriberInterface
                 Shopware()->Container()->get('config')
             );
 
-            $rewrite = $this->rewrite->match($referrer, $context);
+            $rewrite = $this->rewrite->match($url, $context);
 
             if (is_string($rewrite)) {
                 Shopware()->Session()->isCategoryPage = false;
