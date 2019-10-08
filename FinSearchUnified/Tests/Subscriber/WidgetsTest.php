@@ -23,15 +23,16 @@ class WidgetsTest extends SubscriberTestCase
 
     protected function tearDown()
     {
-        parent::tearDown();
-
-        unset(Shopware()->Session()->isSearchPage);
-        unset(Shopware()->Session()->isCategoryPage);
+        unset(Shopware()->Session()->isSearchPage, Shopware()->Session()->isCategoryPage);
 
         Shopware()->Container()->reset('cache');
         Shopware()->Container()->load('cache');
         Shopware()->Container()->reset('shopware.routing.matchers.rewrite_matcher');
         Shopware()->Container()->load('shopware.routing.matchers.rewrite_matcher');
+        Shopware()->Container()->reset('fin_search_unified.subscriber.widgets');
+        Shopware()->Container()->load('fin_search_unified.subscriber.widgets');
+
+        parent::tearDown();
     }
 
     /**
@@ -168,7 +169,7 @@ class WidgetsTest extends SubscriberTestCase
 
         $cacheMock = $this->createMock(Zend_Cache_Core::class);
         $cacheMock->expects($this->never())->method('save');
-        $cacheMock->expects($this->never())->method('test');
+        $cacheMock->expects($this->never())->method('load');
         Shopware()->Container()->set('cache', $cacheMock);
 
         $subject = $this->getControllerInstance(Shopware_Controllers_Widgets_Listing::class, $request);
@@ -190,33 +191,35 @@ class WidgetsTest extends SubscriberTestCase
     public function categoryPageProvider()
     {
         return [
-            'Referer is https://example.com/freizeit-elektro/?p=1' => [
-                'referer' => 'https://example.com/genusswelten/?p=1',
+            'Referer is https://example.com/beispiele/?p=1' => [
+                'referer' => 'https://example.com/beispiele/?p=1',
                 'expectedIsCategoryPage' => true,
             ],
-            'Referer is http://example.com/freizeit-elektro/?p=1' => [
-                'referer' => 'http://example.com/genusswelten?p=1',
+            'Referer is http://example.com/beispiele/?p=1' => [
+                'referer' => 'http://example.com/beispiele?p=1',
                 'expectedIsCategoryPage' => true,
             ],
-            'Referer is https://example.com/freizeit-elektro?p=1' => [
-                'referer' => 'https://example.com/genusswelten?p=1',
+            'Referer is https://example.com/beispiele?p=1' => [
+                'referer' => 'https://example.com/beispiele?p=1',
                 'expectedIsCategoryPage' => true,
             ],
-            'Referer is https://example.com/freizeit-elektro' => [
-                'referer' => 'https://example.com/genusswelten',
+            'Referer is https://example.com/beispiele' => [
+                'referer' => 'https://example.com/beispiele',
                 'expectedIsCategoryPage' => true,
             ],
-            'Referer is https://example.com/freizeit-elektro/' => [
-                'referer' => 'https://example.com/genusswelten/',
+            'Referer is https://example.com/beispiele/' => [
+                'referer' => 'https://example.com/beispiele/',
                 'expectedIsCategoryPage' => true,
             ],
-            'Referer is https://example.com/shop/freizeit-elektro/?p=1' => [
-                'referer' => 'https://example.com/shop/genusswelten/?p=1',
+            'Referer is https://example.com/shop/beispiele/?p=1' => [
+                'referer' => 'https://example.com/shop/beispiele/?p=1',
                 'expectedIsCategoryPage' => true,
+                'basePath' => 'shop'
             ],
-            'Referer is https://example.com/shop/freizeit-elektro?p=1' => [
-                'referer' => 'https://example.com/shop/genusswelten?p=1',
+            'Referer is https://example.com/shop/beispiele?p=1' => [
+                'referer' => 'https://example.com/shop/beispiele?p=1',
                 'expectedIsCategoryPage' => true,
+                'basePath' => 'shop'
             ],
             'Referer is https://example.com/i-do-not-exist' => [
                 'referer' => 'https://example.com/i-do-not-exist',
@@ -234,21 +237,31 @@ class WidgetsTest extends SubscriberTestCase
      *
      * @param string $referer
      * @param bool $expectedIsCategoryPage
+     * @param string $basePath
+     *
+     * @throws ReflectionException
      */
 
-    public function testCategoryPage($referer, $expectedIsCategoryPage)
+    public function testCategoryPage($referer, $expectedIsCategoryPage, $basePath = '')
     {
         $request = new Enlight_Controller_Request_RequestHttp();
-        $request->setModuleName('widgets')->setHeader('referer', $referer)->setParam('sCategory', 5);
+        $request->setControllerName('listing')
+            ->setActionName('listingCount')
+            ->setModuleName('widgets')
+            ->setBasePath($basePath)
+            ->setHeader('referer', $referer)
+            ->setParam('sCategory', 10);
 
         $subject = $this->getControllerInstance(Shopware_Controllers_Widgets_Listing::class, $request);
 
         $response = new Enlight_Controller_Response_ResponseHttp();
         $args = new Enlight_Event_EventArgs(['subject' => $subject, 'request' => $request, 'response' => $response]);
 
+        $invokeCount = $expectedIsCategoryPage ? $this->atLeastOnce() : $this->never();
+
         $cacheMock = $this->createMock(Zend_Cache_Core::class);
-        $cacheMock->expects($this->once())->method('save');
-        $cacheMock->expects($this->atLeastOnce())->method('test')->willReturn(false);
+        $cacheMock->expects($invokeCount)->method('test')->willReturn(false);
+        $cacheMock->expects($invokeCount)->method('save')->willReturn(true);
         Shopware()->Container()->set('cache', $cacheMock);
 
         $widgets = Shopware()->Container()->get('fin_search_unified.subscriber.widgets');
@@ -279,6 +292,7 @@ class WidgetsTest extends SubscriberTestCase
             ]
         ];
     }
+
     /**
      * @dataProvider homePageProvider
      *
@@ -288,7 +302,6 @@ class WidgetsTest extends SubscriberTestCase
      */
     public function testHomePage($referer)
     {
-
         $request = new Enlight_Controller_Request_RequestHttp();
         $request->setModuleName('frontend')->setHeader('referer', $referer);
 
@@ -298,19 +311,18 @@ class WidgetsTest extends SubscriberTestCase
         Shopware()->Container()->set('cache', $cacheMock);
 
         // Create mocked Subject to be passed in mocked args
-//        $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
-//            ->disableOriginalConstructor()
-//            ->getMock();
-//        $subject->method('Request')
-//            ->willReturn($request);
-//        $response = new Enlight_Controller_Response_ResponseHttp();
-//        $args = new Enlight_Event_EventArgs(['subject' => $subject, 'request' => $request, 'response' => $response]);
+        //        $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
+        //            ->disableOriginalConstructor()
+        //            ->getMock();
+        //        $subject->method('Request')
+        //            ->willReturn($request);
+        //        $response = new Enlight_Controller_Response_ResponseHttp();
+        //        $args = new Enlight_Event_EventArgs(['subject' => $subject, 'request' => $request, 'response' => $response]);
 
         $subject = $this->getControllerInstance(Shopware_Controllers_Widgets_Listing::class, $request);
 
         $response = new Enlight_Controller_Response_ResponseHttp();
         $args = new Enlight_Event_EventArgs(['subject' => $subject, 'request' => $request, 'response' => $response]);
-
 
         $widgets = Shopware()->Container()->get('fin_search_unified.subscriber.widgets');
         $widgets->onWidgetsPreDispatch($args);
@@ -322,15 +334,17 @@ class WidgetsTest extends SubscriberTestCase
         $this->assertFalse($isSearchPage, 'Expected isSearchPage to be false');
         $this->assertFalse($isCategoryPage, 'Expected isCategoryPage to be false');
     }
+
     public function cacheEntriesProvider()
     {
         return [
-            'Referer is https://example.com/freizeit-elektro/?p=1' => [
-                'referer' => 'https://example.com/freizeit-elektro/?p=1',
+            'Referer is https://example.com/beispiele/?p=1' => [
+                'referer' => 'https://example.com/beispiele/?p=1',
                 'expectedIsCategoryPage' => true
             ]
         ];
     }
+
     /**
      * @dataProvider cacheEntriesProvider
      *

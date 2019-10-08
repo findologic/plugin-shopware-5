@@ -6,6 +6,7 @@ use Enlight\Event\SubscriberInterface;
 use Enlight_Controller_Request_RequestHttp;
 use Enlight_Event_EventArgs;
 use Enlight_Hook_HookArgs;
+use Exception;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Components\Routing\Context;
 use Shopware\Components\Routing\Matchers\RewriteMatcher;
@@ -53,8 +54,7 @@ class Widgets implements SubscriberInterface
     {
         /** @var Enlight_Controller_Request_RequestHttp $request */
         $request = $args->get('request');
-        $referrer = $request->getHeader('referer');
-        $url = $this->parseReferUrl($referrer);
+        $url = $this->parseReferUrl($request);
 
         if (strpos($url, 'search') !== false) {
             Shopware()->Session()->isSearchPage = true;
@@ -62,10 +62,8 @@ class Widgets implements SubscriberInterface
         } else {
             Shopware()->Session()->isSearchPage = false;
             $cacheKey = md5($url);
-            $isCategoryPage = $this->cache->test($cacheKey);
-            var_dump(['$isCategoryPage' => $isCategoryPage]);
-            var_dump(['$cacheKey' => $cacheKey]);
-            if ($isCategoryPage !== false) {
+            $isCached = $this->cache->test($cacheKey);
+            if ($isCached !== null && $isCached !== false) {
                 Shopware()->Session()->isCategoryPage = true;
 
                 return;
@@ -76,8 +74,6 @@ class Widgets implements SubscriberInterface
             );
 
             $rewrite = $this->rewrite->match($url, $context);
-
-            var_dump(['$rewrite' => $rewrite]);
             if (is_string($rewrite)) {
                 Shopware()->Session()->isCategoryPage = false;
             } elseif (is_array($rewrite)) {
@@ -108,20 +104,23 @@ class Widgets implements SubscriberInterface
     }
 
     /**
-     * @param string $referrer
+     * @param Enlight_Controller_Request_RequestHttp $request
      *
      * @return string
+     * @throws Exception
      */
-    private function parseReferUrl($referrer)
+    private function parseReferUrl($request)
     {
+        $referrer = $request->getHeader('referer');
         $url = parse_url($referrer, PHP_URL_PATH);
-        $url = str_replace('/', '', $url);
 
-        $basePath = Shopware()->Container()->get('shop')->getBasePath();
-        $basePath = rtrim($basePath, '/') . '/';
+        $basePath = $request->getBasePath();
+        if ($basePath !== '') {
+            $basePath = rtrim($basePath, '/') . '/';
+            $url = str_replace($basePath, '', $url);
+        }
+        $url = ltrim($url, '/');
 
-        $url = str_replace($basePath, '', $url);
-
-        return rtrim($url, '/') . '/';
+        return $url;
     }
 }
