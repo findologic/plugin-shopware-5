@@ -290,7 +290,8 @@ class WidgetsTest extends SubscriberTestCase
      *
      * @throws ReflectionException
      */
-    public function testHomePage($referer){
+    public function testHomePage($referer)
+    {
 
         $request = new Enlight_Controller_Request_RequestHttp();
         $request->setModuleName('frontend')->setHeader('referer', $referer);
@@ -319,7 +320,8 @@ class WidgetsTest extends SubscriberTestCase
         $this->assertFalse($isSearchPage, 'Expected isSearchPage to be false');
         $this->assertFalse($isCategoryPage, 'Expected isCategoryPage to be false');
     }
-    public function cacheEntriesProvider(){
+    public function cacheEntriesProvider()
+    {
         return [
             'Referer is https://example.com/freizeit-elektro/?p=1' => [
                 'referer' => 'https://example.com/freizeit-elektro/?p=1',
