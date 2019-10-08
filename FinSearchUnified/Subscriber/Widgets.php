@@ -25,10 +25,10 @@ class Widgets implements SubscriberInterface
      */
     private $rewrite;
 
-    public function __construct()
+    public function __construct(Zend_Cache_Core $cache, RewriteMatcher $rewrite)
     {
-        $this->cache = Shopware()->Container()->get('cache');
-        $this->rewrite = Shopware()->Container()->get('shopware.routing.matchers.rewrite_matcher');
+        $this->cache = $cache;
+        $this->rewrite = $rewrite;
     }
 
     /**
@@ -63,7 +63,8 @@ class Widgets implements SubscriberInterface
             Shopware()->Session()->isSearchPage = false;
             $cacheKey = md5($url);
             $isCategoryPage = $this->cache->test($cacheKey);
-
+            var_dump(['$isCategoryPage' => $isCategoryPage]);
+            var_dump(['$cacheKey' => $cacheKey]);
             if ($isCategoryPage !== false) {
                 Shopware()->Session()->isCategoryPage = true;
 
@@ -75,7 +76,7 @@ class Widgets implements SubscriberInterface
             );
 
             $rewrite = $this->rewrite->match($url, $context);
-
+            var_dump(['$rewrite' => $rewrite]);
             if (is_string($rewrite)) {
                 Shopware()->Session()->isCategoryPage = false;
             } elseif (is_array($rewrite)) {
