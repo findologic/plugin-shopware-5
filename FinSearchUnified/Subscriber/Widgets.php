@@ -76,6 +76,7 @@ class Widgets implements SubscriberInterface
             );
 
             $rewrite = $this->rewrite->match($url, $context);
+
             var_dump(['$rewrite' => $rewrite]);
             if (is_string($rewrite)) {
                 Shopware()->Session()->isCategoryPage = false;

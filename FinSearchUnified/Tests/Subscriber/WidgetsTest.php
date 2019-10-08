@@ -191,31 +191,31 @@ class WidgetsTest extends SubscriberTestCase
     {
         return [
             'Referer is https://example.com/freizeit-elektro/?p=1' => [
-                'referer' => 'https://example.com/freizeit-elektro/?p=1',
+                'referer' => 'https://example.com/genusswelten/?p=1',
                 'expectedIsCategoryPage' => true,
             ],
             'Referer is http://example.com/freizeit-elektro/?p=1' => [
-                'referer' => 'http://example.com/freizeit-elektro/?p=1',
+                'referer' => 'http://example.com/genusswelten?p=1',
                 'expectedIsCategoryPage' => true,
             ],
             'Referer is https://example.com/freizeit-elektro?p=1' => [
-                'referer' => 'https://example.com/freizeit-elektro?p=1',
+                'referer' => 'https://example.com/genusswelten?p=1',
                 'expectedIsCategoryPage' => true,
             ],
             'Referer is https://example.com/freizeit-elektro' => [
-                'referer' => 'https://example.com/freizeit-elektro',
+                'referer' => 'https://example.com/genusswelten',
                 'expectedIsCategoryPage' => true,
             ],
             'Referer is https://example.com/freizeit-elektro/' => [
-                'referer' => 'https://example.com/freizeit-elektro/',
+                'referer' => 'https://example.com/genusswelten/',
                 'expectedIsCategoryPage' => true,
             ],
             'Referer is https://example.com/shop/freizeit-elektro/?p=1' => [
-                'referer' => 'https://example.com/shop/freizeit-elektro/?p=1',
+                'referer' => 'https://example.com/shop/genusswelten/?p=1',
                 'expectedIsCategoryPage' => true,
             ],
             'Referer is https://example.com/shop/freizeit-elektro?p=1' => [
-                'referer' => 'https://example.com/shop/freizeit-elektro?p=1',
+                'referer' => 'https://example.com/shop/genusswelten?p=1',
                 'expectedIsCategoryPage' => true,
             ],
             'Referer is https://example.com/i-do-not-exist' => [
@@ -241,18 +241,14 @@ class WidgetsTest extends SubscriberTestCase
         $request = new Enlight_Controller_Request_RequestHttp();
         $request->setModuleName('widgets')->setHeader('referer', $referer)->setParam('sCategory', 5);
 
-        // Create mocked Subject to be passed in mocked args
-        $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $subject->method('Request')
-            ->willReturn($request);
+        $subject = $this->getControllerInstance(Shopware_Controllers_Widgets_Listing::class, $request);
+
         $response = new Enlight_Controller_Response_ResponseHttp();
         $args = new Enlight_Event_EventArgs(['subject' => $subject, 'request' => $request, 'response' => $response]);
 
         $cacheMock = $this->createMock(Zend_Cache_Core::class);
         $cacheMock->expects($this->once())->method('save');
-        $cacheMock->expects($this->atLeastOnce())->method('test')->willReturn($expectedIsCategoryPage);
+        $cacheMock->expects($this->atLeastOnce())->method('test')->willReturn(false);
         Shopware()->Container()->set('cache', $cacheMock);
 
         $widgets = Shopware()->Container()->get('fin_search_unified.subscriber.widgets');
@@ -302,13 +298,19 @@ class WidgetsTest extends SubscriberTestCase
         Shopware()->Container()->set('cache', $cacheMock);
 
         // Create mocked Subject to be passed in mocked args
-        $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $subject->method('Request')
-            ->willReturn($request);
+//        $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
+//            ->disableOriginalConstructor()
+//            ->getMock();
+//        $subject->method('Request')
+//            ->willReturn($request);
+//        $response = new Enlight_Controller_Response_ResponseHttp();
+//        $args = new Enlight_Event_EventArgs(['subject' => $subject, 'request' => $request, 'response' => $response]);
+
+        $subject = $this->getControllerInstance(Shopware_Controllers_Widgets_Listing::class, $request);
+
         $response = new Enlight_Controller_Response_ResponseHttp();
         $args = new Enlight_Event_EventArgs(['subject' => $subject, 'request' => $request, 'response' => $response]);
+
 
         $widgets = Shopware()->Container()->get('fin_search_unified.subscriber.widgets');
         $widgets->onWidgetsPreDispatch($args);
