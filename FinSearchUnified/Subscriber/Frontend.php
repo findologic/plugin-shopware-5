@@ -306,6 +306,6 @@ class Frontend implements SubscriberInterface
      */
     private function isLegacySearch(Enlight_Controller_Request_Request $request)
     {
-        return substr($request->getRequestUri(), 0, strlen('/FinSearchAPI/search')) === '/FinSearchAPI/search';
+        return strpos($request->getRequestUri(), '/FinSearchAPI/search') === 0;
     }
 }

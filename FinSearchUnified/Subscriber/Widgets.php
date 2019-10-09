@@ -49,6 +49,7 @@ class Widgets implements SubscriberInterface
      * @param Enlight_Event_EventArgs $args
      *
      * @throws Zend_Cache_Exception
+     * @throws Exception
      */
     public function onWidgetsPreDispatch(Enlight_Event_EventArgs $args)
     {
@@ -60,20 +61,33 @@ class Widgets implements SubscriberInterface
             Shopware()->Session()->isSearchPage = true;
             Shopware()->Session()->isCategoryPage = false;
         } else {
+            // If the URL is not a search page we will set the session value here
             Shopware()->Session()->isSearchPage = false;
+
+            // Check if the category page is cached and set session value to true if it is
             $cacheKey = md5($url);
-            $isCached = $this->cache->test($cacheKey);
+            $isCached = $this->cache->load($cacheKey);
             if ($isCached !== null && $isCached !== false) {
                 Shopware()->Session()->isCategoryPage = true;
 
                 return;
             }
+            // Unless we have a category page, this session variable will always be false
+            Shopware()->Session()->isCategoryPage = false;
+
             $context = Context::createFromShop(
                 Shopware()->Container()->get('shop'),
                 Shopware()->Container()->get('config')
             );
 
             $rewrite = $this->rewrite->match($url, $context);
+            if (is_string($rewrite)) {
+                // As Shopware require the trailing slashes in the URL to match the category URL
+                // we will append the slash manually to check if it really is a category page even when there is
+                // no trailing slash present in the URL
+                $url = rtrim($url, '/') . '/';
+                $rewrite = $this->rewrite->match($url, $context);
+            }
             if (is_string($rewrite)) {
                 Shopware()->Session()->isCategoryPage = false;
             } elseif (is_array($rewrite)) {
@@ -111,7 +125,7 @@ class Widgets implements SubscriberInterface
      */
     private function parseReferUrl($request)
     {
-        $referrer = $request->getHeader('referer');
+        $referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
         $url = parse_url($referrer, PHP_URL_PATH);
 
         $basePath = $request->getBasePath();
