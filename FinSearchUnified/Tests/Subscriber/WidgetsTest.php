@@ -163,7 +163,7 @@ class WidgetsTest extends SubscriberTestCase
 
         $cacheMock = $this->createMock(Zend_Cache_Core::class);
         $cacheMock->expects($this->never())->method('save');
-        $cacheMock->expects($this->never())->method('test');
+        $cacheMock->expects($this->never())->method('load');
 
         $subject = $this->getControllerInstance(Shopware_Controllers_Widgets_Listing::class, $request);
 
