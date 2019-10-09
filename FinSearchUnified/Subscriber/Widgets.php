@@ -10,6 +10,8 @@ use Exception;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Components\Routing\Context;
 use Shopware\Components\Routing\Matchers\RewriteMatcher;
+use Shopware\Models\Shop\Shop;
+use Shopware_Components_Config;
 use Shopware_Controllers_Widgets_Listing;
 use Zend_Cache_Core;
 use Zend_Cache_Exception;
@@ -24,12 +26,12 @@ class Widgets implements SubscriberInterface
     /**
      * @var RewriteMatcher
      */
-    private $rewrite;
+    private $rewriteMatcher;
 
-    public function __construct(Zend_Cache_Core $cache, RewriteMatcher $rewrite)
+    public function __construct(Zend_Cache_Core $cache, RewriteMatcher $rewriteMatcher)
     {
         $this->cache = $cache;
-        $this->rewrite = $rewrite;
+        $this->rewriteMatcher = $rewriteMatcher;
     }
 
     /**
@@ -55,7 +57,7 @@ class Widgets implements SubscriberInterface
     {
         /** @var Enlight_Controller_Request_RequestHttp $request */
         $request = $args->get('request');
-        $url = $this->parseReferUrl($request);
+        $url = $this->parseReferer($request);
 
         if (strpos($url, 'search') !== false) {
             Shopware()->Session()->isSearchPage = true;
@@ -67,38 +69,13 @@ class Widgets implements SubscriberInterface
             // Check if the category page is cached and set session value to true if it is
             $cacheKey = md5($url);
             $isCached = $this->cache->load($cacheKey);
-            if ($isCached !== null && $isCached !== false) {
+            if ($isCached !== false) {
                 Shopware()->Session()->isCategoryPage = true;
 
                 return;
             }
-            // Unless we have a category page, this session variable will always be false
-            Shopware()->Session()->isCategoryPage = false;
 
-            $context = Context::createFromShop(
-                Shopware()->Container()->get('shop'),
-                Shopware()->Container()->get('config')
-            );
-
-            $rewrite = $this->rewrite->match($url, $context);
-            if (is_string($rewrite)) {
-                // As Shopware require the trailing slashes in the URL to match the category URL
-                // we will append the slash manually to check if it really is a category page even when there is
-                // no trailing slash present in the URL
-                $url = rtrim($url, '/') . '/';
-                $rewrite = $this->rewrite->match($url, $context);
-            }
-            if (is_string($rewrite)) {
-                Shopware()->Session()->isCategoryPage = false;
-            } elseif (is_array($rewrite)) {
-                $rewrite['module'] = 'frontend';
-                $rewrite['controller'] = 'cat';
-                $rewrite['action'] = 'index';
-                Shopware()->Session()->isCategoryPage = true;
-            } else {
-                Shopware()->Session()->isCategoryPage = false;
-            }
-
+            $this->matchCategoryPageUrl($url);
             $this->cache->save($cacheKey, Shopware()->Session()->isCategoryPage);
         }
     }
@@ -123,9 +100,9 @@ class Widgets implements SubscriberInterface
      * @return string
      * @throws Exception
      */
-    private function parseReferUrl($request)
+    private function parseReferer($request)
     {
-        $referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+        $referrer = $request->headers->get('referer');
         $url = parse_url($referrer, PHP_URL_PATH);
 
         $basePath = $request->getBasePath();
@@ -136,5 +113,41 @@ class Widgets implements SubscriberInterface
         $url = ltrim($url, '/');
 
         return $url;
+    }
+
+    /**
+     * Method to match the given URL if it is a category page and set the isCategoryPage session variable accordingly
+     *
+     * @param string $url
+     */
+    public function matchCategoryPageUrl(string $url)
+    {
+        /** @var Shop $shop */
+        $shop = Shopware()->Container()->get('shop');
+
+        /** @var Shopware_Components_Config $config */
+        $config = Shopware()->Container()->get('config');
+
+        /** @var Context $context */
+        $context = Context::createFromShop($shop, $config);
+
+        $rewrite = $this->rewriteMatcher->match($url, $context);
+        if (is_string($rewrite)) {
+            // As Shopware require the trailing slashes in the URL to match the category URL
+            // we will append the slash manually to check if it really is a category page even when there is
+            // no trailing slash present in the URL
+            $url = rtrim($url, '/') . '/';
+            $rewrite = $this->rewriteMatcher->match($url, $context);
+        }
+        if (is_string($rewrite)) {
+            Shopware()->Session()->isCategoryPage = false;
+        } elseif (is_array($rewrite)) {
+            $rewrite['module'] = 'frontend';
+            $rewrite['controller'] = 'cat';
+            $rewrite['action'] = 'index';
+            Shopware()->Session()->isCategoryPage = true;
+        } else {
+            Shopware()->Session()->isCategoryPage = false;
+        }
     }
 }
