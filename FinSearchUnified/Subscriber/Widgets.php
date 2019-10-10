@@ -75,7 +75,7 @@ class Widgets implements SubscriberInterface
                 return;
             }
 
-            $this->matchCategoryPageUrl($url);
+            Shopware()->Session()->isCategoryPage = $this->isCategoryPage($url);
             $this->cache->save($cacheKey, Shopware()->Session()->isCategoryPage);
         }
     }
@@ -102,7 +102,7 @@ class Widgets implements SubscriberInterface
      */
     private function parseReferer($request)
     {
-        $referrer = $request->headers->get('referer');
+        $referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
         $url = parse_url($referrer, PHP_URL_PATH);
 
         $basePath = $request->getBasePath();
@@ -116,11 +116,11 @@ class Widgets implements SubscriberInterface
     }
 
     /**
-     * Method to match the given URL if it is a category page and set the isCategoryPage session variable accordingly
-     *
      * @param string $url
+     *
+     * @return bool
      */
-    public function matchCategoryPageUrl(string $url)
+    private function isCategoryPage(string $url)
     {
         /** @var Shop $shop */
         $shop = Shopware()->Container()->get('shop');
@@ -139,15 +139,17 @@ class Widgets implements SubscriberInterface
             $url = rtrim($url, '/') . '/';
             $rewrite = $this->rewriteMatcher->match($url, $context);
         }
-        if (is_string($rewrite)) {
-            Shopware()->Session()->isCategoryPage = false;
-        } elseif (is_array($rewrite)) {
+
+        // Only if the matcher finds the category page, we will return true, otherwise it will always return false
+        $isCategoryPage = false;
+
+        if (is_array($rewrite)) {
             $rewrite['module'] = 'frontend';
             $rewrite['controller'] = 'cat';
             $rewrite['action'] = 'index';
-            Shopware()->Session()->isCategoryPage = true;
-        } else {
-            Shopware()->Session()->isCategoryPage = false;
+            $isCategoryPage = true;
         }
+
+        return $isCategoryPage;
     }
 }

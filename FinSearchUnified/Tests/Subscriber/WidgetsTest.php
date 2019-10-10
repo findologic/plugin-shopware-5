@@ -157,7 +157,7 @@ class WidgetsTest extends SubscriberTestCase
     public function testSearchPage($referer)
     {
         $request = new Enlight_Controller_Request_RequestHttp();
-        $request->setModuleName('widgets')->setParam('sSearch', 'text')->headers->set('referer', $referer);
+        $request->setModuleName('widgets')->setParam('sSearch', 'text')->setHeader('referer', $referer);
 
         $cacheMock = $this->createMock(Zend_Cache_Core::class);
         $cacheMock->expects($this->never())->method('save');
@@ -239,7 +239,8 @@ class WidgetsTest extends SubscriberTestCase
             ->setActionName('listingCount')
             ->setModuleName('widgets')
             ->setBasePath($basePath)
-            ->setParam('sCategory', 10)->headers->set('referer', $referer);
+            ->setParam('sCategory', 10)
+            ->setHeader('referer', $referer);
 
         $subject = $this->getControllerInstance(Shopware_Controllers_Widgets_Listing::class, $request);
 
@@ -289,7 +290,7 @@ class WidgetsTest extends SubscriberTestCase
     public function testHomePage($referer)
     {
         $request = new Enlight_Controller_Request_RequestHttp();
-        $request->setModuleName('frontend')->headers->set('referer', $referer);
+        $request->setModuleName('frontend')->setHeader('referer', $referer);
 
         $cacheMock = $this->createMock(Zend_Cache_Core::class);
         $cacheMock->expects($this->once())->method('load')->willReturn(false);
@@ -318,7 +319,7 @@ class WidgetsTest extends SubscriberTestCase
     {
         $referer = 'https://example.com/beispiele/?p=1';
         $request = new Enlight_Controller_Request_RequestHttp();
-        $request->setModuleName('widgets')->setParam('sCategory', 5)->headers->set('referer', $referer);
+        $request->setModuleName('widgets')->setParam('sCategory', 5)->setHeader('referer', $referer);
 
         $subject = $this->getControllerInstance(Shopware_Controllers_Widgets_Listing::class, $request);
 
