@@ -120,7 +120,7 @@ class Widgets implements SubscriberInterface
      *
      * @return bool
      */
-    private function isCategoryPage(string $url)
+    private function isCategoryPage($url)
     {
         /** @var Shop $shop */
         $shop = Shopware()->Container()->get('shop');
