@@ -260,12 +260,12 @@ class FrontendTest extends SubscriberTestCase
         $this->assertEquals(
             $isCategory,
             $isCategoryPage,
-            "Expected isCategoryPage to remain unchanged after listingCount method call"
+            'Expected isCategoryPage to remain unchanged after listingCount method call'
         );
         $this->assertEquals(
             $isSearch,
             $isSearchPage,
-            "Expected isSearchPage to remain unchanged after listingCount method call"
+            'Expected isSearchPage to remain unchanged after listingCount method call'
         );
     }
 
@@ -329,26 +329,36 @@ class FrontendTest extends SubscriberTestCase
 
     public function testLegacyUrls(array $params, $expectedUrl)
     {
+        $queryParams = $params;
+        unset($queryParams['controller'], $queryParams['action']);
+
         // Create Request object to be passed in the mocked Subject
         $request = new RequestHttp();
         $request->setControllerName($params['controller'])
             ->setActionName($params['action'])
-            ->setQuery($params)
+            ->setQuery($queryParams)
             ->setBaseUrl(rtrim(Shopware()->Shop()->getHost(), ' / '));
 
-        // Create mocked Subject to be passed in mocked args
+        // Set request URI for legacy search
+        if ($params['controller'] === 'FinSearchAPI') {
+            $request->setRequestUri('/FinSearchAPI/search');
+        }
+
         $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
-            ->setMethods(['Request', 'redirect'])
             ->disableOriginalConstructor()
             ->getMock();
-        $subject->method('Request')
-            ->willReturn($request);
 
-        $response = new Enlight_Controller_Response_ResponseHttp();
+        $response = $this->createMock(Enlight_Controller_Response_ResponseHttp::class);
+        if ($expectedUrl === null) {
+            $response->expects($this->never())->method('setRedirect');
+        } else {
+            $response->expects($this->once())->method('setRedirect')->with($expectedUrl, 301);
+        }
+
         $args = new Enlight_Event_EventArgs(['subject' => $subject, 'request' => $request, 'response' => $response]);
 
         $frontend = Shopware()->Container()->get('fin_search_unified.subscriber.frontend');
-        $frontend->onFrontendPreDispatch($args);
+        $frontend->onRouteStartup($args);
     }
 
     /**

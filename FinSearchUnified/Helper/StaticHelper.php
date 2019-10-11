@@ -5,12 +5,15 @@ namespace FinSearchUnified\Helper;
 use Enlight_View_Default;
 use Exception;
 use FinSearchUnified\Bundle\FacetResult as FinFacetResult;
+use FinSearchUnified\Components\ConfigLoader;
+use FinSearchUnified\Components\Environment;
 use FinSearchUnified\Constants;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\StoreFrontBundle;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use SimpleXMLElement;
+use Zend_Cache_Exception;
 use Zend_Http_Client;
 use Zend_Http_Client_Exception;
 
@@ -48,7 +51,7 @@ class StaticHelper
     {
         /** @var SimpleXMLElement $landingpage */
         $landingpage = $xmlResponse->landingPage;
-        if (isset($landingpage) && $landingpage != null && count($landingpage->attributes()) > 0) {
+        if (isset($landingpage) && $landingpage !== null && count($landingpage->attributes()) > 0) {
             /** @var string $redirect */
             $redirect = (string)$landingpage->attributes()->link;
 
@@ -311,7 +314,7 @@ class StaticHelper
                 $treeName = $recurseName . '_' . $item['name'];
             }
 
-            $active = in_array($treeName, $selectedItems);
+            $active = in_array($treeName, $selectedItems, true);
 
             if ($item['frequency'] && !$active) {
                 $label = sprintf('%s (%d)', $item['name'], $item['frequency']);
@@ -507,7 +510,7 @@ class StaticHelper
         $selectedItems = self::getSelectedItems($name);
 
         foreach ($items as $item) {
-            $active = in_array($item['name'], $selectedItems);
+            $active = in_array($item['name'], $selectedItems, true);
             $color = $item['color'] ?: null;
 
             $values[] = new FinFacetResult\ColorListItem($item['name'], $item['name'], $active, $color);
@@ -698,43 +701,75 @@ class StaticHelper
     }
 
     /**
-     * Checks if the FINDOLOGIC search should actually be performed.
+     * Returns `true` if the shop search should be used. If FINDOLOGIC can be used `false` is returned.
+     * Shop search will be used if the search was triggered
+     * * via CLI.
+     * * in the Shopware Backend.
+     * * in "Einkaufswelten" aka. "Emotion".
+     * * with FINDOLOGIC being disabled in the plugin config or no shopkey was set.
+     * * when the shop is Direct Integration (Direct Integration will handle any search requests).
+     * * on neither a search nor a navigation page.
+     * * on a category page but FINDOLOGIC is disabled in category pages in the plugin config.
+     * * when the shop is in Staging Mode and parameter `findologic=on` is not set.
      *
      * @return bool
+     * @throws Zend_Cache_Exception
      */
     public static function useShopSearch()
     {
+        $request = Shopware()->Front()->Request();
+        $isCLIMode = $request === null;
+        if ($isCLIMode) {
+            return true;
+        }
+
+        $isInBackend = $request->getModuleName() === 'backend';
+        $isEmotionPage = $request->getControllerName() === 'emotion';
+        $isFindologicActive = self::isFindologicActive();
+        $isDirectIntegration = self::checkDirectIntegration();
+
+        $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
+        $isNoSearchAndCategoryPage = !$isCategoryPage && !Shopware()->Session()->offsetGet('isSearchPage');
+        $isCategoryPageButDisabledInConfig = $isCategoryPage &&
+            !(bool)Shopware()->Config()->offsetGet('ActivateFindologicForCategoryPages');
+
         return (
-            Shopware()->Front()->Request() === null ||
-            Shopware()->Front()->Request()->getModuleName() === 'backend' ||
-            Shopware()->Front()->Request()->getControllerName() === 'emotion' ||
-            !self::isFindologicActive() ||
-            self::checkDirectIntegration() ||
-            (
-                !Shopware()->Session()->offsetGet('isCategoryPage') &&
-                !Shopware()->Session()->offsetGet('isSearchPage')
-            ) ||
-            (
-                Shopware()->Session()->offsetGet('isCategoryPage') &&
-                !(bool)Shopware()->Config()->get('ActivateFindologicForCategoryPages')
-            )
+            $isInBackend ||
+            $isEmotionPage ||
+            !$isFindologicActive ||
+            $isDirectIntegration ||
+            $isNoSearchAndCategoryPage ||
+            $isCategoryPageButDisabledInConfig
         );
     }
 
     /**
-     * Checks if FINDOLOGIC search has been activated properly
+     * Checks if FINDOLOGIC search has been activated properly.
+     * * In the config FINDOLOGIC needs to be marked as enabled.
+     * * A shopkey needs to be entered in the config.
+     * * And shop is not staging
      *
      * @return bool
+     * @throws Zend_Cache_Exception
      */
     public static function isFindologicActive()
     {
-        return (bool)Shopware()->Config()->get('ActivateFindologic') &&
-            !empty(trim(Shopware()->Config()->get('ShopKey'))) &&
-            Shopware()->Config()->get('ShopKey') !== 'Findologic Shopkey';
+        /** @var Environment $environment */
+        $environment = Shopware()->Container()->get('fin_search_unified.environment');
+
+        $isStagingMode = $environment->isStaging(Shopware()->Front()->Request());
+
+        return !$isStagingMode && (bool)Shopware()->Config()->offsetGet('ActivateFindologic') &&
+            !empty(trim(Shopware()->Config()->offsetGet('ShopKey')));
     }
 
+    /**
+     * @return mixed|null
+     * @throws Zend_Cache_Exception
+     */
     public static function checkDirectIntegration()
     {
+        /** @var ConfigLoader $configLoader */
         $configLoader = Shopware()->Container()->get('fin_search_unified.config_loader');
 
         $integrationType = Shopware()->Config()->offsetGet(Constants::CONFIG_KEY_INTEGRATION_TYPE);
@@ -778,9 +813,7 @@ class StaticHelper
      */
     public static function calculateUsergroupHash($shopkey, $usergroup)
     {
-        $hash = base64_encode($shopkey ^ $usergroup);
-
-        return $hash;
+        return base64_encode($shopkey ^ $usergroup);
     }
 
     /**

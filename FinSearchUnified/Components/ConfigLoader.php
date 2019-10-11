@@ -50,7 +50,6 @@ class ConfigLoader
         $this->cache = $cache;
         $this->httpClient = $httpClient;
         $this->config = $config;
-
         $this->shopkey = $config->offsetGet('ShopKey');
     }
 
@@ -71,7 +70,7 @@ class ConfigLoader
     {
         $restype = (string)$response->getStatusCode();
 
-        return $restype[0] === '2' || $restype[0] === '1';
+        return strpos($restype, '2') === 0 || strpos($restype, '1') === 0;
     }
 
     /**
@@ -107,7 +106,7 @@ class ConfigLoader
     {
         $config = json_decode($this->getConfigFile(), true);
         if ($config) {
-            $data = self::filterConfigs($config, self::WHITE_LIST);
+            $data = $this->filterConfigs($config, self::WHITE_LIST);
             $this->cache->save($data, $this->getCacheKey(), ['FINDOLOGIC'], self::CACHE_LIFETIME);
         }
     }

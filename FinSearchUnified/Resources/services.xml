@@ -127,6 +127,8 @@
 
         <service id="fin_search_unified.subscriber.widgets" class="FinSearchUnified\Subscriber\Widgets">
             <tag name="shopware.event_subscriber" />
+            <argument id="cache" type="service" />
+            <argument id="shopware.routing.matchers.rewrite_matcher" type="service" />
         </service>
 
         <service class="FinSearchUnified\Components\ConfigLoader" id="fin_search_unified.config_loader">
@@ -134,6 +136,8 @@
             <argument id="http_client" type="service" />
             <argument id="config" type="service" />
         </service>
+
+        <service class="FinSearchUnified\Components\Environment" id="fin_search_unified.environment" />
 
     </services>
 </container>
