@@ -84,6 +84,9 @@ class Frontend implements SubscriberInterface
         $request = $args->get('request');
         if ($this->isLegacySearch($request)) {
             $params = $request->getQuery();
+
+            unset($params['module'], $params['controller'], $params['action']);
+
             $url = '/search?' . http_build_query($params, null, '&', PHP_QUERY_RFC3986);
             // Perform a redirect to the actual search path and tell the client that it moved permanently.
             // The legacy parameters (relevant for search) will be mapped automatically by the corresponding
