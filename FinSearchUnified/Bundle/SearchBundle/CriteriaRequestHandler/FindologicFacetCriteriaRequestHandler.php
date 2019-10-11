@@ -27,6 +27,7 @@ namespace FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler;
 use Doctrine\DBAL\Connection;
 use Enlight_Controller_Request_RequestHttp as Request;
 use FinSearchUnified\Bundle\SearchBundle\Condition\Operator\Operator;
+use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\CombinedCondition;
 use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -68,7 +69,9 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
         Criteria $criteria,
         ShopContextInterface $context
     ) {
-        if ($this->isSearchPage($request)) {
+        if (StaticHelper::useShopSearch()) {
+        return True;
+        } elseif ($this->isSearchPage($request)) {
             $ids = $this->config->get('searchFacets', '');
             /** @var int[] $ids */
             $ids = array_filter(explode('|', $ids));
