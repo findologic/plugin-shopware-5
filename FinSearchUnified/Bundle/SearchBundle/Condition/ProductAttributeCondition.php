@@ -99,3 +99,4 @@ class ProductAttributeCondition implements ConditionInterface, \JsonSerializable
         return get_object_vars($this);
     }
 }
+

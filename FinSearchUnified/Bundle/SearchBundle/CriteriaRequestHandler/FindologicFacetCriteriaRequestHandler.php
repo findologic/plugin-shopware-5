@@ -5,6 +5,7 @@ namespace FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler;
 use Doctrine\DBAL\Connection;
 use Enlight_Controller_Request_RequestHttp as Request;
 use FinSearchUnified\Bundle\SearchBundle\Condition\Operator\Operator;
+use FinSearchUnified\Bundle\StoreFrontBundle\Service\CustomFacetServiceInterface;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\CombinedCondition;
 use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
@@ -12,9 +13,10 @@ use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\CriteriaRequestHandlerInterface;
 use Shopware\Bundle\SearchBundle\Facet\CombinedConditionFacet;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
-use Shopware\Bundle\StoreFrontBundle\Service\CustomFacetServiceInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
+
+//use Shopware\Bundle\StoreFrontBundle\Service\CustomFacetServiceInterface;
 
 class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInterface
 {
