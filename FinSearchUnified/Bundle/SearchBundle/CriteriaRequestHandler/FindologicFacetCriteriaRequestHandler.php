@@ -40,7 +40,6 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
     ) {
         $this->facetService = $facetService;
     }
-
     /**
      * {@inheritdoc}
      */
@@ -50,19 +49,15 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
         ShopContextInterface $context
     ) {
         if (StaticHelper::useShopSearch()) {
-        return True;
+            return;
         } elseif ($this->isSearchPage($request)) {
-            $ids = $this->config->get('searchFacets', '');
-            /** @var int[] $ids */
-            $ids = array_filter(explode('|', $ids));
-            $customFacets = $this->facetService->getList($ids, $context);
-            return $customFacets;
+            $customFacets = $this->facetService->getList([], $context);
         } elseif ($this->isCategoryListing($request)) {
             $categoryId = (int) $request->getParam('sCategory');
             $customFacets = $this->facetService->getFacetsOfCategories([$categoryId], $context);
             $customFacets = array_shift($customFacets);
         } else {
-            $customFacets = $this->facetService->getAllCategoryFacets($context);
+            return;
         }
 
         /** @var CustomFacet[] $customFacets */
@@ -72,16 +67,12 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
             }
             $facet = $customFacet->getFacet();
             $criteria->addFacet($facet);
-
             if ($facet instanceof ProductAttributeFacet) {
                 $this->handleProductAttributeFacet($request, $criteria, $facet);
-            } elseif ($facet instanceof CombinedConditionFacet) {
-                $this->handleCombinedConditionFacet($request, $criteria, $facet);
             }
         }
-        return [];
-
     }
+
 
     /**
      * @return bool

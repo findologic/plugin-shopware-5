@@ -37,5 +37,5 @@ class ProductAttributeConditionTest extends TestCase
             var_dump($product_attribute);
             $this->assertEquals('product_attribute_vendor',$product_attribute);
 
-}
+    }
 }

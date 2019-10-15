@@ -1,6 +1,6 @@
 <?php
 
-namespace Shopware\Bundle\StoreFrontBundle\Struct\Search;
+namespace FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search;
 
 use Shopware\Bundle\SearchBundle\FacetInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\Extendable;
