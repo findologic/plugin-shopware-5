@@ -12,7 +12,7 @@ class ProductAttributeConditionTest extends TestCase
         return [
             'integer for $field' => [
                'field' => 1,
-               'Exception' => InvalidArgumentException::class
+               'Exception' => Assert\InvalidArgumentException::class
             ],
             'vendor for $field' => [
                 'field' => 'vendor',
@@ -29,13 +29,12 @@ class ProductAttributeConditionTest extends TestCase
      */
 
     public function testException($field,$exception){
-        $ProductAttribute = new ProductAttributeCondition($field, '', '');
+        if($exception !== null){
+            $this->expectException($exception);
+        }
+            $ProductAttribute = new ProductAttributeCondition($field, '', '');
             $product_attribute = $ProductAttribute->getName();
-            if($exception !== null){
-                $this->expectException($exception);
-            }
             var_dump($product_attribute);
             $this->assertEquals('product_attribute_vendor',$product_attribute);
-
     }
 }
