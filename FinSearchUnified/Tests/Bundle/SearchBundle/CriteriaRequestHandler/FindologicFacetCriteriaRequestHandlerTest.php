@@ -172,29 +172,40 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
                 'field'=>'vendor',
                 'mode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
                 'formFieldName' =>'vendor',
-                'label'=>'Manufacturer'
+                'label'=>'Manufacturer',
+                'value' => '',
+                'operator' => '',
+                'hasCondition' => false
             ],
             'Passed criteria object has a Field is vendor and Value is Shopware Food' => [
                 'field' => 'vendor',
                 'mode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
-                'formFieldName' =>'Shopware Food',
-                'label'=>'Manufacturer'
+                'formFieldName' =>'vendor',
+                'label'=>'Manufacturer',
+                'value' => 'Shopware Food',
+                'operator' => '',
+                'hasCondition' => true
             ],
             'Passed criteria object has a Field is vendor and  Value is array [Shopware Food, Shopware Freetime]' => [
                 'field' => 'vendor',
                 'mode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
-                'formFieldName' =>'Shopware Food|Shopware Freetime',
-                'label'=>'Manufacturer'
+                'formFieldName' =>'vendor',
+                'label'=>'Manufacturer',
+                'value' => ['Shopware Food', 'Shopware Freetime'],
+                'operator' => '|',
+                'hasCondition' => true
             ],
             'Passed criteria object has a condition of type Field is size and Value is array' => [
                 'field' => 'size',
                 'mode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
-                'formFieldName' =>'minsize=S & maxsize=L',
-                'label'=>'Size'
+                'formFieldName' =>'vendor',
+                'label'=>'Size',
+                'value' => '[min => S, max => L]',
+                'operator' => '&',
+                'hasCondition' => true
             ],
         ];
     }
-
     /**
      * @dataProvider HandleRequestFacetDataProvider
      *
@@ -202,9 +213,12 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
      * @param string $mode
      * @param bool $formFieldName
      * @param bool $label
+     * @param bool $value
+     * @param bool $operator
+     * @param bool $hasCondition
      */
 
-    public function testHandleFacet($field,$mode,$formFieldName,$label){
+    public function testHandleFacet($field,$mode,$formFieldName,$label,$value,$operator,$hasCondition){
         $isActive = true;
         $shopKey = '0000000000000000ZZZZZZZZZZZZZZZZ';
         $isActiveForCategory = false;
@@ -218,39 +232,16 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
                 ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API]
             ];
 
-//        return $this->parse(
-//            $query,
-//            's_articles_attributes',
-//            'productAttribute',
-//            $condition->getField(),
-//            $condition->getValue(),
-//            $condition->getOperator()
-//        );
             $criteria = new Criteria();
             $request = new RequestHttp();
             $request->setModuleName('frontend');
             $request->setParam('sSearch','text');
+            $request->setParam($field,$value);
             $productAttributeFacet = new ProductAttributeFacet( $field, $mode, $formFieldName, $label);
             $customFacet = new customFacet();
             //$ProductAttributeFacet = new ProductAttributeFacet('vendor', ProductAttributeFacet::MODE_RADIO_LIST_RESULT, 'vendor', 'Manufacturer');
             $customFacet->setFacet($productAttributeFacet);
 
-            /** @var ProductAttributeCondition $condition */
-         if ($condition = $criteria->getCondition($productAttributeFacet->getName())){
-             $value = $condition->getValue();
-             var_dump($value);
-            }
-        if ($condition = $criteria->getCondition($productAttributeFacet->getField() == 'vendor' && $productAttributeFacet->getFormFieldName() == 'Shopware Food')){
-            $value = $condition->getValue();
-            var_dump($value);
-        }
-        if ($condition = $criteria->getCondition($productAttributeFacet->getField() == 'vendor' && $productAttributeFacet->getFormFieldName() == '[Shopware Food, Shopware Freetime]')){
-            $value = $condition->getValue();
-            var_dump($value);
-            if (!is_array($value)) {
-               $value = [$value];
-            }
-        }
         // Create Mock object for Shopware Front Request
         $front = $this->getMockBuilder(Front::class)
             ->setMethods(['Request'])
@@ -301,5 +292,19 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
         }
         $findologicFacet = new FindologicFacetCriteriaRequestHandler($customFacetServiceMock);
         $findologicFacet->handleRequest($request , $criteria , $context);
+
+        if($hasCondition == false){
+            $condition = $criteria->getConditions();
+            $this->assertEmpty($condition);
+       }
+        if($hasCondition == true){
+            $condition = $criteria->getCondition(ProductAttributeCondition::class);
+            $conditionField = $condition->getField();
+            $conditionOperator = $condition->getOperator();
+            $conditionValue = $condition->getValue();
+            $this->assertEquals($field,$conditionField, 'vendor=Shopware Food');
+            $this->assertEquals($operator,$conditionOperator, 'vendor=Shopware Food');
+            $this->assertEquals($value,$conditionValue, 'vendor=Shopware Food');
+        }
     }
 }
