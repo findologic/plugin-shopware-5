@@ -28,7 +28,6 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
         Shopware()->Container()->reset('config');
         Shopware()->Container()->load('config');
     }
-
     public function handleRequestDataProvider()
     {
         {
@@ -61,7 +60,7 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
                     'expected' => false
                 ],
             ];
-        }
+            }
     }
     /**
      * @dataProvider handleRequestDataProvider
@@ -82,7 +81,8 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
         $checkIntegration,
         $isSearchPage,
         $isCategoryPage,
-        $expected){
+        $expected
+    ) {
         $configArray = [
             ['ActivateFindologic', $isActive],
             ['ShopKey', $shopKey],
@@ -92,13 +92,13 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
             $criteria = new Criteria();
             $request = new RequestHttp();
             $request->setModuleName('frontend');
-            if($isSearchPage === true){
-                $request->setParam('sSearch','text');
-            }
-            if($isCategoryPage === true){
-                $request->setControllerName('listing');
-                $request->setParam('sCategory',5);
-            }
+        if ($isSearchPage === true) {
+            $request->setParam('sSearch', 'text');
+        }
+        if ($isCategoryPage === true) {
+            $request->setControllerName('listing');
+            $request->setParam('sCategory', 5);
+        }
             // Create Mock object for Shopware Front Request
             $front = $this->getMockBuilder(Front::class)
                 ->setMethods(['Request'])
@@ -111,24 +111,24 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
             // Assign mocked session variable to application container
             Shopware()->Container()->set('front', $front);
 
-            if ($isSearchPage !== null) {
-                $sessionArray = [
-                    ['isSearchPage', $isSearchPage],
-                    ['isCategoryPage', $isCategoryPage],
-                    ['findologicDI', $checkIntegration]
-                ];
+        if ($isSearchPage !== null) {
+            $sessionArray = [
+                ['isSearchPage', $isSearchPage],
+                ['isCategoryPage', $isCategoryPage],
+                ['findologicDI', $checkIntegration]
+            ];
 
-                // Create Mock object for Shopware Session
-                $session = $this->getMockBuilder(Session::class)
-                    ->setMethods(['offsetGet'])
-                    ->getMock();
-                $session->expects($this->atLeastOnce())
-                    ->method('offsetGet')
-                    ->willReturnMap($sessionArray);
+            // Create Mock object for Shopware Session
+            $session = $this->getMockBuilder(Session::class)
+                ->setMethods(['offsetGet'])
+                ->getMock();
+            $session->expects($this->atLeastOnce())
+                ->method('offsetGet')
+                ->willReturnMap($sessionArray);
 
-                // Assign mocked session variable to application container
-                Shopware()->Container()->set('session', $session);
-            }
+            // Assign mocked session variable to application container
+            Shopware()->Container()->set('session', $session);
+        }
             // Create Mock object for Shopware Config
             $config = $this->getMockBuilder(Config::class)
                 ->setMethods(['offsetGet', 'offsetExists'])
@@ -140,7 +140,6 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
             $config->expects($this->any())
                 ->method('offsetExists')
                 ->willReturn(true);
-
             // Assign mocked config variable to application container
             Shopware()->Container()->set('config', $config);
 
@@ -151,21 +150,18 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
 
             // Assign mocked CustomFacetService::getList method
             $customFacetServiceMock = $this->createMock(CustomFacetService::class);
-            if($isSearchPage == null){
-                $customFacetServiceMock->expects($this->never())->method('getList');
-            } if($isSearchPage == true) {
+        if ($isSearchPage == null) {
+            $customFacetServiceMock->expects($this->never())->method('getList');
+        } if ($isSearchPage == true) {
             $customFacetServiceMock->expects($this->once())->method('getList')->with([]);
-            }
-            if($isCategoryPage == true){
-                $customFacetServiceMock->expects($this->once())->method('getFacetsOfCategories')->with([5]);
-            }
+        }
+        if ($isCategoryPage == true) {
+            $customFacetServiceMock->expects($this->once())->method('getFacetsOfCategories')->with([5]);
+        }
         $findologicFacet = new FindologicFacetCriteriaRequestHandler($customFacetServiceMock);
-        $findologicFacet->handleRequest($request , $criteria , $context);
+        $findologicFacet->handleRequest($request, $criteria, $context);
     }
-
-
-
-    public function HandleRequestFacetDataProvider()
+    public function handleRequestFacetDataProvider()
     {
         return [
             'Passed criteria object still doesnt have any conditions' => [
@@ -173,8 +169,8 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
                 'mode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
                 'formFieldName' =>'vendor',
                 'label'=>'Manufacturer',
+                'parameter' => '',
                 'value' => '',
-                'operator' => '',
                 'hasCondition' => false
             ],
             'Passed criteria object has a Field is vendor and Value is Shopware Food' => [
@@ -182,8 +178,8 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
                 'mode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
                 'formFieldName' =>'vendor',
                 'label'=>'Manufacturer',
+                'parameter' => 'Shopware Food',
                 'value' => 'Shopware Food',
-                'operator' => '',
                 'hasCondition' => true
             ],
             'Passed criteria object has a Field is vendor and  Value is array [Shopware Food, Shopware Freetime]' => [
@@ -191,8 +187,8 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
                 'mode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
                 'formFieldName' =>'vendor',
                 'label'=>'Manufacturer',
+                'parameter' => 'Shopware Food|Shopware Freetime',
                 'value' => ['Shopware Food', 'Shopware Freetime'],
-                'operator' => '|',
                 'hasCondition' => true
             ],
             'Passed criteria object has a condition of type Field is size and Value is array' => [
@@ -200,85 +196,83 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
                 'mode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
                 'formFieldName' =>'vendor',
                 'label'=>'Size',
-                'value' => '[min => S, max => L]',
-                'operator' => '&',
+                'parameter' => 'minsize=S&maxsize=L',
+                'value' => ['min => S, max => L'],
                 'hasCondition' => true
             ],
         ];
     }
     /**
-     * @dataProvider HandleRequestFacetDataProvider
+     * @dataProvider handleRequestFacetDataProvider
      *
      * @param bool $field
      * @param string $mode
      * @param bool $formFieldName
      * @param bool $label
+     * @param bool $parameter
      * @param bool $value
-     * @param bool $operator
      * @param bool $hasCondition
      */
-
-    public function testHandleFacet($field,$mode,$formFieldName,$label,$value,$operator,$hasCondition){
+    public function testHandleFacet($field, $mode, $formFieldName, $label, $parameter, $value, $hasCondition)
+    {
         $isActive = true;
         $shopKey = '0000000000000000ZZZZZZZZZZZZZZZZ';
         $isActiveForCategory = false;
         $checkIntegration = false;
         $isSearchPage = true;
         $expected = false;
-            $configArray = [
-                ['ActivateFindologic', $isActive],
-                ['ShopKey', $shopKey],
-                ['ActivateFindologicForCategoryPages', $isActiveForCategory],
-                ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API]
-            ];
-
-            $criteria = new Criteria();
-            $request = new RequestHttp();
-            $request->setModuleName('frontend');
-            $request->setParam('sSearch','text');
-            $request->setParam($field,$value);
-            $productAttributeFacet = new ProductAttributeFacet( $field, $mode, $formFieldName, $label);
-            $customFacet = new customFacet();
-            //$ProductAttributeFacet = new ProductAttributeFacet('vendor', ProductAttributeFacet::MODE_RADIO_LIST_RESULT, 'vendor', 'Manufacturer');
-            $customFacet->setFacet($productAttributeFacet);
+        $configArray = [
+        ['ActivateFindologic', $isActive],
+        ['ShopKey', $shopKey],
+        ['ActivateFindologicForCategoryPages', $isActiveForCategory],
+        ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API]
+        ];
+        $criteria = new Criteria();
+        $request = new RequestHttp();
+        $request->setModuleName('frontend');
+        $request->setParam('sSearch', 'text');
+        $request->setParam($field, $parameter);
+        $productAttributeFacet = new ProductAttributeFacet($field, $mode, $formFieldName, $label);
+        $customFacet = new CustomFacet();
+        $customFacet->setFacet($productAttributeFacet);
 
         // Create Mock object for Shopware Front Request
         $front = $this->getMockBuilder(Front::class)
-            ->setMethods(['Request'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        ->setMethods(['Request'])
+        ->disableOriginalConstructor()
+        ->getMock();
         $front->expects($this->any())
-            ->method('Request')
-            ->willReturn($request);
+        ->method('Request')
+        ->willReturn($request);
         $context = Shopware()->Container()->get('shopware_storefront.context_service')->getShopContext();
         // Assign mocked session variable to application container
         Shopware()->Container()->set('front', $front);
         if ($isSearchPage !== null) {
             $sessionArray = [
-                ['isSearchPage', $isSearchPage],
-                ['findologicDI', $checkIntegration]
+            ['isSearchPage', $isSearchPage],
+            ['findologicDI', $checkIntegration]
             ];
-            // Create Mock object for Shopware Session
+        // Create Mock object for Shopware Session
             $session = $this->getMockBuilder(Session::class)
-                ->setMethods(['offsetGet'])
-                ->getMock();
+            ->setMethods(['offsetGet'])
+            ->getMock();
             $session->expects($this->atLeastOnce())
-                ->method('offsetGet')
-                ->willReturnMap($sessionArray);
-            // Assign mocked session variable to application container
+            ->method('offsetGet')
+            ->willReturnMap($sessionArray);
+        // Assign mocked session variable to application container
             Shopware()->Container()->set('session', $session);
         }
         // Create Mock object for Shopware Config
         $config = $this->getMockBuilder(Config::class)
-            ->setMethods(['offsetGet', 'offsetExists'])
-            ->disableOriginalConstructor()
-            ->getMock();
+        ->setMethods(['offsetGet', 'offsetExists'])
+        ->disableOriginalConstructor()
+        ->getMock();
         $config->expects($this->atLeastOnce())
-            ->method('offsetGet')
-            ->willReturnMap($configArray);
+        ->method('offsetGet')
+        ->willReturnMap($configArray);
         $config->expects($this->any())
-            ->method('offsetExists')
-            ->willReturn(true);
+        ->method('offsetExists')
+        ->willReturn(true);
         // Assign mocked config variable to application container
         Shopware()->Container()->set('config', $config);
         $result = StaticHelper::useShopSearch();
@@ -287,24 +281,23 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
         $this->assertEquals($expected, $result, sprintf($error, $shop));
         // Assign mocked CustomFacetService::getList method
         $customFacetServiceMock = $this->createMock(CustomFacetService::class);
-        if($isSearchPage == true) {
+        if ($isSearchPage == true) {
             $customFacetServiceMock->expects($this->once())->method('getList')->willReturn([$customFacet]);
         }
         $findologicFacet = new FindologicFacetCriteriaRequestHandler($customFacetServiceMock);
-        $findologicFacet->handleRequest($request , $criteria , $context);
+        $findologicFacet->handleRequest($request, $criteria, $context);
 
-        if($hasCondition == false){
+        if ($hasCondition == false) {
             $condition = $criteria->getConditions();
             $this->assertEmpty($condition);
-       }
-        if($hasCondition == true){
+        }
+        if ($hasCondition == true) {
             $condition = $criteria->getCondition(ProductAttributeCondition::class);
             $conditionField = $condition->getField();
-            $conditionOperator = $condition->getOperator();
+
             $conditionValue = $condition->getValue();
-            $this->assertEquals($field,$conditionField, 'vendor=Shopware Food');
-            $this->assertEquals($operator,$conditionOperator, 'vendor=Shopware Food');
-            $this->assertEquals($value,$conditionValue, 'vendor=Shopware Food');
+            $this->assertEquals($field, $conditionField, 'vendor=Shopware Food');
+            $this->assertEquals($value, $conditionValue, 'vendor=Shopware Food');
         }
     }
 }

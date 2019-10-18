@@ -2,13 +2,12 @@
 
 namespace FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler;
 
-use Doctrine\DBAL\Connection;
 use Enlight_Controller_Request_RequestHttp as Request;
 use FinSearchUnified\Bundle\SearchBundle\Condition\Operator\Operator;
+use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\StoreFrontBundle\Service\CustomFacetServiceInterface;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\CombinedCondition;
-use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\CriteriaRequestHandlerInterface;
 use Shopware\Bundle\SearchBundle\Facet\CombinedConditionFacet;
@@ -21,19 +20,9 @@ use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInterface
 {
     /**
-     * @var \Shopware_Components_Config
-     */
-    private $config;
-
-    /**
      * @var CustomFacetServiceInterface
      */
     private $facetService;
-
-    /**
-     * @var Connection
-     */
-    private $connection;
 
     public function __construct(
         CustomFacetServiceInterface $facetService
@@ -59,7 +48,6 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
         } else {
             return;
         }
-
         /** @var CustomFacet[] $customFacets */
         foreach ($customFacets as $customFacet) {
             if (!$customFacet->getFacet()) {
@@ -72,8 +60,6 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
             }
         }
     }
-
-
     /**
      * @return bool
      */
@@ -104,7 +90,6 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
 
         switch ($facet->getMode()) {
             case ProductAttributeFacet::MODE_RADIO_LIST_RESULT:
-
                 $criteria->addCondition(
                     new ProductAttributeCondition(
                         $facet->getField(),
@@ -116,7 +101,6 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
                 return;
 
             case ProductAttributeFacet::MODE_RANGE_RESULT:
-
                 $range = [];
                 if ($request->has('min' . $facet->getFormFieldName())) {
                     $range['min'] = $request->getParam('min' . $facet->getFormFieldName());
@@ -134,7 +118,6 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
                 return;
 
             case ProductAttributeFacet::MODE_VALUE_LIST_RESULT:
-
                 $criteria->addCondition(
                     new ProductAttributeCondition(
                         $facet->getField(),

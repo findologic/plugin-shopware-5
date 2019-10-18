@@ -133,7 +133,6 @@ class TextFacetHandler implements PartialFacetHandlerInterface
             $facet->getFormFieldName()
         );
     }
-
     /**
      * @param FacetInterface $facet
      * @param Criteria $criteria
