@@ -3,9 +3,10 @@
 namespace FinSearchUnified\Bundle\SearchBundle\Condition;
 
 use Assert\Assertion;
+use JsonSerializable;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 
-class ProductAttributeCondition implements ConditionInterface, \JsonSerializable
+class ProductAttributeCondition implements ConditionInterface, JsonSerializable
 {
     /**
      * @var string
@@ -23,9 +24,9 @@ class ProductAttributeCondition implements ConditionInterface, \JsonSerializable
     protected $operator;
 
     /**
-     * @param string       $field
-     * @param string       $operator
-     * @param string|array $value    ['min' => 1, 'max' => 10] for between operator
+     * @param string $field
+     * @param string $operator
+     * @param string|array $value ['min' => 1, 'max' => 10] for between operator
      */
     public function __construct($field, $operator, $value)
     {

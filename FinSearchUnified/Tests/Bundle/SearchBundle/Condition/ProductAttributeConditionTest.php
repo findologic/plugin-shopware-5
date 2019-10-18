@@ -5,17 +5,16 @@ use FinSearchUnified\Tests\TestCase;
 
 class ProductAttributeConditionTest extends TestCase
 {
-
     public function exceptionDataProvider()
     {
         return [
-            'integer for $field' => [
-               'field' => 1,
-               'Exception' => Assert\InvalidArgumentException::class
+            'The value for "field" is an integer' => [
+                'field' => 1,
+                'exception' => Assert\InvalidArgumentException::class
             ],
-            'vendor for $field' => [
+            'The value for "field" is "vendor"' => [
                 'field' => 'vendor',
-                'Exception' => null
+                'exception' => null
             ],
         ];
     }
@@ -26,15 +25,14 @@ class ProductAttributeConditionTest extends TestCase
      * @param string $field
      * @param string $exception
      */
-
     public function testException($field, $exception)
     {
         if ($exception !== null) {
             $this->expectException($exception);
         }
-            $ProductAttribute = new ProductAttributeCondition($field, '', '');
-            $product_attribute = $ProductAttribute->getName();
-            var_dump($product_attribute);
-            $this->assertEquals('product_attribute_vendor', $product_attribute);
+
+        $condition = new ProductAttributeCondition($field, '', '');
+        $conditionName = $condition->getName();
+        $this->assertEquals('product_attribute_vendor', $conditionName);
     }
 }

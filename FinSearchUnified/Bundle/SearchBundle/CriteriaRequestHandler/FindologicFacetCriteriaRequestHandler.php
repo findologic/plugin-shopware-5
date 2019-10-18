@@ -3,7 +3,7 @@
 namespace FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler;
 
 use Enlight_Controller_Request_RequestHttp as Request;
-use FinSearchUnified\Bundle\SearchBundle\Condition\Operator\Operator;
+use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\StoreFrontBundle\Service\CustomFacetServiceInterface;
 use FinSearchUnified\Helper\StaticHelper;
