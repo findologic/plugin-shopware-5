@@ -1,6 +1,6 @@
 <?php
 
-namespace FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
+namespace FinSearchUnified\Bundle\SearchBundle\Condition;
 
 abstract class Operator
 {
