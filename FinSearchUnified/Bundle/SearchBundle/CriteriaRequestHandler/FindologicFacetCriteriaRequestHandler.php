@@ -15,8 +15,6 @@ use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
-//use Shopware\Bundle\StoreFrontBundle\Service\CustomFacetServiceInterface;
-
 class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInterface
 {
     /**
@@ -24,11 +22,11 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
      */
     private $facetService;
 
-    public function __construct(
-        CustomFacetServiceInterface $facetService
-    ) {
+    public function __construct(CustomFacetServiceInterface $facetService)
+    {
         $this->facetService = $facetService;
     }
+
     /**
      * {@inheritdoc}
      */
@@ -39,10 +37,12 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
     ) {
         if (StaticHelper::useShopSearch()) {
             return;
-        } elseif ($this->isSearchPage($request)) {
+        }
+
+        if ($this->isSearchPage($request)) {
             $customFacets = $this->facetService->getList([], $context);
         } elseif ($this->isCategoryListing($request)) {
-            $categoryId = (int) $request->getParam('sCategory');
+            $categoryId = (int)$request->getParam('sCategory');
             $customFacets = $this->facetService->getFacetsOfCategories([$categoryId], $context);
             $customFacets = array_shift($customFacets);
         } else {
@@ -60,7 +60,10 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
             }
         }
     }
+
     /**
+     * @param Request $request
+     *
      * @return bool
      */
     private function isCategoryListing(Request $request)
@@ -69,6 +72,8 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
     }
 
     /**
+     * @param Request $request
+     *
      * @return bool
      */
     private function isSearchPage(Request $request)
@@ -78,6 +83,11 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
         return array_key_exists('sSearch', $params);
     }
 
+    /**
+     * @param Request $request
+     * @param Criteria $criteria
+     * @param ProductAttributeFacet $facet
+     */
     private function handleProductAttributeFacet(
         Request $request,
         Criteria $criteria,
@@ -86,8 +96,8 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
         if (!$this->isAttributeInRequest($facet, $request)) {
             return;
         }
-        $data = $request->getParam($facet->getFormFieldName());
 
+        $data = $request->getParam($facet->getFormFieldName());
         switch ($facet->getMode()) {
             case ProductAttributeFacet::MODE_RADIO_LIST_RESULT:
                 $criteria->addCondition(
@@ -99,7 +109,6 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
                 );
 
                 return;
-
             case ProductAttributeFacet::MODE_RANGE_RESULT:
                 $range = [];
                 if ($request->has('min' . $facet->getFormFieldName())) {
@@ -116,7 +125,6 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
                 $criteria->addCondition($condition);
 
                 return;
-
             case ProductAttributeFacet::MODE_VALUE_LIST_RESULT:
                 $criteria->addCondition(
                     new ProductAttributeCondition(
@@ -132,6 +140,11 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
         }
     }
 
+    /**
+     * @param Request $request
+     * @param Criteria $criteria
+     * @param CombinedConditionFacet $facet
+     */
     private function handleCombinedConditionFacet(
         Request $request,
         Criteria $criteria,
@@ -148,6 +161,9 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
     }
 
     /**
+     * @param ProductAttributeFacet $facet
+     * @param Request $request
+     *
      * @return bool
      */
     private function isAttributeInRequest(ProductAttributeFacet $facet, Request $request)
@@ -162,7 +178,6 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
         }
 
         return array_key_exists('min' . $facet->getFormFieldName(), $params)
-            || array_key_exists('max' . $facet->getFormFieldName(), $params)
-            ;
+            || array_key_exists('max' . $facet->getFormFieldName(), $params);
     }
 }

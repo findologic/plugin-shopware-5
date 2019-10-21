@@ -61,7 +61,7 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
                     'expected' => false
                 ],
             ];
-            }
+        }
     }
 
     /**
