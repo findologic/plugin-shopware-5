@@ -31,37 +31,35 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
 
     public function handleRequestDataProvider()
     {
-        {
-            return [
-                'UseShopSearch is True' => [
-                    'ActivateFindologic' => false,
-                    'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                    'ActivateFindologicForCategoryPages' => true,
-                    'findologicDI' => false,
-                    'isSearchPage' => null,
-                    'isCategoryPage' => null,
-                    'expected' => true,
-                ],
-                'UseShopSearch is False' => [
-                    'ActivateFindologic' => true,
-                    'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                    'ActivateFindologicForCategoryPages' => false,
-                    'findologicDI' => false,
-                    'isSearchPage' => true,
-                    'isCategoryPage' => false,
-                    'expected' => false
-                ],
-                'UseShopSearch is False And Category Page is True' => [
-                    'ActivateFindologic' => true,
-                    'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                    'ActivateFindologicForCategoryPages' => true,
-                    'findologicDI' => false,
-                    'isSearchPage' => false,
-                    'isCategoryPage' => true,
-                    'expected' => false
-                ],
-            ];
-        }
+        return [
+            'UseShopSearch is True' => [
+                'ActivateFindologic' => false,
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+                'ActivateFindologicForCategoryPages' => true,
+                'findologicDI' => false,
+                'isSearchPage' => null,
+                'isCategoryPage' => null,
+                'expected' => true,
+            ],
+            'UseShopSearch is False' => [
+                'ActivateFindologic' => true,
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+                'ActivateFindologicForCategoryPages' => false,
+                'findologicDI' => false,
+                'isSearchPage' => true,
+                'isCategoryPage' => false,
+                'expected' => false
+            ],
+            'UseShopSearch is False And Category Page is True' => [
+                'ActivateFindologic' => true,
+                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+                'ActivateFindologicForCategoryPages' => true,
+                'findologicDI' => false,
+                'isSearchPage' => false,
+                'isCategoryPage' => true,
+                'expected' => false
+            ],
+        ];
     }
 
     /**
