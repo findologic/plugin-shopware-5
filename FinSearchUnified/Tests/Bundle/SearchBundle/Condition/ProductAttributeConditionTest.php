@@ -1,5 +1,6 @@
 <?php
 
+use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Tests\TestCase;
 
@@ -25,14 +26,14 @@ class ProductAttributeConditionTest extends TestCase
      * @param string $field
      * @param string $exception
      */
-    public function testException($field, $exception)
+    public function testConditionException($field, $exception)
     {
         if ($exception !== null) {
             $this->expectException($exception);
         }
 
-        $condition = new ProductAttributeCondition($field, '', '');
-        $conditionName = $condition->getName();
-        $this->assertEquals('product_attribute_vendor', $conditionName);
+        $condition = new ProductAttributeCondition($field, Operator::EQ, 'Findologic');
+        $this->assertEquals(sprintf('product_attribute_%s', $field), $condition->getName());
+        $this->assertEquals('Findologic', $condition->getValue());
     }
 }

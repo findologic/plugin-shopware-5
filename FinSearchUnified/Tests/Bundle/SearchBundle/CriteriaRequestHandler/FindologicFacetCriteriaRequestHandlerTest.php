@@ -5,7 +5,6 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\ConditionHandler;
 use Enlight_Components_Session_Namespace as Session;
 use Enlight_Controller_Front as Front;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
-use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler\FindologicFacetCriteriaRequestHandler;
 use FinSearchUnified\Bundle\StoreFrontBundle\Service\Core\CustomFacetService;
 use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
@@ -62,7 +61,7 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
                     'expected' => false
                 ],
             ];
-        }
+            }
     }
 
     /**
@@ -92,6 +91,8 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
             ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API]
         ];
 
+        $categoryId = 5;
+
         $request = new RequestHttp();
         $request->setModuleName('frontend');
         if ($isSearchPage === true) {
@@ -99,7 +100,7 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
         }
         if ($isCategoryPage === true) {
             $request->setControllerName('listing');
-            $request->setParam('sCategory', 5);
+            $request->setParam('sCategory', $categoryId);
         }
         // Create Mock object for Shopware Front Request
         $front = $this->getMockBuilder(Front::class)
@@ -158,7 +159,10 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
             $customFacetServiceMock->expects($this->once())->method('getList')->with([])->willReturn([]);
         }
         if ($isCategoryPage === true) {
-            $customFacetServiceMock->expects($this->once())->method('getFacetsOfCategories')->with([5])->willReturn([]);
+            $customFacetServiceMock->expects($this->once())
+                ->method('getFacetsOfCategories')
+                ->with([$categoryId])
+                ->willReturn([]);
         }
         $findologicFacet = new FindologicFacetCriteriaRequestHandler($customFacetServiceMock);
         $findologicFacet->handleRequest($request, new Criteria(), $context);
@@ -172,8 +176,8 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
                 'mode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
                 'formFieldName' => 'vendor',
                 'label' => 'Manufacturer',
-                'parameter' => '',
-                'value' => '',
+                'parameter' => [],
+                'value' => null,
                 'hasCondition' => false
             ],
             'Passed criteria object has a Field is vendor and Value is Shopware Food' => [
@@ -181,7 +185,7 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
                 'mode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
                 'formFieldName' => 'vendor',
                 'label' => 'Manufacturer',
-                'parameter' => 'Shopware Food',
+                'parameter' => ['vendor' => 'Shopware Food'],
                 'value' => 'Shopware Food',
                 'hasCondition' => true
             ],
@@ -190,17 +194,17 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
                 'mode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
                 'formFieldName' => 'vendor',
                 'label' => 'Manufacturer',
-                'parameter' => 'Shopware Food|Shopware Freetime',
+                'parameter' => ['vendor' => 'Shopware Food|Shopware Freetime'],
                 'value' => ['Shopware Food', 'Shopware Freetime'],
                 'hasCondition' => true
             ],
             'Passed criteria object has a condition of type Field is size and Value is array' => [
                 'field' => 'size',
                 'mode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
-                'formFieldName' => 'vendor',
+                'formFieldName' => 'size',
                 'label' => 'Size',
-                'parameter' => 'minsize=S&maxsize=L',
-                'value' => ['min => S, max => L'],
+                'parameter' => ['size' => ['min' => 'S', 'max' => 'L']],
+                'value' => ['min' => 'S', 'max' => 'L'],
                 'hasCondition' => true
             ],
         ];
@@ -209,12 +213,12 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
     /**
      * @dataProvider handleRequestSearchProvider
      *
-     * @param bool $field
+     * @param string $field
      * @param string $mode
-     * @param bool $formFieldName
-     * @param bool $label
-     * @param bool $parameter
-     * @param bool $value
+     * @param string $formFieldName
+     * @param string $label
+     * @param array $parameter
+     * @param mixed $value
      * @param bool $hasCondition
      */
     public function testHandleRequestForSearchPage(
@@ -222,27 +226,21 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
         $mode,
         $formFieldName,
         $label,
-        $parameter,
+        array $parameter,
         $value,
         $hasCondition
     ) {
-        $isActive = true;
-        $shopKey = '0000000000000000ZZZZZZZZZZZZZZZZ';
-        $isActiveForCategory = false;
-        $checkIntegration = false;
-        $isSearchPage = true;
-        $expected = false;
         $configArray = [
-            ['ActivateFindologic', $isActive],
-            ['ShopKey', $shopKey],
-            ['ActivateFindologicForCategoryPages', $isActiveForCategory],
-            ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API]
+            ['ActivateFindologic', true],
+            ['ShopKey', '0000000000000000ZZZZZZZZZZZZZZZZ'],
+            ['ActivateFindologicForCategoryPages', false],
+            ['IntegrationType', Constants::INTEGRATION_TYPE_API]
         ];
         $criteria = new Criteria();
         $request = new RequestHttp();
         $request->setModuleName('frontend');
         $request->setParam('sSearch', 'text');
-        $request->setParam($field, $parameter);
+        $request->setParams($parameter);
         $productAttributeFacet = new ProductAttributeFacet($field, $mode, $formFieldName, $label);
         $customFacet = new CustomFacet();
         $customFacet->setFacet($productAttributeFacet);
@@ -252,27 +250,25 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
             ->setMethods(['Request'])
             ->disableOriginalConstructor()
             ->getMock();
-        $front->expects($this->any())
+        $front->expects($this->exactly(6))
             ->method('Request')
             ->willReturn($request);
         $context = Shopware()->Container()->get('shopware_storefront.context_service')->getShopContext();
         // Assign mocked session variable to application container
         Shopware()->Container()->set('front', $front);
-        if ($isSearchPage !== null) {
-            $sessionArray = [
-                ['isSearchPage', $isSearchPage],
-                ['findologicDI', $checkIntegration]
-            ];
-            // Create Mock object for Shopware Session
-            $session = $this->getMockBuilder(Session::class)
-                ->setMethods(['offsetGet'])
-                ->getMock();
-            $session->expects($this->atLeastOnce())
-                ->method('offsetGet')
-                ->willReturnMap($sessionArray);
-            // Assign mocked session variable to application container
-            Shopware()->Container()->set('session', $session);
-        }
+
+        $sessionArray = [
+            ['isSearchPage', true],
+            ['findologicDI', false]
+        ];
+        // Create Mock object for Shopware Session
+        $session = $this->getMockBuilder(Session::class)->getMock();
+        $session->expects($this->atLeastOnce())
+            ->method('offsetGet')
+            ->willReturnMap($sessionArray);
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('session', $session);
+
         // Create Mock object for Shopware Config
         $config = $this->getMockBuilder(Config::class)
             ->setMethods(['offsetGet', 'offsetExists'])
@@ -281,28 +277,26 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
         $config->expects($this->atLeastOnce())
             ->method('offsetGet')
             ->willReturnMap($configArray);
-        $config->expects($this->any())
-            ->method('offsetExists')
-            ->willReturn(true);
         // Assign mocked config variable to application container
         Shopware()->Container()->set('config', $config);
+
         $result = StaticHelper::useShopSearch();
-        $error = 'Expected %s search to be triggered but it was not';
-        $shop = $expected ? 'shop' : 'FINDOLOGIC';
-        $this->assertEquals($expected, $result, sprintf($error, $shop));
-        // Assign mocked CustomFacetService::getList method
+        $this->assertFalse($result, 'Expected FINDOLOGIC search to be triggered but it was not');
+
         $customFacetServiceMock = $this->createMock(CustomFacetService::class);
         $customFacetServiceMock->expects($this->once())->method('getList')->willReturn([$customFacet]);
 
         $facetCriteriaRequestHandler = new FindologicFacetCriteriaRequestHandler($customFacetServiceMock);
         $facetCriteriaRequestHandler->handleRequest($request, $criteria, $context);
 
+        $condition = $criteria->getConditions();
         if ($hasCondition === false) {
-            $condition = $criteria->getConditions();
             $this->assertEmpty($condition);
         }
         if ($hasCondition === true) {
-            $condition = $criteria->getCondition(ProductAttributeCondition::class);
+            $this->assertNotEmpty($condition);
+            $this->assertTrue($criteria->hasCondition('product_attribute_' . $field));
+            $condition = $criteria->getCondition('product_attribute_' . $field);
             $conditionField = $condition->getField();
             $conditionValue = $condition->getValue();
 
