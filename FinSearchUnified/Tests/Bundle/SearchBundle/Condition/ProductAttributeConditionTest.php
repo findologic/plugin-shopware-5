@@ -11,11 +11,11 @@ class ProductAttributeConditionTest extends TestCase
         return [
             'The value for "field" is an integer' => [
                 'field' => 1,
-                'exception' => Assert\InvalidArgumentException::class
+                'exceptionMessage' => 'Value "1" expected to be string, type integer given.'
             ],
-            'The value for "field" is "vendor"' => [
+            'The value for "field" is a string' => [
                 'field' => 'vendor',
-                'exception' => null
+                'exceptionMessage' => null
             ],
         ];
     }
@@ -24,16 +24,18 @@ class ProductAttributeConditionTest extends TestCase
      * @dataProvider exceptionDataProvider
      *
      * @param string $field
-     * @param string $exception
+     * @param string $exceptionMessage
      */
-    public function testConditionException($field, $exception)
+    public function testConditionException($field, $exceptionMessage)
     {
-        if ($exception !== null) {
-            $this->expectException($exception);
+        try {
+            $condition = new ProductAttributeCondition($field, Operator::EQ, 'Findologic');
+            $this->assertEquals(sprintf('product_attribute_%s', $field), $condition->getName());
+            $this->assertEquals('Findologic', $condition->getValue());
+        } catch (\Assert\InvalidArgumentException $e) {
+            $this->assertSame($exceptionMessage, $e->getMessage());
+        } catch (Exception $e) {
+            $this->fail();
         }
-
-        $condition = new ProductAttributeCondition($field, Operator::EQ, 'Findologic');
-        $this->assertEquals(sprintf('product_attribute_%s', $field), $condition->getName());
-        $this->assertEquals('Findologic', $condition->getValue());
     }
 }

@@ -47,9 +47,9 @@
         </service>
 
         <service
-                decorates="shopware_storefront.custom_facet_service"
-                class="FinSearchUnified\Bundle\StoreFrontBundle\Service\Core\CustomFacetService"
-                id="fin_search_unified.custom_facet_service"
+            decorates="shopware_storefront.custom_facet_service"
+            class="FinSearchUnified\Bundle\StoreFrontBundle\Service\Core\CustomFacetService"
+            id="fin_search_unified.custom_facet_service"
         >
             <argument type="service" id="fin_search_unified.findologic_facet_gateway" />
         </service>

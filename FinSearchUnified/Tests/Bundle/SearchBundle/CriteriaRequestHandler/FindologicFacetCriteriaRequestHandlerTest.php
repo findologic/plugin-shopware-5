@@ -5,6 +5,7 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\ConditionHandler;
 use Enlight_Components_Session_Namespace as Session;
 use Enlight_Controller_Front as Front;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
+use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler\FindologicFacetCriteriaRequestHandler;
 use FinSearchUnified\Bundle\StoreFrontBundle\Service\Core\CustomFacetService;
 use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
@@ -33,28 +34,25 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
     {
         return [
             'UseShopSearch is True' => [
-                'ActivateFindologic' => false,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                'ActivateFindologicForCategoryPages' => true,
-                'findologicDI' => false,
+                'activateFindologic' => false,
+                'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
+                'isActiveForCategory' => true,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
                 'expected' => true,
             ],
             'UseShopSearch is False' => [
-                'ActivateFindologic' => true,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                'ActivateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
+                'activateFindologic' => true,
+                'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
+                'isActiveForCategory' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
                 'expected' => false
             ],
             'UseShopSearch is False And Category Page is True' => [
-                'ActivateFindologic' => true,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
-                'ActivateFindologicForCategoryPages' => true,
-                'findologicDI' => false,
+                'activateFindologic' => true,
+                'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
+                'isActiveForCategory' => true,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
                 'expected' => false
@@ -65,28 +63,26 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
     /**
      * @dataProvider handleRequestDataProvider
      *
-     * @param bool $isActive
+     * @param bool $activateFindologic
      * @param string $shopKey
      * @param bool $isActiveForCategory
-     * @param bool $checkIntegration
      * @param bool $isSearchPage
      * @param bool $isCategoryPage
      * @param bool $expected
      */
     public function testHandleRequestWithoutCriteria(
-        $isActive,
+        $activateFindologic,
         $shopKey,
         $isActiveForCategory,
-        $checkIntegration,
         $isSearchPage,
         $isCategoryPage,
         $expected
     ) {
         $configArray = [
-            ['ActivateFindologic', $isActive],
+            ['ActivateFindologic', $activateFindologic],
             ['ShopKey', $shopKey],
             ['ActivateFindologicForCategoryPages', $isActiveForCategory],
-            ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API]
+            ['IntegrationType', Constants::INTEGRATION_TYPE_API]
         ];
 
         $categoryId = 5;
@@ -116,7 +112,7 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
             $sessionArray = [
                 ['isSearchPage', $isSearchPage],
                 ['isCategoryPage', $isCategoryPage],
-                ['findologicDI', $checkIntegration]
+                ['findologicDI', false]
             ];
 
             // Create Mock object for Shopware Session
@@ -150,13 +146,16 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
 
         // Assign mocked CustomFacetService::getList method
         $customFacetServiceMock = $this->createMock(CustomFacetService::class);
-        if ($isSearchPage === null) {
+        if ($isSearchPage === null && $isCategoryPage === null) {
             $customFacetServiceMock->expects($this->never())->method('getList');
+            $customFacetServiceMock->expects($this->never())->method('getFacetsOfCategories');
         }
         if ($isSearchPage === true) {
             $customFacetServiceMock->expects($this->once())->method('getList')->with([])->willReturn([]);
+            $customFacetServiceMock->expects($this->never())->method('getFacetsOfCategories');
         }
         if ($isCategoryPage === true) {
+            $customFacetServiceMock->expects($this->never())->method('getList');
             $customFacetServiceMock->expects($this->once())
                 ->method('getFacetsOfCategories')
                 ->with([$categoryId])
@@ -230,7 +229,7 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
     ) {
         $configArray = [
             ['ActivateFindologic', true],
-            ['ShopKey', '0000000000000000ZZZZZZZZZZZZZZZZ'],
+            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
             ['ActivateFindologicForCategoryPages', false],
             ['IntegrationType', Constants::INTEGRATION_TYPE_API]
         ];
@@ -295,6 +294,7 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
             $this->assertNotEmpty($condition);
             $this->assertTrue($criteria->hasCondition('product_attribute_' . $field));
             $condition = $criteria->getCondition('product_attribute_' . $field);
+            $this->assertInstanceOf(ProductAttributeCondition::class, $condition);
             $conditionField = $condition->getField();
             $conditionValue = $condition->getValue();
 
