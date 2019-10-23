@@ -33,7 +33,7 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
     public function handleRequestDataProvider()
     {
         return [
-            'UseShopSearch is True' => [
+            'FINDOLOGIC search is not active' => [
                 'activateFindologic' => false,
                 'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'isActiveForCategory' => true,
@@ -41,7 +41,7 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
                 'isCategoryPage' => null,
                 'expected' => true,
             ],
-            'UseShopSearch is False' => [
+            'FINDOLOGIC search is active' => [
                 'activateFindologic' => true,
                 'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'isActiveForCategory' => false,
@@ -49,7 +49,7 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
                 'isCategoryPage' => false,
                 'expected' => false
             ],
-            'UseShopSearch is False And Category Page is True' => [
+            'FINDOLOGIC is active on category page' => [
                 'activateFindologic' => true,
                 'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'isActiveForCategory' => true,
@@ -101,7 +101,7 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
             ->setMethods(['Request'])
             ->disableOriginalConstructor()
             ->getMock();
-        $front->expects($this->exactly(6))
+        $front->expects($this->atLeastOnce())
             ->method('Request')
             ->willReturn($request);
         $context = Shopware()->Container()->get('shopware_storefront.context_service')->getShopContext();
@@ -144,7 +144,6 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
         $shop = $expected ? 'shop' : 'FINDOLOGIC';
         $this->assertEquals($expected, $result, sprintf($error, $shop));
 
-        // Assign mocked CustomFacetService::getList method
         $customFacetServiceMock = $this->createMock(CustomFacetService::class);
         if ($isSearchPage === null && $isCategoryPage === null) {
             $customFacetServiceMock->expects($this->never())->method('getList');
@@ -168,7 +167,7 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
     public function handleRequestSearchProvider()
     {
         return [
-            'Passed criteria object still doesnt have any conditions' => [
+            'Passed criteria object doesnt have any conditions' => [
                 'field' => 'vendor',
                 'mode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
                 'formFieldName' => 'vendor',
@@ -177,7 +176,7 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
                 'value' => null,
                 'hasCondition' => false
             ],
-            'Passed criteria object has a Field is vendor and Value is Shopware Food' => [
+            'Passed criteria object has condition with string value' => [
                 'field' => 'vendor',
                 'mode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
                 'formFieldName' => 'vendor',
@@ -186,7 +185,7 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
                 'value' => 'Shopware Food',
                 'hasCondition' => true
             ],
-            'Passed criteria object has a Field is vendor and  Value is array [Shopware Food, Shopware Freetime]' => [
+            'Passed criteria object has condition with multiple values' => [
                 'field' => 'vendor',
                 'mode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
                 'formFieldName' => 'vendor',
@@ -195,7 +194,7 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
                 'value' => ['Shopware Food', 'Shopware Freetime'],
                 'hasCondition' => true
             ],
-            'Passed criteria object has a condition of type Field is size and Value is array' => [
+            'Passed criteria object has condition with multiple key/pair values' => [
                 'field' => 'size',
                 'mode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
                 'formFieldName' => 'size',
