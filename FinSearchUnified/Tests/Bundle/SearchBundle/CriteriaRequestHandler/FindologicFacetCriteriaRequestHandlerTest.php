@@ -247,7 +247,7 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
             ->setMethods(['Request'])
             ->disableOriginalConstructor()
             ->getMock();
-        $front->expects($this->exactly(6))
+        $front->expects($this->atLeastOnce())
             ->method('Request')
             ->willReturn($request);
         $context = Shopware()->Container()->get('shopware_storefront.context_service')->getShopContext();
