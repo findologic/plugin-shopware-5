@@ -3,9 +3,10 @@
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler;
 
 use Exception;
+use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
+use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
-use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
@@ -35,7 +36,7 @@ class ProductAttributeConditionHandler implements ConditionHandlerInterface
     public function generateCondition(ConditionInterface $condition, QueryBuilder $query, ShopContextInterface $context)
     {
         /** @var ProductAttributeCondition $condition */
-        if ($condition->getOperator() === ConditionInterface::OPERATOR_BETWEEN) {
+        if ($condition->getOperator() === Operator::BETWEEN) {
             $values = $condition->getValue();
 
             $query->addRangeFilter(
