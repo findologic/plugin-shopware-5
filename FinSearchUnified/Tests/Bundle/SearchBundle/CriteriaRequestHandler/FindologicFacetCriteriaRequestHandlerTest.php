@@ -15,6 +15,7 @@ use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware_Components_Config as Config;
+use Zend_Cache_Exception;
 
 class FindologicFacetCriteriaRequestHandlerTest extends TestCase
 {
@@ -216,6 +217,8 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
      * @param array $parameter
      * @param mixed $value
      * @param bool $hasCondition
+     *
+     * @throws Zend_Cache_Exception
      */
     public function testHandleRequestForSearchPage(
         $field,

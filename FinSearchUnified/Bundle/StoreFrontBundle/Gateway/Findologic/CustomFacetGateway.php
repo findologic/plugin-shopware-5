@@ -5,11 +5,11 @@ namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\CustomFacetGatewayInterface;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
+use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
-use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use SimpleXMLElement;
 
@@ -25,10 +25,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
      */
     protected $queryBuilderFactory;
 
-
-
     /**
-     * @param CustomFacetGatewayInterface $service
      * @param CustomListingHydrator $hydrator
      * @param QueryBuilderFactoryInterface $queryBuilderFactory
      */
@@ -60,16 +57,16 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
 
             return $this->hydrate($xmlResponse->filters->filter);
-        } else {
-            return [];
         }
+
+        return [];
     }
 
     /**
      * @param array $categoryIds
      * @param ShopContextInterface $context
      *
-     * @return array indexed by category id, each element contains a list of CustomFacet
+     * @return array
      */
     public function getFacetsOfCategories(array $categoryIds, ShopContextInterface $context)
     {
@@ -90,23 +87,23 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
             return $categoryFacets;
         }
 
-        return[];
+        return [];
     }
 
     /**
      * @param ShopContextInterface $context
      *
-     * @return
+     * @return array
      */
     public function getAllCategoryFacets(ShopContextInterface $context)
     {
-        return[];
+        return [];
     }
 
     /**
      * @param SimpleXMLElement $filters
      *
-     * @return array
+     * @return CustomFacet[]
      */
     private function hydrate(SimpleXMLElement $filters)
     {

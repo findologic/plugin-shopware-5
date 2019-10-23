@@ -30,7 +30,7 @@ class RepositoryTest extends TestCase
         return [
             'Uses the original implementation' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+                'ShopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'ActivateFindologicForCategoryPages' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
@@ -38,7 +38,7 @@ class RepositoryTest extends TestCase
             ],
             'Uses the original implementation for backend' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+                'ShopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'ActivateFindologicForCategoryPages' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
@@ -46,7 +46,7 @@ class RepositoryTest extends TestCase
             ],
             'Uses the custom implementation' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+                'ShopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'ActivateFindologicForCategoryPages' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,

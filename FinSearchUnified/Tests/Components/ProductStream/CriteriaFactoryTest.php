@@ -35,7 +35,7 @@ class CriteriaFactoryTest extends TestCase
         return [
             'Uses the original implementation' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+                'ShopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'ActivateFindologicForCategoryPages' => false,
                 'findologicDI' => false,
                 'isSearchPage' => false,
@@ -44,7 +44,7 @@ class CriteriaFactoryTest extends TestCase
             ],
             'Uses the original implementation for backend' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+                'ShopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'ActivateFindologicForCategoryPages' => false,
                 'findologicDI' => false,
                 'isSearchPage' => true,
@@ -53,7 +53,7 @@ class CriteriaFactoryTest extends TestCase
             ],
             'Uses the custom implementation' => [
                 'ActivateFindologic' => true,
-                'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ',
+                'ShopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'ActivateFindologicForCategoryPages' => false,
                 'findologicDI' => false,
                 'isSearchPage' => true,
