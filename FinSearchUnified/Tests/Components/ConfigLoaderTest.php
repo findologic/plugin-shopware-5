@@ -15,7 +15,7 @@ class ConfigLoaderTest extends TestCase
 {
     protected static $ensureLoadedPlugins = [
         'FinSearchUnified' => [
-            'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ'
+            'ShopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD'
         ],
     ];
 

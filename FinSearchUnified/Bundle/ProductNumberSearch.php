@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Bundle;
 
 use Exception;
+use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle;
@@ -80,12 +81,6 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             StaticHelper::setSmartDidYouMean($xmlResponse);
 
             $this->facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
-            $facetsInterfaces = StaticHelper::getFindologicFacets($xmlResponse);
-
-            foreach ($facetsInterfaces as $facetsInterface) {
-                $criteria->addFacet($facetsInterface->getFacet());
-            }
-
             $this->setSelectedFacets($criteria);
             $criteria->resetConditions();
 
@@ -132,7 +127,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     protected function setSelectedFacets(Criteria $criteria)
     {
         foreach ($criteria->getConditions() as $condition) {
-            if (($condition instanceof SearchBundle\Condition\ProductAttributeCondition) === false) {
+            if (($condition instanceof ProductAttributeCondition) === false) {
                 continue;
             }
 
