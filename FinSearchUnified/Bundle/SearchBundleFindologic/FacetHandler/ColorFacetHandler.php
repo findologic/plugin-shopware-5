@@ -35,7 +35,7 @@ class ColorFacetHandler implements PartialFacetHandlerInterface
         }
 
         return new MediaListFacetResult(
-            $facet->getField(),
+            $facet->getName(),
             $criteria->hasCondition($facet->getName()),
             $facet->getLabel(),
             $this->getColorItems($filter->items->item, $actives),
