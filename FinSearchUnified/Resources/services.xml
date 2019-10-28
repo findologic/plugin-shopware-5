@@ -128,13 +128,18 @@
         <service id="fin_search_unified.subscriber.widgets" class="FinSearchUnified\Subscriber\Widgets">
             <tag name="shopware.event_subscriber" />
             <argument id="cache" type="service" />
-            <argument id="shopware.routing.matchers.rewrite_matcher" type="service" />
+            <argument id="fin_search_unified.rewrite_matcher" type="service" />
         </service>
 
         <service class="FinSearchUnified\Components\ConfigLoader" id="fin_search_unified.config_loader">
             <argument id="cache" type="service" />
             <argument id="http_client" type="service" />
             <argument id="config" type="service" />
+        </service>
+
+        <service class="FinSearchUnified\Components\Routing\Matchers\RewriteMatcher" id="fin_search_unified.rewrite_matcher">
+            <argument id="dbal_connection" type="service"/>
+            <argument id="query_alias_mapper" type="service"/>
         </service>
 
         <service class="FinSearchUnified\Components\Environment" id="fin_search_unified.environment" />
