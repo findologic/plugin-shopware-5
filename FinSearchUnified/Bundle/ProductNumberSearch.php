@@ -97,7 +97,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             $totalResults = (int)$xmlResponse->results->count;
             $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
             $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
-            $createFacets = $this->createFacets('','','');
+            $createFacets = $this->createFacets('', '', '');
             $searchResult = new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $createFacets);
         }
 
@@ -165,11 +165,12 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             }
         }
     }
-    private function registerFacetHandlers(){
+    private function registerFacetHandlers()
+    {
         return [
              $CategoryFacetHandler = new CategoryFacetHandler(),
              $ColorFacetHandler = new ColorFacetHandler(),
-             $ImageFacetHandler = new ImageFacetHandler( '',''),
+             $ImageFacetHandler = new ImageFacetHandler('', ''),
              $RangeFacetHandler = new RangeFacetHandler(),
              $TextFacetHandler = new TextFacetHandler(),
         ];
@@ -177,7 +178,6 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
     private function getFacetHandler(\SimpleXMLElement $filter)
     {
-
         foreach ($this->facetHandlers as $handler) {
             if ($handler->supportsFacet($filter)) {
                 return $handler;
@@ -196,18 +196,15 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             $dpath = $filters->xpath($getField);
             var_dump(['$xpath'=>$xpath]);
             var_dump(['$dpath'=>$dpath]);
-            if(empty($xpath))
-            {
+            if (empty($xpath)) {
                 continue;
             }
             $handler = $this->getFacetHandler($xpath[0]);
-            if($handler == null)
-            {
+            if ($handler == null) {
                 continue;
             }
-            $partialhandler = $handler->generatePartialFacet($criteriaFacet,$criteria,$xpath);
-            if($partialhandler == null)
-            {
+            $partialhandler = $handler->generatePartialFacet($criteriaFacet, $criteria, $xpath);
+            if ($partialhandler == null) {
                 continue;
             }
 //            $facet[] = $partialhandler;

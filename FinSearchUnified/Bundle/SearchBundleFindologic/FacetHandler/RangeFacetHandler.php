@@ -28,6 +28,7 @@ class RangeFacetHandler implements PartialFacetHandlerInterface
 
         $activeMin = (float)$filter->attributes->selectedRange->min;
         $activeMax = (float)$filter->attributes->selectedRange->max;
+        $conditionName = $facet->getName();
 
         $minFieldName = 'min' . $facet->getName();
         $maxFieldName = 'max' . $facet->getName();
@@ -39,7 +40,6 @@ class RangeFacetHandler implements PartialFacetHandlerInterface
         }
 
         return new RangeFacetResult(
-            $conditionName = $facet->getName(),
             $criteria->hasCondition($conditionName),
             $facet->getLabel(),
             $min,
