@@ -122,15 +122,47 @@ class RangeFacetHandlerTest extends TestCase
                 'Preis',
                 null,
                 new RangeFacetResult(
-                    'price',
+                    'product_attribute_price',
                     false,
                     'Preis',
                     4.20,
                     69.00,
                     4.20,
                     69.00,
-                    'min',
-                    'max'
+                    'minproduct_attribute_price',
+                    'maxproduct_attribute_price'
+                )
+            ],
+            'Price filter is selected yet' => [
+                [
+                    'name' => 'price',
+                    'display' => 'Preis',
+                    'select' => 'single',
+                    'type' => 'range-slider',
+                    'attributes' => [
+                        'totalRange' => [
+                            'min' => 4.20,
+                            'max' => 69.00
+                        ],
+                        'selectedRange' => [
+                            'min' => 4.20,
+                            'max' => 69.00
+                        ]
+                    ]
+                ],
+                'price',
+                'Preis',
+                new ProductAttributeCondition('price', ConditionInterface::OPERATOR_EQ, ['min' => 4.20, 'max' => 69.00]),
+                new RangeFacetResult(
+                    'product_attribute_price',
+                    true,
+                    'Preis',
+                    4.20,
+                    69.00,
+                    4.20,
+                    69.00,
+                    'minproduct_attribute_price',
+                    'maxproduct_attribute_price'
                 )
             ],
             'Range filter is active' => [
@@ -154,15 +186,15 @@ class RangeFacetHandlerTest extends TestCase
                 'Length',
                 new ProductAttributeCondition('attr6', ConditionInterface::OPERATOR_EQ, ['min' => 4.20, 'max' => 6.09]),
                 new RangeFacetResult(
-                    'attr6',
+                    'product_attribute_attr6',
                     true,
                     'Length',
                     4.20,
                     69.00,
                     4.20,
                     6.09,
-                    'minattr6',
-                    'maxattr6'
+                    'minproduct_attribute_attr6',
+                    'maxproduct_attribute_attr6'
                 )
             ]
         ];

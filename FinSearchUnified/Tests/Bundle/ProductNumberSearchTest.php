@@ -133,4 +133,41 @@ class ProductNumberSearchTest extends TestCase
             'FINDOLOGIC search' => [true, false, $xml, 1]
         ];
     }
+    public function search(){
+        //$criteria = new Criteria();
+//        Shopware()->Session()->findologicDI = $isUseShopSearch;
+//        Shopware()->Session()->isSearchPage = !$isUseShopSearch;
+//
+//        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
+//            ->disableOriginalConstructor()
+//            ->setMethods(['execute'])
+//            ->getMockForAbstractClass();
+//
+//        $mockedQuery->expects($this->exactly($invokationCount))->method('execute')->willReturn($response);
+//
+//        // Mock querybuilder factory method to check that custom implementation does not get called
+//        // as original implementation will be called in this case
+//        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+//        $mockQuerybuilderFactory->expects($this->exactly($invokationCount))
+//            ->method('createProductQuery')
+//            ->willReturn($mockedQuery);
+//
+//        $request = new RequestHttp();
+//        $request->setModuleName('frontend');
+//
+//        // Create Mock object for Shopware Front Request
+//        $front = $this->getMockBuilder(Front::class)
+//            ->setMethods(['Request'])
+//            ->disableOriginalConstructor()
+//            ->getMock();
+//        $front->expects($this->any())
+//            ->method('Request')
+//            ->willReturn($request);
+//
+//        // Assign mocked variable to application container
+//        Shopware()->Container()->set('front', $front);
+//
+//        $context = Shopware()->Container()->get('shopware_storefront.context_service')->getContext();
+//        $productNumberSearch->search($criteria, $context);
+    }
 }
