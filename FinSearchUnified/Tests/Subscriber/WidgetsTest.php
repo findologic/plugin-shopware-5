@@ -6,9 +6,9 @@ use Enlight_Controller_Request_RequestHttp;
 use Enlight_Controller_Response_ResponseHttp;
 use Enlight_Event_EventArgs;
 use Enlight_Hook_HookArgs;
-use FinSearchUnified\Components\Routing\Matchers\RewriteMatcher;
 use FinSearchUnified\Subscriber\Widgets;
 use ReflectionException;
+use Shopware\Components\Routing\Matchers\RewriteMatcher;
 use Shopware_Controllers_Widgets_Listing;
 use Zend_Cache_Core;
 use Zend_Cache_Exception;
@@ -168,7 +168,7 @@ class WidgetsTest extends SubscriberTestCase
         $response = new Enlight_Controller_Response_ResponseHttp();
         $args = new Enlight_Event_EventArgs(['subject' => $subject, 'request' => $request, 'response' => $response]);
 
-        $widget = new Widgets($cacheMock, Shopware()->Container()->get('fin_search_unified.rewrite_matcher'));
+        $widget = new Widgets($cacheMock, Shopware()->Container()->get('shopware.routing.matchers.rewrite_matcher'));
         $widget->onWidgetsPreDispatch($args);
 
         $isCategoryPage = Shopware()->Session()->isCategoryPage;
@@ -251,7 +251,7 @@ class WidgetsTest extends SubscriberTestCase
         $cacheMock->expects($this->once())->method('load')->willReturn(false);
         $cacheMock->expects($this->once())->method('save')->willReturn(true);
 
-        $widget = new Widgets($cacheMock, Shopware()->Container()->get('fin_search_unified.rewrite_matcher'));
+        $widget = new Widgets($cacheMock, Shopware()->Container()->get('shopware.routing.matchers.rewrite_matcher'));
         $widget->onWidgetsPreDispatch($args);
 
         $isCategoryPage = Shopware()->Session()->isCategoryPage;
@@ -301,7 +301,7 @@ class WidgetsTest extends SubscriberTestCase
         $response = new Enlight_Controller_Response_ResponseHttp();
         $args = new Enlight_Event_EventArgs(['subject' => $subject, 'request' => $request, 'response' => $response]);
 
-        $widget = new Widgets($cacheMock, Shopware()->Container()->get('fin_search_unified.rewrite_matcher'));
+        $widget = new Widgets($cacheMock, Shopware()->Container()->get('shopware.routing.matchers.rewrite_matcher'));
         $widget->onWidgetsPreDispatch($args);
 
         $isCategoryPage = Shopware()->Session()->isCategoryPage;
