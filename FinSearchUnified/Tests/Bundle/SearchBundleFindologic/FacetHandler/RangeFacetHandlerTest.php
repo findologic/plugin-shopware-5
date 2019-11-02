@@ -101,7 +101,7 @@ class RangeFacetHandlerTest extends TestCase
                 null,
                 null
             ],
-            'Price filter is not selected yet' => [
+            'Price filter is not selected' => [
                 [
                     'name' => 'price',
                     'display' => 'Preis',
@@ -129,11 +129,11 @@ class RangeFacetHandlerTest extends TestCase
                     69.00,
                     4.20,
                     69.00,
-                    'minproduct_attribute_price',
-                    'maxproduct_attribute_price'
+                    'min',
+                    'max'
                 )
             ],
-            'Price filter is selected yet' => [
+            'Price filter is selected' => [
                 [
                     'name' => 'price',
                     'display' => 'Preis',
@@ -152,7 +152,9 @@ class RangeFacetHandlerTest extends TestCase
                 ],
                 'price',
                 'Preis',
-                new ProductAttributeCondition('price', ConditionInterface::OPERATOR_EQ, ['min' => 4.20, 'max' => 69.00]),
+                new ProductAttributeCondition('price',
+                    ConditionInterface::OPERATOR_EQ,
+                    ['min' => 4.20, 'max' => 69.00]),
                 new RangeFacetResult(
                     'product_attribute_price',
                     true,
@@ -161,8 +163,8 @@ class RangeFacetHandlerTest extends TestCase
                     69.00,
                     4.20,
                     69.00,
-                    'minproduct_attribute_price',
-                    'maxproduct_attribute_price'
+                    'min',
+                    'max'
                 )
             ],
             'Range filter is active' => [

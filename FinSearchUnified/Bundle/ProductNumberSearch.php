@@ -11,9 +11,9 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\TextFacetHandler
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Helper\StaticHelper;
-use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
+use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use SimpleXMLElement;
@@ -24,11 +24,6 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      * @var ProductNumberSearchInterface
      */
     protected $originalService;
-
-    /**
-     * @var array
-     */
-    protected $facets = [];
 
     /**
      * @var QueryBuilderFactoryInterface
@@ -43,12 +38,10 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     /**
      * @param ProductNumberSearchInterface $service
      * @param QueryBuilderFactoryInterface $queryBuilderFactory
-     * @param PartialFacetHandlerInterface $facetHandlers
      */
     public function __construct(
         ProductNumberSearchInterface $service,
-        QueryBuilderFactoryInterface $queryBuilderFactory,
-        PartialFacetHandlerInterface $facetHandlers
+        QueryBuilderFactoryInterface $queryBuilderFactory
     ) {
         $this->originalService = $service;
         $this->queryBuilderFactory = $queryBuilderFactory;
@@ -63,7 +56,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      * @param Criteria $criteria
      * @param ShopContextInterface $context
      *
-     * @return SearchBundle\ProductNumberSearchResult
+     * @return ProductNumberSearchResult
      * @throws Exception
      */
     public function search(Criteria $criteria, ShopContextInterface $context)
@@ -84,11 +77,9 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         if (empty($response)) {
             self::setFallbackFlag(1);
-
             $searchResult = $this->originalService->search($criteria, $context);
         } else {
             self::setFallbackFlag(0);
-
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
             self::redirectOnLandingpage($xmlResponse);
             StaticHelper::setPromotion($xmlResponse);
@@ -97,8 +88,8 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             $totalResults = (int)$xmlResponse->results->count;
             $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
             $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
-            $createFacets = $this->createFacets('', '', '');
-            $searchResult = new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $createFacets);
+            $facets = $this->createFacets($criteria, $xmlResponse->filters->filter);
+            $searchResult = new ProductNumberSearchResult($searchResult, $totalResults, $facets);
         }
 
         return $searchResult;
@@ -107,9 +98,9 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     /**
      * Checks if a landing page is present in the response and in that case, performs a redirect.
      *
-     * @param \SimpleXMLElement $xmlResponse
+     * @param SimpleXMLElement $xmlResponse
      */
-    protected static function redirectOnLandingpage(\SimpleXMLElement $xmlResponse)
+    protected static function redirectOnLandingpage(SimpleXMLElement $xmlResponse)
     {
         $hasLandingpage = StaticHelper::checkIfRedirect($xmlResponse);
 
@@ -129,54 +120,18 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         setcookie('Fallback', $status, 0, '', '', true);
     }
 
-    /**
-     * Marks the selected facets as such and prevents duplicates.
-     *
-     * @param Criteria $criteria
-     */
-    protected function setSelectedFacets(Criteria $criteria)
-    {
-        foreach ($criteria->getConditions() as $condition) {
-            if (($condition instanceof SearchBundle\Condition\ProductAttributeCondition) === false) {
-                continue;
-            }
-
-            /** @var SearchBundle\Facet\ProductAttributeFacet $currentFacet */
-            $currentFacet = $criteria->getFacet($condition->getName());
-
-            if (($currentFacet instanceof SearchBundle\FacetInterface) === false) {
-                continue;
-            }
-
-            $tempFacet = StaticHelper::createSelectedFacet(
-                $currentFacet->getFormFieldName(),
-                $currentFacet->getLabel(),
-                $condition->getValue()
-            );
-
-            if (count($tempFacet->getValues()) === 0) {
-                continue;
-            }
-
-            $foundFacet = StaticHelper::arrayHasFacet($this->facets, $currentFacet->getLabel());
-
-            if ($foundFacet === false) {
-                $this->facets[] = $tempFacet;
-            }
-        }
-    }
     private function registerFacetHandlers()
     {
         return [
-             $CategoryFacetHandler = new CategoryFacetHandler(),
-             $ColorFacetHandler = new ColorFacetHandler(),
-             $ImageFacetHandler = new ImageFacetHandler('', ''),
-             $RangeFacetHandler = new RangeFacetHandler(),
-             $TextFacetHandler = new TextFacetHandler(),
+            $CategoryFacetHandler = new CategoryFacetHandler(),
+            $ColorFacetHandler = new ColorFacetHandler(),
+            $ImageFacetHandler = new ImageFacetHandler('', ''),
+            $RangeFacetHandler = new RangeFacetHandler(),
+            $TextFacetHandler = new TextFacetHandler(),
         ];
     }
 
-    private function getFacetHandler(\SimpleXMLElement $filter)
+    private function getFacetHandler(SimpleXMLElement $filter)
     {
         foreach ($this->facetHandlers as $handler) {
             if ($handler->supportsFacet($filter)) {
@@ -187,30 +142,27 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         return null;
     }
 
-    protected function createFacets(Criteria $criteria, SimpleXMLElement $filters, $facet = [])
+    protected function createFacets(Criteria $criteria, SimpleXMLElement $filters)
     {
+        $facets = [];
+
         foreach ($criteria->getFacets() as $criteriaFacet) {
-            $getField = $criteriaFacet->getField($filters);
-            var_dump(['$getField'=>$getField]);
-            $xpath = $filters->xpath('name[.=' . $getField . ']/parent::*');
-            $dpath = $filters->xpath($getField);
-            var_dump(['$xpath'=>$xpath]);
-            var_dump(['$dpath'=>$dpath]);
+            $field = $criteriaFacet->getField();
+            $xpath = $filters->xpath('name[.=' . $field . ']/parent::*');
             if (empty($xpath)) {
                 continue;
             }
             $handler = $this->getFacetHandler($xpath[0]);
-            if ($handler == null) {
+            if ($handler === null) {
                 continue;
             }
-            $partialhandler = $handler->generatePartialFacet($criteriaFacet, $criteria, $xpath);
-            if ($partialhandler == null) {
+            $partialFacet = $handler->generatePartialFacet($criteriaFacet, $criteria, $xpath[0]);
+            if ($partialFacet === null) {
                 continue;
             }
-//            $facet[] = $partialhandler;
-            array_push($facet, $partialhandler);
+            $facets[] = $partialFacet;
         }
 
-        return $facet;
+        return $facets;
     }
 }
