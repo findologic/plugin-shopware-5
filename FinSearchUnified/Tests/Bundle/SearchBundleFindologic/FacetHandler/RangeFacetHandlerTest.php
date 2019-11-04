@@ -152,9 +152,11 @@ class RangeFacetHandlerTest extends TestCase
                 ],
                 'price',
                 'Preis',
-                new ProductAttributeCondition('price',
+                new ProductAttributeCondition(
+                    'price',
                     ConditionInterface::OPERATOR_EQ,
-                    ['min' => 4.20, 'max' => 69.00]),
+                    ['min' => 4.20, 'max' => 69.00]
+                ),
                 new RangeFacetResult(
                     'product_attribute_price',
                     true,
