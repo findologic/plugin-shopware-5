@@ -104,7 +104,7 @@ class ColorFacetHandlerTest extends TestCase
                 ],
                 'Condition' => null,
                 'Facet Result' => new MediaListFacetResult(
-                    'color',
+                    'product_attribute_color',
                     false,
                     'Farbe',
                     [
@@ -135,7 +135,7 @@ class ColorFacetHandlerTest extends TestCase
                 ],
                 'Condition' => null,
                 'Facet Result' => new MediaListFacetResult(
-                    'color',
+                    'product_attribute_color',
                     false,
                     'Farbe',
                     [
@@ -170,7 +170,7 @@ class ColorFacetHandlerTest extends TestCase
                     ['Red', 'Green']
                 ),
                 'Facet Result' => new MediaListFacetResult(
-                    'color',
+                    'product_attribute_color',
                     true,
                     'Farbe',
                     [
@@ -205,7 +205,7 @@ class ColorFacetHandlerTest extends TestCase
                     ['Zima Blue']
                 ),
                 'Facet Result' => new MediaListFacetResult(
-                    'color',
+                    'product_attribute_color',
                     true,
                     'Farbe',
                     [

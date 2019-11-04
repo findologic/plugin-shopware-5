@@ -89,6 +89,11 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
             $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
             $facets = $this->createFacets($criteria, $xmlResponse->filters->filter);
+            $result = \Doctrine\Common\Util\Debug::dump($facets);
+
+            print_r($result);
+
+            var_dump(['$facets'=>$facets]);
             $searchResult = new ProductNumberSearchResult($searchResult, $totalResults, $facets);
         }
 
@@ -125,7 +130,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         return [
             $CategoryFacetHandler = new CategoryFacetHandler(),
             $ColorFacetHandler = new ColorFacetHandler(),
-            $ImageFacetHandler = new ImageFacetHandler('', ''),
+            $ImageFacetHandler = new ImageFacetHandler(Shopware()->Container()->get('guzzle_http_client_factory'), []),
             $RangeFacetHandler = new RangeFacetHandler(),
             $TextFacetHandler = new TextFacetHandler(),
         ];
@@ -145,10 +150,13 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     protected function createFacets(Criteria $criteria, SimpleXMLElement $filters)
     {
         $facets = [];
+        $facetsfacets = $criteria->getFacets();
+        var_dump(['$facetsfacets'=>$facetsfacets]);
 
         foreach ($criteria->getFacets() as $criteriaFacet) {
             $field = $criteriaFacet->getField();
             $xpath = $filters->xpath('name[.=' . $field . ']/parent::*');
+            var_dump(['$xpath'=>$xpath]);
             if (empty($xpath)) {
                 continue;
             }
