@@ -11,6 +11,9 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Criteria;
+use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
+use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
+use Shopware\Bundle\SearchBundle\FacetResult\ValueListFacetResult;
 use Shopware_Components_Config as Config;
 use SimpleXMLElement;
 
@@ -22,7 +25,7 @@ class ProductNumberSearchTest extends TestCase
 
         $configArray = [
             ['ActivateFindologic', true],
-            ['ShopKey', 'ABCD0815'],
+            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
             ['ActivateFindologicForCategoryPages', false]
         ];
         // Create mock object for Shopware Config and explicitly return the values
@@ -124,9 +127,7 @@ class ProductNumberSearchTest extends TestCase
             ->setMethods(['Request'])
             ->disableOriginalConstructor()
             ->getMock();
-        $front->expects($this->any())
-            ->method('Request')
-            ->willReturn($request);
+        $front->method('Request')->willReturn($request);
 
         // Assign mocked variable to application container
         Shopware()->Container()->set('front', $front);
@@ -135,50 +136,94 @@ class ProductNumberSearchTest extends TestCase
         $productNumberSearch->search($criteria, $context);
     }
 
+    public function allFiltersProvider()
+    {
+        $xmlResponse = $this->getXmlResponse();
+        $filters = $xmlResponse->addChild('filters');
+
+        $this->setPriceFilter($filters);
+        $this->setCategoryFilter($filters);
+        $this->setVendorFilter($filters);
+
+        return [
+            'Parse all filters' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResults' => [
+                    RangeFacetResult::class,
+                    TreeFacetResult::class,
+                    ValueListFacetResult::class
+                ]
+            ]
+        ];
+    }
+
+    public function facetWithNoHandlerProvider()
+    {
+        $xmlResponse = $this->getXmlResponse();
+        $filters = $xmlResponse->addChild('filters');
+
+        $this->setCategoryFilter($filters);
+        $this->setVendorFilter($filters, 'unsupported');
+
+        return [
+            'Facet with no handler' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResults' => [
+                    TreeFacetResult::class
+                ]
+            ]
+        ];
+    }
+
+    public function facetWithInvalidModeProvider()
+    {
+        $xmlResponse = $this->getXmlResponse();
+        $filters = $xmlResponse->addChild('filters');
+
+        $this->setCategoryFilter($filters);
+        $this->setVendorFilter($filters, 'range-slider');
+
+        return [
+            'Cannot create facet result' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResults' => [
+                    TreeFacetResult::class
+                ]
+            ]
+        ];
+    }
+
+    public function missingFilterProvider()
+    {
+        $xmlResponse = $this->getXmlResponse();
+        $filters = $xmlResponse->addChild('filters');
+
+        $this->setCategoryFilter($filters);
+        $this->setVendorFilter($filters, 'select', false);
+
+        return [
+            'Filter is missing in response' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResults' => [
+                    TreeFacetResult::class
+                ]
+            ]
+        ];
+    }
+
     /**
+     * @dataProvider allFiltersProvider
+     * @dataProvider facetWithNoHandlerProvider
+     * @dataProvider facetWithInvalidModeProvider
+     * @dataProvider missingFilterProvider
+     *
+     * @param SimpleXMLElement $xmlResponse
+     * @param array $expectedResults
+     *
      * @throws Exception
      */
-    public function testSearch()
+    public function testProductNumberSearchResultWithAllFilters(SimpleXMLElement $xmlResponse, array $expectedResults)
     {
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $xmlResponse = new SimpleXMLElement($data);
-
-        $query = $xmlResponse->addChild('query');
-        $queryString = $query->addChild('queryString', 'some string');
-        $queryString->addAttribute('type', 'corrected');
-
-        $filters = $xmlResponse->addChild('filters');
-        $filter = $filters->addChild('filter');
-
-        $category = $filter->addChild('type', 'label');
-        $category->addChild('select', 'single');
-        $category->addChild('name', 'cat');
-        $category->addChild('display', 'Category');
-        $citem = $category->addChild('items')->addChild('item');
-        $citem->addChild('name', 'food');
-
-        $price = $filter->addChild('type', 'range-slider');
-        $price->addChild('select', 'single');
-        $price->addChild('name', 'price');
-        $price->addChild('display', 'Price');
-
-        $attributes = $price->addChild('attributes');
-
-        $selectedRange = $attributes->addChild('selectedRange');
-        $selectedRange->addChild('min', 4.20);
-        $selectedRange->addChild('max', 69.00);
-
-        $totalRange = $attributes->addChild('totalRange');
-        $totalRange->addChild('min', 4.20);
-        $totalRange->addChild('max', 69.00);
-
-        $Vendor = $filter->addChild('type', 'select');
-        $Vendor->addChild('select', 'multiple');
-        $Vendor->addChild('name', 'vendor');
-        $Vendor->addChild('display', 'Brand');
-        $ventorItem = $Vendor->addChild('items')->addChild('item');
-        $ventorItem->addChild('name', 'manufacture');
-
         $xml = $xmlResponse->asXML();
 
         $criteria = new Criteria();
@@ -202,11 +247,7 @@ class ProductNumberSearchTest extends TestCase
             ->willReturn($mockedQuery);
 
         $originalService = $this->createMock(ProductNumberSearch::class);
-
-        $productNumberSearch = new ProductNumberSearch(
-            $originalService,
-            $mockQuerybuilderFactory
-        );
+        $productNumberSearch = new ProductNumberSearch($originalService, $mockQuerybuilderFactory);
 
         $request = new RequestHttp();
         $request->setModuleName('frontend');
@@ -216,9 +257,7 @@ class ProductNumberSearchTest extends TestCase
             ->setMethods(['Request'])
             ->disableOriginalConstructor()
             ->getMock();
-        $front->expects($this->any())
-            ->method('Request')
-            ->willReturn($request);
+        $front->method('Request')->willReturn($request);
 
         $hydrator = new CustomListingHydrator();
         $customFacets = [];
@@ -236,6 +275,82 @@ class ProductNumberSearchTest extends TestCase
         Shopware()->Container()->set('front', $front);
 
         $context = Shopware()->Container()->get('shopware_storefront.context_service')->getContext();
-        $productNumberSearch->search($criteria, $context);
+        $searchResult = $productNumberSearch->search($criteria, $context);
+        $resultFacets = $searchResult->getFacets();
+
+        foreach ($resultFacets as $key => $resultFacet) {
+            $this->assertInstanceOf($expectedResults[$key], $resultFacet);
+        }
+    }
+
+    /**
+     * @param SimpleXMLElement $filters
+     */
+    private function setPriceFilter(SimpleXMLElement $filters)
+    {
+        // Price filter
+        $price = $filters->addChild('filter');
+        $price->addChild('type', 'range-slider');
+        $price->addChild('select', 'single');
+        $price->addChild('name', 'price');
+        $price->addChild('display', 'Price');
+        $attributes = $price->addChild('attributes');
+        $selectedRange = $attributes->addChild('selectedRange');
+        $selectedRange->addChild('min', 4.20);
+        $selectedRange->addChild('max', 69.00);
+        $totalRange = $attributes->addChild('totalRange');
+        $totalRange->addChild('min', 4.20);
+        $totalRange->addChild('max', 69.00);
+    }
+
+    /**
+     * @param SimpleXMLElement $filters
+     */
+    private function setCategoryFilter(SimpleXMLElement $filters)
+    {
+        // Category filter
+        $category = $filters->addChild('filter');
+        $category->addChild('type', 'label');
+        $category->addChild('select', 'single');
+        $category->addChild('name', 'cat');
+        $category->addChild('display', 'Category');
+        $categoryItem = $category->addChild('items')->addChild('item');
+        $categoryItem->addChild('name', 'Living Room');
+        $categoryItem->addChild('frequency', 10);
+    }
+
+    /**
+     * @param SimpleXMLElement $filters
+     * @param string $type
+     * @param bool $withFilter
+     */
+    private function setVendorFilter(SimpleXMLElement $filters, $type = 'select', $withFilter = true)
+    {
+        // Vendor filter
+        $vendor = $filters->addChild('filter');
+        $vendor->addChild('type', $type);
+        $vendor->addChild('select', 'multiple');
+        $vendor->addChild('name', 'vendor');
+        $vendor->addChild('display', 'Brand');
+        if ($withFilter) {
+            $ventorItem = $vendor->addChild('items')->addChild('item');
+            $ventorItem->addChild('name', 'Manufacturer');
+            $ventorItem->addChild('frequency', 40);
+        }
+    }
+
+    /**
+     * @return SimpleXMLElement
+     */
+    private function getXmlResponse()
+    {
+        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
+        $xmlResponse = new SimpleXMLElement($data);
+
+        $query = $xmlResponse->addChild('query');
+        $queryString = $query->addChild('queryString', 'some string');
+        $queryString->addAttribute('type', 'corrected');
+
+        return $xmlResponse;
     }
 }

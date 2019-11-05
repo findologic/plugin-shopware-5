@@ -126,7 +126,10 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         return [
             $CategoryFacetHandler = new CategoryFacetHandler(),
             $ColorFacetHandler = new ColorFacetHandler(),
-            $ImageFacetHandler = new ImageFacetHandler(Shopware()->Container()->get('guzzle_http_client_factory'), []),
+            $ImageFacetHandler = new ImageFacetHandler(
+                Shopware()->Container()->get('guzzle_http_client_factory'),
+                []
+            ),
             $RangeFacetHandler = new RangeFacetHandler(),
             $TextFacetHandler = new TextFacetHandler(),
         ];
@@ -135,7 +138,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     private function getFacetHandler(SimpleXMLElement $filter)
     {
         foreach ($this->facetHandlers as $handler) {
-            if ($handler->supportsFacet($filter)) {
+            if ($handler->supportsFilter($filter)) {
                 return $handler;
             }
         }
@@ -149,7 +152,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         foreach ($criteria->getFacets() as $criteriaFacet) {
             $field = $criteriaFacet->getField();
-            $xpath = $filters->xpath('name[.=' . $field . ']/parent::*');
+            $xpath = $filters->xpath(sprintf('//name[.="%s"]/parent::*', $field));
             if (empty($xpath)) {
                 continue;
             }

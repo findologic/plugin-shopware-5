@@ -139,7 +139,7 @@ class FindologicArticleModelTest extends TestCase
 
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
-            'ABCD0815',
+            'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
             $baseCategory
@@ -185,7 +185,7 @@ class FindologicArticleModelTest extends TestCase
 
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
-            'ABCD0815',
+            'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
             $baseCategory
@@ -233,7 +233,7 @@ class FindologicArticleModelTest extends TestCase
 
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
-            'ABCD0815',
+            'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
             $baseCategory
@@ -564,7 +564,7 @@ class FindologicArticleModelTest extends TestCase
 
         $findologicArticle = $this->articleFactory->create(
             $article,
-            'ABCD0815',
+            'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
             $baseCategory
