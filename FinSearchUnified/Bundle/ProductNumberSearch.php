@@ -171,12 +171,15 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             $selectedFilter = $filters->xpath(sprintf('//name[.="%s"]/parent::*', $field));
 
             if (empty($selectedFilter)) {
-                if (!$criteria->hasUserCondition($facetName)) {
+                if ($criteria->hasUserCondition($facetName)) {
+                    if ($facetName === 'price' || $field === 'price') {
+                        $selectedFilter = $this->createSelectedFilter(
+                            $criteriaFacet,
+                            $criteria->getUserCondition($facetName)
+                        );
+                    }
+                } else {
                     continue;
-                }
-
-                if ($facetName === 'price' || $field === 'price') {
-                    $selectedFilter = $this->createSelectedFilter($criteriaFacet, $criteria->getCondition($facetName));
                 }
             } else {
                 $selectedFilter = $selectedFilter[0];

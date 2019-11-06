@@ -10,6 +10,8 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Tests\TestCase;
+use ReflectionException;
+use ReflectionObject;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
@@ -264,6 +266,53 @@ class ProductNumberSearchTest extends TestCase
         }
     }
 
+    public function selectedFiltersProvider()
+    {
+        $xmlResponse = $this->getXmlResponse();
+        $filters = $xmlResponse->addChild('filters');
+
+        $this->setVendorFilter($filters);
+
+        return [
+            'Filters which are selected only contain the value that was selected' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResults' => []
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider selectedFiltersProvider
+     *
+     * @param SimpleXMLElement $xmlResponse
+     * @param array $expectedResults
+     *
+     * @throws ReflectionException
+     */
+    public function testCreateFacets(SimpleXMLElement $xmlResponse, array $expectedResults)
+    {
+        $criteria = new Criteria();
+        $criteria->setFetchCount(true);
+
+        $hydrator = new CustomListingHydrator();
+
+        foreach ($xmlResponse->filters->filter as $filter) {
+            $facet = $hydrator->hydrateFacet($filter);
+            $criteria->addFacet($facet->getFacet());
+        }
+
+        $productNumberSearch = Shopware()->Container()->get('fin_search_unified.product_number_search');
+        $reflector = new ReflectionObject($productNumberSearch);
+        $method = $reflector->getMethod('createFacets');
+        $method->setAccessible(true);
+        $facets = $method->invokeArgs($productNumberSearch, [$criteria, $xmlResponse->filters->filter]);
+
+        $this->assertNotEmpty($facets);
+
+        // TODO ask in what scenario will the xpath return empty in order to get into the
+        // FinSearchUnified\Bundle\ProductNumberSearch::createSelectedFilter method
+    }
+
     /**
      * @return SimpleXMLElement
      */
@@ -338,9 +387,13 @@ class ProductNumberSearchTest extends TestCase
         $vendor->addChild('name', 'vendor');
         $vendor->addChild('display', 'Brand');
         if ($withFilter) {
-            $ventorItem = $vendor->addChild('items')->addChild('item');
+            $items = $vendor->addChild('items');
+            $ventorItem = $items->addChild('item');
             $ventorItem->addChild('name', 'Manufacturer');
             $ventorItem->addChild('frequency', 40);
+            $ventorItem = $items->addChild('item');
+            $ventorItem->addChild('name', 'FINDOLOGIC');
+            $ventorItem->addChild('frequency', 54);
         }
     }
 }
