@@ -51,21 +51,7 @@ class ProductNumberSearchTest extends TestCase
 
     public function productNumberSearchProvider()
     {
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $xmlResponse = new SimpleXMLElement($data);
-
-        $query = $xmlResponse->addChild('query');
-        $query->addChild('queryString', 'queryString');
-
-        $results = $xmlResponse->addChild('results');
-        $results->addChild('count', 5);
-        $products = $xmlResponse->addChild('products');
-
-        for ($i = 1; $i <= 5; $i++) {
-            $product = $products->addChild('product');
-            $product->addAttribute('id', $i);
-        }
-
+        $xmlResponse = $this->getXmlResponse();
         $filters = $xmlResponse->addChild('filters');
         $filters->addChild('filter');
 
@@ -260,15 +246,10 @@ class ProductNumberSearchTest extends TestCase
         $front->method('Request')->willReturn($request);
 
         $hydrator = new CustomListingHydrator();
-        $customFacets = [];
 
         foreach ($xmlResponse->filters->filter as $filter) {
             $facet = $hydrator->hydrateFacet($filter);
-            $customFacets[] = $facet->getFacet();
-        }
-
-        foreach ($customFacets as $customFacet) {
-            $criteria->addFacet($customFacet);
+            $criteria->addFacet($facet->getFacet());
         }
 
         // Assign mocked variable to application container
@@ -281,6 +262,30 @@ class ProductNumberSearchTest extends TestCase
         foreach ($resultFacets as $key => $resultFacet) {
             $this->assertInstanceOf($expectedResults[$key], $resultFacet);
         }
+    }
+
+    /**
+     * @return SimpleXMLElement
+     */
+    private function getXmlResponse()
+    {
+        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
+        $xmlResponse = new SimpleXMLElement($data);
+
+        $query = $xmlResponse->addChild('query');
+        $queryString = $query->addChild('queryString', 'queryString');
+        $queryString->addAttribute('type', 'corrected');
+
+        $results = $xmlResponse->addChild('results');
+        $results->addChild('count', 5);
+        $products = $xmlResponse->addChild('products');
+
+        for ($i = 1; $i <= 5; $i++) {
+            $product = $products->addChild('product');
+            $product->addAttribute('id', $i);
+        }
+
+        return $xmlResponse;
     }
 
     /**
@@ -337,20 +342,5 @@ class ProductNumberSearchTest extends TestCase
             $ventorItem->addChild('name', 'Manufacturer');
             $ventorItem->addChild('frequency', 40);
         }
-    }
-
-    /**
-     * @return SimpleXMLElement
-     */
-    private function getXmlResponse()
-    {
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $xmlResponse = new SimpleXMLElement($data);
-
-        $query = $xmlResponse->addChild('query');
-        $queryString = $query->addChild('queryString', 'some string');
-        $queryString->addAttribute('type', 'corrected');
-
-        return $xmlResponse;
     }
 }

@@ -26,7 +26,7 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
      * @param GuzzleFactory $guzzleFactory
      * @param array $guzzleConfig
      */
-    public function __construct(GuzzleFactory $guzzleFactory, array $guzzleConfig)
+    public function __construct(GuzzleFactory $guzzleFactory, array $guzzleConfig = [])
     {
         $this->guzzleClient = $guzzleFactory->createClient($guzzleConfig);
     }

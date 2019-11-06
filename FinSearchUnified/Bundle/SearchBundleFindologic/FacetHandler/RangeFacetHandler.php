@@ -30,8 +30,8 @@ class RangeFacetHandler implements PartialFacetHandlerInterface
         $activeMax = (float)$filter->attributes->selectedRange->max;
 
         $conditionName = $facet->getName();
-        $minFieldName = 'min' . $facet->getName();
-        $maxFieldName = 'max' . $facet->getName();
+        $minFieldName = 'min' . $conditionName;
+        $maxFieldName = 'max' . $conditionName;
 
         if ((string)$filter->name === 'price') {
             $minFieldName = 'min';
@@ -39,7 +39,7 @@ class RangeFacetHandler implements PartialFacetHandlerInterface
         }
 
         return new RangeFacetResult(
-            $facet->getName(),
+            $conditionName,
             $criteria->hasCondition($conditionName),
             $facet->getLabel(),
             $min,

@@ -45,7 +45,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     ) {
         $this->originalService = $service;
         $this->queryBuilderFactory = $queryBuilderFactory;
-        $this->facetHandlers = $this->registerFacetHandlers();
+        $this->facetHandlers = self::registerFacetHandlers();
     }
 
     /**
@@ -121,20 +121,25 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         setcookie('Fallback', $status, 0, '', '', true);
     }
 
-    private function registerFacetHandlers()
+    /**
+     * @return PartialFacetHandlerInterface[]
+     */
+    private static function registerFacetHandlers()
     {
         return [
-            $CategoryFacetHandler = new CategoryFacetHandler(),
-            $ColorFacetHandler = new ColorFacetHandler(),
-            $ImageFacetHandler = new ImageFacetHandler(
-                Shopware()->Container()->get('guzzle_http_client_factory'),
-                []
-            ),
-            $RangeFacetHandler = new RangeFacetHandler(),
-            $TextFacetHandler = new TextFacetHandler(),
+            new CategoryFacetHandler(),
+            new ColorFacetHandler(),
+            new ImageFacetHandler(Shopware()->Container()->get('guzzle_http_client_factory')),
+            new RangeFacetHandler(),
+            new TextFacetHandler()
         ];
     }
 
+    /**
+     * @param SimpleXMLElement $filter
+     *
+     * @return PartialFacetHandlerInterface|null
+     */
     private function getFacetHandler(SimpleXMLElement $filter)
     {
         foreach ($this->facetHandlers as $handler) {
@@ -146,21 +151,27 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         return null;
     }
 
+    /**
+     * @param Criteria $criteria
+     * @param SimpleXMLElement $filters
+     *
+     * @return array
+     */
     protected function createFacets(Criteria $criteria, SimpleXMLElement $filters)
     {
         $facets = [];
 
         foreach ($criteria->getFacets() as $criteriaFacet) {
             $field = $criteriaFacet->getField();
-            $xpath = $filters->xpath(sprintf('//name[.="%s"]/parent::*', $field));
-            if (empty($xpath)) {
+            $filter = $filters->xpath(sprintf('//name[.="%s"]/parent::*', $field));
+            if (empty($filter)) {
                 continue;
             }
-            $handler = $this->getFacetHandler($xpath[0]);
+            $handler = $this->getFacetHandler($filter[0]);
             if ($handler === null) {
                 continue;
             }
-            $partialFacet = $handler->generatePartialFacet($criteriaFacet, $criteria, $xpath[0]);
+            $partialFacet = $handler->generatePartialFacet($criteriaFacet, $criteria, $filter[0]);
             if ($partialFacet === null) {
                 continue;
             }
