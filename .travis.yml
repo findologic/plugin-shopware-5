@@ -38,7 +38,7 @@ before_script:
   - if [[ "$(php --version | grep -cim1 xdebug)" -ge 1 ]]; then phpenv config-rm xdebug.ini; fi
   - git clone https://github.com/shopware/shopware.git ${SHOPWARE_DIRECTORY} --branch ${SHOPWARE_VERSION}
     # Make sure to checkout 5.3.0 version for unit testing
-  - if [[ "${SHOPWARE_VERSION}" ==  "5.3" ]]; then git fetch --tags --force; git checkout tags/v5.3.0; fi
+  - if [[ "${SHOPWARE_VERSION}" ==  "5.3" ]]; then cd ${SHOPWARE_DIRECTORY} && git fetch --tags --force; git checkout tags/v5.3.0; fi
   - ant -f ${SHOPWARE_DIRECTORY}/build/build.xml -Dapp.host=localhost -Ddb.user=travis -Ddb.host=127.0.0.1 -Ddb.name=shopware build-unit
   - mv ${TRAVIS_BUILD_DIR}/${PLUGIN_NAME} ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
   - php ${SHOPWARE_DIRECTORY}/bin/console sw:plugin:refresh
