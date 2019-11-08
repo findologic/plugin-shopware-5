@@ -45,7 +45,6 @@ before_script:
   - php ${SHOPWARE_DIRECTORY}/bin/console sw:plugin:install ${PLUGIN_NAME}
   - php ${SHOPWARE_DIRECTORY}/bin/console sw:plugin:activate ${PLUGIN_NAME}
   - php ${SHOPWARE_DIRECTORY}/bin/console sw:cache:clear
-  - ${SHOPWARE_DIRECTORY}/var/cache/clear_cache.sh
   - cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
 
 script:
