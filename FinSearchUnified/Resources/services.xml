@@ -138,12 +138,6 @@
             <argument type="service" id="config" />
         </service>
 
-        <service id="shopware.routing.matchers.rewrite_matcher" class="Shopware\Components\Routing\Matchers\RewriteMatcher">
-            <argument type="service" id="dbal_connection"/>
-            <argument type="service" id="query_alias_mapper"/>
-            <tag name="router.matcher" priority="50"/>
-        </service>
-
         <service id="fin_search_unified.subscriber.widgets" class="FinSearchUnified\Subscriber\Widgets">
             <tag name="shopware.event_subscriber" />
             <argument id="cache" type="service" />
@@ -157,5 +151,30 @@
         </service>
 
         <service class="FinSearchUnified\Components\Environment" id="fin_search_unified.environment" />
+
+        <!-- Re-declare non-existent shopware services in our xml for backward compatibility -->
+        <service
+            id="shopware_search_es.product_number_search"
+            class="Shopware\Bundle\SearchBundleES\ProductNumberSearch"
+        >
+            <factory service="shopware_search_es.product_number_search_factory" method="factory" />
+            <argument type="service" id="service_container" />
+        </service>
+
+        <service
+            id="shopware_search_es.product_number_search_factory"
+            class="Shopware\Bundle\SearchBundleES\DependencyInjection\Factory\ProductNumberSearchFactory"
+        >
+            <argument type="tagged" tag="shopware_search_es.search_handler" />
+            <argument>%shopware.es.version%</argument>
+        </service>
+
+        <service id="shopware.routing.matchers.rewrite_matcher" class="Shopware\Components\Routing\Matchers\RewriteMatcher">
+            <argument type="service" id="dbal_connection"/>
+            <argument type="service" id="query_alias_mapper"/>
+            <tag name="router.matcher" priority="50"/>
+        </service>
+        <!-- Shopware services re-declaration ends here -->
+
     </services>
 </container>
