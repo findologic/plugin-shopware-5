@@ -165,17 +165,25 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     {
         $facets = [];
 
+        /** @var  $criteriaFacet */
         foreach ($criteria->getFacets() as $criteriaFacet) {
             $field = $criteriaFacet->getField();
             $facetName = $criteriaFacet->getName();
             $selectedFilter = $filters->xpath(sprintf('//name[.="%s"]/parent::*', $field));
 
             if (empty($selectedFilter)) {
-                if ($criteria->hasUserCondition($facetName)) {
-                    if ($facetName === 'price' || $field === 'price') {
+                if ($facetName === 'product_attribute_price' || $field === 'price') {
+                    if (count($criteria->getUserConditions()) > 0) {
+                        $condition = null;
+                        if ($criteria->hasUserCondition($facetName)) {
+                            $condition = $criteria->getUserCondition($facetName);
+                        } elseif ($criteria->hasUserCondition($field)) {
+                            $condition = $criteria->getUserCondition($field);
+                        }
+
                         $selectedFilter = $this->createSelectedFilter(
                             $criteriaFacet,
-                            $criteria->getUserCondition($facetName)
+                            $condition
                         );
                     }
                 } else {
@@ -207,9 +215,11 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      */
     private function createSelectedFilter(FacetInterface $facet, ConditionInterface $condition)
     {
+        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
+        $filter = new SimpleXMLElement($data);
+
         if ($condition instanceof PriceCondition) {
-            $filter = new SimpleXMLElement('');
-            $filter->addChild('name', $condition->getField());
+            $filter->addChild('name', $condition->getName());
             $filter->addChild('type', 'range-slider');
             $attributes = $filter->addChild('attributes');
             $totalRange = $attributes->addChild('totalRange');
@@ -224,8 +234,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         if ($facet->getMode() === ProductAttributeFacet::MODE_RANGE_RESULT) {
             $values = $condition->getValues();
-            $filter = new SimpleXMLElement('');
-            $filter->addChild('name', $condition->getField());
+            $filter->addChild('name', $condition->getName());
             $filter->addChild('type', 'range-slider');
             $attributes = $filter->addChild('attributes');
             $totalRange = $attributes->addChild('totalRange');
@@ -238,8 +247,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             return $filter;
         }
 
-        $filter = new SimpleXMLElement('');
-        $filter->addChild('name', $condition->getField());
+        $filter->addChild('name', $condition->getName());
         $filter->addChild('type', 'label');
         $filter->addChild('items');
 

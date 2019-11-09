@@ -12,10 +12,13 @@ use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomL
 use FinSearchUnified\Tests\TestCase;
 use ReflectionException;
 use ReflectionObject;
+use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
+use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\ValueListFacetResult;
+use Shopware\Bundle\SearchBundle\FacetResultInterface;
 use Shopware_Components_Config as Config;
 use SimpleXMLElement;
 
@@ -271,12 +274,38 @@ class ProductNumberSearchTest extends TestCase
         $xmlResponse = $this->getXmlResponse();
         $filters = $xmlResponse->addChild('filters');
 
-        $this->setVendorFilter($filters);
+        $this->setPriceFilter($filters);
 
         return [
             'Filters which are selected only contain the value that was selected' => [
                 'xmlResponse' => $xmlResponse,
-                'expectedResults' => []
+                'expectedResult' => new RangeFacetResult(
+                    'product_attribute_price',
+                    false,
+                    'Price',
+                    0.0,
+                    99.0,
+                    4.2,
+                    69.0,
+                    'min',
+                    'max'
+                ),
+                'condition' => null
+            ],
+            'All filter values are displayed if no filters are selected' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResult' => new RangeFacetResult(
+                    'product_attribute_price',
+                    false,
+                    'Price',
+                    66.20,
+                    99.0,
+                    66.20,
+                    99.0,
+                    'min',
+                    'max'
+                ),
+                'condition' => new PriceCondition(66.20, 99.00)
             ]
         ];
     }
@@ -285,32 +314,47 @@ class ProductNumberSearchTest extends TestCase
      * @dataProvider selectedFiltersProvider
      *
      * @param SimpleXMLElement $xmlResponse
-     * @param array $expectedResults
+     * @param FacetResultInterface $expectedResult
+     * @param ConditionInterface|null $condition
      *
      * @throws ReflectionException
      */
-    public function testCreateFacets(SimpleXMLElement $xmlResponse, array $expectedResults)
-    {
+    public function testCreateFacets(
+        SimpleXMLElement $xmlResponse,
+        FacetResultInterface $expectedResult,
+        ConditionInterface $condition = null
+    ) {
         $criteria = new Criteria();
         $criteria->setFetchCount(true);
+        if ($condition) {
+            $criteria->addCondition($condition);
+        }
 
         $hydrator = new CustomListingHydrator();
 
         foreach ($xmlResponse->filters->filter as $filter) {
-            $facet = $hydrator->hydrateFacet($filter);
-            $criteria->addFacet($facet->getFacet());
+            $facetResult = $hydrator->hydrateFacet($filter);
+            $criteria->addFacet($facetResult->getFacet());
         }
 
         $productNumberSearch = Shopware()->Container()->get('fin_search_unified.product_number_search');
         $reflector = new ReflectionObject($productNumberSearch);
         $method = $reflector->getMethod('createFacets');
         $method->setAccessible(true);
-        $facets = $method->invokeArgs($productNumberSearch, [$criteria, $xmlResponse->filters->filter]);
 
-        $this->assertNotEmpty($facets);
+        if ($condition) {
+            $filters = $this->getXmlResponse()->addChild('filters');
+        } else {
+            $filters = $xmlResponse->filters->filter;
+        }
 
-        // TODO ask in what scenario will the xpath return empty in order to get into the
-        // FinSearchUnified\Bundle\ProductNumberSearch::createSelectedFilter method
+        $result = $method->invokeArgs($productNumberSearch, [$criteria, $filters]);
+
+        $this->assertNotEmpty($result);
+
+        $facetResult = current($result);
+
+        $this->assertEquals($expectedResult, $facetResult);
     }
 
     /**
@@ -353,8 +397,8 @@ class ProductNumberSearchTest extends TestCase
         $selectedRange->addChild('min', 4.20);
         $selectedRange->addChild('max', 69.00);
         $totalRange = $attributes->addChild('totalRange');
-        $totalRange->addChild('min', 4.20);
-        $totalRange->addChild('max', 69.00);
+        $totalRange->addChild('min', 0.00);
+        $totalRange->addChild('max', 99.00);
     }
 
     /**
