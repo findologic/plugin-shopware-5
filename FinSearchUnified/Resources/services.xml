@@ -165,8 +165,7 @@
             id="shopware_search_es.product_number_search_factory"
             class="Shopware\Bundle\SearchBundleES\DependencyInjection\Factory\ProductNumberSearchFactory"
         >
-            <argument type="tagged" tag="shopware_search_es.search_handler" />
-            <argument>%shopware.es.version%</argument>
+            <argument type="collection" />
         </service>
 
         <service id="shopware.routing.matchers.rewrite_matcher" class="Shopware\Components\Routing\Matchers\RewriteMatcher">
