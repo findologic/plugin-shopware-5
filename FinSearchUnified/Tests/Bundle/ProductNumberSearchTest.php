@@ -280,7 +280,7 @@ class ProductNumberSearchTest extends TestCase
             'Filters which are selected only contain the value that was selected' => [
                 'xmlResponse' => $xmlResponse,
                 'expectedResult' => new RangeFacetResult(
-                    'product_attribute_price',
+                    'price',
                     false,
                     'Price',
                     0.0,
@@ -295,8 +295,8 @@ class ProductNumberSearchTest extends TestCase
             'All filter values are displayed if no filters are selected' => [
                 'xmlResponse' => $xmlResponse,
                 'expectedResult' => new RangeFacetResult(
-                    'product_attribute_price',
-                    false,
+                    'price',
+                    true,
                     'Price',
                     66.20,
                     99.0,
@@ -343,8 +343,10 @@ class ProductNumberSearchTest extends TestCase
         $method->setAccessible(true);
 
         if ($condition) {
+            // No filters are selected in the XML response
             $filters = $this->getXmlResponse()->addChild('filters');
         } else {
+            // Filters are present in the XML response
             $filters = $xmlResponse->filters->filter;
         }
 

@@ -168,24 +168,15 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         /** @var  $criteriaFacet */
         foreach ($criteria->getFacets() as $criteriaFacet) {
             $field = $criteriaFacet->getField();
-            $facetName = $criteriaFacet->getName();
             $selectedFilter = $filters->xpath(sprintf('//name[.="%s"]/parent::*', $field));
 
             if (empty($selectedFilter)) {
-                if ($facetName === 'product_attribute_price' || $field === 'price') {
-                    if (count($criteria->getUserConditions()) > 0) {
-                        $condition = null;
-                        if ($criteria->hasUserCondition($facetName)) {
-                            $condition = $criteria->getUserCondition($facetName);
-                        } elseif ($criteria->hasUserCondition($field)) {
-                            $condition = $criteria->getUserCondition($field);
-                        }
-
-                        $selectedFilter = $this->createSelectedFilter(
-                            $criteriaFacet,
-                            $condition
-                        );
-                    }
+                if ($criteria->hasUserCondition('price')) {
+                    $condition = $criteria->getUserCondition('price');
+                    $selectedFilter = $this->createSelectedFilter(
+                        $criteriaFacet,
+                        $condition
+                    );
                 } else {
                     continue;
                 }
@@ -234,7 +225,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         if ($facet->getMode() === ProductAttributeFacet::MODE_RANGE_RESULT) {
             $values = $condition->getValues();
-            $filter->addChild('name', $condition->getName());
+            $filter->addChild('name', $condition->getField());
             $filter->addChild('type', 'range-slider');
             $attributes = $filter->addChild('attributes');
             $totalRange = $attributes->addChild('totalRange');
@@ -247,7 +238,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             return $filter;
         }
 
-        $filter->addChild('name', $condition->getName());
+        $filter->addChild('name', $condition->getField());
         $filter->addChild('type', 'label');
         $filter->addChild('items');
 
