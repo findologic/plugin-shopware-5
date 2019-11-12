@@ -165,23 +165,25 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     {
         $facets = [];
 
-        /** @var  $criteriaFacet */
+        /** @var ProductAttributeFacet $criteriaFacet */
         foreach ($criteria->getFacets() as $criteriaFacet) {
             $field = $criteriaFacet->getField();
             $selectedFilter = $filters->xpath(sprintf('//name[.="%s"]/parent::*', $field));
 
             if (empty($selectedFilter)) {
-                if ($criteria->hasUserCondition('price')) {
+                if ($criteria->hasUserCondition($criteriaFacet->getName())) {
+                    $condition = $criteria->getUserCondition($criteriaFacet->getName());
+                } elseif ($criteria->hasUserCondition('price')) {
                     $condition = $criteria->getUserCondition('price');
-                    $selectedFilter = $this->createSelectedFilter(
-                        $criteriaFacet,
-                        $condition
-                    );
                 } else {
                     continue;
                 }
+                $selectedFilter = $this->createSelectedFilter(
+                    $criteriaFacet,
+                    $condition
+                );
             } else {
-                $selectedFilter = $selectedFilter[0];
+                $selectedFilter = current($selectedFilter);
             }
 
             $handler = $this->getFacetHandler($selectedFilter);
@@ -206,7 +208,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      */
     private function createSelectedFilter(FacetInterface $facet, ConditionInterface $condition)
     {
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
+        $data = '<filter />';
         $filter = new SimpleXMLElement($data);
 
         if ($condition instanceof PriceCondition) {

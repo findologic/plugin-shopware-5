@@ -86,7 +86,7 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
     {
         foreach ($actives as $active) {
             // Only the first child will be in the $child variable
-            list($parent, $child) = explode('_', $active);
+            [$parent, $child] = explode('_', $active);
 
             // Create structured array and recursively create category tree
             $categories[$parent] = [
