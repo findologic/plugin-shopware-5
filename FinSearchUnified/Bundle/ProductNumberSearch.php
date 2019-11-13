@@ -168,22 +168,13 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         /** @var ProductAttributeFacet $criteriaFacet */
         foreach ($criteria->getFacets() as $criteriaFacet) {
             $field = $criteriaFacet->getField();
-            $selectedFilter = $filters->xpath(sprintf('//name[.="%s"]/parent::*', $field));
 
-            if (empty($selectedFilter)) {
-                if ($criteria->hasUserCondition($criteriaFacet->getName())) {
-                    $condition = $criteria->getUserCondition($criteriaFacet->getName());
-                } elseif ($criteria->hasUserCondition('price')) {
-                    $condition = $criteria->getUserCondition('price');
-                } else {
+            $selectedFilter = $selectedFilterByResponse = $this->fetchSelectedFilterByResponse($filters, $field);
+            if (!$selectedFilterByResponse) {
+                $selectedFilter = $this->fetchSelectedFilterByUserCondition($criteria, $criteriaFacet);
+                if (!$selectedFilter) {
                     continue;
                 }
-                $selectedFilter = $this->createSelectedFilter(
-                    $criteriaFacet,
-                    $condition
-                );
-            } else {
-                $selectedFilter = current($selectedFilter);
             }
 
             $handler = $this->getFacetHandler($selectedFilter);
@@ -198,6 +189,39 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         }
 
         return $facets;
+    }
+
+    /**
+     * @param SimpleXMLElement $filters
+     * @param string $field
+     *
+     * @return SimpleXMLElement|null
+     */
+    private function fetchSelectedFilterByResponse(SimpleXMLElement $filters, $field)
+    {
+        $selectedFilter = $filters->xpath(sprintf('//name[.="%s"]/parent::*', $field));
+
+        return !empty($selectedFilter) ? $selectedFilter[0] : null;
+    }
+
+    /**
+     * @param Criteria $criteria
+     * @param FacetInterface $criteriaFacet
+     *
+     * @return SimpleXMLElement|null
+     */
+    private function fetchSelectedFilterByUserCondition(Criteria $criteria, FacetInterface $criteriaFacet)
+    {
+        if (!$criteria->hasUserCondition($criteriaFacet->getName())) {
+            return null;
+        }
+
+        $condition = $criteria->getUserCondition($criteriaFacet->getName());
+
+        return $this->createSelectedFilter(
+            $criteriaFacet,
+            $condition
+        );
     }
 
     /**

@@ -122,9 +122,7 @@ class TextFacetHandler implements PartialFacetHandlerInterface
      */
     private function createValueListFacetResult(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filter)
     {
-        $items = $filter->items->item;
-
-        $values = $this->getValueListItems($facet, $criteria, $items);
+        $values = $this->getValueListItems($facet, $criteria, $filter->items->item);
         $active = $criteria->hasCondition($facet->getName());
 
         return new ValueListFacetResult(
@@ -145,7 +143,6 @@ class TextFacetHandler implements PartialFacetHandlerInterface
      */
     private function createRadioFacetResult(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filter)
     {
-        /** @var ProductAttributeFacet $facet */
         $values = $this->getValueListItems($facet, $criteria, $filter->items->item);
         $active = $criteria->hasCondition($facet->getName());
 
