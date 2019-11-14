@@ -201,7 +201,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     {
         $selectedFilter = $filters->xpath(sprintf('//name[.="%s"]/parent::*', $field));
 
-        return !empty($selectedFilter) ? $selectedFilter[0] : null;
+        return isset($selectedFilter[0]) ? $selectedFilter[0] : null;
     }
 
     /**
@@ -212,11 +212,15 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      */
     private function fetchSelectedFilterByUserCondition(Criteria $criteria, FacetInterface $criteriaFacet)
     {
-        if (!$criteria->hasUserCondition($criteriaFacet->getName())) {
+        if ($criteria->hasUserCondition($criteriaFacet->getName())) {
+            $facetName = $criteriaFacet->getName();
+        } elseif ($criteria->hasUserCondition('price')) {
+            $facetName = 'price';
+        } else {
             return null;
         }
 
-        $condition = $criteria->getUserCondition($criteriaFacet->getName());
+        $condition = $criteria->getUserCondition($facetName);
 
         return $this->createSelectedFilter(
             $criteriaFacet,
