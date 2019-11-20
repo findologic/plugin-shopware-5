@@ -69,4 +69,22 @@ class FinSearchUnified extends Plugin
             Shopware()->PluginLogger()->info("ExtendFinSearchUnified plugin doesn't exist!");
         }
     }
+
+    /**
+     * @return string
+     */
+    public function getContainerPrefix()
+    {
+        return $this->camelCaseToUnderscore($this->getName());
+    }
+
+    /**
+     * @param string $string
+     *
+     * @return string
+     */
+    private function camelCaseToUnderscore($string)
+    {
+        return strtolower(ltrim(preg_replace('/[A-Z]/', '_$0', $string), '_'));
+    }
 }
