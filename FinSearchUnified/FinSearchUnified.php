@@ -3,7 +3,6 @@
 namespace FinSearchUnified;
 
 use Exception;
-use FinSearchUnified\Subscriber\Frontend;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Components\Plugin;
 use Shopware\Components\Plugin\Context\DeactivateContext;
@@ -11,8 +10,9 @@ use Shopware\Components\Plugin\Context\InstallContext;
 use Shopware\Components\Plugin\Context\UninstallContext;
 use Shopware\Components\Plugin\Context\UpdateContext;
 use Shopware\Models;
+use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 
 class FinSearchUnified extends Plugin
 {
@@ -23,8 +23,12 @@ class FinSearchUnified extends Plugin
             $container->setParameter($this->getContainerPrefix() . '.plugin_dir', $this->getPath());
         }
 
-        $frontendSubscriberDefinition = new Definition(Frontend::class);
-        $container->addDefinitions(['fin_search_unified.subscriber.frontend' => $frontendSubscriberDefinition]);
+        $loader = new XmlFileLoader(
+            $container,
+            new FileLocator()
+        );
+
+        $loader->load($this->getPath() . '/Resources/services.xml');
     }
 
     public function deactivate(DeactivateContext $context)
