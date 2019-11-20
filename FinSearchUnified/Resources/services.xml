@@ -4,6 +4,11 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd"
 >
+    <!-- Required for Shopware 5.2.x support -->
+    <imports>
+        <import resource="shopware/searchBundleES.xml" />
+    </imports>
+
     <parameters>
         <parameter key="fin_search_unified.view_dir">%fin_search_unified.plugin_dir%/Resources/views</parameter>
     </parameters>

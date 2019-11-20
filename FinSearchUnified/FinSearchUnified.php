@@ -3,6 +3,7 @@
 namespace FinSearchUnified;
 
 use Exception;
+use FinSearchUnified\Subscriber\Frontend;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Components\Plugin;
 use Shopware\Components\Plugin\Context\DeactivateContext;
@@ -10,9 +11,22 @@ use Shopware\Components\Plugin\Context\InstallContext;
 use Shopware\Components\Plugin\Context\UninstallContext;
 use Shopware\Components\Plugin\Context\UpdateContext;
 use Shopware\Models;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 
 class FinSearchUnified extends Plugin
 {
+    public function build(ContainerBuilder $container)
+    {
+        // Required for Shopware 5.2.x compatibility.
+        if (!$container->hasParameter($this->getContainerPrefix() . '.plugin_dir')) {
+            $container->setParameter($this->getContainerPrefix() . '.plugin_dir', $this->getPath());
+        }
+
+        $frontendSubscriberDefinition = new Definition(Frontend::class);
+        $container->addDefinitions(['fin_search_unified.subscriber.frontend' => $frontendSubscriberDefinition]);
+    }
+
     public function deactivate(DeactivateContext $context)
     {
         $this->deactivateCustomizedPlugin();
