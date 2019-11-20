@@ -10,9 +10,7 @@ use Shopware\Components\Plugin\Context\InstallContext;
 use Shopware\Components\Plugin\Context\UninstallContext;
 use Shopware\Components\Plugin\Context\UpdateContext;
 use Shopware\Models;
-use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 
 class FinSearchUnified extends Plugin
 {
@@ -23,12 +21,7 @@ class FinSearchUnified extends Plugin
             $container->setParameter($this->getContainerPrefix() . '.plugin_dir', $this->getPath());
         }
 
-        $loader = new XmlFileLoader(
-            $container,
-            new FileLocator()
-        );
-
-        $loader->load($this->getPath() . '/Resources/services.xml');
+        parent::build($container);
     }
 
     public function deactivate(DeactivateContext $context)
