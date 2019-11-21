@@ -23,7 +23,6 @@
     "findologic/libflexport": "~1.2"
   },
   "require-dev": {
-    "squizlabs/php_codesniffer": "3.3.2",
-    "phpunit/phpunit": "^5.7"
+    "squizlabs/php_codesniffer": "3.3.2"
   }
 }
