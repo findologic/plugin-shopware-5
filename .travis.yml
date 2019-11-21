@@ -39,7 +39,7 @@ before_script:
   - if [[ "$(php --version | grep -cim1 xdebug)" -ge 1 ]]; then phpenv config-rm xdebug.ini; fi
   - git clone https://github.com/shopware/shopware.git ${SHOPWARE_DIRECTORY} --branch ${SHOPWARE_VERSION}
   - if [[ "${SHOPWARE_TAG}" ==  "5.2.0" ]]; then cd ${SHOPWARE_DIRECTORY} && git fetch --tags --force; git checkout tags/v5.2.0; fi
-  - if [[ "${SHOPWARE_TAG}" ==  "5.2.0" ]]; then composer require --dev phpunit/phpunit; fi
+  - if [[ "${SHOPWARE_TAG}" ==  "5.2.0" ]]; then cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME} && composer require --dev -n phpunit/phpunit && cd ${SHOPWARE_DIRECTORY}; fi
   - ant -f ${SHOPWARE_DIRECTORY}/build/build.xml -Dapp.host=localhost -Ddb.user=travis -Ddb.host=127.0.0.1 -Ddb.name=shopware build-unit
   - mv ${TRAVIS_BUILD_DIR}/${PLUGIN_NAME} ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
   - php ${SHOPWARE_DIRECTORY}/bin/console sw:plugin:refresh
