@@ -31,10 +31,19 @@
             <tag name="shopware.event_subscriber" />
         </service>
 
-        <service
-            id="fin_search_unified.custom_listing_hydrator"
-            class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator"
-        />
+        <service class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator"
+            id="fin_search_unified.custom_listing_hydrator">
+        <argument id="configLoader" type="service" />
+        </service>
+
+
+
+        <service class="FinSearchUnified\Components\ConfigLoader" id="fin_search_unified.config_loader">
+            <argument id="cache" type="service" />
+            <argument id="http_client" type="service" />
+            <argument id="config" type="service" />
+        </service>
+
 
         <service
             decorates="shopware_storefront.custom_facet_gateway"

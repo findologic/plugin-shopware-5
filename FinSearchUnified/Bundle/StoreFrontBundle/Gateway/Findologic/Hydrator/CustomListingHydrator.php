@@ -2,12 +2,23 @@
 
 namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator;
 
+use FinSearchUnified\Components\ConfigLoader;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use SimpleXMLElement;
 
+
 class CustomListingHydrator
 {
+    private $configLoader;
+
+    public function __construct(
+        ConfigLoader $configLoader
+    ){
+        $this->configLoader = $configLoader;
+    }
+
+
     /**
      * @param SimpleXMLElement $select
      *
@@ -67,4 +78,19 @@ class CustomListingHydrator
         // Fall back to the original name if it couldn't be escaped.
         return $escapedName ?: $name;
     }
+        private function createCustomFacet(string $name, string $mode, string $label){
+
+            $formFieldName =  $this->getFormFieldName($name);
+        }
+
+    /**
+     *
+     */
+    public function hydrateDefaultCategoryFacet(){
+
+        $this->configLoader->getSmartSuggestBlocks();
+
+
+        }
+
 }
