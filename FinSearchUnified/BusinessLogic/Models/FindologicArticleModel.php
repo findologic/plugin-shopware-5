@@ -581,6 +581,12 @@ class FindologicArticleModel
                             $filterValues
                         );
                     }
+                    foreach ($filterValues as $key => $value) {
+                        if (empty($value) || !trim($value)) {
+                            unset($filterValues[$key]);
+                            continue;
+                        }
+                    }
                 }
             }
         }
