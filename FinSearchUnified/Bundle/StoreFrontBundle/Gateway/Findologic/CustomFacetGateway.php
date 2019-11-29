@@ -124,11 +124,27 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
     private function hydrate(SimpleXMLElement $filters)
     {
         $facets = [];
+        $hasCategoryFacet = false;
+        $hasVendorFacet = false;
 
         foreach ($filters as $filter) {
-            $facets[] = $this->hydrator->hydrateFacet($filter);
+            $facet = $this->hydrator->hydrateFacet($filter);
+            $facetName = $facet->getName();
+            if($facetName == 'vendor'){
+                $hasVendorFacet = true;
+            }
+            if($facetName == 'cat'){
+                $hasCategoryFacet = true;
+            }
+            $facets[] = $facet;
         }
 
+        if($hasVendorFacet == false){
+            $facets[] = $this->hydrator->hydrateDefaultVendorFacet();
+        }
+        if($hasCategoryFacet == false){
+            $facets[] = $this->hydrator->hydrateDefaultCategoryFacet();
+        }
         return $facets;
     }
 }

@@ -145,6 +145,12 @@ class ConfigLoader
                 return $default;
         }
     }
+    /**
+     * @param mixed|null $default
+     *
+     * @return mixed|null
+     * @throws Zend_Cache_Exception
+     */
 
     public function getSmartSuggestBlocks($default = [])
     {

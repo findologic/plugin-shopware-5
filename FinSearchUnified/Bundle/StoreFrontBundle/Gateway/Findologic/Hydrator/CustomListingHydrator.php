@@ -22,7 +22,7 @@ class CustomListingHydrator
     /**
      * @param SimpleXMLElement $select
      *
-     * @return CustomFacet
+     * @return CustomFacet|void
      */
     public function hydrateFacet(SimpleXMLElement $select)
     {
@@ -30,12 +30,6 @@ class CustomListingHydrator
         $label = (string)$select->display;
         $type = (string)$select->type;
         $select = (string)$select->select;
-
-        $formFieldName = $this->getFormFieldName($name);
-
-        $customFacet = new CustomFacet();
-        $customFacet->setName($name);
-        $customFacet->setUniqueKey($name);
 
         if ($type === 'range-slider') {
             $mode = ProductAttributeFacet::MODE_RANGE_RESULT;
@@ -47,11 +41,8 @@ class CustomListingHydrator
             $mode = ProductAttributeFacet::MODE_VALUE_LIST_RESULT;
         }
 
-        $productAttributeFacet = new ProductAttributeFacet($name, $mode, $formFieldName, $label);
+        return $this->createCustomFacet($name,$mode,$label);
 
-        $customFacet->setFacet($productAttributeFacet);
-
-        return $customFacet;
     }
 
     /**
@@ -78,19 +69,38 @@ class CustomListingHydrator
         // Fall back to the original name if it couldn't be escaped.
         return $escapedName ?: $name;
     }
-        private function createCustomFacet(string $name, string $mode, string $label){
-
-            $formFieldName =  $this->getFormFieldName($name);
-        }
-
     /**
-     *
+     * @param string $name
+     * @param string $mode
+     * @param string $label
      */
+    private function createCustomFacet($name,  $mode, $label){
+
+        $formFieldName =  $this->getFormFieldName($name);
+        $customFacet = new CustomFacet();
+        $productAttributeFacet = new ProductAttributeFacet($name, $mode, $formFieldName, $label);
+        $customFacet->setFacet($productAttributeFacet);
+    }
+
     public function hydrateDefaultCategoryFacet(){
 
-        $this->configLoader->getSmartSuggestBlocks();
+        $smartSuggestion = $this->configLoader->getSmartSuggestBlocks();
+        $label = $smartSuggestion['cat'];
+        $name = 'cat';
+        $mode = ProductAttributeFacet::MODE_RADIO_LIST_RESULT;
 
+        return $this->createCustomFacet($name,$mode,$label);
 
         }
+
+    public function hydrateDefaultVendorFacet(){
+        $smartSuggestion = $this->configLoader->getSmartSuggestBlocks();
+        $label = $smartSuggestion['vendor'];
+        $name = 'vendor';
+        $mode = ProductAttributeFacet::MODE_RADIO_LIST_RESULT;
+        $this->createCustomFacet($name,$mode,$label);
+        }
+
+
 
 }
