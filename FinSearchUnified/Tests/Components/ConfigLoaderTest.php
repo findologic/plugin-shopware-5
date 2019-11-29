@@ -171,6 +171,7 @@ class ConfigLoaderTest extends TestCase
         $method = $reflector->getMethod('warmUpCache');
         $method->setAccessible(true);
         $method->invoke($configLoader);
+
     }
 
     public function warmUpCacheProvider()
@@ -181,9 +182,10 @@ class ConfigLoaderTest extends TestCase
                 200,
                 json_encode([
                     'isStagingShop' => true,
-                    'directIntegration' => ['enabled' => false, 'iShouldNotBeHere' => true]
+                    'directIntegration' => ['enabled' => false, 'iShouldNotBeHere' => true],
+                    'blocks' => ['cat' => false, 'vendor' => true] //rabab
                 ]),
-                ['isStagingShop' => true, 'directIntegration' => ['enabled' => false]]
+                ['isStagingShop' => true, 'directIntegration' => ['enabled' => false],'blocks' => ['cat' => false, 'vendor' => true]] //rabab
             ],
         ];
     }
@@ -198,7 +200,7 @@ class ConfigLoaderTest extends TestCase
      */
     public function testCacheWithCorrectKey($cacheTestResponse, $loadCallCount)
     {
-        $config = ['isStagingShop' => false, 'directIntegration' => ['enabled' => false]];
+        $config = ['isStagingShop' => false, 'directIntegration' => ['enabled' => false], 'blocks' => ['cat' => false, 'vendor' => false]];
         $expectedCacheKey = sprintf('%s_%s', 'fin_service_config', $this->shopkey);
 
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
@@ -229,7 +231,6 @@ class ConfigLoaderTest extends TestCase
         $method = $reflector->getMethod('get');
         $method->setAccessible(true);
         $result = $method->invoke($configLoader, 'directIntegration', 'test');
-
         $this->assertFalse($result);
     }
 
@@ -273,7 +274,7 @@ class ConfigLoaderTest extends TestCase
         return [
             'Cache load return false' => [false, $this->exactly(2)],
             'Cache load return config' => [
-                ['isStagingShop' => false, 'directIntegration' => ['enabled' => false]],
+                ['isStagingShop' => false, 'directIntegration' => ['enabled' => false], 'blocks' => ['cat' => false, 'vendor' => false]],
                 $this->once()
             ]
         ];
@@ -308,7 +309,7 @@ class ConfigLoaderTest extends TestCase
 
     public function testIsStagingShop()
     {
-        $config = ['isStagingShop' => false, 'directIntegration' => ['enabled' => false]];
+        $config = ['isStagingShop' => false, 'directIntegration' => ['enabled' => false], 'blocks' => ['cat' => false, 'vendor' => false]];
         $expectedCacheKey = sprintf('%s_%s', 'fin_service_config', $this->shopkey);
         $httpClient = Shopware()->Container()->get('http_client');
 

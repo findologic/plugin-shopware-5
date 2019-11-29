@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Tests\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator;
 
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
+use FinSearchUnified\Components\ConfigLoader;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use SimpleXMLElement;
@@ -14,11 +15,18 @@ class CustomListingHydratorTest extends TestCase
      */
     private $hydrator;
 
+
+
     protected function setUp()
     {
         parent::setUp();
 
-        $this->hydrator = new CustomListingHydrator();
+
+        $configLoader = new configLoader(Shopware()->Container()->get('cache'),
+            Shopware()->Container()->get('http_client'),
+            Shopware()->Config());
+        $this->hydrator = new CustomListingHydrator($configLoader);
+
     }
 
     /**

@@ -33,7 +33,7 @@
 
         <service class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator"
             id="fin_search_unified.custom_listing_hydrator">
-        <argument id="configLoader" type="service" />
+            <!--<argument id="configLoader" type="service" />-->
         </service>
 
 

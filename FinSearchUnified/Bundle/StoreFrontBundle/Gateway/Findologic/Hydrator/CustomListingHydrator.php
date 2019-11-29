@@ -22,7 +22,7 @@ class CustomListingHydrator
     /**
      * @param SimpleXMLElement $select
      *
-     * @return CustomFacet|void
+     * @return CustomFacet
      */
     public function hydrateFacet(SimpleXMLElement $select)
     {
@@ -41,8 +41,7 @@ class CustomListingHydrator
             $mode = ProductAttributeFacet::MODE_VALUE_LIST_RESULT;
         }
 
-        return $this->createCustomFacet($name,$mode,$label);
-
+       return $this->createCustomFacet($name,$mode,$label);
     }
 
     /**
@@ -80,6 +79,8 @@ class CustomListingHydrator
         $customFacet = new CustomFacet();
         $productAttributeFacet = new ProductAttributeFacet($name, $mode, $formFieldName, $label);
         $customFacet->setFacet($productAttributeFacet);
+
+        return $customFacet;
     }
 
     public function hydrateDefaultCategoryFacet(){
