@@ -21,12 +21,12 @@ class CustomListingHydratorTest extends TestCase
     {
         parent::setUp();
 
-
         $configLoader = new configLoader(Shopware()->Container()->get('cache'),
             Shopware()->Container()->get('http_client'),
             Shopware()->Config());
         $this->hydrator = new CustomListingHydrator($configLoader);
-
+        $this->hydrator->hydrateDefaultCategoryFacet();
+        $this->hydrator->hydrateDefaultVendorFacet();
     }
 
     /**

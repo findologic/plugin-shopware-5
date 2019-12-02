@@ -145,6 +145,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         if($hasCategoryFacet == false){
             $facets[] = $this->hydrator->hydrateDefaultCategoryFacet();
         }
+
         return $facets;
     }
 }

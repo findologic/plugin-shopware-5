@@ -14,7 +14,8 @@ class CustomListingHydrator
 
     public function __construct(
         ConfigLoader $configLoader
-    ){
+    )
+    {
         $this->configLoader = $configLoader;
     }
 
@@ -41,7 +42,7 @@ class CustomListingHydrator
             $mode = ProductAttributeFacet::MODE_VALUE_LIST_RESULT;
         }
 
-       return $this->createCustomFacet($name,$mode,$label);
+        return $this->createCustomFacet($name, $mode, $label);
     }
 
     /**
@@ -68,14 +69,17 @@ class CustomListingHydrator
         // Fall back to the original name if it couldn't be escaped.
         return $escapedName ?: $name;
     }
+
     /**
      * @param string $name
      * @param string $mode
      * @param string $label
      */
-    private function createCustomFacet($name,  $mode, $label){
 
-        $formFieldName =  $this->getFormFieldName($name);
+    private function createCustomFacet($name, $mode, $label)
+    {
+
+        $formFieldName = $this->getFormFieldName($name);
         $customFacet = new CustomFacet();
         $productAttributeFacet = new ProductAttributeFacet($name, $mode, $formFieldName, $label);
         $customFacet->setFacet($productAttributeFacet);
@@ -83,25 +87,23 @@ class CustomListingHydrator
         return $customFacet;
     }
 
-    public function hydrateDefaultCategoryFacet(){
+    public function hydrateDefaultCategoryFacet()
+    {
 
         $smartSuggestion = $this->configLoader->getSmartSuggestBlocks();
         $label = $smartSuggestion['cat'];
         $name = 'cat';
         $mode = ProductAttributeFacet::MODE_RADIO_LIST_RESULT;
 
-        return $this->createCustomFacet($name,$mode,$label);
+        return $this->createCustomFacet($name, $mode, $label);
+    }
 
-        }
-
-    public function hydrateDefaultVendorFacet(){
+    public function hydrateDefaultVendorFacet()
+    {
         $smartSuggestion = $this->configLoader->getSmartSuggestBlocks();
         $label = $smartSuggestion['vendor'];
         $name = 'vendor';
         $mode = ProductAttributeFacet::MODE_RADIO_LIST_RESULT;
-        $this->createCustomFacet($name,$mode,$label);
-        }
-
-
-
+        $this->createCustomFacet($name, $mode, $label);
+    }
 }
