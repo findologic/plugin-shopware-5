@@ -147,6 +147,51 @@ class FindologicArticleModelTest extends TestCase
         $this->assertEquals(get_class($findologicArticle), FindologicArticleModel::class);
     }
 
+    public function emptyValueProvider()
+    {
+        return [
+            'Empty values are not allowed!' => [
+                    'name' => [null, ' ', ' ']
+            ]
+        ];
+    }
+
+    /**
+     * Method to run the export test cases using the data provider,
+     * to check if the emptyValue with empty names are not being exported.
+     *
+     * @dataProvider emptyValueProvider
+     *
+     * @param array $articleConfiguration The article configuration with the corresponding supplier.
+     *
+     * @param string $name
+     * @param array $pseudo
+     *
+     * @throws Exception
+     */
+
+
+    public function testEmptyValue($name, array $articleConfiguration){
+
+        $baseCategory = new Category();
+        $baseCategory->setId(100);
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        Shopware()->Modules()->RewriteTable()->sInsertUrl(
+            'sViewport=detail&sArticle=' . $articleFromConfiguration->getId(),
+            $articleFromConfiguration->getName() . '/'
+        );
+
+        $reflector = new ReflectionClass(Item::class);
+        $properties = $reflector->getProperty($name);
+        $properties->setAccessible(true);
+        $values = $properties->getValue();
+        $actualValue = current($values->getValues());
+
+        $this->assertSame($name, $actualValue);
+    }
+
     public function testArticleKeywords()
     {
         $articleConfiguration = [
