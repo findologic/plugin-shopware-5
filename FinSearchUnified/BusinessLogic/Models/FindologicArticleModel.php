@@ -556,7 +556,7 @@ class FindologicArticleModel
         $supplier = $this->productStruct->getManufacturer();
         if ($supplier) {
             $supplierName = StaticHelper::cleanString($supplier->getName());
-            if ($supplierName) {
+            if (!empty(trim($supplierName))) {
                 $xmlSupplier = new Attribute('brand');
                 $xmlSupplier->setValues([$supplierName]);
                 $allAttributes[] = $xmlSupplier;

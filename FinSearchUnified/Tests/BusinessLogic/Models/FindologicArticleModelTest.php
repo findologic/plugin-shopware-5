@@ -116,6 +116,33 @@ class FindologicArticleModelTest extends TestCase
                         ]
                     ],
                 ]
+            ],
+            'Article with multiple empty spaces in supplier name' => [
+                [
+                    'name' => 'FindologicArticle 2',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => '   ',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ]
+                    ],
+                ]
             ]
         ];
     }
