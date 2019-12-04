@@ -54,7 +54,7 @@ class FindologicArticleModelTest extends TestCase
 
             return $article;
         } catch (Exception $e) {
-            echo sprintf("Exception: %s", $e->getMessage());
+            echo sprintf('Exception: %s', $e->getMessage());
         }
 
         return null;
@@ -90,12 +90,12 @@ class FindologicArticleModelTest extends TestCase
                     ],
                 ]
             ],
-            'Article with supplier name space' => [
+            'Article with pseudo empty supplier name' => [
                 [
                     'name' => 'FindologicArticle 2',
                     'active' => true,
                     'tax' => 19,
-                    'supplier' => " ",
+                    'supplier' => ' ',
                     'categories' => [
                         ['id' => 3],
                         ['id' => 5],
@@ -147,49 +147,97 @@ class FindologicArticleModelTest extends TestCase
         $this->assertEquals(get_class($findologicArticle), FindologicArticleModel::class);
     }
 
-    public function emptyValueProvider()
+    public function emptyAttributeValuesProvider()
     {
+        $articleConfiguration = [
+            'name' => 'FindologicArticle 1',
+            'active' => true,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5],
+            ],
+            'images' => [
+                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC1',
+                'active' => true,
+                'inStock' => 16,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+            'filterGroupId' => 1,
+            'propertyValues' => [
+                [
+                    'option' => [
+                        'name' => 'size',
+                        'filterable' => true
+                    ],
+                    'value' => ' '
+                ],
+                [
+                    'option' => [
+                        'name' => 'color',
+                        'filterable' => true
+                    ],
+                    'value' => ''
+                ],
+                [
+                    'option' => [
+                        'name' => 'awesomeness',
+                        'filterable' => true
+                    ],
+                    'value' => '70%'
+                ]
+            ]
+        ];
+
         return [
-            'Empty values are not allowed!' => [
-                    'name' => [null, ' ', ' ']
+            'Empty and pseudo empty option values are not exported' => [
+                'articleConfiguration' => $articleConfiguration,
             ]
         ];
     }
 
     /**
-     * Method to run the export test cases using the data provider,
-     * to check if the emptyValue with empty names are not being exported.
+     * @dataProvider emptyAttributeValuesProvider*
      *
-     * @dataProvider emptyValueProvider
+     * @param array $articleConfiguration
      *
-     * @param array $articleConfiguration The article configuration with the corresponding supplier.
-     *
-     * @param string $name
-     * @param array $pseudo
-     *
-     * @throws Exception
+     * @throws ReflectionException
      */
-
-
-    public function testEmptyValue($name, array $articleConfiguration){
-
+    public function testEmptyValue(array $articleConfiguration)
+    {
         $baseCategory = new Category();
         $baseCategory->setId(100);
 
-        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+        $article = $this->createTestProduct($articleConfiguration);
 
-        Shopware()->Modules()->RewriteTable()->sInsertUrl(
-            'sViewport=detail&sArticle=' . $articleFromConfiguration->getId(),
-            $articleFromConfiguration->getName() . '/'
+        $findologicArticle = $this->articleFactory->create(
+            $article,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
         );
 
-        $reflector = new ReflectionClass(Item::class);
-        $properties = $reflector->getProperty($name);
-        $properties->setAccessible(true);
-        $values = $properties->getValue();
-        $actualValue = current($values->getValues());
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
 
-        $this->assertSame($name, $actualValue);
+        $reflector = new ReflectionClass(Item::class);
+        $attributes = $reflector->getProperty('attributes');
+        $attributes->setAccessible(true);
+        $values = $attributes->getValue($xmlArticle);
+
+        $this->assertArrayNotHasKey('color', $values);
+        $this->assertArrayNotHasKey('size', $values);
+        $this->assertArrayHasKey('awesomeness', $values);
     }
 
     public function testArticleKeywords()

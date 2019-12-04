@@ -41,9 +41,9 @@ use Zend_Cache_Core;
 
 class FindologicArticleModel
 {
-    const WISHLIST_URL = 'note/add/ordernumber/';
-    const COMPARE_URL = 'compare/add_article/articleID/';
-    const CART_URL = 'checkout/addArticle/sAdd/';
+    const public WISHLIST_URL = 'note/add/ordernumber/';
+    const public COMPARE_URL = 'compare/add_article/articleID/';
+    const public CART_URL = 'checkout/addArticle/sAdd/';
 
     /**
      * @var XMLExporter
@@ -570,7 +570,7 @@ class FindologicArticleModel
                     $filterValues = [];
 
                     foreach ($group->getOptions() as $option) {
-                        if ($option->getName()) {
+                        if (!empty(trim($option->getName()))) {
                             $filterValues[] = StaticHelper::removeControlCharacters($option->getName());
                         }
                     }
@@ -580,12 +580,6 @@ class FindologicArticleModel
                             StaticHelper::removeControlCharacters($group->getName()),
                             $filterValues
                         );
-                    }
-                    foreach ($filterValues as $key => $value) {
-                        if (empty($value) || !trim($value)) {
-                            unset($filterValues[$key]);
-                            continue;
-                        }
                     }
                 }
             }
