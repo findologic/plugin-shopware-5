@@ -19,7 +19,6 @@ class CustomListingHydrator
         $this->configLoader = $configLoader;
     }
 
-
     /**
      * @param SimpleXMLElement $select
      *
@@ -83,13 +82,13 @@ class CustomListingHydrator
         $customFacet = new CustomFacet();
         $productAttributeFacet = new ProductAttributeFacet($name, $mode, $formFieldName, $label);
         $customFacet->setFacet($productAttributeFacet);
-
+        print_r(['$customFacet'=>$customFacet]);
         return $customFacet;
+
     }
 
     public function hydrateDefaultCategoryFacet()
     {
-
         $smartSuggestion = $this->configLoader->getSmartSuggestBlocks();
         $label = $smartSuggestion['cat'];
         $name = 'cat';
@@ -104,6 +103,7 @@ class CustomListingHydrator
         $label = $smartSuggestion['vendor'];
         $name = 'vendor';
         $mode = ProductAttributeFacet::MODE_RADIO_LIST_RESULT;
-        $this->createCustomFacet($name, $mode, $label);
+
+        return $this->createCustomFacet($name, $mode, $label);
     }
 }

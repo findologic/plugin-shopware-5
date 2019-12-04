@@ -187,6 +187,8 @@ class CustomListingHydratorTest extends TestCase
         foreach ($xmlResponse->filters->filter as $filter) {
             $customFacets[] = $this->hydrator->hydrateFacet($filter);
         }
+//        print_r([ '$customFacets'=>$customFacets ]);
+//        die();
 
         foreach ($customFacets as $customFacet) {
             $this->assertSame(
@@ -196,12 +198,14 @@ class CustomListingHydratorTest extends TestCase
             );
             $this->assertSame(
                 $expectedUniqueKey,
-                $customFacet->getUniqueKey(),
+                $unique = $customFacet->getUniqueKey(),
                 sprintf("Expected custom facet's unique key to be %s", $expectedUniqueKey)
             );
 
             /** @var ProductAttributeFacet $productAttributeFacet */
             $productAttributeFacet = $customFacet->getFacet();
+//            print_r(['$productAttributeFacet'=>$productAttributeFacet]);
+//            die();
 
             $this->assertInstanceOf(
                 ProductAttributeFacet::class,
@@ -287,4 +291,5 @@ class CustomListingHydratorTest extends TestCase
         $result = $this->hydrator->getFormFieldName($text);
         $this->assertEquals($expected, $result, $errorMessage);
     }
+
 }
