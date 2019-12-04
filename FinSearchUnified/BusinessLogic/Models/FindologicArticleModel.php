@@ -41,9 +41,9 @@ use Zend_Cache_Core;
 
 class FindologicArticleModel
 {
-    const public WISHLIST_URL = 'note/add/ordernumber/';
-    const public COMPARE_URL = 'compare/add_article/articleID/';
-    const public CART_URL = 'checkout/addArticle/sAdd/';
+    const WISHLIST_URL = 'note/add/ordernumber/';
+    const COMPARE_URL = 'compare/add_article/articleID/';
+    const CART_URL = 'checkout/addArticle/sAdd/';
 
     /**
      * @var XMLExporter
