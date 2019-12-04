@@ -31,19 +31,12 @@
             <tag name="shopware.event_subscriber" />
         </service>
 
-        <service class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator"
-            id="fin_search_unified.custom_listing_hydrator">
-            <!--<argument id="configLoader" type="service" />-->
+        <service
+            class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator"
+            id="fin_search_unified.custom_listing_hydrator"
+        >
+            <argument id="fin_search_unified.config_loader" type="service" />
         </service>
-
-
-
-        <service class="FinSearchUnified\Components\ConfigLoader" id="fin_search_unified.config_loader">
-            <argument id="cache" type="service" />
-            <argument id="http_client" type="service" />
-            <argument id="config" type="service" />
-        </service>
-
 
         <service
             decorates="shopware_storefront.custom_facet_gateway"
@@ -104,7 +97,8 @@
         <service
             id="fin_search_unified.product_search"
             class="Shopware\Bundle\SearchBundle\ProductSearch"
-            decorates="shopware_search.product_search">
+            decorates="shopware_search.product_search"
+        >
             <argument type="service" id="shopware_storefront.list_product_service" />
             <argument type="service" id="fin_search_unified.product_number_search" />
         </service>
@@ -117,6 +111,7 @@
             <argument type="service" id="shopware_search.store_front_criteria_factory" />
             <argument type="service" id="fin_search_unified.product_stream.criteria_factory.inner" />
         </service>
+
         <service
             id="fin_search_unified.product_stream.repository"
             class="FinSearchUnified\Components\ProductStream\Repository"

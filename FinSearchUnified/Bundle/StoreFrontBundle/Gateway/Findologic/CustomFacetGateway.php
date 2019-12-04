@@ -12,6 +12,7 @@ use Shopware\Bundle\StoreFrontBundle\Gateway\CustomFacetGatewayInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use SimpleXMLElement;
+use Zend_Cache_Exception;
 
 class CustomFacetGateway implements CustomFacetGatewayInterface
 {
@@ -50,6 +51,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
      * @param ShopContextInterface $context
      *
      * @return CustomFacet[]
+     * @throws Zend_Cache_Exception
      */
     public function getList(array $ids, ShopContextInterface $context)
     {
@@ -69,9 +71,9 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
 
             return $this->hydrate($xmlResponse->filters->filter);
-        } else {
-            return $this->originalService->getList($ids, $context);
         }
+
+        return $this->originalService->getList($ids, $context);
     }
 
     /**
@@ -79,6 +81,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
      * @param ShopContextInterface $context
      *
      * @return array indexed by category id, each element contains a list of CustomFacet
+     * @throws Zend_Cache_Exception
      */
     public function getFacetsOfCategories(array $categoryIds, ShopContextInterface $context)
     {
@@ -108,7 +111,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
     /**
      * @param ShopContextInterface $context
      *
-     * @return CustomFacet
+     * @return CustomFacet[]
      */
     public function getAllCategoryFacets(ShopContextInterface $context)
     {
@@ -119,6 +122,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
      * @param SimpleXMLElement $filters
      *
      * @return array
+     * @throws Zend_Cache_Exception
      */
     private function hydrate(SimpleXMLElement $filters)
     {
@@ -129,19 +133,21 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         foreach ($filters as $filter) {
             $facet = $this->hydrator->hydrateFacet($filter);
             $facetName = $facet->getName();
-            if($facetName == 'vendor'){
+
+            if ($facetName === 'vendor') {
                 $hasVendorFacet = true;
             }
-            if($facetName == 'cat'){
+            if ($facetName === 'cat') {
                 $hasCategoryFacet = true;
             }
+
             $facets[] = $facet;
         }
 
-        if($hasVendorFacet == false){
+        if ($hasVendorFacet === false) {
             $facets[] = $this->hydrator->hydrateDefaultVendorFacet();
         }
-        if($hasCategoryFacet == false){
+        if ($hasCategoryFacet === false) {
             $facets[] = $this->hydrator->hydrateDefaultCategoryFacet();
         }
 

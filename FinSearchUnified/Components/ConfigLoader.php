@@ -137,24 +137,23 @@ class ConfigLoader
         switch ($key) {
             case 'directIntegration':
                 return $config[$key]['enabled'];
-            case 'isStagingShop':
-                return $config[$key];
             case 'blocks':
+            case 'isStagingShop':
                 return $config[$key];
             default:
                 return $default;
         }
     }
+
     /**
-     * @param mixed|null $default
+     * @param mixed[] $default
      *
      * @return mixed|null
      * @throws Zend_Cache_Exception
      */
-
     public function getSmartSuggestBlocks($default = [])
     {
-       return $this->get('blocks',$default);
+        return $this->get('blocks', $default);
     }
 
     /**

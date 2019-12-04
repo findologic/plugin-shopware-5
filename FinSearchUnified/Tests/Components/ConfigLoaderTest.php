@@ -61,6 +61,15 @@ class ConfigLoaderTest extends TestCase
         $this->assertSame($this->expectedUrl, $url, 'Incorrect url was returned');
     }
 
+    public function configFileProvider()
+    {
+        return [
+            'Url request throws exception' => [200, null, null, 'Expected config to be null'],
+            'Url request is not successful' => [404, 'configBody', null, 'Expected config to be null'],
+            'Url request is successful' => [200, 'configBody', 'configBody', 'Expected config file to be returned'],
+        ];
+    }
+
     /**
      * @dataProvider configFileProvider
      *
@@ -101,15 +110,6 @@ class ConfigLoaderTest extends TestCase
         $this->assertSame($expectedResponse, $configBody, $assertionMessage);
     }
 
-    public function configFileProvider()
-    {
-        return [
-            'Url request throws exception' => [200, null, null, 'Expected config to be null'],
-            'Url request is not successful' => [404, 'configBody', null, 'Expected config to be null'],
-            'Url request is successful' => [200, 'configBody', 'configBody', 'Expected config file to be returned'],
-        ];
-    }
-
     public function testCacheKey()
     {
         $configLoader = new ConfigLoader(
@@ -126,6 +126,28 @@ class ConfigLoaderTest extends TestCase
         $key = $method->invoke($configLoader);
 
         $this->assertSame($expectedCacheKey, $key, 'Incorrect cache key was returned');
+    }
+
+    public function warmUpCacheProvider()
+    {
+        return [
+            'Config file is empty or null' => [200, null, []],
+            'Config file returns extra parameters' => [
+                200,
+                json_encode(
+                    [
+                        'isStagingShop' => true,
+                        'directIntegration' => ['enabled' => false, 'iShouldNotBeHere' => true],
+                        'blocks' => ['cat' => false, 'vendor' => true]
+                    ]
+                ),
+                [
+                    'isStagingShop' => true,
+                    'directIntegration' => ['enabled' => false],
+                    'blocks' => ['cat' => false, 'vendor' => true]
+                ]
+            ],
+        ];
     }
 
     /**
@@ -171,22 +193,20 @@ class ConfigLoaderTest extends TestCase
         $method = $reflector->getMethod('warmUpCache');
         $method->setAccessible(true);
         $method->invoke($configLoader);
-
     }
 
-    public function warmUpCacheProvider()
+    public function cacheLoadProvider()
     {
         return [
-            'Config file is empty or null' => [200, null, []],
-            'Config file returns extra parameters' => [
-                200,
-                json_encode([
-                    'isStagingShop' => true,
-                    'directIntegration' => ['enabled' => false, 'iShouldNotBeHere' => true],
-                    'blocks' => ['cat' => false, 'vendor' => true] //rabab
-                ]),
-                ['isStagingShop' => true, 'directIntegration' => ['enabled' => false],'blocks' => ['cat' => false, 'vendor' => true]] //rabab
-            ],
+            'Cache load return false' => [false, $this->exactly(2)],
+            'Cache load return config' => [
+                [
+                    'isStagingShop' => false,
+                    'directIntegration' => ['enabled' => false],
+                    'blocks' => ['cat' => false, 'vendor' => false]
+                ],
+                $this->once()
+            ]
         ];
     }
 
@@ -200,9 +220,13 @@ class ConfigLoaderTest extends TestCase
      */
     public function testCacheWithCorrectKey($cacheTestResponse, $loadCallCount)
     {
-        $config = ['isStagingShop' => false, 'directIntegration' => ['enabled' => false], 'blocks' => ['cat' => false, 'vendor' => false]];
-        $expectedCacheKey = sprintf('%s_%s', 'fin_service_config', $this->shopkey);
+        $config = [
+            'isStagingShop' => false,
+            'directIntegration' => ['enabled' => false],
+            'blocks' => ['cat' => false, 'vendor' => false]
+        ];
 
+        $expectedCacheKey = sprintf('%s_%s', 'fin_service_config', $this->shopkey);
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
 
         if ($cacheTestResponse === false) {
@@ -269,20 +293,12 @@ class ConfigLoaderTest extends TestCase
         $this->assertSame('test', $config);
     }
 
-    public function cacheLoadProvider()
-    {
-        return [
-            'Cache load return false' => [false, $this->exactly(2)],
-            'Cache load return config' => [
-                ['isStagingShop' => false, 'directIntegration' => ['enabled' => false], 'blocks' => ['cat' => false, 'vendor' => false]],
-                $this->once()
-            ]
-        ];
-    }
-
     public function testDirectIntegration()
     {
-        $config = ['isStagingShop' => false, 'directIntegration' => ['enabled' => false]];
+        $config = [
+            'directIntegration' => ['enabled' => false]
+        ];
+
         $expectedCacheKey = sprintf('%s_%s', 'fin_service_config', $this->shopkey);
         $httpClient = Shopware()->Container()->get('http_client');
 
@@ -309,7 +325,9 @@ class ConfigLoaderTest extends TestCase
 
     public function testIsStagingShop()
     {
-        $config = ['isStagingShop' => false, 'directIntegration' => ['enabled' => false], 'blocks' => ['cat' => false, 'vendor' => false]];
+        $config = [
+            'isStagingShop' => false
+        ];
         $expectedCacheKey = sprintf('%s_%s', 'fin_service_config', $this->shopkey);
         $httpClient = Shopware()->Container()->get('http_client');
 
@@ -332,5 +350,37 @@ class ConfigLoaderTest extends TestCase
         $result = $method->invoke($configLoader);
 
         $this->assertFalse($result);
+    }
+
+    public function testSmartSuggestBlocks()
+    {
+        $config = [
+            'blocks' => ['cat' => 'FINDOLOGIC category', 'vendor' => 'FINDOLOGIC vendor']
+        ];
+        $expectedCacheKey = sprintf('%s_%s', 'fin_service_config', $this->shopkey);
+        $httpClient = Shopware()->Container()->get('http_client');
+
+        $mockedCache = $this->createMock(Zend_Cache_Core::class);
+        $mockedCache->expects($this->never())->method('save');
+        $mockedCache->expects($this->once())
+            ->method('load')
+            ->with($expectedCacheKey)
+            ->willReturn($config);
+
+        $configLoader = new ConfigLoader(
+            $mockedCache,
+            $httpClient,
+            Shopware()->Config()
+        );
+
+        $reflector = new ReflectionObject($configLoader);
+        $method = $reflector->getMethod('getSmartSuggestBlocks');
+        $method->setAccessible(true);
+        $result = $method->invoke($configLoader);
+
+        $this->assertArrayHasKey('cat', $result);
+        $this->assertArrayHasKey('vendor', $result);
+        $this->assertSame('FINDOLOGIC category', $result['cat']);
+        $this->assertSame('FINDOLOGIC vendor', $result['vendor']);
     }
 }

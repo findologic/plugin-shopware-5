@@ -6,15 +6,13 @@ use FinSearchUnified\Components\ConfigLoader;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use SimpleXMLElement;
-
+use Zend_Cache_Exception;
 
 class CustomListingHydrator
 {
     private $configLoader;
 
-    public function __construct(
-        ConfigLoader $configLoader
-    )
+    public function __construct(ConfigLoader $configLoader)
     {
         $this->configLoader = $configLoader;
     }
@@ -73,20 +71,27 @@ class CustomListingHydrator
      * @param string $name
      * @param string $mode
      * @param string $label
+     *
+     * @return CustomFacet
      */
-
     private function createCustomFacet($name, $mode, $label)
     {
-
         $formFieldName = $this->getFormFieldName($name);
+
         $customFacet = new CustomFacet();
+        $customFacet->setName($name);
+        $customFacet->setUniqueKey($name);
+
         $productAttributeFacet = new ProductAttributeFacet($name, $mode, $formFieldName, $label);
         $customFacet->setFacet($productAttributeFacet);
-        print_r(['$customFacet'=>$customFacet]);
-        return $customFacet;
 
+        return $customFacet;
     }
 
+    /**
+     * @return CustomFacet
+     * @throws Zend_Cache_Exception
+     */
     public function hydrateDefaultCategoryFacet()
     {
         $smartSuggestion = $this->configLoader->getSmartSuggestBlocks();
@@ -97,6 +102,10 @@ class CustomListingHydrator
         return $this->createCustomFacet($name, $mode, $label);
     }
 
+    /**
+     * @return CustomFacet
+     * @throws Zend_Cache_Exception
+     */
     public function hydrateDefaultVendorFacet()
     {
         $smartSuggestion = $this->configLoader->getSmartSuggestBlocks();
