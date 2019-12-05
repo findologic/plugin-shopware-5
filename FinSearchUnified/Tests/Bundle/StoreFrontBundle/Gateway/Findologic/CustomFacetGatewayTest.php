@@ -10,6 +10,8 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGateway;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Tests\TestCase;
+use ReflectionException;
+use ReflectionObject;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\StoreFrontBundle\Gateway\DBAL;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
@@ -308,5 +310,129 @@ class CustomFacetGatewayTest extends TestCase
                 sprintf("Expected product attribute facet's mode to be %s", $attributeMode[$key])
             );
         }
+    }
+
+    /**
+     * @return array
+     */
+    public function filterProviderForFacets()
+    {
+        $categoryFacet = new CustomFacet();
+        $categoryFacet->setName('cat');
+        $categoryFacet->setUniqueKey('cat');
+        $productAttributeFacet = new ProductAttributeFacet('cat', 'radio', 'cat', 'Filter Category');
+        $categoryFacet->setFacet($productAttributeFacet);
+
+        $defaultCategoryFacet = new CustomFacet();
+        $defaultCategoryFacet->setName('cat');
+        $defaultCategoryFacet->setUniqueKey('cat');
+        $productAttributeFacet = new ProductAttributeFacet('cat', 'radio', 'cat', 'Category');
+        $defaultCategoryFacet->setFacet($productAttributeFacet);
+
+        $vendorFacet = new CustomFacet();
+        $vendorFacet->setName('vendor');
+        $vendorFacet->setUniqueKey('vendor');
+        $productAttributeFacet = new ProductAttributeFacet('vendor', 'value_list', 'vendor', 'Filter Manufacturer');
+        $vendorFacet->setFacet($productAttributeFacet);
+
+        $defaultVendorFacet = new CustomFacet();
+        $defaultVendorFacet->setName('vendor');
+        $defaultVendorFacet->setUniqueKey('vendor');
+        $productAttributeFacet = new ProductAttributeFacet('vendor', 'radio', 'cat', 'Manufacturer');
+        $defaultVendorFacet->setFacet($productAttributeFacet);
+
+        return [
+            'Category and Vendor filter is present' => [
+                'filterData' => [
+                    [
+                        'name' => 'cat',
+                        'display' => 'Filter Category',
+                        'select' => 'single',
+                        'type' => 'select'
+                    ],
+                    [
+                        'name' => 'vendor',
+                        'display' => 'Filter Manufacturer',
+                        'select' => 'multiple',
+                        'type' => 'select'
+                    ]
+                ],
+                'categoryFacet' => $categoryFacet,
+                'vendorFacet' => $vendorFacet,
+                'defaultInvoke' => $this->never(),
+                'defaultCategoryFacet' => $defaultCategoryFacet,
+                'defaultVendorFacet' => $defaultVendorFacet
+            ],
+            'Category and Vendor filter is not present' => [
+                'filterData' => [],
+                'categoryFacet' => $categoryFacet,
+                'vendorFacet' => $vendorFacet,
+                'defaultInvoke' => $this->once(),
+                'defaultCategoryFacet' => $defaultCategoryFacet,
+                'defaultVendorFacet' => $defaultVendorFacet,
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider filterProviderForFacets
+     *
+     * @param array $filterData
+     * @param $categoryFacet
+     * @param $vendorFacet
+     * @param $defaultInvoke
+     * @param $defaultCategoryFacet
+     * @param $defaultVendorFacet
+     *
+     * @throws ReflectionException
+     */
+    public function testDefaultHydrateFacets(
+        array $filterData,
+        $categoryFacet,
+        $vendorFacet,
+        $defaultInvoke,
+        $defaultCategoryFacet,
+        $defaultVendorFacet
+    ) {
+        $mockOriginalService = $this->getMockBuilder(DBAL\CustomFacetGateway::class)
+            ->setMethods(['getList'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockOriginalService->expects($this->never())->method('getList');
+
+        $xmlResponse = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>');
+
+        $results = $xmlResponse->addChild('results');
+        $results->addChild('count', 2);
+        $filters = $xmlResponse->addChild('filters');
+
+        foreach ($filterData as $data) {
+            $filter = $filters->addChild('filter');
+            foreach ($data as $key => $value) {
+                $filter->addChild($key, $value);
+            }
+        }
+
+        $mockHydrator = $this->getMockBuilder(CustomListingHydrator::class)->disableOriginalConstructor()->getMock();
+        $mockHydrator->expects($defaultInvoke)->method('hydrateDefaultCategoryFacet')->willReturn(
+            $defaultCategoryFacet
+        );
+        $mockHydrator->expects($defaultInvoke)->method('hydrateDefaultVendorFacet')->willReturn($defaultVendorFacet);
+        $mockHydrator->method('hydrateFacet')->willReturnOnConsecutiveCalls($categoryFacet, $vendorFacet);
+
+        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+
+        $facetGateway = new CustomFacetGateway(
+            $mockOriginalService,
+            $mockHydrator,
+            $mockQuerybuilderFactory
+        );
+
+        $reflector = new ReflectionObject($facetGateway);
+        $hydrateMethod = $reflector->getMethod('hydrate');
+        $hydrateMethod->setAccessible(true);
+        $facetResult = $hydrateMethod->invoke($facetGateway, $xmlResponse->filters->filter);
+
+        echo '';
     }
 }

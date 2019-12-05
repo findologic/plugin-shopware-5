@@ -332,7 +332,7 @@ class CustomListingHydratorTest extends TestCase
         $customFacet->setFacet($productAttributeFacet);
 
         $facet = $this->hydrator->hydrateDefaultCategoryFacet();
-        $this->assertSame($customFacet, $facet);
+        $this->assertEquals($customFacet, $facet);
     }
 
     /**
@@ -353,6 +353,6 @@ class CustomListingHydratorTest extends TestCase
         $customFacet->setFacet($productAttributeFacet);
 
         $facet = $this->hydrator->hydrateDefaultVendorFacet();
-        $this->assertSame($customFacet, $facet);
+        $this->assertEquals($customFacet, $facet);
     }
 }
