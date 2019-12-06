@@ -23,12 +23,7 @@ class CustomListingHydratorTest extends TestCase
     {
         parent::setUp();
 
-        $configLoader = new ConfigLoader(
-            Shopware()->Container()->get('cache'),
-            Shopware()->Container()->get('http_client'),
-            Shopware()->Config()
-        );
-        $this->hydrator = new CustomListingHydrator($configLoader);
+        $this->hydrator = Shopware()->Container()->get('fin_search_unified.custom_listing_hydrator');
     }
 
     /**
@@ -319,6 +314,18 @@ class CustomListingHydratorTest extends TestCase
      */
     public function testDefaultCategoryFacet()
     {
+        $smartSuggestBlock = [
+            'cat' => 'Category',
+            'vendor' => 'Manufacturer'
+        ];
+
+        $configLoaderMock = $this->createMock(ConfigLoader::class);
+        $configLoaderMock->method('getSmartSuggestBlocks')->willReturn($smartSuggestBlock);
+
+        $hydrator = new CustomListingHydrator(
+            $configLoaderMock
+        );
+
         $name = 'cat';
         $mode = 'radio';
         $formFieldName = 'cat';
@@ -331,7 +338,7 @@ class CustomListingHydratorTest extends TestCase
         $productAttributeFacet = new ProductAttributeFacet($name, $mode, $formFieldName, $label);
         $customFacet->setFacet($productAttributeFacet);
 
-        $facet = $this->hydrator->hydrateDefaultCategoryFacet();
+        $facet = $hydrator->hydrateDefaultCategoryFacet();
         $this->assertEquals($customFacet, $facet);
     }
 
@@ -340,10 +347,22 @@ class CustomListingHydratorTest extends TestCase
      */
     public function testDefaultVendorFacet()
     {
+        $smartSuggestBlock = [
+            'cat' => 'Category',
+            'vendor' => 'Manufacturer'
+        ];
+
+        $configLoaderMock = $this->createMock(ConfigLoader::class);
+        $configLoaderMock->method('getSmartSuggestBlocks')->willReturn($smartSuggestBlock);
+
+        $hydrator = new CustomListingHydrator(
+            $configLoaderMock
+        );
+
         $name = 'vendor';
         $mode = 'radio';
         $formFieldName = 'vendor';
-        $label = 'Vendor';
+        $label = 'Manufacturer';
 
         $customFacet = new CustomFacet();
         $customFacet->setName($name);
@@ -352,7 +371,7 @@ class CustomListingHydratorTest extends TestCase
         $productAttributeFacet = new ProductAttributeFacet($name, $mode, $formFieldName, $label);
         $customFacet->setFacet($productAttributeFacet);
 
-        $facet = $this->hydrator->hydrateDefaultVendorFacet();
+        $facet = $hydrator->hydrateDefaultVendorFacet();
         $this->assertEquals($customFacet, $facet);
     }
 }

@@ -110,9 +110,7 @@ class CustomFacetGatewayTest extends TestCase
             ->getMock();
         $mockOriginalService->expects($this->once())->method('getList');
 
-        $mockHydrator = $this->getMockBuilder(CustomListingHydrator::class)
-            ->setMethods(['hydrateFacet'])
-            ->getMock();
+        $mockHydrator = $this->createMock(CustomListingHydrator::class);
         $mockHydrator->expects($this->never())
             ->method('hydrateFacet');
 
@@ -144,26 +142,40 @@ class CustomFacetGatewayTest extends TestCase
     public function findologicFilterProvider()
     {
         return [
-            'No facets are returned' => [
-                [],
-                []
-            ],
-            'Single facet' => [
+            'Only default facets are returned' => [
                 [
-                    ['name' => 'price', 'display' => 'Preis', 'select' => 'single', 'type' => 'range-slider']
+                    ['name' => 'cat', 'display' => 'Category', 'select' => 'single', 'type' => 'select'],
+                    ['name' => 'vendor', 'display' => 'Manufacturer', 'select' => 'single', 'type' => 'select'],
+                ],
+                [
+                    ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
+                    ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
+                ]
+            ],
+            'Single facet and two default' => [
+                [
+                    ['name' => 'price', 'display' => 'Preis', 'select' => 'single', 'type' => 'range-slider'],
+                    ['name' => 'cat', 'display' => 'Category', 'select' => 'single', 'type' => 'select'],
+                    ['name' => 'vendor', 'display' => 'Manufacturer', 'select' => 'single', 'type' => 'select'],
                 ],
                 [
                     ProductAttributeFacet::MODE_RANGE_RESULT,
+                    ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
+                    ProductAttributeFacet::MODE_RADIO_LIST_RESULT
                 ]
             ],
-            'Two facets' => [
+            'Two facets and two default' => [
                 [
                     ['name' => 'price', 'display' => 'Preis', 'select' => 'single', 'type' => 'range-slider'],
                     ['name' => 'color', 'display' => 'Farbe', 'select' => 'multiple', 'type' => 'label'],
+                    ['name' => 'cat', 'display' => 'Category', 'select' => 'single', 'type' => 'select'],
+                    ['name' => 'vendor', 'display' => 'Manufacturer', 'select' => 'single', 'type' => 'select'],
                 ],
                 [
                     ProductAttributeFacet::MODE_RANGE_RESULT,
                     ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
+                    ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
+                    ProductAttributeFacet::MODE_RADIO_LIST_RESULT
                 ]
             ],
         ];
@@ -367,7 +379,7 @@ class CustomFacetGatewayTest extends TestCase
                 'filterData' => [],
                 'categoryFacet' => $categoryFacet,
                 'vendorFacet' => $vendorFacet,
-                'defaultInvoke' => $this->once(),
+                'defaultInvoke' => $this->exactly(2),
                 'defaultCategoryFacet' => $defaultCategoryFacet,
                 'defaultVendorFacet' => $defaultVendorFacet,
             ]
@@ -413,12 +425,17 @@ class CustomFacetGatewayTest extends TestCase
             }
         }
 
-        $mockHydrator = $this->getMockBuilder(CustomListingHydrator::class)->disableOriginalConstructor()->getMock();
+        $mockHydrator = $this->createMock(CustomListingHydrator::class);
         $mockHydrator->expects($defaultInvoke)->method('hydrateDefaultCategoryFacet')->willReturn(
             $defaultCategoryFacet
         );
+
+        $invokeHydrateFacet = $filterData ? $this->exactly(2) : $this->never();
         $mockHydrator->expects($defaultInvoke)->method('hydrateDefaultVendorFacet')->willReturn($defaultVendorFacet);
-        $mockHydrator->method('hydrateFacet')->willReturnOnConsecutiveCalls($categoryFacet, $vendorFacet);
+        $mockHydrator->expects($invokeHydrateFacet)->method('hydrateFacet')->willReturnOnConsecutiveCalls(
+            $categoryFacet,
+            $vendorFacet
+        );
 
         $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
 
@@ -432,7 +449,5 @@ class CustomFacetGatewayTest extends TestCase
         $hydrateMethod = $reflector->getMethod('hydrate');
         $hydrateMethod->setAccessible(true);
         $facetResult = $hydrateMethod->invoke($facetGateway, $xmlResponse->filters->filter);
-
-        echo '';
     }
 }
