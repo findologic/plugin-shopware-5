@@ -198,8 +198,11 @@ class ConfigLoaderTest extends TestCase
     public function cacheLoadProvider()
     {
         return [
-            'Cache load return false' => [false, $this->exactly(2)],
-            'Cache load return config' => [
+            'Loading cache does not return anything' => [
+                false,
+                $this->exactly(2)
+            ],
+            'Loading cache returns cached config' => [
                 [
                     'isStagingShop' => false,
                     'directIntegration' => ['enabled' => false],

@@ -144,10 +144,10 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
             $facets[] = $facet;
         }
 
-        if ($hasCategoryFacet === false) {
+        if (!$hasCategoryFacet) {
             $facets[] = $this->hydrator->hydrateDefaultCategoryFacet();
         }
-        if ($hasVendorFacet === false) {
+        if (!$hasVendorFacet) {
             $facets[] = $this->hydrator->hydrateDefaultVendorFacet();
         }
 

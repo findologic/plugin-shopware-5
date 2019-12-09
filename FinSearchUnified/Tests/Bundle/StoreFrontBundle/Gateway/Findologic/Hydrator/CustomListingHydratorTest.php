@@ -291,7 +291,7 @@ class CustomListingHydratorTest extends TestCase
     public function testCreateCustomFacet()
     {
         $name = 'Price';
-        $label = 'Pries';
+        $label = 'Price';
         $mode = 'range-slider';
         $formFieldName = 'Price';
 
@@ -312,7 +312,7 @@ class CustomListingHydratorTest extends TestCase
     /**
      * @throws Zend_Cache_Exception
      */
-    public function testDefaultCategoryFacet()
+    public function testHydrateDefaultFacets()
     {
         $smartSuggestBlock = [
             'cat' => 'Category',
@@ -326,39 +326,18 @@ class CustomListingHydratorTest extends TestCase
             $configLoaderMock
         );
 
-        $name = 'cat';
-        $mode = 'radio';
-        $formFieldName = 'cat';
-        $label = 'Category';
+        $defaultCategoryFacet = $this->getDefaultCategoryFacet();
+        $defaultVendorFacet = $this->getDefaultVendorFacet();
 
-        $customFacet = new CustomFacet();
-        $customFacet->setName($name);
-        $customFacet->setUniqueKey($name);
-
-        $productAttributeFacet = new ProductAttributeFacet($name, $mode, $formFieldName, $label);
-        $customFacet->setFacet($productAttributeFacet);
-
-        $facet = $hydrator->hydrateDefaultCategoryFacet();
-        $this->assertEquals($customFacet, $facet);
+        $this->assertEquals($defaultCategoryFacet, $hydrator->hydrateDefaultCategoryFacet());
+        $this->assertEquals($defaultVendorFacet, $hydrator->hydrateDefaultVendorFacet());
     }
 
     /**
-     * @throws Zend_Cache_Exception
+     * @return CustomFacet
      */
-    public function testDefaultVendorFacet()
+    private function getDefaultVendorFacet()
     {
-        $smartSuggestBlock = [
-            'cat' => 'Category',
-            'vendor' => 'Manufacturer'
-        ];
-
-        $configLoaderMock = $this->createMock(ConfigLoader::class);
-        $configLoaderMock->method('getSmartSuggestBlocks')->willReturn($smartSuggestBlock);
-
-        $hydrator = new CustomListingHydrator(
-            $configLoaderMock
-        );
-
         $name = 'vendor';
         $mode = 'radio';
         $formFieldName = 'vendor';
@@ -371,7 +350,26 @@ class CustomListingHydratorTest extends TestCase
         $productAttributeFacet = new ProductAttributeFacet($name, $mode, $formFieldName, $label);
         $customFacet->setFacet($productAttributeFacet);
 
-        $facet = $hydrator->hydrateDefaultVendorFacet();
-        $this->assertEquals($customFacet, $facet);
+        return $customFacet;
+    }
+
+    /**
+     * @return CustomFacet
+     */
+    private function getDefaultCategoryFacet()
+    {
+        $name = 'cat';
+        $mode = 'radio';
+        $formFieldName = 'cat';
+        $label = 'Category';
+
+        $customFacet = new CustomFacet();
+        $customFacet->setName($name);
+        $customFacet->setUniqueKey($name);
+
+        $productAttributeFacet = new ProductAttributeFacet($name, $mode, $formFieldName, $label);
+        $customFacet->setFacet($productAttributeFacet);
+
+        return $customFacet;
     }
 }
