@@ -10,10 +10,18 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Tests\TestCase;
+use ReflectionException;
+use ReflectionObject;
+use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
+use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
+use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
+use Shopware\Bundle\SearchBundle\FacetResult\TreeItem;
 use Shopware\Bundle\SearchBundle\FacetResult\ValueListFacetResult;
+use Shopware\Bundle\SearchBundle\FacetResult\ValueListItem;
+use Shopware\Bundle\SearchBundle\FacetResultInterface;
 use Shopware_Components_Config as Config;
 use SimpleXMLElement;
 
@@ -191,7 +199,8 @@ class ProductNumberSearchTest extends TestCase
             'Filter is missing in response' => [
                 'xmlResponse' => $xmlResponse,
                 'expectedResults' => [
-                    TreeFacetResult::class
+                    TreeFacetResult::class,
+                    ValueListFacetResult::class
                 ]
             ]
         ];
@@ -264,6 +273,174 @@ class ProductNumberSearchTest extends TestCase
         }
     }
 
+    public function facetWithPriceFilterProvider()
+    {
+        $xmlResponse = $this->getXmlResponse();
+        $filters = $xmlResponse->addChild('filters');
+
+        $this->setPriceFilter($filters);
+
+        return [
+            'Price filters which are selected only contain the value that was selected' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResult' => new RangeFacetResult(
+                    'price',
+                    true,
+                    'Price',
+                    66.20,
+                    99.0,
+                    66.20,
+                    99.0,
+                    'min',
+                    'max'
+                ),
+                'condition' => new PriceCondition(66.20, 99.00)
+
+            ],
+            'All price filter values are displayed if no filters are selected' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResult' => new RangeFacetResult(
+                    'price',
+                    false,
+                    'Price',
+                    0.0,
+                    99.0,
+                    4.2,
+                    69.0,
+                    'min',
+                    'max'
+                ),
+                'condition' => null
+            ]
+        ];
+    }
+
+    public function facetWithVendorFilterProvider()
+    {
+        $xmlResponse = $this->getXmlResponse();
+        $filters = $xmlResponse->addChild('filters');
+
+        $this->setVendorFilter($filters);
+
+        return [
+            'Vendor filters which are selected only contain the value that was selected' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResult' => new ValueListFacetResult(
+                    'product_attribute_vendor',
+                    true,
+                    'Brand',
+                    [
+                        new ValueListItem('FINDOLOGIC', 'FINDOLOGIC', true)
+                    ],
+                    'vendor'
+                ),
+                'condition' => new ProductAttributeCondition('vendor', '=', 'FINDOLOGIC')
+            ],
+            'All vendor filter values are displayed if no filters are selected' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResult' => new ValueListFacetResult(
+                    'product_attribute_vendor',
+                    false,
+                    'Brand',
+                    [
+                        new ValueListItem('Manufacturer', 'Manufacturer (40)', false),
+                        new ValueListItem('FINDOLOGIC', 'FINDOLOGIC (54)', false)
+                    ],
+                    'vendor'
+                ),
+                'condition' => null
+            ]
+        ];
+    }
+
+    public function facetWithCategoryFilterProvider()
+    {
+        $xmlResponse = $this->getXmlResponse();
+        $filters = $xmlResponse->addChild('filters');
+
+        $this->setCategoryFilter($filters);
+
+        return [
+            'Category filters which are selected only contain the value that was selected' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResult' => new TreeFacetResult(
+                    'product_attribute_cat',
+                    'cat',
+                    true,
+                    'Category',
+                    [
+                        new TreeItem('FINDOLOGIC', 'FINDOLOGIC', true, [])
+                    ]
+                ),
+                'condition' => new ProductAttributeCondition('cat', '=', 'FINDOLOGIC')
+            ],
+            'All category filter values are displayed if no filters are selected' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResult' => new TreeFacetResult(
+                    'product_attribute_cat',
+                    'cat',
+                    false,
+                    'Category',
+                    [
+                        new TreeItem('Living Room', 'Living Room (10)', false, [])
+                    ]
+                ),
+                'condition' => null
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider facetWithPriceFilterProvider
+     * @dataProvider facetWithVendorFilterProvider
+     * @dataProvider facetWithCategoryFilterProvider
+     *
+     * @param SimpleXMLElement $xmlResponse
+     * @param FacetResultInterface $expectedResult
+     * @param ConditionInterface|null $condition
+     *
+     * @throws ReflectionException
+     */
+    public function testCreateFacets(
+        SimpleXMLElement $xmlResponse,
+        FacetResultInterface $expectedResult,
+        ConditionInterface $condition = null
+    ) {
+        $criteria = new Criteria();
+        $criteria->setFetchCount(true);
+        if ($condition) {
+            $criteria->addCondition($condition);
+        }
+
+        $hydrator = new CustomListingHydrator();
+
+        foreach ($xmlResponse->filters->filter as $filter) {
+            $facetResult = $hydrator->hydrateFacet($filter);
+            $criteria->addFacet($facetResult->getFacet());
+        }
+
+        $productNumberSearch = Shopware()->Container()->get('fin_search_unified.product_number_search');
+        $reflector = new ReflectionObject($productNumberSearch);
+        $method = $reflector->getMethod('createFacets');
+        $method->setAccessible(true);
+
+        if ($condition) {
+            // No filters are selected in the XML response
+            $filters = $this->getXmlResponse()->addChild('filters');
+        } else {
+            // Filters are present in the XML response
+            $filters = $xmlResponse->filters->filter;
+        }
+
+        $result = $method->invokeArgs($productNumberSearch, [$criteria, $filters]);
+
+        $this->assertNotEmpty($result);
+
+        $facetResult = current($result);
+
+        $this->assertEquals($expectedResult, $facetResult);
+    }
+
     /**
      * @return SimpleXMLElement
      */
@@ -304,8 +481,8 @@ class ProductNumberSearchTest extends TestCase
         $selectedRange->addChild('min', 4.20);
         $selectedRange->addChild('max', 69.00);
         $totalRange = $attributes->addChild('totalRange');
-        $totalRange->addChild('min', 4.20);
-        $totalRange->addChild('max', 69.00);
+        $totalRange->addChild('min', 0.00);
+        $totalRange->addChild('max', 99.00);
     }
 
     /**
@@ -327,9 +504,9 @@ class ProductNumberSearchTest extends TestCase
     /**
      * @param SimpleXMLElement $filters
      * @param string $type
-     * @param bool $withFilter
+     * @param bool $withFilterItems
      */
-    private function setVendorFilter(SimpleXMLElement $filters, $type = 'select', $withFilter = true)
+    private function setVendorFilter(SimpleXMLElement $filters, $type = 'select', $withFilterItems = true)
     {
         // Vendor filter
         $vendor = $filters->addChild('filter');
@@ -337,10 +514,14 @@ class ProductNumberSearchTest extends TestCase
         $vendor->addChild('select', 'multiple');
         $vendor->addChild('name', 'vendor');
         $vendor->addChild('display', 'Brand');
-        if ($withFilter) {
-            $ventorItem = $vendor->addChild('items')->addChild('item');
+        if ($withFilterItems) {
+            $items = $vendor->addChild('items');
+            $ventorItem = $items->addChild('item');
             $ventorItem->addChild('name', 'Manufacturer');
             $ventorItem->addChild('frequency', 40);
+            $ventorItem = $items->addChild('item');
+            $ventorItem->addChild('name', 'FINDOLOGIC');
+            $ventorItem->addChild('frequency', 54);
         }
     }
 }

@@ -11,7 +11,11 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\TextFacetHandler
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Helper\StaticHelper;
+use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
+use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
+use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
+use Shopware\Bundle\SearchBundle\FacetInterface;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
@@ -161,17 +165,23 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     {
         $facets = [];
 
+        /** @var ProductAttributeFacet $criteriaFacet */
         foreach ($criteria->getFacets() as $criteriaFacet) {
             $field = $criteriaFacet->getField();
-            $filter = $filters->xpath(sprintf('//name[.="%s"]/parent::*', $field));
-            if (empty($filter)) {
-                continue;
+
+            $selectedFilter = $selectedFilterByResponse = $this->fetchSelectedFilterByResponse($filters, $field);
+            if (!$selectedFilterByResponse) {
+                $selectedFilter = $this->fetchSelectedFilterByUserCondition($criteria, $criteriaFacet);
+                if (!$selectedFilter) {
+                    continue;
+                }
             }
-            $handler = $this->getFacetHandler($filter[0]);
+
+            $handler = $this->getFacetHandler($selectedFilter);
             if ($handler === null) {
                 continue;
             }
-            $partialFacet = $handler->generatePartialFacet($criteriaFacet, $criteria, $filter[0]);
+            $partialFacet = $handler->generatePartialFacet($criteriaFacet, $criteria, $selectedFilter);
             if ($partialFacet === null) {
                 continue;
             }
@@ -179,5 +189,89 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         }
 
         return $facets;
+    }
+
+    /**
+     * @param SimpleXMLElement $filters
+     * @param string $field
+     *
+     * @return SimpleXMLElement|null
+     */
+    private function fetchSelectedFilterByResponse(SimpleXMLElement $filters, $field)
+    {
+        $selectedFilter = $filters->xpath(sprintf('//name[.="%s"]/parent::*', $field));
+
+        return isset($selectedFilter[0]) ? $selectedFilter[0] : null;
+    }
+
+    /**
+     * @param Criteria $criteria
+     * @param FacetInterface $criteriaFacet
+     *
+     * @return SimpleXMLElement|null
+     */
+    private function fetchSelectedFilterByUserCondition(Criteria $criteria, FacetInterface $criteriaFacet)
+    {
+        if ($criteria->hasUserCondition($criteriaFacet->getName())) {
+            $facetName = $criteriaFacet->getName();
+        } elseif ($criteria->hasUserCondition('price')) {
+            $facetName = 'price';
+        } else {
+            return null;
+        }
+
+        $condition = $criteria->getUserCondition($facetName);
+
+        return $this->createSelectedFilter(
+            $criteriaFacet,
+            $condition
+        );
+    }
+
+    /**
+     * @param FacetInterface $facet
+     * @param ConditionInterface $condition
+     *
+     * @return SimpleXMLElement
+     */
+    private function createSelectedFilter(FacetInterface $facet, ConditionInterface $condition)
+    {
+        $data = '<filter />';
+        $filter = new SimpleXMLElement($data);
+
+        if ($condition instanceof PriceCondition) {
+            $filter->addChild('name', $condition->getName());
+            $filter->addChild('type', 'range-slider');
+            $attributes = $filter->addChild('attributes');
+            $totalRange = $attributes->addChild('totalRange');
+            $totalRange->addChild('min', $condition->getMinPrice());
+            $totalRange->addChild('max', $condition->getMaxPrice() ?: PHP_INT_MAX);
+            $selectedRange = $attributes->addChild('selectedRange');
+            $selectedRange->addChild('min', $condition->getMinPrice());
+            $selectedRange->addChild('max', $condition->getMaxPrice() ?: PHP_INT_MAX);
+
+            return $filter;
+        }
+
+        if ($facet->getMode() === ProductAttributeFacet::MODE_RANGE_RESULT) {
+            $values = $condition->getValues();
+            $filter->addChild('name', $condition->getField());
+            $filter->addChild('type', 'range-slider');
+            $attributes = $filter->addChild('attributes');
+            $totalRange = $attributes->addChild('totalRange');
+            $totalRange->addChild('min', isset($values['min']) ? $values['min'] : 0);
+            $totalRange->addChild('max', isset($values['max']) ? $values['max'] : PHP_INT_MAX);
+            $selectedRange = $attributes->addChild('selectedRange');
+            $selectedRange->addChild('min', isset($values['min']) ? $values['min'] : 0);
+            $selectedRange->addChild('max', isset($values['max']) ? $values['max'] : PHP_INT_MAX);
+
+            return $filter;
+        }
+
+        $filter->addChild('name', $condition->getField());
+        $filter->addChild('type', 'label');
+        $filter->addChild('items');
+
+        return $filter;
     }
 }

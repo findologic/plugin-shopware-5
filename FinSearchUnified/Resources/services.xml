@@ -72,7 +72,7 @@
             id="fin_search_unified.product_number_search"
             class="FinSearchUnified\Bundle\ProductNumberSearch"
             decorates="shopware_search.product_number_search"
-            public="false"
+            public="true"
         >
             <argument type="service" id="fin_search_unified.product_number_search.inner" />
             <argument type="service" id="fin_search_unified.query_builder_factory" />

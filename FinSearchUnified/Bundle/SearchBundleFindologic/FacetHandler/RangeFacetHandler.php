@@ -36,6 +36,7 @@ class RangeFacetHandler implements PartialFacetHandlerInterface
         if ((string)$filter->name === 'price') {
             $minFieldName = 'min';
             $maxFieldName = 'max';
+            $conditionName = 'price';
         }
 
         return new RangeFacetResult(

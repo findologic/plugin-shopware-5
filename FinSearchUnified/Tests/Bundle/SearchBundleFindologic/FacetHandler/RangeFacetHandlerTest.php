@@ -4,6 +4,7 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\FacetHandler;
 
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\RangeFacetHandler;
 use FinSearchUnified\Tests\TestCase;
+use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -122,7 +123,7 @@ class RangeFacetHandlerTest extends TestCase
                 'Preis',
                 null,
                 new RangeFacetResult(
-                    'product_attribute_price',
+                    'price',
                     false,
                     'Preis',
                     4.20,
@@ -152,13 +153,9 @@ class RangeFacetHandlerTest extends TestCase
                 ],
                 'price',
                 'Preis',
-                new ProductAttributeCondition(
-                    'price',
-                    ConditionInterface::OPERATOR_EQ,
-                    ['min' => 4.20, 'max' => 69.00]
-                ),
+                new PriceCondition(4.20, 69.00),
                 new RangeFacetResult(
-                    'product_attribute_price',
+                    'price',
                     true,
                     'Preis',
                     4.20,
