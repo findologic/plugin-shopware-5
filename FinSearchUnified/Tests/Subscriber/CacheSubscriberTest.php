@@ -10,7 +10,8 @@ use Shopware\Components\CacheManager;
 
 class CacheSubscriberTest extends SubscriberTestCase
 {
-    public function testCache(){
+    public function testCache()
+    {
 
         $mockCache = $this->createMock(CacheManager::class);
         $mockCache->expects($this->once())
@@ -22,7 +23,7 @@ class CacheSubscriberTest extends SubscriberTestCase
         $request = new Enlight_Controller_Request_RequestHttp();
 
         $request->setParam('name', $pluginName);
-        $request->server->set('REQUEST_METHOD','POST');
+        $request->server->set('REQUEST_METHOD', 'POST');
 
         $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
             ->disableOriginalConstructor()
@@ -36,7 +37,8 @@ class CacheSubscriberTest extends SubscriberTestCase
         $cache->onPostDispatchConfig($args);
     }
 
-    public function testNotClearCache(){
+    public function testNotClearCache()
+    {
 
         $mockCache = $this->createMock(CacheManager::class);
         $mockCache->expects($this->never())
@@ -48,7 +50,7 @@ class CacheSubscriberTest extends SubscriberTestCase
         $request = new Enlight_Controller_Request_RequestHttp();
 
         $request->setParam('name', $pluginName);
-        $request->server->set('REQUEST_METHOD','GET');
+        $request->server->set('REQUEST_METHOD', 'GET');
 
         $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
             ->disableOriginalConstructor()
@@ -62,4 +64,3 @@ class CacheSubscriberTest extends SubscriberTestCase
         $cache->onPostDispatchConfig($args);
     }
 }
-
