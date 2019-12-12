@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "findologic/libflexport",
-            "version": "v1.4.0",
+            "version": "v1.2.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/findologic/libflexport.git",
-                "reference": "775f5867f0616356be20af05c8a7ee9a1d02b7a7"
+                "reference": "f58ac6785f9e46f880f007b9b147a1039da169ec"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/findologic/libflexport/zipball/775f5867f0616356be20af05c8a7ee9a1d02b7a7",
-                "reference": "775f5867f0616356be20af05c8a7ee9a1d02b7a7",
+                "url": "https://api.github.com/repos/findologic/libflexport/zipball/f58ac6785f9e46f880f007b9b147a1039da169ec",
+                "reference": "f58ac6785f9e46f880f007b9b147a1039da169ec",
                 "shasum": ""
             },
             "require-dev": {
@@ -54,7 +54,7 @@
             ],
             "description": "FINDOLOGIC export toolkit for XML and CSV data export",
             "homepage": "https://github.com/findologic/libflexport",
-            "time": "2019-03-19T10:49:20+00:00"
+            "time": "2018-06-05T09:03:53+00:00"
         }
     ],
     "packages-dev": [
