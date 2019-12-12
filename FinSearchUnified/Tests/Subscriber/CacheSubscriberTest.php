@@ -25,7 +25,7 @@ class CacheSubscriberTest extends SubscriberTestCase
     public function testCacheIsCleared()
     {
         $mockCache = $this->createMock(CacheManager::class);
-        $mockCache->expects($this->once())->method('clearConfigCache');
+        $mockCache->expects($this->once())->method('clearByTag')->with('config');
 
         $pluginName = 'FinSearchUnified';
         $cache = new CacheSubscriber($pluginName, $mockCache);
@@ -48,7 +48,7 @@ class CacheSubscriberTest extends SubscriberTestCase
     public function testCacheIsNotCleared()
     {
         $mockCache = $this->createMock(CacheManager::class);
-        $mockCache->expects($this->never())->method('clearConfigCache');
+        $mockCache->expects($this->never())->method('clearByTag')->with('config');
 
         $pluginName = 'FinSearchUnified';
         $cache = new CacheSubscriber($pluginName, $mockCache);
