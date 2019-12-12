@@ -8,14 +8,10 @@ use Enlight_Event_EventArgs;
 use FinSearchUnified\Subscriber\CacheSubscriber;
 use Shopware\Components\CacheManager;
 
+use function property_exists;
+
 class CacheSubscriberTest extends SubscriberTestCase
 {
-    protected function setUp()
-    {
-        parent::setUp();
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-    }
-
     protected function tearDown()
     {
         parent::tearDown();
@@ -32,6 +28,13 @@ class CacheSubscriberTest extends SubscriberTestCase
         $request = new Enlight_Controller_Request_RequestHttp();
 
         $request->setParam('name', $pluginName);
+
+        // For Shopware 5.6 compatibility, otherwise fallback to previous versions
+        if (property_exists($request, 'server')) {
+            $request->server->set('REQUEST_METHOD', 'POST');
+        } else {
+            $_SERVER['REQUEST_METHOD'] = 'POST';
+        }
 
         $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
             ->disableOriginalConstructor()
@@ -54,7 +57,7 @@ class CacheSubscriberTest extends SubscriberTestCase
         $cache = new CacheSubscriber($pluginName, $mockCache);
         $request = new Enlight_Controller_Request_RequestHttp();
 
-        $request->setParam('name', 'SomeOtherPluginName');
+        $request->setParam('name', $pluginName);
 
         $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
             ->disableOriginalConstructor()
