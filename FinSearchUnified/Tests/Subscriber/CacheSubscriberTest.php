@@ -10,20 +10,28 @@ use Shopware\Components\CacheManager;
 
 class CacheSubscriberTest extends SubscriberTestCase
 {
-    public function testCache()
+    protected function setUp()
     {
+        parent::setUp();
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+    }
 
+    protected function tearDown()
+    {
+        parent::tearDown();
+        unset($_SERVER['REQUEST_METHOD']);
+    }
+
+    public function testCacheIsCleared()
+    {
         $mockCache = $this->createMock(CacheManager::class);
-        $mockCache->expects($this->once())
-            ->method('clearByTag')
-            ->with('config');
+        $mockCache->expects($this->once())->method('clearConfigCache');
 
         $pluginName = 'FinSearchUnified';
         $cache = new CacheSubscriber($pluginName, $mockCache);
         $request = new Enlight_Controller_Request_RequestHttp();
 
         $request->setParam('name', $pluginName);
-        $request->server->set('REQUEST_METHOD', 'POST');
 
         $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
             ->disableOriginalConstructor()
@@ -37,20 +45,16 @@ class CacheSubscriberTest extends SubscriberTestCase
         $cache->onPostDispatchConfig($args);
     }
 
-    public function testNotClearCache()
+    public function testCacheIsNotCleared()
     {
-
         $mockCache = $this->createMock(CacheManager::class);
-        $mockCache->expects($this->never())
-            ->method('clearByTag')
-            ->with('config');
+        $mockCache->expects($this->never())->method('clearConfigCache');
 
         $pluginName = 'FinSearchUnified';
         $cache = new CacheSubscriber($pluginName, $mockCache);
         $request = new Enlight_Controller_Request_RequestHttp();
 
-        $request->setParam('name', $pluginName);
-        $request->server->set('REQUEST_METHOD', 'GET');
+        $request->setParam('name', 'SomeOtherPluginName');
 
         $subject = $this->getMockBuilder(Enlight_Controller_Action::class)
             ->disableOriginalConstructor()
