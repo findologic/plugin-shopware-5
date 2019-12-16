@@ -206,7 +206,7 @@ class FindologicArticleModel
 
     protected function setArticleName()
     {
-        if ($this->productStruct->getName()) {
+        if (!StaticHelper::isEmpty($this->productStruct->getName())) {
             $xmlName = new Name();
             $xmlName->setValue(StaticHelper::removeControlCharacters($this->productStruct->getName()));
             $this->xmlArticle->setName($xmlName);
@@ -236,13 +236,16 @@ class FindologicArticleModel
             if ($detail->getActive() === 0) {
                 continue;
             }
-            $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getNumber()));
 
-            if ($detail->getEan()) {
+            if(StaticHelper::isEmpty(($detail->getNumber()))){
+                $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getNumber()));
+            }
+
+            if (StaticHelper::isEmpty($detail->getEan())) {
                 $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getEan()));
             }
 
-            if ($detail->getSupplierNumber()) {
+            if (StaticHelper::isEmpty($detail->getSupplierNumber())) {
                 $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getSupplierNumber()));
             }
         }
@@ -251,7 +254,7 @@ class FindologicArticleModel
     protected function setSummary()
     {
         $description = StaticHelper::cleanString($this->productStruct->getShortDescription());
-        if ($description) {
+        if (StaticHelper::isEmpty($description)) {
             $summary = new Summary();
             $summary->setValue(trim($description));
             $this->xmlArticle->setSummary($summary);
@@ -261,7 +264,7 @@ class FindologicArticleModel
     protected function setDescription()
     {
         $descriptionLong = StaticHelper::cleanString($this->productStruct->getLongDescription());
-        if ($descriptionLong) {
+        if (StaticHelper::isEmpty($descriptionLong)) {
             $description = new Description();
             $description->setValue($descriptionLong);
             $this->xmlArticle->setDescription($description);
@@ -319,15 +322,17 @@ class FindologicArticleModel
                 $price *= (1 + (float)$tax->getTax() / 100);
             }
 
-            $xmlPrice = new Price();
-            $usergroupHash = StaticHelper::calculateUsergroupHash($userGroup->getKey(), $this->shopKey);
-            $xmlPrice->setValue(sprintf('%.2f', $price), $usergroupHash);
-            $this->xmlArticle->addPrice(sprintf('%.2f', $price), $usergroupHash);
+            if(StaticHelper::isEmpty($price)){
+                $xmlPrice = new Price();
+                $usergroupHash = StaticHelper::calculateUsergroupHash($userGroup->getKey(), $this->shopKey);
+                $xmlPrice->setValue(sprintf('%.2f', $price), $usergroupHash);
+                $this->xmlArticle->addPrice(sprintf('%.2f', $price), $usergroupHash);
 
-            if ($userGroup->getKey() === 'EK') {
-                $basePrice = new Price();
-                $basePrice->setValue(sprintf('%.2f', $price));
-                $this->xmlArticle->addPrice(sprintf('%.2f', $price));
+                if ($userGroup->getKey() === 'EK') {
+                    $basePrice = new Price();
+                    $basePrice->setValue(sprintf('%.2f', $price));
+                    $this->xmlArticle->addPrice(sprintf('%.2f', $price));
+                }
             }
         }
     }
@@ -352,18 +357,21 @@ class FindologicArticleModel
 
         // This will only encode parts of the URL path and leave separator itself untouched.
         $seoUrl = $shopUrl . array_reduce(explode('/', $urlPath), function ($encodedPath, $item) {
-            $encodedPath .= '/';
+                $encodedPath .= '/';
 
-            if ($item) {
-                $encodedPath .= rawurlencode($item);
-            }
+                if ($item) {
+                    $encodedPath .= rawurlencode($item);
+                }
 
-            return $encodedPath;
-        });
+                return $encodedPath;
+            });
 
-        $xmlUrl = new Url();
-        $xmlUrl->setValue($seoUrl);
-        $this->xmlArticle->setUrl($xmlUrl);
+        if(StaticHelper::isEmpty($seoUrl)){
+            $xmlUrl = new Url();
+            $xmlUrl->setValue($seoUrl);
+            $this->xmlArticle->setUrl($xmlUrl);
+        }
+
     }
 
     protected function setKeywords()
@@ -385,7 +393,7 @@ class FindologicArticleModel
             $articleKeywords = explode(',', StaticHelper::removeControlCharacters($keywords));
             $xmlKeywords = [];
             foreach ($articleKeywords as $keyword) {
-                if (self::checkIfHasValue($keyword)) {
+                if (StaticHelper::isEmpty($keyword)) {
                     $xmlKeyword = new Keyword($keyword);
                     $xmlKeywords[] = $xmlKeyword;
                 }
@@ -531,14 +539,16 @@ class FindologicArticleModel
                     $tempPath = strtolower($tempPath);
                 }
 
-                $catUrlArray[] = $this->seoRouter->sCleanupPath($tempPath);
+                if(StaticHelper::isEmpty($tempPath)){
+                    $catUrlArray[] = $this->seoRouter->sCleanupPath($tempPath);
+                }
 
                 array_pop($catPath);
             }
 
             $exportCat = StaticHelper::buildCategoryName($category->getId(), false);
 
-            if (self::checkIfHasValue($exportCat)) {
+            if (StaticHelper::isEmpty($exportCat)) {
                 $catArray[] = $exportCat;
             }
         }
@@ -554,7 +564,7 @@ class FindologicArticleModel
         // Supplier
         /** @var Product\Manufacturer $supplier */
         $supplier = $this->productStruct->getManufacturer();
-        if ($supplier) {
+        if (StaticHelper::isEmpty($supplier)) {
             $supplierName = StaticHelper::cleanString($supplier->getName());
             if ($supplierName) {
                 $xmlSupplier = new Attribute('brand');
@@ -570,16 +580,18 @@ class FindologicArticleModel
                     $filterValues = [];
 
                     foreach ($group->getOptions() as $option) {
-                        if ($option->getName()) {
+                        if (StaticHelper::isEmpty($option->getName())) {
                             $filterValues[] = StaticHelper::removeControlCharacters($option->getName());
                         }
                     }
 
-                    if ($filterValues) {
-                        $allAttributes[] = new Attribute(
-                            StaticHelper::removeControlCharacters($group->getName()),
-                            $filterValues
-                        );
+                    if (StaticHelper::isEmpty($filterValues)) {
+                        if(!StaticHelper::isEmpty($group->getName())){
+                            $allAttributes[] = new Attribute(
+                                StaticHelper::removeControlCharacters($group->getName()),
+                                $filterValues
+                            );
+                        }
                     }
                 }
             }
@@ -607,7 +619,7 @@ class FindologicArticleModel
                     $variationFilterValues = [];
 
                     foreach ($group->getOptions() as $option) {
-                        if (!self::checkIfHasValue($option->getName())) {
+                        if (!StaticHelper::isEmpty($option->getName())) {
                             continue;
                         }
 
@@ -627,8 +639,8 @@ class FindologicArticleModel
                 }
             } else {
                 foreach ($variant->getConfiguratorOptions() as $option) {
-                    if (!self::checkIfHasValue($option->getName()) ||
-                        !self::checkIfHasValue($option->getGroup()->getName())
+                    if (!StaticHelper::isEmpty($option->getName()) ||
+                        !StaticHelper::isEmpty($option->getGroup()->getName())
                     ) {
                         continue;
                     } else {
@@ -648,7 +660,7 @@ class FindologicArticleModel
         }
 
         foreach ($variationFilters as $filter => $values) {
-            if (empty($values)) {
+            if (empty($values) || StaticHelper::isEmpty($values)) {
                 continue;
             }
 
@@ -708,40 +720,40 @@ class FindologicArticleModel
     {
         $allProperties = [];
         $rewrtieLink = Shopware()->Modules()->Core()->sRewriteLink();
-        if (self::checkIfHasValue($this->baseArticle->getHighlight())) {
+        if (StaticHelper::isEmpty($this->baseArticle->getHighlight())) {
             $allProperties[] = new Property('highlight', ['' => $this->baseArticle->getHighlight()]);
         }
-        if (self::checkIfHasValue($this->baseArticle->getTax())) {
+        if (StaticHelper::isEmpty($this->baseArticle->getTax())) {
             $allProperties[] = new Property('tax', ['' => $this->baseArticle->getTax()->getTax()]);
         }
-        if (self::checkIfHasValue($this->baseVariant->getShippingTime())) {
+        if (StaticHelper::isEmpty($this->baseVariant->getShippingTime())) {
             $allProperties[] = new Property('shippingtime', ['' => $this->baseVariant->getShippingTime()]);
         }
-        if (self::checkIfHasValue($this->baseVariant->getPurchaseUnit())) {
+        if (StaticHelper::isEmpty($this->baseVariant->getPurchaseUnit())) {
             $allProperties[] = new Property('purchaseunit', ['' => $this->baseVariant->getPurchaseUnit()]);
         }
-        if (self::checkIfHasValue($this->baseVariant->getReferenceUnit())) {
+        if (StaticHelper::isEmpty($this->baseVariant->getReferenceUnit())) {
             $allProperties[] = new Property('referenceunit', ['' => $this->baseVariant->getReferenceUnit()]);
         }
-        if (self::checkIfHasValue($this->baseVariant->getPackUnit())) {
+        if (StaticHelper::isEmpty($this->baseVariant->getPackUnit())) {
             $allProperties[] = new Property('packunit', ['' => $this->baseVariant->getPackUnit()]);
         }
-        if (self::checkIfHasValue($this->baseVariant->getInStock())) {
+        if (StaticHelper::isEmpty($this->baseVariant->getInStock())) {
             $allProperties[] = new Property('quantity', ['' => $this->baseVariant->getInStock()]);
         }
-        if (self::checkIfHasValue($this->baseVariant->getWeight())) {
+        if (StaticHelper::isEmpty($this->baseVariant->getWeight())) {
             $allProperties[] = new Property('weight', ['' => $this->baseVariant->getWeight()]);
         }
-        if (self::checkIfHasValue($this->baseVariant->getWidth())) {
+        if (StaticHelper::isEmpty($this->baseVariant->getWidth())) {
             $allProperties[] = new Property('width', ['' => $this->baseVariant->getWidth()]);
         }
-        if (self::checkIfHasValue($this->baseVariant->getHeight())) {
+        if (StaticHelper::isEmpty($this->baseVariant->getHeight())) {
             $allProperties[] = new Property('height', ['' => $this->baseVariant->getHeight()]);
         }
-        if (self::checkIfHasValue($this->baseVariant->getLen())) {
+        if (StaticHelper::isEmpty($this->baseVariant->getLen())) {
             $allProperties[] = new Property('length', ['' => $this->baseVariant->getLen()]);
         }
-        if (self::checkIfHasValue($this->baseVariant->getReleaseDate())) {
+        if (StaticHelper::isEmpty($this->baseVariant->getReleaseDate())) {
             $releaseDate = $this->baseVariant->getReleaseDate()->format(DATE_ATOM);
             $allProperties[] = new Property('release_date', ['' => $releaseDate]);
         }
@@ -760,7 +772,7 @@ class FindologicArticleModel
         if ($supplier) {
             $brandImage = $supplier->getCoverFile();
 
-            if (self::checkIfHasValue($brandImage)) {
+            if (StaticHelper::isEmpty($brandImage)) {
                 $allProperties[] = new Property('brand_image', ['' => $brandImage]);
             }
         }
@@ -802,7 +814,7 @@ class FindologicArticleModel
                 $value = $value->format(DATE_ATOM);
             }
 
-            if (self::checkIfHasValue($value)) {
+            if (StaticHelper::isEmpty($value)) {
                 $attributeKey = "attr$i";
                 $attributeValue = StaticHelper::removeControlCharacters($value);
                 $allAttributes[$attributeKey] = new Attribute($attributeKey, [$attributeValue]);
