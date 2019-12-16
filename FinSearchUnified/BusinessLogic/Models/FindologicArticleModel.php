@@ -206,7 +206,7 @@ class FindologicArticleModel
 
     protected function setArticleName()
     {
-        if (!StaticHelper::isEmpty($this->productStruct->getName())) {
+        if (StaticHelper::isEmpty($this->productStruct->getName())) {
             $xmlName = new Name();
             $xmlName->setValue(StaticHelper::removeControlCharacters($this->productStruct->getName()));
             $this->xmlArticle->setName($xmlName);
@@ -586,7 +586,7 @@ class FindologicArticleModel
                     }
 
                     if (StaticHelper::isEmpty($filterValues)) {
-                        if(!StaticHelper::isEmpty($group->getName())){
+                        if(StaticHelper::isEmpty($group->getName())){
                             $allAttributes[] = new Attribute(
                                 StaticHelper::removeControlCharacters($group->getName()),
                                 $filterValues
@@ -619,7 +619,7 @@ class FindologicArticleModel
                     $variationFilterValues = [];
 
                     foreach ($group->getOptions() as $option) {
-                        if (!StaticHelper::isEmpty($option->getName())) {
+                        if (StaticHelper::isEmpty($option->getName())) {
                             continue;
                         }
 
@@ -639,8 +639,8 @@ class FindologicArticleModel
                 }
             } else {
                 foreach ($variant->getConfiguratorOptions() as $option) {
-                    if (!StaticHelper::isEmpty($option->getName()) ||
-                        !StaticHelper::isEmpty($option->getGroup()->getName())
+                    if (StaticHelper::isEmpty($option->getName()) ||
+                        StaticHelper::isEmpty($option->getGroup()->getName())
                     ) {
                         continue;
                     } else {

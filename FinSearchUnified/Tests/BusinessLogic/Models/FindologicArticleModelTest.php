@@ -589,4 +589,69 @@ class FindologicArticleModelTest extends TestCase
             $this->assertArrayNotHasKey('attr1', $values);
         }
     }
+
+    public function emptySupplierValueDataProvider()
+    {
+        return [
+            'Ensure that when an attribute has an empty value' => [
+                'name' => 'FindologicArticle 2',
+                'active' => true,
+                'tax' => 19,
+                'supplier' => 'Findologic',
+                'summary' => '',
+                'categories' => [
+                    ['id' => 3],
+                    ['id' => 5],
+                ],
+                'images' => [
+                    ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                    ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                ],
+                'mainDetail' => [
+                    'number' => 'FINDOLOGIC2',
+                    'active' => true,
+                    'inStock' => 16,
+                    'prices' => [
+                        [
+                            'customerGroupKey' => 'EK',
+                            'price' => 99.34,
+                        ],
+                    ],
+                    'attribute' => [
+                        'attr1' => 'Attribute'
+                    ]
+                ],
+            ]
+        ];
+    }
+
+//    /**
+//     * Method to run the export test cases using the data provider,
+//     * to check if the empty with empty names are not being exported.
+//     *
+//     * @dataProvider emptySupplierValueDataProvider
+//     *
+//     * @param array $articleConfiguration The article configuration with the corresponding supplier.
+//     *
+//     * @throws Exception
+//     */
+//    public function testEmptySupplierValue(array $articleConfiguration)
+//    {
+//        $baseCategory = new Category();
+//        $baseCategory->setId(100);
+//
+//        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+//
+//        $findologicArticle = $this->articleFactory->create(
+//            $articleFromConfiguration,
+//            'ABCD0815',
+//            [],
+//            [],
+//            $baseCategory
+//        );
+//        $this->assertEquals(get_class($findologicArticle), FindologicArticleModel::class);
+//    }
 }
+
+
+
