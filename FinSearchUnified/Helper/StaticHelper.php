@@ -688,37 +688,6 @@ class StaticHelper
         return trim($string);
     }
 
-//    /**
-//     * This functions check value is not Numeric or Float
-//     * @param $value
-//     * @return bool
-//     */
-//    public static function isEmpty($value,$arg=null)
-//    {
-//        if($arg == 'string') {
-//            if(!is_string($value)){
-//           return true;
-//            }elseif ($value == null){
-//                    return true;
-//                }elseif ($arg == 'empty') {
-//                    if (empty(trim($value))){
-//                        return true;
-//                    }
-//                }elseif($arg == 'array') {
-//                    if(is_array($value) && array_filter($value) ){
-//                        return true;
-//                    }
-//                }elseif($arg == 'integer') {
-//                if (is_numeric($value)) {
-//                    return false;
-//                }
-//            }
-//            }
-//            else{
-//            return false;
-//        }
-//    }
-
     /**
      * This functions check value is not Numeric or Float
      * @param $value

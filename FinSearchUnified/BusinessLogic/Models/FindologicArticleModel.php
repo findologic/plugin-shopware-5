@@ -371,7 +371,6 @@ class FindologicArticleModel
             $xmlUrl->setValue($seoUrl);
             $this->xmlArticle->setUrl($xmlUrl);
         }
-
     }
 
     protected function setKeywords()

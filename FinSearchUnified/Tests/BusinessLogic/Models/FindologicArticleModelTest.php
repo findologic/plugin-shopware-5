@@ -590,15 +590,17 @@ class FindologicArticleModelTest extends TestCase
         }
     }
 
-    public function emptySupplierValueDataProvider()
+    public function emptySummaryValueDataProvider()
     {
         return [
-            'Ensure that when an attribute has an empty value' => [
-                'name' => 'FindologicArticle 2',
-                'active' => true,
-                'tax' => 19,
-                'supplier' => 'Findologic',
-                'summary' => '',
+            'Ensure that when an summary has an empty value' => [
+                'summary array' => [
+                    ['name' =>'FindologicArticle 2'],
+                    ['active' => true],
+                    ['tax' => 19],
+                    ['supplier' => 'Findologic'],
+                    ['summary' => ''],
+                ],
                 'categories' => [
                     ['id' => 3],
                     ['id' => 5],
@@ -617,40 +619,46 @@ class FindologicArticleModelTest extends TestCase
                             'price' => 99.34,
                         ],
                     ],
-                    'attribute' => [
-                        'attr1' => 'Attribute'
-                    ]
                 ],
             ]
         ];
     }
 
-//    /**
-//     * Method to run the export test cases using the data provider,
-//     * to check if the empty with empty names are not being exported.
-//     *
-//     * @dataProvider emptySupplierValueDataProvider
-//     *
-//     * @param array $articleConfiguration The article configuration with the corresponding supplier.
-//     *
-//     * @throws Exception
-//     */
-//    public function testEmptySupplierValue(array $articleConfiguration)
-//    {
-//        $baseCategory = new Category();
-//        $baseCategory->setId(100);
-//
-//        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
-//
-//        $findologicArticle = $this->articleFactory->create(
-//            $articleFromConfiguration,
-//            'ABCD0815',
-//            [],
-//            [],
-//            $baseCategory
-//        );
-//        $this->assertEquals(get_class($findologicArticle), FindologicArticleModel::class);
-//    }
+    /**
+     *
+     * @dataProvider emptySummaryValueDataProvider
+     *
+     * @param array $articleConfiguration
+     * @param string $expectedValue
+     *
+     * @throws Exception
+     */
+    public function testEmptySummaryValue(array $articleConfiguration, $expectedValue)
+    {
+        $baseCategory = new Category();
+        $baseCategory->setId(100);
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+        print_r($articleFromConfiguration);
+
+        $articleFromConfiguration->setDescription('');
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+        $actualValue = $xmlArticle->getSummary();
+
+        print_r($actualValue);
+
+        $this->assertSame($expectedValue, $actualValue);
+    }
 }
 
 
