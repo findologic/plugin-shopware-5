@@ -137,6 +137,8 @@ class FindologicArticleModelTest extends TestCase
 
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
+        var_dump($articleFromConfiguration);
+        ob_flush();
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
             'ABCD0815',
@@ -593,53 +595,57 @@ class FindologicArticleModelTest extends TestCase
     public function emptySummaryValueDataProvider()
     {
         return [
-            'Ensure that when an summary has an empty value' => [
-                'summary array' => [
-                    ['name' =>'FindologicArticle 2'],
-                    ['active' => true],
-                    ['tax' => 19],
-                    ['supplier' => 'Findologic'],
-                    ['summary' => ''],
-                ],
-                'categories' => [
-                    ['id' => 3],
-                    ['id' => 5],
-                ],
-                'images' => [
-                    ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                    ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-                ],
-                'mainDetail' => [
-                    'number' => 'FINDOLOGIC2',
+            'Summary value is empty' => [
+                [
+                    'name' => 'abdrückklotz-für+butler reifenmontiergerät',
                     'active' => true,
-                    'inStock' => 16,
-                    'prices' => [
-                        [
-                            'customerGroupKey' => 'EK',
-                            'price' => 99.34,
-                        ],
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'summary' => '',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ]
                     ],
                 ],
-            ]
+            ],
         ];
     }
 
     /**
+     * Method to run the export test cases using the data provider,
+     * to check if the suppliers with empty names are not being exported.
      *
      * @dataProvider emptySummaryValueDataProvider
      *
-     * @param array $articleConfiguration
-     * @param string $expectedValue
+     * @param array $articleConfiguration The article configuration with the corresponding summary.
      *
      * @throws Exception
      */
-    public function testEmptySummaryValue(array $articleConfiguration, $expectedValue)
+
+    public function testEmptySummaryValue(array $articleConfiguration)
     {
         $baseCategory = new Category();
-        $baseCategory->setId(100);
+        $baseCategory->setId(5);
 
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
-        print_r($articleFromConfiguration);
+        var_dump(['$articleFromConfiguration'=>$articleFromConfiguration]);
+//        var_dump(['$articleConfiguration'=>$articleConfiguration]);
+//        ob_flush();
 
         $articleFromConfiguration->setDescription('');
 
@@ -651,13 +657,10 @@ class FindologicArticleModelTest extends TestCase
             $baseCategory
         );
 
-        $xmlArticle = $findologicArticle->getXmlRepresentation();
+//        $xmlArticle = $findologicArticle->getXmlRepresentation();
+//        $actualValue = $xmlArticle->getSummary();
 
-        $actualValue = $xmlArticle->getSummary();
 
-        print_r($actualValue);
-
-        $this->assertSame($expectedValue, $actualValue);
     }
 }
 
