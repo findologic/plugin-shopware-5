@@ -584,7 +584,7 @@ class FindologicArticleModel
                         }
                     }
 
-                    if (StaticHelper::isEmpty($filterValues)) {
+                    if (!StaticHelper::isEmpty($filterValues)) {
                         if(!StaticHelper::isEmpty($group->getName())){
                             $allAttributes[] = new Attribute(
                                 StaticHelper::removeControlCharacters($group->getName()),
@@ -638,8 +638,8 @@ class FindologicArticleModel
                 }
             } else {
                 foreach ($variant->getConfiguratorOptions() as $option) {
-                    if (!StaticHelper::isEmpty($option->getName()) ||
-                        !StaticHelper::isEmpty($option->getGroup()->getName())
+                    if (StaticHelper::isEmpty($option->getName()) ||
+                        StaticHelper::isEmpty($option->getGroup()->getName())
                     ) {
                         continue;
                     } else {
@@ -659,7 +659,7 @@ class FindologicArticleModel
         }
 
         foreach ($variationFilters as $filter => $values) {
-            if (empty($values) || !StaticHelper::isEmpty($values)) {
+            if (empty($values) || StaticHelper::isEmpty($filter)) {
                 continue;
             }
 
