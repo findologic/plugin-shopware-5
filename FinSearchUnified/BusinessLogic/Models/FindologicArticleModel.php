@@ -188,11 +188,13 @@ class FindologicArticleModel
             $mainProductNumber = $productNumberService->getMainProductNumberById($this->baseArticle->getId());
             $this->productStruct = $productService->get($mainProductNumber, $context);
         } catch (RuntimeException $exception) {
-            $this->logger->warn(sprintf(
-                'Skipped product with ID %d: %s',
-                $this->baseArticle->getId(),
-                $exception->getMessage()
-            ));
+            $this->logger->warn(
+                sprintf(
+                    'Skipped product with ID %d: %s',
+                    $this->baseArticle->getId(),
+                    $exception->getMessage()
+                )
+            );
         }
 
         if ($this->productStruct) {
@@ -237,7 +239,7 @@ class FindologicArticleModel
                 continue;
             }
 
-            if(!StaticHelper::isEmpty(($detail->getNumber()))){
+            if (!StaticHelper::isEmpty(($detail->getNumber()))) {
                 $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getNumber()));
             }
 
@@ -322,7 +324,7 @@ class FindologicArticleModel
                 $price *= (1 + (float)$tax->getTax() / 100);
             }
 
-            if(!StaticHelper::isEmpty($price)){
+            if (!StaticHelper::isEmpty($price)) {
                 $xmlPrice = new Price();
                 $usergroupHash = StaticHelper::calculateUsergroupHash($userGroup->getKey(), $this->shopKey);
                 $xmlPrice->setValue(sprintf('%.2f', $price), $usergroupHash);
@@ -356,17 +358,20 @@ class FindologicArticleModel
         $shopUrl = rtrim(str_replace($urlPath, '', $seoUrl), '/');
 
         // This will only encode parts of the URL path and leave separator itself untouched.
-        $seoUrl = $shopUrl . array_reduce(explode('/', $urlPath), function ($encodedPath, $item) {
-                $encodedPath .= '/';
+        $seoUrl = $shopUrl . array_reduce(
+            explode('/', $urlPath),
+            function ($encodedPath, $item) {
+                    $encodedPath .= '/';
 
                 if ($item) {
                     $encodedPath .= rawurlencode($item);
                 }
 
-                return $encodedPath;
-            });
+                    return $encodedPath;
+            }
+        );
 
-        if(!StaticHelper::isEmpty($seoUrl)){
+        if (!StaticHelper::isEmpty($seoUrl)) {
             $xmlUrl = new Url();
             $xmlUrl->setValue($seoUrl);
             $this->xmlArticle->setUrl($xmlUrl);
@@ -497,9 +502,6 @@ class FindologicArticleModel
         /** @var Attribute $xmlCatUrl */
         $xmlCatProperty = new Attribute('cat');
 
-        /** @var Attribute $xmlCatUrlProperty */
-        $xmlCatUrlProperty = new Attribute('cat_url');
-
         $catUrlArray = [];
         $catArray = [];
         $categories = [];
@@ -538,7 +540,7 @@ class FindologicArticleModel
                     $tempPath = strtolower($tempPath);
                 }
 
-                if(!StaticHelper::isEmpty($tempPath)){
+                if (!StaticHelper::isEmpty($tempPath)) {
                     $catUrlArray[] = $this->seoRouter->sCleanupPath($tempPath);
                 }
 
@@ -552,20 +554,24 @@ class FindologicArticleModel
             }
         }
 
-        $xmlCatUrlProperty->setValues(array_unique($catUrlArray));
-        $xmlCatProperty->setValues(array_unique($catArray));
+        if (!StaticHelper::isEmpty($catUrlArray)) {
+            /** @var Attribute $xmlCatUrlProperty */
+            $xmlCatUrlProperty = new Attribute('cat_url');
+            $xmlCatUrlProperty->setValues(array_unique($catUrlArray));
+            $allAttributes[] = $xmlCatUrlProperty;
+        }
 
-        /* @var array $xmlCatUrlProperty */
-        $allAttributes[] = $xmlCatUrlProperty;
-        /* @var array $xmlCatProperty */
-        $allAttributes[] = $xmlCatProperty;
+        if (!StaticHelper::isEmpty($catArray)) {
+            $xmlCatProperty->setValues(array_unique($catArray));
+            $allAttributes[] = $xmlCatProperty;
+        }
 
         // Supplier
         /** @var Product\Manufacturer $supplier */
         $supplier = $this->productStruct->getManufacturer();
         if (!StaticHelper::isEmpty($supplier)) {
             $supplierName = StaticHelper::cleanString($supplier->getName());
-            if ($supplierName) {
+            if (!StaticHelper::isEmpty($supplierName)) {
                 $xmlSupplier = new Attribute('brand');
                 $xmlSupplier->setValues([$supplierName]);
                 $allAttributes[] = $xmlSupplier;
@@ -585,7 +591,7 @@ class FindologicArticleModel
                     }
 
                     if (!StaticHelper::isEmpty($filterValues)) {
-                        if(!StaticHelper::isEmpty($group->getName())){
+                        if (!StaticHelper::isEmpty($group->getName())) {
                             $allAttributes[] = new Attribute(
                                 StaticHelper::removeControlCharacters($group->getName()),
                                 $filterValues
@@ -628,10 +634,12 @@ class FindologicArticleModel
                     $groupName = StaticHelper::removeControlCharacters($group->getName());
 
                     if (array_key_exists($groupName, $variationFilters)) {
-                        $variationFilters[$groupName] = array_unique(array_merge(
-                            $variationFilters[$groupName],
-                            $variationFilterValues
-                        ));
+                        $variationFilters[$groupName] = array_unique(
+                            array_merge(
+                                $variationFilters[$groupName],
+                                $variationFilterValues
+                            )
+                        );
                     } else {
                         $variationFilters[$groupName] = $variationFilterValues;
                     }

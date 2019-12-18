@@ -689,32 +689,21 @@ class StaticHelper
     }
 
     /**
-     * This functions check value is not Numeric or Float
-     * @param $value
+     * @param mixed $value
+     *
      * @return bool
      */
     public static function isEmpty($value)
     {
         if (is_numeric($value)) {
-
             return false;
         }
 
-        if(is_array($value) ){
-            $arr = array_filter($value);
-            if(count($arr) < 1){
-                return true;
-            }else{
-                return false;
-            }
-        }
-
-        if (empty(trim($value)) || !is_string($value)) {
+        if (empty($value) || (is_array($value) && empty(array_filter($value))) || empty(trim($value))) {
             return true;
-
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     /**
@@ -760,7 +749,9 @@ class StaticHelper
         $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
         $isNoSearchAndCategoryPage = !$isCategoryPage && !Shopware()->Session()->offsetGet('isSearchPage');
         $isCategoryPageButDisabledInConfig = $isCategoryPage &&
-            !(bool)Shopware()->Config()->offsetGet('ActivateFindologicForCategoryPages');
+                                             !(bool)Shopware()->Config()->offsetGet(
+                                                 'ActivateFindologicForCategoryPages'
+                                             );
 
         return (
             $isInBackend ||
@@ -789,7 +780,7 @@ class StaticHelper
         $isStagingMode = $environment->isStaging(Shopware()->Front()->Request());
 
         return !$isStagingMode && (bool)Shopware()->Config()->offsetGet('ActivateFindologic') &&
-            !empty(trim(Shopware()->Config()->offsetGet('ShopKey')));
+               !empty(trim(Shopware()->Config()->offsetGet('ShopKey')));
     }
 
     /**
@@ -805,8 +796,10 @@ class StaticHelper
         $isDirectIntegration =
             $configLoader->directIntegrationEnabled($integrationType === Constants::INTEGRATION_TYPE_DI);
 
-        self::storeIntegrationType($isDirectIntegration ?
-            Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API);
+        self::storeIntegrationType(
+            $isDirectIntegration ?
+                Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API
+        );
 
         return $isDirectIntegration;
     }
@@ -882,12 +875,14 @@ class StaticHelper
         if (isset($promotion) && count($promotion->attributes()) > 0) {
             /** @var Enlight_View_Default $view */
             $view = Shopware()->Container()->get('front')->Plugins()->get('ViewRenderer')->Action()->View();
-            $view->assign([
-                'finPromotion' => [
-                    'image' => $promotion->attributes()->image,
-                    'link' => $promotion->attributes()->link
+            $view->assign(
+                [
+                    'finPromotion' => [
+                        'image' => $promotion->attributes()->image,
+                        'link' => $promotion->attributes()->link
+                    ]
                 ]
-            ]);
+            );
         }
     }
 
@@ -906,13 +901,15 @@ class StaticHelper
             /** @var Enlight_View_Default $view */
             $view = Shopware()->Front()->Plugins()->get('ViewRenderer')->Action()->View();
             $type = !empty($didYouMeanQuery) ? 'did-you-mean' : $queryStringType;
-            $view->assign([
-                'finSmartDidYouMean' => [
-                    'type' => $type,
-                    'alternative_query' => $type === 'did-you-mean' ? $didYouMeanQuery : $queryString,
-                    'original_query' => $type === 'did-you-mean' ? '' : $originalQuery
+            $view->assign(
+                [
+                    'finSmartDidYouMean' => [
+                        'type' => $type,
+                        'alternative_query' => $type === 'did-you-mean' ? $didYouMeanQuery : $queryString,
+                        'original_query' => $type === 'did-you-mean' ? '' : $originalQuery
+                    ]
                 ]
-            ]);
+            );
         }
     }
 }

@@ -155,7 +155,7 @@ class ShopwareProcess
             }
 
             /** @var FindologicArticleFactory $findologicArticleFactory */
-            try{
+            try {
                 $findologicArticle = $findologicArticleFactory->create(
                     $article,
                     $this->shopKey,
@@ -171,11 +171,14 @@ class ShopwareProcess
                 $response->count = count($findologicArticles);
 
                 return $response;
-            }
-            catch (EmptyValueNotAllowedException $e){
-
-                Shopware()->Container()->get('pluginlogger')->info(sprintf("Product with id '%s' could not be exported. It appears to has empty values assigned to it. 
-                If you see this message in your logs, please report this as a bug", $article->getMainDetail()));
+            } catch (EmptyValueNotAllowedException $e) {
+                Shopware()->Container()->get('pluginlogger')->info(
+                    sprintf(
+                        "Product with id '%s' could not be exported. It appears to has empty values assigned to it. " .
+                        'If you see this message in your logs, please report this as a bug',
+                        $article->getMainDetail()
+                    )
+                );
             }
         }
 

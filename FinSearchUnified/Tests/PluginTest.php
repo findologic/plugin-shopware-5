@@ -19,15 +19,6 @@ class PluginTest extends TestCase
         ],
     ];
 
-    /** @var Manager */
-    private $manager;
-
-    protected function setUp()
-    {
-        parent::setUp();
-        $this->manager = new Manager();
-    }
-
     public function testCanCreateInstance()
     {
         /** @var Plugin $plugin */
@@ -82,8 +73,8 @@ class PluginTest extends TestCase
     public function testArticleExport($isActive, $expected, $errorMessage)
     {
         // Create articles with the provided data to test the export functionality
-        for ($i = 0; $i < count($isActive); $i++) {
-            $this->createTestProduct($i, $isActive[$i]);
+        foreach ($isActive as $i => $iValue) {
+            $this->createTestProduct($i, $iValue);
         }
         $actual = $this->runExportAndReturnCount();
         $this->assertEquals($expected, $actual, sprintf($errorMessage, $actual));
@@ -126,13 +117,14 @@ class PluginTest extends TestCase
 
         try {
             /** @var Article $resource */
-            $resource = $this->manager->getResource('Article');
-            $article = $resource->create($testArticle);
+            $resource = Manager::getResource('Article');
 
-            return $article;
+            return $resource->create($testArticle);
         } catch (Exception $e) {
-            echo sprintf("Exception: %s", $e->getMessage());
+            echo sprintf('Exception: %s', $e->getMessage());
         }
+
+        return null;
     }
 
     /**
@@ -155,7 +147,7 @@ class PluginTest extends TestCase
 
             return (int)$xml->items->attributes()->count;
         } catch (Exception $e) {
-            echo sprintf("Exception: %s", $e->getMessage());
+            echo sprintf('Exception: %s', $e->getMessage());
         }
 
         return 0;

@@ -137,8 +137,6 @@ class FindologicArticleModelTest extends TestCase
 
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
-        var_dump($articleFromConfiguration);
-        ob_flush();
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
             'ABCD0815',

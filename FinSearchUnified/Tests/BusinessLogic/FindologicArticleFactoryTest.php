@@ -16,18 +16,19 @@ class FindologicArticleFactoryTest extends TestCase
         parent::tearDown();
     }
 
-    public function testFindologicArticleFactory()
+    public function testEmptyValueNotAllowedExceptionIsThrown()
     {
-
         $mockedCreate = $this->createMock(FindologicArticleFactory::class);
         $mockedCreate->expects($this->once())
             ->method('create')
             ->willThrowException(new EmptyValueNotAllowedException());
 
         $mockLogger = $this->createMock(Logger::class);
-        $mockLogger->expects($this->once())->method('info')
-            ->with("Product with id  could not be exported. It appears to has empty values assigned to it. 
-                If you see this message in your logs, please report this as a bug");
+        $mockLogger->expects($this->once())->method('info')->with(
+            "Product could not be exported. " .
+            "It appears to has empty values assigned to it. " .
+            'If you see this message in your logs, please report this as a bug'
+        );
 
         Shopware()->Container()->set('pluginlogger', $mockLogger);
     }
