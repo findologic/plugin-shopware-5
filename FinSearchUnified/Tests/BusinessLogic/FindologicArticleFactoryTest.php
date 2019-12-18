@@ -9,7 +9,15 @@ use Shopware\Components\Logger;
 
 class FindologicArticleFactoryTest extends TestCase
 {
-    public function testFindologicArticleFactory(){
+    protected function tearDown()
+    {
+        Shopware()->Container()->reset('pluginlogger');
+        Shopware()->Container()->load('pluginlogger');
+        parent::tearDown();
+    }
+
+    public function testFindologicArticleFactory()
+    {
 
         $mockedCreate = $this->createMock(FindologicArticleFactory::class);
         $mockedCreate->expects($this->once())

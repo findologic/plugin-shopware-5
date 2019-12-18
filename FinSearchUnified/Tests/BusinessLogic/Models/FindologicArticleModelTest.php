@@ -592,16 +592,17 @@ class FindologicArticleModelTest extends TestCase
         }
     }
 
-    public function emptySummaryValueDataProvider()
+    public function emptyValuesDataProvider()
     {
         return [
-            'Summary value is empty' => [
+            'Summary and Description values are empty' => [
                 [
                     'name' => 'abdrückklotz-für+butler reifenmontiergerät',
                     'active' => true,
                     'tax' => 19,
                     'supplier' => 'Findologic',
-                    'summary' => '',
+                    'description' => '',
+                    'descriptionLong' => '',
                     'categories' => [
                         ['id' => 3],
                         ['id' => 5],
@@ -627,27 +628,19 @@ class FindologicArticleModelTest extends TestCase
     }
 
     /**
-     * Method to run the export test cases using the data provider,
-     * to check if the suppliers with empty names are not being exported.
      *
-     * @dataProvider emptySummaryValueDataProvider
+     * @dataProvider emptyValuesDataProvider
      *
-     * @param array $articleConfiguration The article configuration with the corresponding summary.
+     * @param array $articleConfiguration
      *
      * @throws Exception
      */
-
-    public function testEmptySummaryValue(array $articleConfiguration)
+    public function testEmptyValuesAreNotExported(array $articleConfiguration)
     {
         $baseCategory = new Category();
         $baseCategory->setId(5);
 
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
-        var_dump(['$articleFromConfiguration'=>$articleFromConfiguration]);
-//        var_dump(['$articleConfiguration'=>$articleConfiguration]);
-//        ob_flush();
-
-        $articleFromConfiguration->setDescription('');
 
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
@@ -657,12 +650,152 @@ class FindologicArticleModelTest extends TestCase
             $baseCategory
         );
 
-//        $xmlArticle = $findologicArticle->getXmlRepresentation();
-//        $actualValue = $xmlArticle->getSummary();
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+        $actualSummary = $xmlArticle->getSummary();
+        $summary = $actualSummary->getValues();
+        $this->assertEmpty($summary);
+
+        $actualDescription = $xmlArticle->getDescription();
+        $description = $actualDescription->getValues();
+        $this->assertEmpty($description);
+    }
+
+    public function emptyPropertyValueProvider()
+    {
+        return [
+            'property value is empty' => [
+                [
+                    'name' => 'abdrückklotz-für+butler reifenmontiergerät',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'shippingtime' => '',
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     *
+     * @dataProvider emptyPropertyValueProvider
+     *
+     * @param array $articleConfiguration
+     *
+     * @throws Exception
+     */
+    public function testEmptyPropertyValue(array $articleConfiguration)
+    {
+        $baseCategory = new Category();
+        $baseCategory->setId(5);
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
 
 
+        $reflector = new ReflectionClass(Item::class);
+        $properties = $reflector->getProperty('properties');
+        $properties->setAccessible(true);
+        $values = $properties->getValue($xmlArticle);
+        $final =  current($values);
+
+        $this->assertArrayNotHasKey('shippingtime', $final);
+    }
+
+    public function emptyAttributeValueProvider()
+    {
+        return [
+            'attribute value is empty' => [
+                [
+                    'name' => 'abdrückklotz-für+butler reifenmontiergerät',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ],
+                         'attribute' => [
+                            'attr1' => ''
+                         ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     *
+     * @dataProvider emptyAttributeValueProvider
+     *
+     * @param array $articleConfiguration
+     *
+     * @throws Exception
+     */
+    public function testEmptyAttributeValues(array $articleConfiguration)
+    {
+        $baseCategory = new Category();
+        $baseCategory->setId(5);
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+
+        $reflector = new ReflectionClass(Item::class);
+        $properties = $reflector->getProperty('attributes');
+        $properties->setAccessible(true);
+        $values = $properties->getValue($xmlArticle);
+
+        $this->assertArrayNotHasKey('attr1', $values);
     }
 }
-
-
-
