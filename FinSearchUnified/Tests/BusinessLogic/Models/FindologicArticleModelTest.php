@@ -19,16 +19,12 @@ use Shopware\Models\Category\Category;
 
 class FindologicArticleModelTest extends TestCase
 {
-    /** @var Manager */
-    private $manager;
-
     /** @var FindologicArticleFactory */
     private $articleFactory;
 
     protected function setUp()
     {
         parent::setUp();
-        $this->manager = new Manager();
         $this->articleFactory = new FindologicArticleFactory();
     }
 
@@ -49,12 +45,11 @@ class FindologicArticleModelTest extends TestCase
     {
         try {
             /** @var ArticleResource $resource */
-            $resource = $this->manager->getResource('Article');
-            $article = $resource->create($testProductConfiguration);
+            $resource = Manager::getResource('Article');
 
-            return $article;
+            return $resource->create($testProductConfiguration);
         } catch (Exception $e) {
-            echo sprintf("Exception: %s", $e->getMessage());
+            echo sprintf('Exception: %s', $e->getMessage());
         }
 
         return null;
@@ -95,7 +90,7 @@ class FindologicArticleModelTest extends TestCase
                     'name' => 'FindologicArticle 2',
                     'active' => true,
                     'tax' => 19,
-                    'supplier' => " ",
+                    'supplier' => ' ',
                     'categories' => [
                         ['id' => 3],
                         ['id' => 5],
@@ -200,9 +195,15 @@ class FindologicArticleModelTest extends TestCase
         $keywords = [];
 
         foreach ($properties->getValue($xmlArticle)->getValues() as $value) {
-            $keywords = array_merge($keywords, array_map(function ($item) {
-                return $item->getValue();
-            }, $value));
+            $keywords = array_merge(
+                $keywords,
+                array_map(
+                    function ($item) {
+                        return $item->getValue();
+                    },
+                    $value
+                )
+            );
         }
 
         $this->assertSame($expectedKeywords, $keywords);
@@ -626,7 +627,6 @@ class FindologicArticleModelTest extends TestCase
     }
 
     /**
-     *
      * @dataProvider emptyValuesDataProvider
      *
      * @param array $articleConfiguration
@@ -661,7 +661,7 @@ class FindologicArticleModelTest extends TestCase
     public function emptyPropertyValueProvider()
     {
         return [
-            'property value is empty' => [
+            'Empty properties are not exported' => [
                 [
                     'name' => 'abdrückklotz-für+butler reifenmontiergerät',
                     'active' => true,
@@ -679,7 +679,7 @@ class FindologicArticleModelTest extends TestCase
                         'number' => 'FINDOLOGIC2',
                         'active' => true,
                         'inStock' => 16,
-                        'shippingtime' => '',
+                        'shippingtime' => ' ',
                         'prices' => [
                             [
                                 'customerGroupKey' => 'EK',
@@ -693,7 +693,6 @@ class FindologicArticleModelTest extends TestCase
     }
 
     /**
-     *
      * @dataProvider emptyPropertyValueProvider
      *
      * @param array $articleConfiguration
@@ -717,12 +716,11 @@ class FindologicArticleModelTest extends TestCase
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
 
-
         $reflector = new ReflectionClass(Item::class);
         $properties = $reflector->getProperty('properties');
         $properties->setAccessible(true);
         $values = $properties->getValue($xmlArticle);
-        $final =  current($values);
+        $final = current($values);
 
         $this->assertArrayNotHasKey('shippingtime', $final);
     }
@@ -730,7 +728,7 @@ class FindologicArticleModelTest extends TestCase
     public function emptyAttributeValueProvider()
     {
         return [
-            'attribute value is empty' => [
+            'Empty attributes are not exported' => [
                 [
                     'name' => 'abdrückklotz-für+butler reifenmontiergerät',
                     'active' => true,
@@ -754,9 +752,9 @@ class FindologicArticleModelTest extends TestCase
                                 'price' => 99.34,
                             ],
                         ],
-                         'attribute' => [
-                            'attr1' => ''
-                         ],
+                        'attribute' => [
+                            'attr1' => ' '
+                        ],
                     ],
                 ],
             ],
@@ -764,7 +762,6 @@ class FindologicArticleModelTest extends TestCase
     }
 
     /**
-     *
      * @dataProvider emptyAttributeValueProvider
      *
      * @param array $articleConfiguration
@@ -787,7 +784,6 @@ class FindologicArticleModelTest extends TestCase
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
-
 
         $reflector = new ReflectionClass(Item::class);
         $properties = $reflector->getProperty('attributes');

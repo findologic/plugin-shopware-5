@@ -124,8 +124,6 @@ class FindologicArticleModel
     protected $logger;
 
     /**
-     * FindologicArticleModel constructor.
-     *
      * @param Article $shopwareArticle
      * @param string $shopKey
      * @param array $allUserGroups
