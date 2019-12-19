@@ -7,7 +7,6 @@ use Doctrine\ORM\PersistentCollection;
 use Enlight_Exception;
 use Exception;
 use FINDOLOGIC\Export\Exporter;
-use FINDOLOGIC\Export\Helpers\EmptyValueNotAllowedException;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
@@ -154,8 +153,8 @@ class ShopwareProcess
                 continue;
             }
 
-            /** @var FindologicArticleFactory $findologicArticleFactory */
             try {
+                /** @var FindologicArticleFactory $findologicArticleFactory */
                 $findologicArticle = $findologicArticleFactory->create(
                     $article,
                     $this->shopKey,
@@ -167,16 +166,12 @@ class ShopwareProcess
                 if ($findologicArticle->shouldBeExported) {
                     $findologicArticles[] = $findologicArticle->getXmlRepresentation();
                 }
-                $response->items = $findologicArticles;
-                $response->count = count($findologicArticles);
-
-                return $response;
-            } catch (EmptyValueNotAllowedException $e) {
+            } catch (\FINDOLOGIC\Export\Helpers\EmptyValueNotAllowedException $e) {
                 Shopware()->Container()->get('pluginlogger')->info(
                     sprintf(
                         "Product with id '%s' could not be exported. It appears to has empty values assigned to it. " .
                         'If you see this message in your logs, please report this as a bug',
-                        $article->getMainDetail()
+                        $article->getMainDetail()->getNumber()
                     )
                 );
             }

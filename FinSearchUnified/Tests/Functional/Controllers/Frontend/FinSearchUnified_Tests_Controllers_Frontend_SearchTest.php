@@ -67,7 +67,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         $this->setConfig('ActivateFindologic', true);
         $this->setConfig('ActivateFindologicForCategoryPages', false);
-        $this->setConfig('ShopKey', '0000000000000000ZZZZZZZZZZZZZZZZ');
+        $this->setConfig('ShopKey', '8D6CA2E49FB7CD09889CC0E2929F86B0');
     }
 
     protected function tearDown()

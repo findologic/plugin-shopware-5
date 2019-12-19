@@ -359,13 +359,13 @@ class FindologicArticleModel
         $seoUrl = $shopUrl . array_reduce(
             explode('/', $urlPath),
             function ($encodedPath, $item) {
-                    $encodedPath .= '/';
+                $encodedPath .= '/';
 
                 if ($item) {
                     $encodedPath .= rawurlencode($item);
                 }
 
-                    return $encodedPath;
+                return $encodedPath;
             }
         );
 
@@ -404,15 +404,6 @@ class FindologicArticleModel
                 $this->xmlArticle->setAllKeywords($xmlKeywords);
             }
         }
-    }
-
-    protected static function checkIfHasValue($value)
-    {
-        if (is_string($value)) {
-            $value = trim($value);
-        }
-
-        return $value;
     }
 
     protected function setImages()

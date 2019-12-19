@@ -745,13 +745,11 @@ class StaticHelper
         $isEmotionPage = $request->getControllerName() === 'emotion';
         $isFindologicActive = self::isFindologicActive();
         $isDirectIntegration = self::checkDirectIntegration();
+        $isActiveOnCategoryPages = (bool)Shopware()->Config()->offsetGet('ActivateFindologicForCategoryPages');
 
         $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
         $isNoSearchAndCategoryPage = !$isCategoryPage && !Shopware()->Session()->offsetGet('isSearchPage');
-        $isCategoryPageButDisabledInConfig = $isCategoryPage &&
-                                             !(bool)Shopware()->Config()->offsetGet(
-                                                 'ActivateFindologicForCategoryPages'
-                                             );
+        $isCategoryPageButDisabledInConfig = $isCategoryPage && !$isActiveOnCategoryPages;
 
         return (
             $isInBackend ||
@@ -777,10 +775,11 @@ class StaticHelper
         /** @var Environment $environment */
         $environment = Shopware()->Container()->get('fin_search_unified.environment');
 
+        $shopkey = Shopware()->Config()->offsetGet('ShopKey');
         $isStagingMode = $environment->isStaging(Shopware()->Front()->Request());
+        $isActivateFindologic = (bool)Shopware()->Config()->offsetGet('ActivateFindologic');
 
-        return !$isStagingMode && (bool)Shopware()->Config()->offsetGet('ActivateFindologic') &&
-               !empty(trim(Shopware()->Config()->offsetGet('ShopKey')));
+        return !$isStagingMode && $isActivateFindologic && !empty(trim($shopkey));
     }
 
     /**
@@ -793,13 +792,12 @@ class StaticHelper
         $configLoader = Shopware()->Container()->get('fin_search_unified.config_loader');
 
         $integrationType = Shopware()->Config()->offsetGet(Constants::CONFIG_KEY_INTEGRATION_TYPE);
-        $isDirectIntegration =
-            $configLoader->directIntegrationEnabled($integrationType === Constants::INTEGRATION_TYPE_DI);
-
-        self::storeIntegrationType(
-            $isDirectIntegration ?
-                Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API
+        $isDirectIntegration = $configLoader->directIntegrationEnabled(
+            $integrationType === Constants::INTEGRATION_TYPE_DI
         );
+
+        $integrationType = $isDirectIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API;
+        self::storeIntegrationType($integrationType);
 
         return $isDirectIntegration;
     }
