@@ -138,7 +138,9 @@ class PluginTest extends TestCase
         // Create articles with the provided data to test the export functionality
         $this->createTestProduct('SOMENUMBER', true);
         $findologicArticleFactoryMock = $this->createMock(FindologicArticleFactory::class);
-        $findologicArticleFactoryMock->expects($this->once())->method('create')->willThrowException(new Exception());
+        $findologicArticleFactoryMock->expects($this->exactly(2))->method('create')->willThrowException(
+            new Exception()
+        );
 
         Shopware()->Container()->set('fin_search_unified.article_model_factory', $findologicArticleFactoryMock);
 
