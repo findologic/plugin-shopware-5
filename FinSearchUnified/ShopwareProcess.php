@@ -8,6 +8,7 @@ use Enlight_Exception;
 use Exception;
 use FINDOLOGIC\Export\Exporter;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
+use RuntimeException;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
@@ -19,6 +20,7 @@ use Shopware\Models\Customer\Customer;
 use Shopware\Models\Shop\Repository;
 use Shopware\Models\Shop\Shop;
 use Zend_Cache_Core;
+use Zend_Cache_Exception;
 
 class ShopwareProcess
 {
@@ -166,10 +168,11 @@ class ShopwareProcess
                 if ($findologicArticle->shouldBeExported) {
                     $findologicArticles[] = $findologicArticle->getXmlRepresentation();
                 }
-            } catch (\FINDOLOGIC\Export\Helpers\EmptyValueNotAllowedException $e) {
+            } catch (Exception $e) {
                 Shopware()->Container()->get('pluginlogger')->info(
                     sprintf(
-                        "Product with id '%s' could not be exported. It appears to has empty values assigned to it. " .
+                        'Product with number "%s" could not be exported. ' .
+                        'It appears to have empty values assigned to it. ' .
                         'If you see this message in your logs, please report this as a bug',
                         $article->getMainDetail()->getNumber()
                     )
@@ -250,13 +253,13 @@ class ShopwareProcess
         }
 
         if (!$this->shop) {
-            throw new \RuntimeException('Provided shopkey not assigned to any shop!');
+            throw new RuntimeException('Provided shopkey not assigned to any shop!');
         }
     }
 
     /**
      * @throws Enlight_Exception
-     * @throws \Zend_Cache_Exception
+     * @throws Zend_Cache_Exception
      */
     protected function warmUpCache()
     {

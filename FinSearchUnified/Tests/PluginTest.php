@@ -3,14 +3,12 @@
 namespace FinSearchUnified\Tests;
 
 use Exception;
-use FINDOLOGIC\Export\Helpers\EmptyValueNotAllowedException;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\ShopwareProcess;
 use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Components\Api\Manager;
-use Shopware\Components\Logger;
 use Shopware\Models\Article\Article;
 use SimpleXMLElement;
 
@@ -18,7 +16,7 @@ class PluginTest extends TestCase
 {
     protected static $ensureLoadedPlugins = [
         'FinSearchUnified' => [
-            'ShopKey' => '8D6CA2E49FB7CD09889CC0E2929F86B0'
+            'ShopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD'
         ],
     ];
 
@@ -28,8 +26,6 @@ class PluginTest extends TestCase
 
         Shopware()->Container()->reset('fin_search_unified.article_model_factory');
         Shopware()->Container()->load('fin_search_unified.article_model_factory');
-        Shopware()->Container()->reset('pluginlogger');
-        Shopware()->Container()->load('pluginlogger');
 
         Utility::sResetArticles();
     }
@@ -43,7 +39,7 @@ class PluginTest extends TestCase
 
     public function testCalculateGroupkey()
     {
-        $shopkey = '8D6CA2E49FB7CD09889CC0E2929F86B0';
+        $shopkey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
         $usergroup = 'at_rated';
         $hash = StaticHelper::calculateUsergroupHash($shopkey, $usergroup);
         $decrypted = StaticHelper::decryptUsergroupHash($shopkey, $hash);
@@ -94,8 +90,6 @@ class PluginTest extends TestCase
     }
 
     /**
-     * Create test products for the export
-     *
      * @param int $number
      * @param bool $isActive
      *
@@ -141,27 +135,14 @@ class PluginTest extends TestCase
 
     public function testEmptyValueNotAllowedExceptionIsThrownInExport()
     {
-        $this->markTestSkipped('Skipping test due to exception class namespace issue');
-
         // Create articles with the provided data to test the export functionality
         $this->createTestProduct('_SOMENUMBER', true);
         $findologicArticleFactoryMock = $this->createMock(FindologicArticleFactory::class);
-        $findologicArticleFactoryMock->expects($this->once())->method('create')->willThrowException(
-            new EmptyValueNotAllowedException()
-        );
+        $findologicArticleFactoryMock->expects($this->once())->method('create')->willThrowException(new Exception());
+
         Shopware()->Container()->set('fin_search_unified.article_model_factory', $findologicArticleFactoryMock);
 
-        $loggerMock = $this->createMock(Logger::class);
-
-        $expectedMessage = sprintf(
-            "Product with id '%s' could not be exported. It appears to has empty values assigned to it. " .
-            'If you see this message in your logs, please report this as a bug',
-            'FINDOLOGIC_SOMENUMBER'
-        );
-
-        $loggerMock->expects($this->once())->method('info')->with($expectedMessage);
-
-        Shopware()->Container()->set('pluginlogger', $loggerMock);
+        $this->runExportAndReturnCount();
     }
 
     /**
@@ -173,7 +154,7 @@ class PluginTest extends TestCase
     private function runExportAndReturnCount()
     {
         try {
-            $shopKey = '8D6CA2E49FB7CD09889CC0E2929F86B0';
+            $shopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
             /** @var ShopwareProcess $blController */
             $blController = Shopware()->Container()->get('fin_search_unified.shopware_process');
             $blController->setShopKey($shopKey);

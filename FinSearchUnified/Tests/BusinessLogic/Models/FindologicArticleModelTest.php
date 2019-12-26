@@ -652,10 +652,12 @@ class FindologicArticleModelTest extends TestCase
         $actualSummary = $xmlArticle->getSummary();
         $summary = $actualSummary->getValues();
         $this->assertEmpty($summary);
+        $this->assertCount(0, $summary);
 
         $actualDescription = $xmlArticle->getDescription();
         $description = $actualDescription->getValues();
         $this->assertEmpty($description);
+        $this->assertCount(0, $description);
     }
 
     public function emptyPropertyValueProvider()
