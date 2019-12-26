@@ -90,7 +90,7 @@ class PluginTest extends TestCase
     }
 
     /**
-     * @param int $number
+     * @param int|string $number
      * @param bool $isActive
      *
      * @return Article|null
@@ -136,13 +136,14 @@ class PluginTest extends TestCase
     public function testEmptyValueNotAllowedExceptionIsThrownInExport()
     {
         // Create articles with the provided data to test the export functionality
-        $this->createTestProduct('_SOMENUMBER', true);
+        $this->createTestProduct('SOMENUMBER', true);
         $findologicArticleFactoryMock = $this->createMock(FindologicArticleFactory::class);
         $findologicArticleFactoryMock->expects($this->once())->method('create')->willThrowException(new Exception());
 
         Shopware()->Container()->set('fin_search_unified.article_model_factory', $findologicArticleFactoryMock);
 
-        $this->runExportAndReturnCount();
+        $exported = $this->runExportAndReturnCount();
+        $this->assertSame(0, $exported);
     }
 
     /**
