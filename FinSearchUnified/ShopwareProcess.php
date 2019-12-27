@@ -142,8 +142,14 @@ class ShopwareProcess
                 $totalCatCount++;
             }
 
-            // Check if Article is Active and has active categories
-            if (!$article->getActive() || $totalCatCount === $inactiveCatCount) {
+            // Check if product is assigned to product streams as those products need to be exported even if the
+            // product does not have a valid category assigned
+            $cacheId = sprintf('%s_%s', Constants::CACHE_ID_PRODUCT_STREAMS, $this->shopKey);
+            $productStreams = $this->cache->load($cacheId);
+
+            if ($productStreams !== false && array_key_exists($article->getId(), $productStreams)) {
+                // If product exists in stream then do nothing as we want to proceed further
+            } elseif (!$article->getActive() || $totalCatCount === $inactiveCatCount) {
                 continue;
             }
 
@@ -301,9 +307,7 @@ class ShopwareProcess
             }
 
             $criteria = new Criteria();
-            $criteria
-                ->limit(200)
-                ->offset(0);
+            $criteria->limit(200)->offset(0);
 
             $this->productStreamRepository->prepareCriteria($criteria, $category->getStream()->getId());
 

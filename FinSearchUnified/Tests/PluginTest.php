@@ -8,8 +8,6 @@ use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\ShopwareProcess;
 use FinSearchUnified\Tests\Helper\Utility;
-use Shopware\Components\Api\Manager;
-use Shopware\Models\Article\Article;
 use SimpleXMLElement;
 
 class PluginTest extends TestCase
@@ -83,60 +81,16 @@ class PluginTest extends TestCase
     {
         // Create articles with the provided data to test the export functionality
         foreach ($articlesActiveStatus as $i => $iValue) {
-            $this->createTestProduct($i, $iValue);
+            Utility::createTestProduct($i, $iValue);
         }
         $actual = $this->runExportAndReturnCount();
         $this->assertEquals($expectedCount, $actual, sprintf($errorMessage, $actual));
     }
 
-    /**
-     * @param int|string $number
-     * @param bool $isActive
-     *
-     * @return Article|null
-     */
-    private function createTestProduct($number, $isActive)
-    {
-        $testArticle = [
-            'name' => 'FindologicArticle' . $number,
-            'active' => $isActive,
-            'tax' => 19,
-            'supplier' => 'Findologic',
-            'categories' => [
-                ['id' => 5],
-            ],
-            'images' => [
-                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-            ],
-            'mainDetail' => [
-                'number' => 'FINDOLOGIC' . $number,
-                'active' => $isActive,
-                'inStock' => 16,
-                'prices' => [
-                    [
-                        'customerGroupKey' => 'EK',
-                        'price' => 99.34,
-                    ],
-                ]
-            ],
-        ];
-
-        try {
-            $resource = Manager::getResource('Article');
-
-            return $resource->create($testArticle);
-        } catch (Exception $e) {
-            echo sprintf('Exception: %s', $e->getMessage());
-        }
-
-        return null;
-    }
-
     public function testEmptyValueNotAllowedExceptionIsThrownInExport()
     {
         // Create articles with the provided data to test the export functionality
-        $this->createTestProduct('SOMENUMBER', true);
+        Utility::createTestProduct('SOMENUMBER', true);
         $findologicArticleFactoryMock = $this->createMock(FindologicArticleFactory::class);
         $findologicArticleFactoryMock->expects($this->exactly(2))->method('create')->willThrowException(
             new Exception()

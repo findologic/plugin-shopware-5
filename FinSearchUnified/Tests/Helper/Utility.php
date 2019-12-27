@@ -3,6 +3,9 @@
 namespace FinSearchUnified\Tests\Helper;
 
 use Exception;
+use Shopware\Components\Api\Manager;
+use Shopware\Components\Api\Resource\Article;
+use Shopware\Components\Api\Resource\Category;
 
 class Utility
 {
@@ -61,6 +64,87 @@ class Utility
                 SET foreign_key_checks = 1;'
             );
         } catch (Exception $ignored) {
+        }
+    }
+
+    /**
+     * @param $number
+     * @param $isActive
+     * @param array $override
+     *
+     * @return \Shopware\Models\Article\Article
+     */
+    public static function createTestProduct($number, $isActive, array $override = [])
+    {
+        $testArticle = [
+            'name' => 'FindologicArticle' . $number,
+            'active' => $isActive,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 5, 'active' => true],
+            ],
+            'images' => [
+                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC' . $number,
+                'active' => $isActive,
+                'inStock' => 16,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+        ];
+
+        $testArticle = array_merge($testArticle, $override);
+
+        try {
+            /** @var Article $resource */
+            $resource = Manager::getResource('Article');
+
+            return $resource->create($testArticle);
+        } catch (Exception $e) {
+            echo sprintf('Exception: %s', $e->getMessage());
+        }
+    }
+
+    /**
+     * @param $index
+     * @param array $override
+     *
+     * @return \Shopware\Models\Category\Category
+     */
+    public static function createTestCategory($index, array $override = [])
+    {
+        $testData = [
+            'name' => 'Test-category-' . $index,
+            'parentId' => 3,
+            'metaDescription' => 'metaTest',
+            'metaKeywords' => 'keywordTest',
+            'cmsHeadline' => 'headlineTest',
+            'cmsText' => 'cmsTextTest',
+            'active' => true,
+            'noViewSelect' => true,
+            'attribute' => [
+                '1' => 'Attribute1',
+                '2' => 'Attribute2'
+            ]
+        ];
+
+        $testData = array_merge($testData, $override);
+
+        try {
+            /** @var Category $resource */
+            $resource = Manager::getResource('Category');
+
+            return $resource->create($testData);
+        } catch (Exception $e) {
+            echo sprintf('Exception: %s', $e->getMessage());
         }
     }
 }
