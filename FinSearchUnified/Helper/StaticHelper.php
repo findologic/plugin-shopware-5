@@ -699,7 +699,8 @@ class StaticHelper
             return false;
         }
 
-        if (empty($value) || (is_array($value) && empty(array_filter($value))) || empty(trim($value))) {
+        if (empty($value) || (is_array($value) && empty(array_filter($value))) ||
+            (!is_array($value) && empty(trim($value)))) {
             return true;
         }
 
