@@ -3,6 +3,8 @@
 namespace FinSearchUnified\Tests\Helper;
 
 use Exception;
+use Shopware\Components\Api\Exception\NotFoundException;
+use Shopware\Components\Api\Exception\ParameterMissingException;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource\Article;
 use Shopware\Components\Api\Resource\Category;
@@ -122,6 +124,7 @@ class Utility
     public static function createTestCategory($index, array $override = [])
     {
         $testData = [
+            'id' => 77,
             'name' => 'Test-category-' . $index,
             'parentId' => 3,
             'metaDescription' => 'metaTest',
@@ -141,6 +144,11 @@ class Utility
         try {
             /** @var Category $resource */
             $resource = Manager::getResource('Category');
+            try {
+                $resource->delete(77);
+            } catch (NotFoundException $e) {
+            } catch (ParameterMissingException $e) {
+            }
 
             return $resource->create($testData);
         } catch (Exception $e) {
