@@ -16,6 +16,8 @@ use ReflectionException;
 use ReflectionObject;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
 use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
+use Shopware\Components\Api\Manager;
+use Shopware\Components\Api\Resource\Category as CategoryResource;
 use Shopware\Models\Category\Category;
 use Shopware\Models\ProductStream\ProductStream;
 use Zend_Cache_Core;
@@ -134,7 +136,7 @@ class ShopwareProcessTest extends TestCase
 
     public function testProductWithoutCategoryHasProductStreamCategoryAssigned()
     {
-        $articles = [];
+        $productStreamArticles = [];
 
         // Assign an inactive category to the product so it does not get exported
         $override['categories'] = [['id' => 75]];
@@ -146,16 +148,20 @@ class ShopwareProcessTest extends TestCase
             $article->getMainDetail()->getNumber()
         );
 
-        $category = Utility::createTestCategory(1);
+        /** @var CategoryResource $resource */
+        $resource = Manager::getResource('Category');
+
+        /** @var Category $category */
+        $category = $resource->getRepository()->findOneBy(['name' => 'Genusswelten']);
 
         $mockRepository = $this->createMock(Repository::class);
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
         $mockProductNumberSearch = $this->createMock(ProductNumberSearch::class);
 
-        $articles[$product->getId()][] = $category;
+        $productStreamArticles[$product->getId()][] = $category;
 
         $cacheMock = $this->createMock(Zend_Cache_Core::class);
-        $cacheMock->expects($this->exactly(2))->method('load')->willReturn($articles);
+        $cacheMock->expects($this->exactly(2))->method('load')->willReturn($productStreamArticles);
 
         Shopware()->Container()->set('cache', $cacheMock);
 
@@ -169,7 +175,7 @@ class ShopwareProcessTest extends TestCase
         );
 
         $shopwareProcess->setShopKey('ABCDABCDABCDABCDABCDABCDABCDABCD');
-        $xml = $shopwareProcess->getAllProductsAsXmlArray();
+        $xml = $shopwareProcess->getAllProductsAsXmlArray('de_DE', 0, 1);
 
         // Make sure that the product is exported
         $this->assertCount(1, $xml->items);
@@ -185,6 +191,6 @@ class ShopwareProcessTest extends TestCase
         /** @var Attribute $categoryAttribute */
         $categoryAttribute = $values['cat'];
         // Make sure that the product stream category is assigned to the exported product
-        $this->assertContains('Test-category-1', $categoryAttribute->getValues());
+        $this->assertContains('Deutsch_Genusswelten', $categoryAttribute->getValues());
     }
 }

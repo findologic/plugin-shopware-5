@@ -3,11 +3,8 @@
 namespace FinSearchUnified\Tests\Helper;
 
 use Exception;
-use Shopware\Components\Api\Exception\NotFoundException;
-use Shopware\Components\Api\Exception\ParameterMissingException;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource\Article;
-use Shopware\Components\Api\Resource\Category;
 
 class Utility
 {
@@ -110,47 +107,6 @@ class Utility
             $resource = Manager::getResource('Article');
 
             return $resource->create($testArticle);
-        } catch (Exception $e) {
-            echo sprintf('Exception: %s', $e->getMessage());
-        }
-    }
-
-    /**
-     * @param $index
-     * @param array $override
-     *
-     * @return \Shopware\Models\Category\Category
-     */
-    public static function createTestCategory($index, array $override = [])
-    {
-        $testData = [
-            'id' => 77,
-            'name' => 'Test-category-' . $index,
-            'parentId' => 3,
-            'metaDescription' => 'metaTest',
-            'metaKeywords' => 'keywordTest',
-            'cmsHeadline' => 'headlineTest',
-            'cmsText' => 'cmsTextTest',
-            'active' => true,
-            'noViewSelect' => true,
-            'attribute' => [
-                '1' => 'Attribute1',
-                '2' => 'Attribute2'
-            ]
-        ];
-
-        $testData = array_merge($testData, $override);
-
-        try {
-            /** @var Category $resource */
-            $resource = Manager::getResource('Category');
-            try {
-                $resource->delete(77);
-            } catch (NotFoundException $e) {
-            } catch (ParameterMissingException $e) {
-            }
-
-            return $resource->create($testData);
         } catch (Exception $e) {
             echo sprintf('Exception: %s', $e->getMessage());
         }
