@@ -24,6 +24,12 @@ use Zend_Cache_Core;
 
 class ShopwareProcessTest extends TestCase
 {
+    protected static $ensureLoadedPlugins = [
+        'FinSearchUnified' => [
+            'ShopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD'
+        ],
+    ];
+
     protected function tearDown()
     {
         parent::tearDown();
