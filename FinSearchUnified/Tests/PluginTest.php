@@ -8,7 +8,6 @@ use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\ShopwareProcess;
 use FinSearchUnified\Tests\Helper\Utility;
-use SimpleXMLElement;
 
 class PluginTest extends TestCase
 {
@@ -115,12 +114,9 @@ class PluginTest extends TestCase
             /** @var ShopwareProcess $blController */
             $blController = Shopware()->Container()->get('fin_search_unified.shopware_process');
             $blController->setShopKey($shopKey);
-            $xmlDocument = $blController->getFindologicXml();
+            $xml = $blController->getAllProductsAsXmlArray();
 
-            // Parse the xml and return the count of the products exported
-            $xml = new SimpleXMLElement($xmlDocument);
-
-            return (int)$xml->items->attributes()->count;
+            return $xml->count;
         } catch (Exception $e) {
             echo sprintf('Exception: %s', $e->getMessage());
         }
