@@ -92,7 +92,7 @@ class PluginTest extends TestCase
         // Create articles with the provided data to test the export functionality
         Utility::createTestProduct('SOMENUMBER', true);
         $findologicArticleFactoryMock = $this->createMock(FindologicArticleFactory::class);
-        $findologicArticleFactoryMock->expects($this->exactly(2))->method('create')->willThrowException(
+        $findologicArticleFactoryMock->expects($this->once())->method('create')->willThrowException(
             new Exception()
         );
 

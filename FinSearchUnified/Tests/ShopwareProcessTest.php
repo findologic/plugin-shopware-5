@@ -33,9 +33,6 @@ class ShopwareProcessTest extends TestCase
     protected function tearDown()
     {
         parent::tearDown();
-        Shopware()->Container()->reset('cache');
-        Shopware()->Container()->load('cache');
-
         Utility::sResetArticles();
     }
 
@@ -88,9 +85,6 @@ class ShopwareProcessTest extends TestCase
             $categories
         );
 
-        $mockRepository = $this->createMock(Repository::class);
-        $mockRepository->method('prepareCriteria');
-
         $products = [];
 
         for ($i = 0; $i < 10; $i++) {
@@ -100,17 +94,14 @@ class ShopwareProcessTest extends TestCase
 
         $results = new ProductNumberSearchResult($products, 10, []);
 
-        $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
-
         $mockProductNumberSearch = $this->createMock(ProductNumberSearch::class);
         $mockProductNumberSearch->expects($this->exactly(2))->method('search')->willReturn($results);
 
-        /** @var Repository $mockRepository */
         /** @var ProductNumberSearch $mockProductNumberSearch */
         $shopwareProcess = new ShopwareProcess(
             Shopware()->Container()->get('cache'),
-            $mockRepository,
-            $contextService,
+            Shopware()->Container()->get('shopware_product_stream.repository'),
+            Shopware()->Container()->get('shopware_storefront.context_service'),
             $mockProductNumberSearch
         );
 
@@ -160,10 +151,6 @@ class ShopwareProcessTest extends TestCase
         /** @var Category $category */
         $category = $resource->getRepository()->findOneBy(['name' => 'Genusswelten']);
 
-        $mockRepository = $this->createMock(Repository::class);
-        $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
-        $mockProductNumberSearch = $this->createMock(ProductNumberSearch::class);
-
         $productStreamArticles[$product->getId()][] = $category;
 
         $cacheMock = $this->createMock(Zend_Cache_Core::class);
@@ -175,13 +162,13 @@ class ShopwareProcessTest extends TestCase
         /** @var ProductNumberSearch $mockProductNumberSearch */
         $shopwareProcess = new ShopwareProcess(
             $cacheMock,
-            $mockRepository,
-            $contextService,
-            $mockProductNumberSearch
+            Shopware()->Container()->get('shopware_product_stream.repository'),
+            Shopware()->Container()->get('shopware_storefront.context_service'),
+            Shopware()->Container()->get('shopware_search.product_number_search')
         );
 
         $shopwareProcess->setShopKey('ABCDABCDABCDABCDABCDABCDABCDABCD');
-        $xml = $shopwareProcess->getAllProductsAsXmlArray('de_DE', 0, 1);
+        $xml = $shopwareProcess->getAllProductsAsXmlArray();
 
         // Make sure that the product is exported
         $this->assertCount(1, $xml->items);
@@ -198,5 +185,9 @@ class ShopwareProcessTest extends TestCase
         $categoryAttribute = $values['cat'];
         // Make sure that the product stream category is assigned to the exported product
         $this->assertContains('Deutsch_Genusswelten', $categoryAttribute->getValues());
+
+        // Reset cache only for this test
+        Shopware()->Container()->reset('cache');
+        Shopware()->Container()->load('cache');
     }
 }

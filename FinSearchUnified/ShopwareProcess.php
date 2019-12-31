@@ -144,9 +144,10 @@ class ShopwareProcess
             $cacheId = sprintf('%s_%s', Constants::CACHE_ID_PRODUCT_STREAMS, $this->shopKey);
             $productStreams = $this->cache->load($cacheId);
 
-            if ($productStreams !== false && array_key_exists($article->getId(), $productStreams)) {
-                // If product exists in stream then do nothing as we want to proceed further
-            } elseif (!$article->getActive() || $totalCatCount === $inactiveCatCount) {
+            $articleExistsInProductStream =
+                $productStreams !== false && array_key_exists($article->getId(), $productStreams);
+
+            if ((!$articleExistsInProductStream && $totalCatCount === $inactiveCatCount) || !$article->getActive()) {
                 continue;
             }
 
