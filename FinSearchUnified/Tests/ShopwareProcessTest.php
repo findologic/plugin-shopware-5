@@ -179,12 +179,13 @@ class ShopwareProcessTest extends TestCase
         $attributes = $reflector->getProperty('attributes');
         $attributes->setAccessible(true);
         $values = $attributes->getValue($xmlItem);
+
         $this->assertArrayHasKey('cat', $values);
 
         /** @var Attribute $categoryAttribute */
         $categoryAttribute = $values['cat'];
         // Make sure that the product stream category is assigned to the exported product
-        $this->assertContains('Deutsch_Genusswelten', $categoryAttribute->getValues());
+        $this->assertContains('Genusswelten', $categoryAttribute->getValues());
 
         // Reset cache only for this test
         Shopware()->Container()->reset('cache');
