@@ -165,7 +165,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      * @param int $flag
      * @param int $mins
      */
-    protected static function setFallbackSearchFlag(int $flag, int $mins = 10)
+    protected static function setFallbackSearchFlag($flag, $mins = 10)
     {
         setcookie('fallback-search', $flag, time() + (60 * $mins), '', '', true);
     }
