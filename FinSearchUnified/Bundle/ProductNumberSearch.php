@@ -68,6 +68,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         $response = $query->execute();
 
         if (empty($response)) {
+            self::setFallbackFlag(1);
             self::setFallbackSearchFlag(1);
             self::redirectToSameUrl();
             return null;
