@@ -10,7 +10,6 @@ use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\ShopwareProcess;
 use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Components\Api\Manager;
-use Shopware\Components\Logger;
 use Shopware\Models\Article\Article;
 use SimpleXMLElement;
 
@@ -28,8 +27,6 @@ class PluginTest extends TestCase
 
         Shopware()->Container()->reset('fin_search_unified.article_model_factory');
         Shopware()->Container()->load('fin_search_unified.article_model_factory');
-        Shopware()->Container()->reset('pluginlogger');
-        Shopware()->Container()->load('pluginlogger');
 
         Utility::sResetArticles();
     }
