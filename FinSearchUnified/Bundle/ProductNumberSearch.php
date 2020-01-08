@@ -75,6 +75,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         }
 
         self::setFallbackFlag(0);
+        self::setFallbackSearchFlag(0);
 
         $xmlResponse = StaticHelper::getXmlFromResponse($response);
         self::redirectOnLandingpage($xmlResponse);
