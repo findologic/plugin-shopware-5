@@ -271,6 +271,16 @@ class StaticHelperTest extends TestCase
                 'fallbackSearchCookie' => true,
                 'expected' => true
             ],
+            'Cookie "fallback-search" is set and its value is 1' => [
+                'activateFindologic' => true,
+                'shopKey' => '80AB18D4BE2654E78244106AD315DC2C',
+                'activateFindologicForCategoryPages' => false,
+                'findologicDI' => false,
+                'isSearchPage' => true,
+                'isCategoryPage' => false,
+                'fallbackSearchCookie' => 1,
+                'expected' => true
+            ],
             'Cookie "fallback-search" is set and false' => [
                 'activateFindologic' => true,
                 'shopKey' => '80AB18D4BE2654E78244106AD315DC2C',

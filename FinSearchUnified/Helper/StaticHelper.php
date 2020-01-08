@@ -920,6 +920,6 @@ class StaticHelper
      */
     private static function checkIfFallbackSearchCookieIsSet()
     {
-        return (isset($_COOKIE['fallback-search']) && $_COOKIE['fallback-search']) === true;
+        return (isset($_COOKIE['fallback-search']) && (bool)$_COOKIE['fallback-search']) === true;
     }
 }
