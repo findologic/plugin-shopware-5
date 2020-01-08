@@ -3,12 +3,14 @@
 namespace FinSearchUnified\Tests;
 
 use Exception;
+use FINDOLOGIC\Export\Helpers\EmptyValueNotAllowedException;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\ShopwareProcess;
 use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Components\Api\Manager;
+use Shopware\Components\Logger;
 use Shopware\Models\Article\Article;
 use SimpleXMLElement;
 
@@ -26,6 +28,8 @@ class PluginTest extends TestCase
 
         Shopware()->Container()->reset('fin_search_unified.article_model_factory');
         Shopware()->Container()->load('fin_search_unified.article_model_factory');
+        Shopware()->Container()->reset('pluginlogger');
+        Shopware()->Container()->load('pluginlogger');
 
         Utility::sResetArticles();
     }
@@ -139,7 +143,7 @@ class PluginTest extends TestCase
         $this->createTestProduct('SOMENUMBER', true);
         $findologicArticleFactoryMock = $this->createMock(FindologicArticleFactory::class);
         $findologicArticleFactoryMock->expects($this->exactly(2))->method('create')->willThrowException(
-            new Exception()
+            new EmptyValueNotAllowedException()
         );
 
         Shopware()->Container()->set('fin_search_unified.article_model_factory', $findologicArticleFactoryMock);
