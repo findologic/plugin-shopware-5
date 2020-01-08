@@ -169,7 +169,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      */
     protected static function setFallbackSearchFlag($flag, $mins = 10)
     {
-        setcookie('fallback-search', $flag, time() + (60 * $mins), '', '', true);
+        setcookie('fallback-search', $flag, time() + (60 * $mins), '/', '', false, true);
     }
 
     private static function redirectToSameUrl()
