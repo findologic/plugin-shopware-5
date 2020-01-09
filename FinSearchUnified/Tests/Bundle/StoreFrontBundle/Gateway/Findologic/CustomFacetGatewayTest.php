@@ -85,7 +85,7 @@ class CustomFacetGatewayTest extends TestCase
 
         $configArray = [
             ['ActivateFindologic', true],
-            ['ShopKey', 'ABCD0815'],
+            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
             ['ActivateFindologicForCategoryPages', false]
         ];
         // Create mock object for Shopware Config and explicitly return the values
@@ -198,7 +198,7 @@ class CustomFacetGatewayTest extends TestCase
 
         $configArray = [
             ['ActivateFindologic', true],
-            ['ShopKey', 'ABCD0815'],
+            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
             ['ActivateFindologicForCategoryPages', false]
         ];
         // Create mock object for Shopware Config and explicitly return the values

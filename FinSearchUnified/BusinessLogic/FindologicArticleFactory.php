@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\BusinessLogic;
 
+use Exception;
 use FinSearchUnified\BusinessLogic\Models\FindologicArticleModel;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Category\Category;
@@ -18,7 +19,7 @@ class FindologicArticleFactory
      * @param Category $baseCategory
      * @return FindologicArticleModel
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function create(
         Article $shopwareArticle,
