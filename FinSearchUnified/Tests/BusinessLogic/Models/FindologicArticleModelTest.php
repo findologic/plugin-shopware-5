@@ -85,12 +85,39 @@ class FindologicArticleModelTest extends TestCase
                     ],
                 ]
             ],
-            'Article with supplier name space' => [
+            'Article with pseudo empty supplier name' => [
                 [
                     'name' => 'FindologicArticle 2',
                     'active' => true,
                     'tax' => 19,
                     'supplier' => ' ',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ]
+                    ],
+                ]
+            ],
+            'Article with multiple empty spaces in supplier name' => [
+                [
+                    'name' => 'FindologicArticle 2',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => '   ',
                     'categories' => [
                         ['id' => 3],
                         ['id' => 5],
@@ -140,6 +167,99 @@ class FindologicArticleModelTest extends TestCase
             $baseCategory
         );
         $this->assertEquals(get_class($findologicArticle), FindologicArticleModel::class);
+    }
+
+    public function emptyAttributeValuesProvider()
+    {
+        $articleConfiguration = [
+            'name' => 'FindologicArticle 1',
+            'active' => true,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5],
+            ],
+            'images' => [
+                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC1',
+                'active' => true,
+                'inStock' => 16,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+            'filterGroupId' => 1,
+            'propertyValues' => [
+                [
+                    'option' => [
+                        'name' => 'size',
+                        'filterable' => true
+                    ],
+                    'value' => ' '
+                ],
+                [
+                    'option' => [
+                        'name' => 'color',
+                        'filterable' => true
+                    ],
+                    'value' => ''
+                ],
+                [
+                    'option' => [
+                        'name' => 'awesomeness',
+                        'filterable' => true
+                    ],
+                    'value' => '70%'
+                ]
+            ]
+        ];
+
+        return [
+            'Empty and pseudo empty option values are not exported' => [
+                'articleConfiguration' => $articleConfiguration,
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider emptyAttributeValuesProvider*
+     *
+     * @param array $articleConfiguration
+     *
+     * @throws ReflectionException
+     */
+    public function testEmptyValue(array $articleConfiguration)
+    {
+        $baseCategory = new Category();
+        $baseCategory->setId(100);
+
+        $article = $this->createTestProduct($articleConfiguration);
+
+        $findologicArticle = $this->articleFactory->create(
+            $article,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+        $reflector = new ReflectionClass(Item::class);
+        $attributes = $reflector->getProperty('attributes');
+        $attributes->setAccessible(true);
+        $values = $attributes->getValue($xmlArticle);
+
+        $this->assertArrayNotHasKey('color', $values);
+        $this->assertArrayNotHasKey('size', $values);
+        $this->assertArrayHasKey('awesomeness', $values);
     }
 
     public function testArticleKeywords()
