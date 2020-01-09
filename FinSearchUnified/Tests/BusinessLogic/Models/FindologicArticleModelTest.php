@@ -19,16 +19,12 @@ use Shopware\Models\Category\Category;
 
 class FindologicArticleModelTest extends TestCase
 {
-    /** @var Manager */
-    private $manager;
-
     /** @var FindologicArticleFactory */
     private $articleFactory;
 
     protected function setUp()
     {
         parent::setUp();
-        $this->manager = new Manager();
         $this->articleFactory = new FindologicArticleFactory();
     }
 
@@ -49,10 +45,9 @@ class FindologicArticleModelTest extends TestCase
     {
         try {
             /** @var ArticleResource $resource */
-            $resource = $this->manager->getResource('Article');
-            $article = $resource->create($testProductConfiguration);
+            $resource = Manager::getResource('Article');
 
-            return $article;
+            return $resource->create($testProductConfiguration);
         } catch (Exception $e) {
             echo sprintf('Exception: %s', $e->getMessage());
         }
@@ -166,7 +161,7 @@ class FindologicArticleModelTest extends TestCase
 
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
-            'ABCD0815',
+            'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
             $baseCategory
@@ -305,7 +300,7 @@ class FindologicArticleModelTest extends TestCase
 
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
-            'ABCD0815',
+            'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
             $baseCategory
@@ -320,9 +315,15 @@ class FindologicArticleModelTest extends TestCase
         $keywords = [];
 
         foreach ($properties->getValue($xmlArticle)->getValues() as $value) {
-            $keywords = array_merge($keywords, array_map(function ($item) {
-                return $item->getValue();
-            }, $value));
+            $keywords = array_merge(
+                $keywords,
+                array_map(
+                    function ($item) {
+                        return $item->getValue();
+                    },
+                    $value
+                )
+            );
         }
 
         $this->assertSame($expectedKeywords, $keywords);
@@ -353,7 +354,7 @@ class FindologicArticleModelTest extends TestCase
 
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
-            'ABCD0815',
+            'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
             $baseCategory
@@ -684,7 +685,7 @@ class FindologicArticleModelTest extends TestCase
 
         $findologicArticle = $this->articleFactory->create(
             $article,
-            'ABCD0815',
+            'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
             $baseCategory
@@ -708,5 +709,209 @@ class FindologicArticleModelTest extends TestCase
             // we will not have the attribute in array if the variant attribute is empty or null
             $this->assertArrayNotHasKey('attr1', $values);
         }
+    }
+
+    public function emptyValuesDataProvider()
+    {
+        return [
+            'Summary and Description values are empty' => [
+                [
+                    'name' => 'abdrückklotz-für+butler reifenmontiergerät',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'description' => '',
+                    'descriptionLong' => '',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ]
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider emptyValuesDataProvider
+     *
+     * @param array $articleConfiguration
+     *
+     * @throws Exception
+     */
+    public function testEmptyValuesAreNotExported(array $articleConfiguration)
+    {
+        $baseCategory = new Category();
+        $baseCategory->setId(5);
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCDABCDABCDABCDABCDABCDABCDABCD',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+        $actualSummary = $xmlArticle->getSummary();
+        $summary = $actualSummary->getValues();
+        $this->assertEmpty($summary);
+        $this->assertCount(0, $summary);
+
+        $actualDescription = $xmlArticle->getDescription();
+        $description = $actualDescription->getValues();
+        $this->assertEmpty($description);
+        $this->assertCount(0, $description);
+    }
+
+    public function emptyPropertyValueProvider()
+    {
+        return [
+            'Empty properties are not exported' => [
+                [
+                    'name' => 'abdrückklotz-für+butler reifenmontiergerät',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'shippingtime' => ' ',
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider emptyPropertyValueProvider
+     *
+     * @param array $articleConfiguration
+     *
+     * @throws Exception
+     */
+    public function testEmptyPropertyValue(array $articleConfiguration)
+    {
+        $baseCategory = new Category();
+        $baseCategory->setId(5);
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCDABCDABCDABCDABCDABCDABCDABCD',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+        $reflector = new ReflectionClass(Item::class);
+        $properties = $reflector->getProperty('properties');
+        $properties->setAccessible(true);
+        $values = $properties->getValue($xmlArticle);
+        $final = current($values);
+
+        $this->assertArrayNotHasKey('shippingtime', $final);
+    }
+
+    public function emptyAttributeValueProvider()
+    {
+        return [
+            'Empty attributes are not exported' => [
+                [
+                    'name' => 'abdrückklotz-für+butler reifenmontiergerät',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => [
+                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                    ],
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC2',
+                        'active' => true,
+                        'inStock' => 16,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ],
+                        'attribute' => [
+                            'attr1' => ' '
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider emptyAttributeValueProvider
+     *
+     * @param array $articleConfiguration
+     *
+     * @throws Exception
+     */
+    public function testEmptyAttributeValues(array $articleConfiguration)
+    {
+        $baseCategory = new Category();
+        $baseCategory->setId(5);
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCDABCDABCDABCDABCDABCDABCDABCD',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+        $reflector = new ReflectionClass(Item::class);
+        $properties = $reflector->getProperty('attributes');
+        $properties->setAccessible(true);
+        $values = $properties->getValue($xmlArticle);
+
+        $this->assertArrayNotHasKey('attr1', $values);
     }
 }
