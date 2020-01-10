@@ -14,6 +14,7 @@
     "test": "../../../vendor/bin/phpunit -c phpunit.xml.dist --colors=always"
   },
   "autoload": {
+    "classmap": ["vendor/findologic/libflexport"],
     "psr-4": {
       "FinSearchUnified\\": "/"
     }
