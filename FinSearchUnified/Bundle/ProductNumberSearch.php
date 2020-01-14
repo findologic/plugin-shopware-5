@@ -54,9 +54,13 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      */
     public function search(Criteria $criteria, ShopContextInterface $context)
     {
-        // Shopware sets fetchCount to false when the search is used for internal purposes, which we don't care about.
-        // Checking its value is the only way to tell if we should actually perform the search.
-        $fetchCount = $criteria->fetchCount();
+        $fetchCount = true;
+        if (method_exists($criteria, 'fetchCount')) {
+            // Shopware sets fetchCount to false when the search is used for internal purposes, which we don't care
+            // about. Checking its value is the only way to tell if we should actually perform the search.
+            // Unfortunately this method only exists in Shopware >= 5.2.14.
+            $fetchCount = $criteria->fetchCount();
+        }
 
         $useShopSearch = StaticHelper::useShopSearch();
 

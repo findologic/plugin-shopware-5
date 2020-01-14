@@ -78,7 +78,7 @@ class FindologicArticleModelTest extends TestCase
                         ['link' => 'https://via.placeholder.com/300/09f/000.png'],
                     ],
                     'mainDetail' => [
-                        'number' => 'FINDOLOGIC1',
+                        'number' => 'FINDOLOGIC6',
                         'active' => true,
                         'inStock' => 16,
                         'prices' => [
@@ -163,7 +163,7 @@ class FindologicArticleModelTest extends TestCase
                 ['link' => 'https://via.placeholder.com/300/09f/000.png'],
             ],
             'mainDetail' => [
-                'number' => 'FINDOLOGIC1',
+                'number' => 'FINDOLOGIC2',
                 'active' => true,
                 'inStock' => 16,
                 'prices' => [
@@ -332,7 +332,7 @@ class FindologicArticleModelTest extends TestCase
                         ['link' => 'https://via.placeholder.com/300/09f/000.png'],
                     ],
                     'mainDetail' => [
-                        'number' => 'FINDOLOGIC1',
+                        'number' => 'FINDOLOGIC3',
                         'active' => true,
                         'inStock' => 16,
                         'prices' => [
