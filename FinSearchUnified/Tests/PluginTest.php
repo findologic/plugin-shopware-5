@@ -3,12 +3,14 @@
 namespace FinSearchUnified\Tests;
 
 use Exception;
+use FINDOLOGIC\Export\Helpers\EmptyValueNotAllowedException;
+use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\ShopwareProcess;
 use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Components\Api\Manager;
-use Shopware\Components\Api\Resource\Article;
+use Shopware\Models\Article\Article;
 use SimpleXMLElement;
 
 class PluginTest extends TestCase
@@ -19,13 +21,14 @@ class PluginTest extends TestCase
         ],
     ];
 
-    /** @var Manager */
-    private $manager;
-
-    protected function setUp()
+    protected function tearDown()
     {
-        parent::setUp();
-        $this->manager = new Manager();
+        parent::tearDown();
+
+        Shopware()->Container()->reset('fin_search_unified.article_model_factory');
+        Shopware()->Container()->load('fin_search_unified.article_model_factory');
+
+        Utility::sResetArticles();
     }
 
     public function testCanCreateInstance()
@@ -53,49 +56,45 @@ class PluginTest extends TestCase
     {
         return [
             '2 active articles' => [
-                [true, true],
-                2,
-                'Two articles were expected but %d were returned'
+                'articlesActiveStatus' => [true, true],
+                'expectedCount' => 2,
+                'errorMessage' => 'Two articles were expected but %d were returned'
             ],
             '1 active and 1 inactive article' => [
-                [true, false],
-                1,
-                'Only one article was expected but %d were returned'
+                'articlesActiveStatus' => [true, false],
+                'expectedCount' => 1,
+                'errorMessage' => 'Only one article was expected but %d were returned'
             ],
             '2 inactive articles' => [
-                [false, false],
-                0,
-                'No articles were expected but %d were returned'
+                'articlesActiveStatus' => [false, false],
+                'expectedCount' => 0,
+                'errorMessage' => 'No articles were expected but %d were returned'
             ],
         ];
     }
 
     /**
-     * Method to run the export test cases using the data provider
-     *
      * @dataProvider articleProvider
      *
-     * @param array $isActive
-     * @param int $expected
+     * @param array $articlesActiveStatus
+     * @param int $expectedCount
      * @param string $errorMessage
      */
-    public function testArticleExport($isActive, $expected, $errorMessage)
+    public function testArticleExport($articlesActiveStatus, $expectedCount, $errorMessage)
     {
         // Create articles with the provided data to test the export functionality
-        for ($i = 0; $i < count($isActive); $i++) {
-            $this->createTestProduct($i, $isActive[$i]);
+        foreach ($articlesActiveStatus as $i => $iValue) {
+            $this->createTestProduct($i, $iValue);
         }
         $actual = $this->runExportAndReturnCount();
-        $this->assertEquals($expected, $actual, sprintf($errorMessage, $actual));
+        $this->assertEquals($expectedCount, $actual, sprintf($errorMessage, $actual));
     }
 
     /**
-     * Method to create test products for the export
-     *
-     * @param int $number
+     * @param int|string $number
      * @param bool $isActive
      *
-     * @return \Shopware\Models\Article\Article|null
+     * @return Article|null
      */
     private function createTestProduct($number, $isActive)
     {
@@ -125,14 +124,29 @@ class PluginTest extends TestCase
         ];
 
         try {
-            /** @var Article $resource */
-            $resource = $this->manager->getResource('Article');
-            $article = $resource->create($testArticle);
+            $resource = Manager::getResource('Article');
 
-            return $article;
+            return $resource->create($testArticle);
         } catch (Exception $e) {
-            echo sprintf("Exception: %s", $e->getMessage());
+            echo sprintf('Exception: %s', $e->getMessage());
         }
+
+        return null;
+    }
+
+    public function testEmptyValueNotAllowedExceptionIsThrownInExport()
+    {
+        // Create articles with the provided data to test the export functionality
+        $this->createTestProduct('SOMENUMBER', true);
+        $findologicArticleFactoryMock = $this->createMock(FindologicArticleFactory::class);
+        $findologicArticleFactoryMock->expects($this->exactly(2))->method('create')->willThrowException(
+            new EmptyValueNotAllowedException()
+        );
+
+        Shopware()->Container()->set('fin_search_unified.article_model_factory', $findologicArticleFactoryMock);
+
+        $exported = $this->runExportAndReturnCount();
+        $this->assertSame(0, $exported);
     }
 
     /**
@@ -155,19 +169,9 @@ class PluginTest extends TestCase
 
             return (int)$xml->items->attributes()->count;
         } catch (Exception $e) {
-            echo sprintf("Exception: %s", $e->getMessage());
+            echo sprintf('Exception: %s', $e->getMessage());
         }
 
         return 0;
-    }
-
-    /**
-     * Reset articles data after each test
-     */
-    protected function tearDown()
-    {
-        parent::tearDown();
-
-        Utility::sResetArticles();
     }
 }

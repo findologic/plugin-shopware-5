@@ -629,6 +629,25 @@ class StaticHelper
     }
 
     /**
+     * @param mixed $value
+     *
+     * @return bool
+     */
+    public static function isEmpty($value)
+    {
+        if (is_numeric($value)) {
+            return false;
+        }
+
+        if (empty($value) || (is_array($value) && empty(array_filter($value))) ||
+            (!is_array($value) && empty(trim($value)))) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param string $value
      *
      * @return string
@@ -667,11 +686,11 @@ class StaticHelper
         $isEmotionPage = $request->getControllerName() === 'emotion';
         $isFindologicActive = self::isFindologicActive();
         $isDirectIntegration = self::checkDirectIntegration();
+        $isActiveOnCategoryPages = (bool)Shopware()->Config()->offsetGet('ActivateFindologicForCategoryPages');
 
         $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
         $isNoSearchAndCategoryPage = !$isCategoryPage && !Shopware()->Session()->offsetGet('isSearchPage');
-        $isCategoryPageButDisabledInConfig = $isCategoryPage &&
-            !(bool)Shopware()->Config()->offsetGet('ActivateFindologicForCategoryPages');
+        $isCategoryPageButDisabledInConfig = $isCategoryPage && !$isActiveOnCategoryPages;
 
         return (
             $isInBackend ||
@@ -697,10 +716,11 @@ class StaticHelper
         /** @var Environment $environment */
         $environment = Shopware()->Container()->get('fin_search_unified.environment');
 
+        $shopkey = trim(Shopware()->Config()->offsetGet('ShopKey'));
         $isStagingMode = $environment->isStaging(Shopware()->Front()->Request());
+        $isActivateFindologic = (bool)Shopware()->Config()->offsetGet('ActivateFindologic');
 
-        return !$isStagingMode && (bool)Shopware()->Config()->offsetGet('ActivateFindologic') &&
-            !empty(trim(Shopware()->Config()->offsetGet('ShopKey')));
+        return !$isStagingMode && $isActivateFindologic && !empty($shopkey);
     }
 
     /**
@@ -713,11 +733,12 @@ class StaticHelper
         $configLoader = Shopware()->Container()->get('fin_search_unified.config_loader');
 
         $integrationType = Shopware()->Config()->offsetGet(Constants::CONFIG_KEY_INTEGRATION_TYPE);
-        $isDirectIntegration =
-            $configLoader->directIntegrationEnabled($integrationType === Constants::INTEGRATION_TYPE_DI);
+        $isDirectIntegration = $configLoader->directIntegrationEnabled(
+            $integrationType === Constants::INTEGRATION_TYPE_DI
+        );
 
-        self::storeIntegrationType($isDirectIntegration ?
-            Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API);
+        $integrationType = $isDirectIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API;
+        self::storeIntegrationType($integrationType);
 
         return $isDirectIntegration;
     }
@@ -793,12 +814,14 @@ class StaticHelper
         if (isset($promotion) && count($promotion->attributes()) > 0) {
             /** @var Enlight_View_Default $view */
             $view = Shopware()->Container()->get('front')->Plugins()->get('ViewRenderer')->Action()->View();
-            $view->assign([
-                'finPromotion' => [
-                    'image' => $promotion->attributes()->image,
-                    'link' => $promotion->attributes()->link
+            $view->assign(
+                [
+                    'finPromotion' => [
+                        'image' => $promotion->attributes()->image,
+                        'link' => $promotion->attributes()->link
+                    ]
                 ]
-            ]);
+            );
         }
     }
 
@@ -817,13 +840,15 @@ class StaticHelper
             /** @var Enlight_View_Default $view */
             $view = Shopware()->Front()->Plugins()->get('ViewRenderer')->Action()->View();
             $type = !empty($didYouMeanQuery) ? 'did-you-mean' : $queryStringType;
-            $view->assign([
-                'finSmartDidYouMean' => [
-                    'type' => $type,
-                    'alternative_query' => $type === 'did-you-mean' ? $didYouMeanQuery : $queryString,
-                    'original_query' => $type === 'did-you-mean' ? '' : $originalQuery
+            $view->assign(
+                [
+                    'finSmartDidYouMean' => [
+                        'type' => $type,
+                        'alternative_query' => $type === 'did-you-mean' ? $didYouMeanQuery : $queryString,
+                        'original_query' => $type === 'did-you-mean' ? '' : $originalQuery
+                    ]
                 ]
-            ]);
+            );
         }
     }
 }
