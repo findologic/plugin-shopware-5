@@ -130,6 +130,23 @@ class PluginTest extends TestCase
         } catch (Exception $e) {
             echo sprintf('Exception: %s', $e->getMessage());
         }
+
+        return null;
+    }
+
+    public function testEmptyValueNotAllowedExceptionIsThrownInExport()
+    {
+        // Create articles with the provided data to test the export functionality
+        $this->createTestProduct('SOMENUMBER', true);
+        $findologicArticleFactoryMock = $this->createMock(FindologicArticleFactory::class);
+        $findologicArticleFactoryMock->expects($this->exactly(2))->method('create')->willThrowException(
+            new EmptyValueNotAllowedException()
+        );
+
+        Shopware()->Container()->set('fin_search_unified.article_model_factory', $findologicArticleFactoryMock);
+
+        $exported = $this->runExportAndReturnCount();
+        $this->assertSame(0, $exported);
     }
 
     /**
