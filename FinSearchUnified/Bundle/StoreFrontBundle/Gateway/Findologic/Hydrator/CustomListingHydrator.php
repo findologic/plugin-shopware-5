@@ -2,8 +2,8 @@
 
 namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator;
 
+use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
-use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use SimpleXMLElement;
 
 class CustomListingHydrator

@@ -11,7 +11,6 @@ use FinSearchUnified\Constants;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Bundle\SearchBundle;
 use Shopware\Bundle\StoreFrontBundle;
-use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use SimpleXMLElement;
 use Zend_Cache_Exception;
 use Zend_Http_Client;
@@ -562,65 +561,6 @@ class StaticHelper
         );
 
         return $facetResult;
-    }
-
-    /**
-     * @param SimpleXMLElement $xmlResponse
-     *
-     * @return array
-     */
-    public static function getFindologicFacets(SimpleXMLElement $xmlResponse)
-    {
-        $facets = [];
-
-        foreach ($xmlResponse->filters->filter as $filter) {
-            $facets[] = self::createFindologicFacet(
-                (string)$filter->display,
-                (string)$filter->name,
-                (string)$filter->type,
-                (string)$filter->select
-            );
-        }
-
-        return $facets;
-    }
-
-    /**
-     * @param string $label
-     * @param string $name
-     * @param string $type
-     * @param string $filter
-     *
-     * @return CustomFacet
-     */
-    public static function createFindologicFacet($label, $name, $type, $filter)
-    {
-        $formFieldName = self::escapeFilterName($name);
-
-        switch ($type) {
-            case 'label':
-                if ($filter === 'single') {
-                    $mode = SearchBundle\Facet\ProductAttributeFacet::MODE_RADIO_LIST_RESULT;
-                } else {
-                    $mode = SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT;
-                }
-                break;
-            case 'range-slider':
-                $mode = SearchBundle\Facet\ProductAttributeFacet::MODE_RANGE_RESULT;
-                break;
-            default:
-                $mode = SearchBundle\Facet\ProductAttributeFacet::MODE_VALUE_LIST_RESULT;
-                break;
-        }
-
-        $customFacet = new CustomFacet();
-        $productAttributeFacet = new SearchBundle\Facet\ProductAttributeFacet($name, $mode, $formFieldName, $label);
-
-        $customFacet->setName($name);
-        $customFacet->setUniqueKey($name);
-        $customFacet->setFacet($productAttributeFacet);
-
-        return $customFacet;
     }
 
     /**

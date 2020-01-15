@@ -7,6 +7,7 @@ use Doctrine\ORM\PersistentCollection;
 use Enlight_Exception;
 use Exception;
 use FINDOLOGIC\Export\Exporter;
+use FINDOLOGIC\Export\Helpers\EmptyValueNotAllowedException;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use RuntimeException;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -168,7 +169,7 @@ class ShopwareProcess
                 if ($findologicArticle->shouldBeExported) {
                     $findologicArticles[] = $findologicArticle->getXmlRepresentation();
                 }
-            } catch (Exception $e) {
+            } catch (EmptyValueNotAllowedException $e) {
                 Shopware()->Container()->get('pluginlogger')->info(
                     sprintf(
                         'Product with number "%s" could not be exported. ' .
