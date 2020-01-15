@@ -20,6 +20,9 @@ class FinSearchUnified extends Plugin
         if (!$container->hasParameter($this->getContainerPrefix() . '.plugin_dir')) {
             $container->setParameter($this->getContainerPrefix() . '.plugin_dir', $this->getPath());
         }
+        if (!$container->hasParameter($this->getContainerPrefix() . '.plugin_name')) {
+            $container->setParameter($this->getContainerPrefix() . '.plugin_name', $this->getName());
+        }
 
         parent::build($container);
     }
