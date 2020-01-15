@@ -4,6 +4,10 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd"
 >
+    <!-- Required for Shopware 5.2.x support -->
+    <imports>
+        <import resource="shopware/searchBundleES.xml" />
+    </imports>
 
     <parameters>
         <parameter key="fin_search_unified.view_dir">%fin_search_unified.plugin_dir%/Resources/views</parameter>
@@ -37,13 +41,18 @@
         />
 
         <service
-            decorates="shopware_storefront.custom_facet_gateway"
             class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGateway"
-            id="FinSearchUnified.findologic_facet_gateway"
+            id="fin_search_unified.findologic_facet_gateway"
         >
-            <argument type="service" id="FinSearchUnified.findologic_facet_gateway.inner" />
             <argument type="service" id="fin_search_unified.custom_listing_hydrator" />
             <argument type="service" id="fin_search_unified.query_builder_factory" />
+        </service>
+
+        <service
+            class="FinSearchUnified\Bundle\StoreFrontBundle\Service\Core\CustomFacetService"
+            id="fin_search_unified.custom_facet_service"
+        >
+            <argument type="service" id="fin_search_unified.findologic_facet_gateway" />
         </service>
 
         <service id="fin_search_unified.shopware_process" class="FinSearchUnified\ShopwareProcess">
@@ -61,6 +70,14 @@
         <service id="fin_search_unified.service_subscriber" class="FinSearchUnified\Subscriber\ServiceSubscriber">
             <argument type="service" id="service_container" />
             <tag name="shopware.event_subscriber" />
+        </service>
+
+        <service
+            id="fin_search_unified.findologic_facet_criteria_request_handler"
+            class="FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler\FindologicFacetCriteriaRequestHandler"
+        >
+            <argument type="service" id="fin_search_unified.custom_facet_service" />
+            <tag name="criteria_request_handler" />
         </service>
 
         <service
@@ -95,7 +112,8 @@
         <service
             id="fin_search_unified.product_search"
             class="Shopware\Bundle\SearchBundle\ProductSearch"
-            decorates="shopware_search.product_search">
+            decorates="shopware_search.product_search"
+        >
             <argument type="service" id="shopware_storefront.list_product_service" />
             <argument type="service" id="fin_search_unified.product_number_search" />
         </service>
@@ -147,6 +165,29 @@
         </service>
 
         <service class="FinSearchUnified\Components\Environment" id="fin_search_unified.environment" />
+
+        <!-- Re-declare non-existent shopware services in our xml for backward compatibility -->
+        <service
+            id="shopware_search_es.product_number_search"
+            class="Shopware\Bundle\SearchBundleES\ProductNumberSearch"
+        >
+            <factory service="shopware_search_es.product_number_search_factory" method="factory" />
+            <argument type="service" id="service_container" />
+        </service>
+
+        <service
+            id="shopware_search_es.product_number_search_factory"
+            class="Shopware\Bundle\SearchBundleES\DependencyInjection\Factory\ProductNumberSearchFactory"
+        >
+            <argument type="collection" />
+        </service>
+
+        <service id="shopware.routing.matchers.rewrite_matcher" class="Shopware\Components\Routing\Matchers\RewriteMatcher">
+            <argument type="service" id="dbal_connection"/>
+            <argument type="service" id="query_alias_mapper"/>
+            <tag name="router.matcher" priority="50"/>
+        </service>
+        <!-- Shopware services re-declaration ends here -->
 
     </services>
 </container>
