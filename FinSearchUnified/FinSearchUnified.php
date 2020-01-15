@@ -10,9 +10,23 @@ use Shopware\Components\Plugin\Context\InstallContext;
 use Shopware\Components\Plugin\Context\UninstallContext;
 use Shopware\Components\Plugin\Context\UpdateContext;
 use Shopware\Models;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class FinSearchUnified extends Plugin
 {
+    public function build(ContainerBuilder $container)
+    {
+        // Required for Shopware 5.2.x compatibility.
+        if (!$container->hasParameter($this->getContainerPrefix() . '.plugin_dir')) {
+            $container->setParameter($this->getContainerPrefix() . '.plugin_dir', $this->getPath());
+        }
+        if (!$container->hasParameter($this->getContainerPrefix() . '.plugin_name')) {
+            $container->setParameter($this->getContainerPrefix() . '.plugin_name', $this->getName());
+        }
+
+        parent::build($container);
+    }
+
     public function deactivate(DeactivateContext $context)
     {
         $this->deactivateCustomizedPlugin();
@@ -57,5 +71,23 @@ class FinSearchUnified extends Plugin
         } catch (Exception $exception) {
             Shopware()->PluginLogger()->info("ExtendFinSearchUnified plugin doesn't exist!");
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getContainerPrefix()
+    {
+        return $this->camelCaseToUnderscore($this->getName());
+    }
+
+    /**
+     * @param string $string
+     *
+     * @return string
+     */
+    private function camelCaseToUnderscore($string)
+    {
+        return strtolower(ltrim(preg_replace('/[A-Z]/', '_$0', $string), '_'));
     }
 }
