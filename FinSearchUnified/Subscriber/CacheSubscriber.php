@@ -44,7 +44,7 @@ class CacheSubscriber implements SubscriberInterface
 
         // If this is a POST-Request, and affects our plugin, we may clear the config cache
         if ($request->isPost() && $request->getParam('name') === $this->pluginName) {
-            $this->cacheManager->clearByTag(CacheManager::CACHE_TAG_CONFIG);
+            $this->cacheManager->clearConfigCache();
         }
     }
 }
