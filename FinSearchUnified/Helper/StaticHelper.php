@@ -692,13 +692,16 @@ class StaticHelper
         $isNoSearchAndCategoryPage = !$isCategoryPage && !Shopware()->Session()->offsetGet('isSearchPage');
         $isCategoryPageButDisabledInConfig = $isCategoryPage && !$isActiveOnCategoryPages;
 
+        $fallbackSearchIsSet = self::checkIfFallbackSearchCookieIsSet();
+
         return (
             $isInBackend ||
             $isEmotionPage ||
             !$isFindologicActive ||
             $isDirectIntegration ||
             $isNoSearchAndCategoryPage ||
-            $isCategoryPageButDisabledInConfig
+            $isCategoryPageButDisabledInConfig ||
+            $fallbackSearchIsSet
         );
     }
 
@@ -850,5 +853,13 @@ class StaticHelper
                 ]
             );
         }
+    }
+
+    /**
+     * @return bool
+     */
+    private static function checkIfFallbackSearchCookieIsSet()
+    {
+        return (isset($_COOKIE['fallback-search']) && (bool)$_COOKIE['fallback-search']) === true;
     }
 }

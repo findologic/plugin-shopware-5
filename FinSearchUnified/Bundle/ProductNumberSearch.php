@@ -74,26 +74,28 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         if (empty($response)) {
             self::setFallbackFlag(1);
-
-            $searchResult = $this->originalService->search($criteria, $context);
-        } else {
-            self::setFallbackFlag(0);
-
-            $xmlResponse = StaticHelper::getXmlFromResponse($response);
-            self::redirectOnLandingpage($xmlResponse);
-            StaticHelper::setPromotion($xmlResponse);
-            StaticHelper::setSmartDidYouMean($xmlResponse);
-
-            $this->facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
-            $this->setSelectedFacets($criteria);
-            $criteria->resetConditions();
-
-            $totalResults = (int)$xmlResponse->results->count;
-            $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
-            $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
-
-            $searchResult = new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $this->facets);
+            self::setFallbackSearchFlag(1);
+            self::redirectToSameUrl();
+            return null;
         }
+
+        self::setFallbackFlag(0);
+        self::setFallbackSearchFlag(0);
+
+        $xmlResponse = StaticHelper::getXmlFromResponse($response);
+        self::redirectOnLandingpage($xmlResponse);
+        StaticHelper::setPromotion($xmlResponse);
+        StaticHelper::setSmartDidYouMean($xmlResponse);
+
+        $this->facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
+        $this->setSelectedFacets($criteria);
+        $criteria->resetConditions();
+
+        $totalResults = (int)$xmlResponse->results->count;
+        $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
+        $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
+
+        $searchResult = new SearchBundle\ProductNumberSearchResult($searchResult, $totalResults, $this->facets);
 
         return $searchResult;
     }
@@ -158,5 +160,20 @@ class ProductNumberSearch implements ProductNumberSearchInterface
                 $this->facets[] = $tempFacet;
             }
         }
+    }
+
+    /**
+     * @param int $flag
+     * @param int $mins
+     */
+    protected static function setFallbackSearchFlag($flag, $mins = 10)
+    {
+        setcookie('fallback-search', $flag, time() + (60 * $mins), '/', '', false, true);
+    }
+
+    private static function redirectToSameUrl()
+    {
+        header('Location: ' . Shopware()->Front()->Request()->getRequestUri());
+        exit;
     }
 }
