@@ -20,6 +20,12 @@
             <tag name="shopware.event_subscriber" />
         </service>
 
+        <service id="fin_search_unified.subscriber.clear_cache" class="FinSearchUnified\Subscriber\CacheSubscriber">
+            <argument>%fin_search_unified.plugin_name%</argument>
+            <argument type="service" id="shopware.cache_manager" />
+            <tag name="shopware.event_subscriber" />
+        </service>
+
         <service
             id="fin_search_unified.sdym_criteria_request_handler"
             class="FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler\SdymCriteriaRequestHandler"
@@ -147,9 +153,9 @@
             id="shopware.routing.matchers.rewrite_matcher"
             class="Shopware\Components\Routing\Matchers\RewriteMatcher"
         >
-            <argument type="service" id="dbal_connection"/>
-            <argument type="service" id="query_alias_mapper"/>
-            <tag name="router.matcher" priority="50"/>
+            <argument type="service" id="dbal_connection" />
+            <argument type="service" id="query_alias_mapper" />
+            <tag name="router.matcher" priority="50" />
         </service>
 
         <service id="fin_search_unified.subscriber.widgets" class="FinSearchUnified\Subscriber\Widgets">
