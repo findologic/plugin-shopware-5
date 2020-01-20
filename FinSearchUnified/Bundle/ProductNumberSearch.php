@@ -73,17 +73,17 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         $response = $query->execute();
 
         if (empty($response)) {
-            self::setFallbackFlag(1);
-            self::setFallbackSearchFlag(1);
-            self::redirectToSameUrl();
+            static::setFallbackFlag(1);
+            static::setFallbackSearchFlag(1);
+            static::redirectToSameUrl();
             return null;
         }
 
-        self::setFallbackFlag(0);
-        self::setFallbackSearchFlag(0);
+        static::setFallbackFlag(0);
+        static::setFallbackSearchFlag(0);
 
         $xmlResponse = StaticHelper::getXmlFromResponse($response);
-        self::redirectOnLandingpage($xmlResponse);
+        static::redirectOnLandingpage($xmlResponse);
         StaticHelper::setPromotion($xmlResponse);
         StaticHelper::setSmartDidYouMean($xmlResponse);
 
@@ -109,7 +109,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     {
         $hasLandingpage = StaticHelper::checkIfRedirect($xmlResponse);
 
-        if ($hasLandingpage != null) {
+        if ($hasLandingpage !== null) {
             header('Location: ' . $hasLandingpage);
             exit();
         }

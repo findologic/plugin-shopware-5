@@ -96,7 +96,7 @@ class StaticHelper
                     /** @var array $baseArticle */
                     $baseArticle = [];
                     $baseArticle['orderNumber'] = $productCheck;
-                    $baseArticle['detailId'] = self::getDetailIdForOrdernumber($productCheck);
+                    $baseArticle['detailId'] = static::getDetailIdForOrdernumber($productCheck);
                     $foundProducts[$articleId] = $baseArticle;
                 } catch (Exception $ex) {
                     // No Mapping for Search Results
@@ -163,39 +163,39 @@ class StaticHelper
             $facetItem['select'] = (string)$filter->select;
             $facetItem['display'] = (string)$filter->display;
             $facetItem['type'] = (string)$filter->type;
-            $facetItem['items'] = self::createFilterItems($filter->items->item);
+            $facetItem['items'] = static::createFilterItems($filter->items->item);
 
             switch ($facetItem['type']) {
                 case 'select':
-                    $facets[] = self::createTreeviewFacet($facetItem);
+                    $facets[] = static::createTreeviewFacet($facetItem);
                     break;
                 case 'label':
                     switch ($facetItem['select']) {
                         case 'single':
-                            $facets[] = self::createRadioFacet($facetItem);
+                            $facets[] = static::createRadioFacet($facetItem);
                             break;
                         default:
-                            $facets[] = self::createValueListFacet($facetItem);
+                            $facets[] = static::createValueListFacet($facetItem);
                             break;
                     }
                     break;
                 case 'color':
                     if ($facetItem['items'] && $facetItem['items'][0]['image']) {
-                        $facets[] = self::createMediaListFacet($facetItem);
+                        $facets[] = static::createMediaListFacet($facetItem);
                     } else {
-                        $facets[] = self::createColorListFacet($facetItem);
+                        $facets[] = static::createColorListFacet($facetItem);
                     }
 
                     break;
                 case 'image':
-                    $facets[] = self::createMediaListFacet($facetItem);
+                    $facets[] = static::createMediaListFacet($facetItem);
                     break;
                 case 'range-slider':
                     $min = (float)$filter->attributes->totalRange->min;
                     $max = (float)$filter->attributes->totalRange->max;
                     $activeMin = (float)$filter->attributes->selectedRange->min;
                     $activeMax = (float)$filter->attributes->selectedRange->max;
-                    $facets[] = self::createRangeSlideFacet($facetItem, $min, $max, $activeMin, $activeMax);
+                    $facets[] = static::createRangeSlideFacet($facetItem, $min, $max, $activeMin, $activeMax);
                     break;
                 default:
                     break;
@@ -224,7 +224,7 @@ class StaticHelper
             ];
 
             if ($subItem->items->item) {
-                $tempItem['items'] = self::createFilterItems($subItem->items->item);
+                $tempItem['items'] = static::createFilterItems($subItem->items->item);
             }
 
             $response[] = $tempItem;
@@ -240,14 +240,14 @@ class StaticHelper
      */
     private static function createTreeviewFacet(array $facetItem)
     {
-        $active = !empty(self::getSelectedItems($facetItem['name']));
+        $active = !empty(static::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\TreeFacetResult(
             $facetItem['name'],
-            self::escapeFilterName($facetItem['name']),
+            static::escapeFilterName($facetItem['name']),
             $active,
             $facetItem['display'],
-            self::prepareTreeView($facetItem['items'], $facetItem['name']),
+            static::prepareTreeView($facetItem['items'], $facetItem['name']),
             $facetItem['name']
         );
 
@@ -263,7 +263,7 @@ class StaticHelper
      */
     public static function getSelectedItems($filterName)
     {
-        $escapedFilterName = self::escapeFilterName($filterName);
+        $escapedFilterName = static::escapeFilterName($filterName);
         $values = explode('|', Shopware()->Front()->Request()->getParam($escapedFilterName, []));
 
         return $values ?: [];
@@ -304,7 +304,7 @@ class StaticHelper
     private static function prepareTreeView($items, $name, $recurseName = null)
     {
         $response = [];
-        $selectedItems = self::getSelectedItems($name);
+        $selectedItems = static::getSelectedItems($name);
 
         foreach ($items as $item) {
             $treeName = $item['name'];
@@ -325,7 +325,7 @@ class StaticHelper
                 $treeName,
                 $label,
                 $active,
-                self::prepareTreeView($item['items'], $name, $treeName)
+                static::prepareTreeView($item['items'], $name, $treeName)
             );
             $response[] = $treeView;
         }
@@ -340,14 +340,14 @@ class StaticHelper
      */
     private static function createRadioFacet(array $facetItem)
     {
-        $active = !empty(self::getSelectedItems($facetItem['name']));
+        $active = !empty(static::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\RadioFacetResult(
             $facetItem['name'],
             $active,
             $facetItem['display'],
-            self::prepareValueItems($facetItem['items'], $facetItem['name']),
-            self::escapeFilterName($facetItem['name'])
+            static::prepareValueItems($facetItem['items'], $facetItem['name']),
+            static::escapeFilterName($facetItem['name'])
         );
 
         return $facetResult;
@@ -363,7 +363,7 @@ class StaticHelper
     {
         $response = [];
         $itemNames = [];
-        $selectedItems = self::getSelectedItems($name);
+        $selectedItems = static::getSelectedItems($name);
 
         foreach ($items as $item) {
             $active = in_array($item['name'], $selectedItems);
@@ -396,14 +396,14 @@ class StaticHelper
      */
     public static function createValueListFacet(array $facetItem)
     {
-        $active = !empty(self::getSelectedItems($facetItem['name']));
+        $active = !empty(static::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\ValueListFacetResult(
             $facetItem['name'],
             $active,
             $facetItem['display'],
-            self::prepareValueItems($facetItem['items'], $facetItem['name']),
-            self::escapeFilterName($facetItem['name']),
+            static::prepareValueItems($facetItem['items'], $facetItem['name']),
+            static::escapeFilterName($facetItem['name']),
             $facetItem['name']
         );
 
@@ -418,14 +418,14 @@ class StaticHelper
      */
     private static function createMediaListFacet(array $facetItem)
     {
-        $active = !empty(self::getSelectedItems($facetItem['name']));
+        $active = !empty(static::getSelectedItems($facetItem['name']));
 
         $facetResult = new SearchBundle\FacetResult\MediaListFacetResult(
             $facetItem['name'],
             $active,
             $facetItem['display'],
-            self::prepareMediaItems($facetItem['items'], $facetItem['name']),
-            self::escapeFilterName($facetItem['name'])
+            static::prepareMediaItems($facetItem['items'], $facetItem['name']),
+            static::escapeFilterName($facetItem['name'])
         );
 
         return $facetResult;
@@ -441,7 +441,7 @@ class StaticHelper
     private static function prepareMediaItems($items, $name)
     {
         $values = [];
-        $selectedItems = self::getSelectedItems($name);
+        $selectedItems = static::getSelectedItems($name);
 
         $httpClient = new Zend_Http_Client();
         $httpClient->setMethod(Zend_Http_Client::HEAD);
@@ -484,14 +484,14 @@ class StaticHelper
      */
     private static function createColorListFacet(array $facetItem)
     {
-        $active = !empty(self::getSelectedItems($facetItem['name']));
+        $active = !empty(static::getSelectedItems($facetItem['name']));
 
         $facetResult = new FinFacetResult\ColorPickerFacetResult(
             $facetItem['name'],
             $active,
             $facetItem['display'],
-            self::prepareColorItems($facetItem['items'], $facetItem['name']),
-            self::escapeFilterName($facetItem['name'])
+            static::prepareColorItems($facetItem['items'], $facetItem['name']),
+            static::escapeFilterName($facetItem['name'])
         );
 
         return $facetResult;
@@ -506,7 +506,7 @@ class StaticHelper
     private static function prepareColorItems($items, $name)
     {
         $values = [];
-        $selectedItems = self::getSelectedItems($name);
+        $selectedItems = static::getSelectedItems($name);
 
         foreach ($items as $item) {
             $active = in_array($item['name'], $selectedItems, true);
@@ -594,7 +594,7 @@ class StaticHelper
             $name,
             true,
             $label,
-            self::createSelectValues($itemValue),
+            static::createSelectValues($itemValue),
             $name,
             $name
         );
@@ -623,7 +623,7 @@ class StaticHelper
         $string = str_replace(["\n", "\r", "\t"], ' ', $string);
 
         // Remove unprintable characters since they would cause an invalid XML.
-        $string = self::removeControlCharacters($string);
+        $string = static::removeControlCharacters($string);
 
         return trim($string);
     }
@@ -684,15 +684,15 @@ class StaticHelper
 
         $isInBackend = $request->getModuleName() === 'backend';
         $isEmotionPage = $request->getControllerName() === 'emotion';
-        $isFindologicActive = self::isFindologicActive();
-        $isDirectIntegration = self::checkDirectIntegration();
+        $isFindologicActive = static::isFindologicActive();
+        $isDirectIntegration = static::checkDirectIntegration();
         $isActiveOnCategoryPages = (bool)Shopware()->Config()->offsetGet('ActivateFindologicForCategoryPages');
 
         $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
         $isNoSearchAndCategoryPage = !$isCategoryPage && !Shopware()->Session()->offsetGet('isSearchPage');
         $isCategoryPageButDisabledInConfig = $isCategoryPage && !$isActiveOnCategoryPages;
 
-        $fallbackSearchIsSet = self::checkIfFallbackSearchCookieIsSet();
+        $fallbackSearchIsSet = static::checkIfFallbackSearchCookieIsSet();
 
         return (
             $isInBackend ||
@@ -741,7 +741,7 @@ class StaticHelper
         );
 
         $integrationType = $isDirectIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API;
-        self::storeIntegrationType($integrationType);
+        static::storeIntegrationType($integrationType);
 
         return $isDirectIntegration;
     }
