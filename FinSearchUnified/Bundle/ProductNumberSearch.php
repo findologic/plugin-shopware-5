@@ -280,4 +280,19 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         return $filter;
     }
+
+    /**
+     * @param int $flag
+     * @param int $mins
+     */
+    protected static function setFallbackSearchFlag($flag, $mins = 10)
+    {
+        setcookie('fallback-search', $flag, time() + (60 * $mins), '/', '', false, true);
+    }
+
+    protected static function redirectToSameUrl()
+    {
+        header('Location: ' . Shopware()->Front()->Request()->getRequestUri());
+        exit;
+    }
 }
