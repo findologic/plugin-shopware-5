@@ -442,7 +442,9 @@ class ProductNumberSearchTest extends TestCase
         ConditionInterface $condition = null
     ) {
         $criteria = new Criteria();
-        $criteria->setFetchCount(true);
+        if (method_exists($criteria, 'setFetchCount')) {
+            $criteria->setFetchCount(true);
+        }
         if ($condition) {
             $criteria->addCondition($condition);
         }
