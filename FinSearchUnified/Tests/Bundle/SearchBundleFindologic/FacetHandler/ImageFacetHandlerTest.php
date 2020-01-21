@@ -72,7 +72,7 @@ class ImageFacetHandlerTest extends TestCase
                 'condition' =>
                     new ProductAttributeCondition(
                         'vendor',
-                        ConditionInterface::OPERATOR_EQ,
+                        Operator::EQ,
                         ['Red', 'Zima Blue', 'Purple']
                     ),
                 'facetData' =>
@@ -100,7 +100,7 @@ class ImageFacetHandlerTest extends TestCase
                 'condition' =>
                     new ProductAttributeCondition(
                         'vendor',
-                        ConditionInterface::OPERATOR_EQ,
+                        Operator::EQ,
                         ['Red', 'Zima Blue', 'Purple']
                     ),
                 'facetData' =>
