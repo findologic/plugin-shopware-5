@@ -58,23 +58,6 @@ class ProductNumberSearchTest extends TestCase
 
     public function productNumberSearchProvider()
     {
-        $xmlResponse = $this->getXmlResponse();
-        $filters = $xmlResponse->addChild('filters');
-        $filters->addChild('filter');
-
-        $xml = $xmlResponse->asXML();
-
-        return [
-            'Shopware internal search, unrelated to FINDOLOGIC' => [false, true, $xml, 0],
-            'Shopware internal search' => [false, false, $xml, 0],
-            'Shopware search, unrelated to FINDOLOGIC' => [true, true, $xml, 0],
-            'FINDOLOGIC returns invalid response' => [true, false, null, 1],
-            'FINDOLOGIC search' => [true, false, $xml, 1]
-        ];
-    }
-
-    public function productNumberSearchProvider()
-    {
         $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
         $xmlResponse = new SimpleXMLElement($data);
 
@@ -287,82 +270,6 @@ class ProductNumberSearchTest extends TestCase
         foreach ($resultFacets as $key => $resultFacet) {
             $this->assertInstanceOf($expectedResults[$key], $resultFacet);
         }
-    }
-
-    public function productNumberSearchProvider()
-    {
-        $this->markTestSkipped('Skipped due to redirection');
-        $isFetchCount = true;
-        $isUseShopSearch = false;
-        $response = '';
-        $invokationCount = 1;
-
-        $query = $xmlResponse->addChild('query');
-        $query->addChild('queryString', 'queryString');
-
-        Shopware()->Session()->findologicDI = $isUseShopSearch;
-        Shopware()->Session()->isSearchPage = !$isUseShopSearch;
-
-        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['execute'])
-            ->getMockForAbstractClass();
-
-        $mockedQuery->expects($this->once())->method('execute')->willReturn($xml);
-
-        // Mock querybuilder factory method to check that custom implementation does not get called
-        // as original implementation will be called in this case
-        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
-        $mockQuerybuilderFactory->expects($this->once())
-            ->method('createProductQuery')
-            ->willReturn($mockedQuery);
-
-        $originalService = $this->createMock(ProductNumberSearch::class);
-        $productNumberSearch = new ProductNumberSearch($originalService, $mockQuerybuilderFactory);
-
-        $request = new RequestHttp();
-        $request->setModuleName('frontend');
-
-        // Create Mock object for Shopware Front Request
-        $front = $this->getMockBuilder(Front::class)
-            ->setMethods(['Request'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $front->method('Request')->willReturn($request);
-
-        $hydrator = new CustomListingHydrator();
-
-        foreach ($xmlResponse->filters->filter as $filter) {
-            $facet = $hydrator->hydrateFacet($filter);
-            $criteria->addFacet($facet->getFacet());
-        }
-
-        // Assign mocked variable to application container
-        Shopware()->Container()->set('front', $front);
-
-        $context = Shopware()->Container()->get('shopware_storefront.context_service')->getContext();
-        $searchResult = $productNumberSearch->search($criteria, $context);
-        $resultFacets = $searchResult->getFacets();
-
-        foreach ($resultFacets as $key => $resultFacet) {
-            $this->assertInstanceOf($expectedResults[$key], $resultFacet);
-        }
-    }
-
-    public function facetWithPriceFilterProvider()
-    {
-        $xmlResponse = $this->getXmlResponse();
-        $filters = $xmlResponse->addChild('filters');
-
-        $this->setPriceFilter($filters);
-
-        return [
-            'Shopware internal search, unrelated to FINDOLOGIC' => [false, true, $xml, 0],
-            'Shopware internal search' => [false, false, $xml, 0],
-            'Shopware search, unrelated to FINDOLOGIC' => [true, true, $xml, 0],
-            'FINDOLOGIC returns invalid response' => [true, false, null, 1],
-            'FINDOLOGIC search' => [true, false, $xml, 1]
-        ];
     }
 
     public function allFiltersProvider()
