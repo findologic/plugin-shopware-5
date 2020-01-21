@@ -34,7 +34,7 @@
                 export)</label>
             <description lang="de">Sollten Sie mehrere Subkategorien in Ihrer Cross-Selling Kategorie haben, fügen sie jede Subkategorie ein.</description>
             <description lang="en">If you have multiple subcategories in your Cross-Selling category, make sure to add all subcategories.</description>
-            <store>Shopware.apps.Category.store.CategoryPath</store>
+            <store>Shopware.apps.Base.store.Category</store>
             <options>
                 <multiSelect>true</multiSelect>
             </options>
