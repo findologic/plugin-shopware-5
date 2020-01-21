@@ -221,7 +221,7 @@ class ProductNumberSearchTest extends TestCase
         $xml = $xmlResponse->asXML();
 
         $criteria = new Criteria();
-        if (!method_exists($criteria, 'setFetchCount')) {
+        if (method_exists($criteria, 'setFetchCount')) {
             $criteria->setFetchCount(true);
         }
 
