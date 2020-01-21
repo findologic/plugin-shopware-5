@@ -221,7 +221,9 @@ class ProductNumberSearchTest extends TestCase
         $xml = $xmlResponse->asXML();
 
         $criteria = new Criteria();
-        $criteria->setFetchCount(true);
+        if (!method_exists($criteria, 'setFetchCount')) {
+            $criteria->setFetchCount(true);
+        }
 
         Shopware()->Session()->findologicDI = false;
         Shopware()->Session()->isSearchPage = true;
