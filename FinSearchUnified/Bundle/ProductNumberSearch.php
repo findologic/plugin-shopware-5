@@ -163,11 +163,11 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
     /**
      * @param Criteria $criteria
-     * @param SimpleXMLElement $filters
+     * @param SimpleXMLElement|null $filters
      *
      * @return array
      */
-    protected function createFacets(Criteria $criteria, SimpleXMLElement $filters)
+    protected function createFacets(Criteria $criteria, SimpleXMLElement $filters = null)
     {
         $facets = [];
 
