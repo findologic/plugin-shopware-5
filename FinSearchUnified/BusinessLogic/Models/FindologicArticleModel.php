@@ -681,7 +681,7 @@ class FindologicArticleModel
         $allAttributes[] = new Attribute('free_shipping', [$freeShipping]);
 
         // Add sale
-        $cheapestPrice = $this->productStruct->getListingPrice();
+        $cheapestPrice = $this->productStruct->getCheapestPrice();
         $hasPseudoPrice = $cheapestPrice->getCalculatedPseudoPrice() > $cheapestPrice->getCalculatedPrice();
         $onSale = $this->productStruct->isCloseouts() || $hasPseudoPrice;
         $allAttributes[] = new Attribute('sale', [(int)$onSale]);
@@ -773,7 +773,7 @@ class FindologicArticleModel
             }
         }
 
-        $cheapestPrice = $this->productStruct->getListingPrice();
+        $cheapestPrice = $this->productStruct->getCheapestPrice();
 
         if ($cheapestPrice->getCalculatedPseudoPrice() > $cheapestPrice->getCalculatedPrice()) {
             $allProperties[] = new Property('old_price', ['' => $cheapestPrice->getCalculatedPseudoPrice()]);

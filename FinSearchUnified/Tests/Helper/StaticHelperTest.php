@@ -186,6 +186,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
+                'fallbackSearchCookie' => null,
                 'expected' => true
             ],
             'Shopkey is empty' => [
@@ -195,6 +196,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
+                'fallbackSearchCookie' => null,
                 'expected' => true
             ],
             "Shopkey is 'Findologic Shopkey'" => [
@@ -204,6 +206,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
+                'fallbackSearchCookie' => null,
                 'expected' => true
             ],
             'FINDOLOGIC is active but integration type is DI' => [
@@ -213,6 +216,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => true,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
+                'fallbackSearchCookie' => null,
                 'expected' => true
             ],
             'FINDOLOGIC is active but the current page is neither the search nor a category page' => [
@@ -222,6 +226,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => false,
+                'fallbackSearchCookie' => null,
                 'expected' => true
             ],
             'FINDOLOGIC is not active on category pages' => [
@@ -231,6 +236,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
+                'fallbackSearchCookie' => null,
                 'expected' => true
             ],
             'FINDOLOGIC is active on search page' => [
@@ -240,6 +246,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
+                'fallbackSearchCookie' => null,
                 'expected' => false
             ],
             'FINDOLOGIC is active on category pages' => [
@@ -249,8 +256,49 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
+                'fallbackSearchCookie' => null,
                 'expected' => false
-            ]
+            ],
+            'Cookie "fallback-search" is set and true' => [
+                'activateFindologic' => true,
+                'shopKey' => '80AB18D4BE2654E78244106AD315DC2C',
+                'activateFindologicForCategoryPages' => false,
+                'findologicDI' => false,
+                'isSearchPage' => true,
+                'isCategoryPage' => false,
+                'fallbackSearchCookie' => true,
+                'expected' => true
+            ],
+            'Cookie "fallback-search" is set and its value is 1' => [
+                'activateFindologic' => true,
+                'shopKey' => '80AB18D4BE2654E78244106AD315DC2C',
+                'activateFindologicForCategoryPages' => false,
+                'findologicDI' => false,
+                'isSearchPage' => true,
+                'isCategoryPage' => false,
+                'fallbackSearchCookie' => 1,
+                'expected' => true
+            ],
+            'Cookie "fallback-search" is set and false' => [
+                'activateFindologic' => true,
+                'shopKey' => '80AB18D4BE2654E78244106AD315DC2C',
+                'activateFindologicForCategoryPages' => false,
+                'findologicDI' => false,
+                'isSearchPage' => true,
+                'isCategoryPage' => false,
+                'fallbackSearchCookie' => false,
+                'expected' => false
+            ],
+            'Cookie "fallback-search" is not set' => [
+                'activateFindologic' => true,
+                'shopKey' => '80AB18D4BE2654E78244106AD315DC2C',
+                'activateFindologicForCategoryPages' => false,
+                'findologicDI' => false,
+                'isSearchPage' => true,
+                'isCategoryPage' => false,
+                'fallbackSearchCookie' => null,
+                'expected' => false
+            ],
         ];
     }
 
@@ -373,6 +421,7 @@ class StaticHelperTest extends TestCase
      * @param bool $checkIntegration
      * @param bool $isSearchPage
      * @param bool $isCategoryPage
+     * @param bool|null $fallbackCookie
      * @param bool $expected
      *
      * @throws Zend_Cache_Exception
@@ -384,6 +433,7 @@ class StaticHelperTest extends TestCase
         $checkIntegration,
         $isSearchPage,
         $isCategoryPage,
+        $fallbackCookie,
         $expected
     ) {
         $configArray = [
@@ -394,6 +444,8 @@ class StaticHelperTest extends TestCase
         ];
         $request = new RequestHttp();
         $request->setModuleName('frontend');
+
+        $_COOKIE['fallback-search'] = $fallbackCookie;
 
         // Create Mock object for Shopware Front Request
         $front = $this->createMock(Front::class);
