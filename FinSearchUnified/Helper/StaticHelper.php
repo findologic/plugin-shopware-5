@@ -92,7 +92,7 @@ class StaticHelper
                     /** @var array $baseArticle */
                     $baseArticle = [];
                     $baseArticle['orderNumber'] = $productCheck;
-                    $baseArticle['detailId'] = self::getDetailIdForOrdernumber($productCheck);
+                    $baseArticle['detailId'] = static::getDetailIdForOrdernumber($productCheck);
                     $foundProducts[$articleId] = $baseArticle;
                 } catch (Exception $ex) {
                     // No Mapping for Search Results
@@ -149,7 +149,7 @@ class StaticHelper
         $string = str_replace(["\n", "\r", "\t"], ' ', $string);
 
         // Remove unprintable characters since they would cause an invalid XML.
-        $string = self::removeControlCharacters($string);
+        $string = static::removeControlCharacters($string);
 
         return trim($string);
     }
@@ -210,15 +210,15 @@ class StaticHelper
 
         $isInBackend = $request->getModuleName() === 'backend';
         $isEmotionPage = $request->getControllerName() === 'emotion';
-        $isFindologicActive = self::isFindologicActive();
-        $isDirectIntegration = self::checkDirectIntegration();
+        $isFindologicActive = static::isFindologicActive();
+        $isDirectIntegration = static::checkDirectIntegration();
         $isActiveOnCategoryPages = (bool)Shopware()->Config()->offsetGet('ActivateFindologicForCategoryPages');
 
         $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
         $isNoSearchAndCategoryPage = !$isCategoryPage && !Shopware()->Session()->offsetGet('isSearchPage');
         $isCategoryPageButDisabledInConfig = $isCategoryPage && !$isActiveOnCategoryPages;
 
-        $fallbackSearchIsSet = self::checkIfFallbackSearchCookieIsSet();
+        $fallbackSearchIsSet = static::checkIfFallbackSearchCookieIsSet();
 
         return (
             $isInBackend ||
@@ -267,7 +267,7 @@ class StaticHelper
         );
 
         $integrationType = $isDirectIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API;
-        self::storeIntegrationType($integrationType);
+        static::storeIntegrationType($integrationType);
 
         return $isDirectIntegration;
     }
