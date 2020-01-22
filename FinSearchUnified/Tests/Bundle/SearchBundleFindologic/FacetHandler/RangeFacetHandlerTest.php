@@ -6,6 +6,7 @@ use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\RangeFacetHandler;
 use FinSearchUnified\Tests\TestCase;
+use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
@@ -102,7 +103,7 @@ class RangeFacetHandlerTest extends TestCase
                 null,
                 null
             ],
-            'Price filter is not selected yet' => [
+            'Price filter is not selected' => [
                 [
                     'name' => 'price',
                     'display' => 'Preis',
@@ -134,6 +135,38 @@ class RangeFacetHandlerTest extends TestCase
                     'max'
                 )
             ],
+            'Price filter is selected' => [
+                [
+                    'name' => 'price',
+                    'display' => 'Preis',
+                    'select' => 'single',
+                    'type' => 'range-slider',
+                    'attributes' => [
+                        'totalRange' => [
+                            'min' => 4.20,
+                            'max' => 69.00
+                        ],
+                        'selectedRange' => [
+                            'min' => 4.20,
+                            'max' => 69.00
+                        ]
+                    ]
+                ],
+                'price',
+                'Preis',
+                new PriceCondition(4.20, 69.00),
+                new RangeFacetResult(
+                    'price',
+                    true,
+                    'Preis',
+                    4.20,
+                    69.00,
+                    4.20,
+                    69.00,
+                    'min',
+                    'max'
+                )
+            ],
             'Range filter is active' => [
                 [
                     'name' => 'attr6',
@@ -155,15 +188,15 @@ class RangeFacetHandlerTest extends TestCase
                 'Length',
                 new ProductAttributeCondition('attr6', Operator::EQ, ['min' => 4.20, 'max' => 6.09]),
                 new RangeFacetResult(
-                    'attr6',
+                    'product_attribute_attr6',
                     true,
                     'Length',
                     4.20,
                     69.00,
                     4.20,
                     6.09,
-                    'minattr6',
-                    'maxattr6'
+                    'minproduct_attribute_attr6',
+                    'maxproduct_attribute_attr6'
                 )
             ]
         ];

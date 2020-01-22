@@ -27,7 +27,7 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
         $categories = array_replace_recursive($this->parseCategories($filter->items->item, $actives), $actives);
 
         return new TreeFacetResult(
-            $facet->getField(),
+            $facet->getName(),
             $facet->getFormFieldName(),
             $criteria->hasCondition($facet->getName()),
             $facet->getLabel(),

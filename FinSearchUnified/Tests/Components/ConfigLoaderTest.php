@@ -179,10 +179,12 @@ class ConfigLoaderTest extends TestCase
             'Config file is empty or null' => [200, null, []],
             'Config file returns extra parameters' => [
                 200,
-                json_encode([
-                    'isStagingShop' => true,
-                    'directIntegration' => ['enabled' => false, 'iShouldNotBeHere' => true]
-                ]),
+                json_encode(
+                    [
+                        'isStagingShop' => true,
+                        'directIntegration' => ['enabled' => false, 'iShouldNotBeHere' => true]
+                    ]
+                ),
                 ['isStagingShop' => true, 'directIntegration' => ['enabled' => false]]
             ],
         ];
@@ -248,7 +250,6 @@ class ConfigLoaderTest extends TestCase
 
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
         $mockedCache->expects($this->never())->method('save');
-
         $mockedCache->expects($loadCallCount)
             ->method('load')
             ->with($expectedCacheKey)
@@ -271,10 +272,13 @@ class ConfigLoaderTest extends TestCase
     public function cacheLoadProvider()
     {
         return [
-            'Cache load return false' => [false, $this->exactly(2)],
+            'Cache load return false' => [
+                'cacheResponse' => false,
+                'loadCallCount' => $this->exactly(2)
+            ],
             'Cache load return config' => [
-                ['isStagingShop' => false, 'directIntegration' => ['enabled' => false]],
-                $this->once()
+                'cacheResponse' => ['isStagingShop' => false, 'directIntegration' => ['enabled' => false]],
+                'loadCallCount' => $this->once()
             ]
         ];
     }
