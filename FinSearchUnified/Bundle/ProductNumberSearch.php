@@ -173,6 +173,9 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         /** @var ProductAttributeFacet $criteriaFacet */
         foreach ($criteria->getFacets() as $criteriaFacet) {
+            if (!($criteriaFacet instanceof ProductAttributeFacet)) {
+                continue;
+            }
             $field = $criteriaFacet->getField();
 
             $selectedFilter = $selectedFilterByResponse = $this->fetchSelectedFilterByResponse($filters, $field);
