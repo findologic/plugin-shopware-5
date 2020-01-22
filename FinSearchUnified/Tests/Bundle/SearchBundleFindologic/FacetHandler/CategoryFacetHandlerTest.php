@@ -127,7 +127,7 @@ class CategoryFacetHandlerTest extends TestCase
                     ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
                 'Facet Result' =>
                     new TreeFacetResult(
-                        'cat',
+                        'product_attribute_cat',
                         'cat',
                         false,
                         'Category',
@@ -232,7 +232,7 @@ class CategoryFacetHandlerTest extends TestCase
                     ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
                 'Facet Result' =>
                     new TreeFacetResult(
-                        'cat',
+                        'product_attribute_cat',
                         'cat',
                         true,
                         'Category',
@@ -336,7 +336,7 @@ class CategoryFacetHandlerTest extends TestCase
                     ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
                 'Facet Result' =>
                     new TreeFacetResult(
-                        'cat',
+                        'product_attribute_cat',
                         'cat',
                         true,
                         'Category',
