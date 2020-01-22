@@ -4,11 +4,11 @@
     <label lang="de">FINDOLOGIC Suche (Unified)</label>
     <label lang="en">FINDOLOGIC Search (Unified)</label>
 
-    <version>9.1.2</version>
+    <version>9.2.0</version>
     <link>https://www.findologic.com/</link>
     <author>FINDOLOGIC GmbH</author>
     <support>https://www.findologic.com/</support>
-    <copyright>Copyright (c) 2015 - 2019, FINDOLOGIC GmbH</copyright>
+    <copyright>Copyright (c) 2015 - 2020, FINDOLOGIC GmbH</copyright>
     <description lang="de">
         <![CDATA[
         <table bgcolor="white" style="border: solid 0px #b7ddf2;">
@@ -57,5 +57,5 @@
          </table>
         ]]>
     </description>
-    <compatibility minVersion="5.3.0" />
+    <compatibility minVersion="5.2.0" />
 </plugin>

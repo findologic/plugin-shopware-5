@@ -2,12 +2,13 @@
 
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\FacetHandler;
 
+use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
+use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\ImageFacetHandler;
 use FinSearchUnified\Tests\TestCase;
 use GuzzleHttp\Client;
 use GuzzleHttp\Message\Response;
 use GuzzleHttp\Subscriber\Mock;
-use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
@@ -71,7 +72,7 @@ class ImageFacetHandlerTest extends TestCase
                 'condition' =>
                     new ProductAttributeCondition(
                         'vendor',
-                        ConditionInterface::OPERATOR_EQ,
+                        Operator::EQ,
                         ['Red', 'Zima Blue', 'Purple']
                     ),
                 'facetData' =>
@@ -99,7 +100,7 @@ class ImageFacetHandlerTest extends TestCase
                 'condition' =>
                     new ProductAttributeCondition(
                         'vendor',
-                        ConditionInterface::OPERATOR_EQ,
+                        Operator::EQ,
                         ['Red', 'Zima Blue', 'Purple']
                     ),
                 'facetData' =>

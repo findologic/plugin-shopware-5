@@ -65,9 +65,13 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      */
     public function search(Criteria $criteria, ShopContextInterface $context)
     {
-        // Shopware sets fetchCount to false when the search is used for internal purposes, which we don't care about.
-        // Checking its value is the only way to tell if we should actually perform the search.
-        $fetchCount = $criteria->fetchCount();
+        $fetchCount = true;
+        if (method_exists($criteria, 'fetchCount')) {
+            // Shopware sets fetchCount to false when the search is used for internal purposes, which we don't care
+            // about. Checking its value is the only way to tell if we should actually perform the search.
+            // Unfortunately this method only exists in Shopware >= 5.2.14.
+            $fetchCount = $criteria->fetchCount();
+        }
 
         $useShopSearch = StaticHelper::useShopSearch();
 
@@ -81,21 +85,23 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         if (empty($response)) {
             self::setFallbackFlag(1);
-            $searchResult = $this->originalService->search($criteria, $context);
-        } else {
-            self::setFallbackFlag(0);
-            $xmlResponse = StaticHelper::getXmlFromResponse($response);
-            self::redirectOnLandingpage($xmlResponse);
-            StaticHelper::setPromotion($xmlResponse);
-            StaticHelper::setSmartDidYouMean($xmlResponse);
-
-            $totalResults = (int)$xmlResponse->results->count;
-            $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
-            $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
-            $facets = $this->createFacets($criteria, $xmlResponse->filters->filter);
-
-            $searchResult = new ProductNumberSearchResult($searchResult, $totalResults, $facets);
+            self::setFallbackSearchFlag(1);
+            self::redirectToSameUrl();
+            return null;
         }
+        self::setFallbackFlag(0);
+        self::setFallbackSearchFlag(0);
+        $xmlResponse = StaticHelper::getXmlFromResponse($response);
+        self::redirectOnLandingpage($xmlResponse);
+        StaticHelper::setPromotion($xmlResponse);
+        StaticHelper::setSmartDidYouMean($xmlResponse);
+
+        $totalResults = (int)$xmlResponse->results->count;
+        $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
+        $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
+        $facets = $this->createFacets($criteria, $xmlResponse->filters->filter);
+
+        $searchResult = new ProductNumberSearchResult($searchResult, $totalResults, $facets);
 
         return $searchResult;
     }
@@ -157,11 +163,11 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
     /**
      * @param Criteria $criteria
-     * @param SimpleXMLElement $filters
+     * @param SimpleXMLElement|null $filters
      *
      * @return array
      */
-    protected function createFacets(Criteria $criteria, SimpleXMLElement $filters)
+    protected function createFacets(Criteria $criteria, SimpleXMLElement $filters = null)
     {
         $facets = [];
 
@@ -273,5 +279,20 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         $filter->addChild('items');
 
         return $filter;
+    }
+
+    /**
+     * @param int $flag
+     * @param int $mins
+     */
+    protected static function setFallbackSearchFlag($flag, $mins = 10)
+    {
+        setcookie('fallback-search', $flag, time() + (60 * $mins), '/', '', false, true);
+    }
+
+    protected static function redirectToSameUrl()
+    {
+        header('Location: ' . Shopware()->Front()->Request()->getRequestUri());
+        exit;
     }
 }

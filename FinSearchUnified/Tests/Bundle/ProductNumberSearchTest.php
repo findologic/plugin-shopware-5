@@ -2,8 +2,8 @@
 
 namespace FinSearchUnified\Tests\Bundle;
 
-use Enlight_Controller_Front as Front;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
+use Enlight_Exception;
 use Exception;
 use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
@@ -16,6 +16,7 @@ use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
+use Shopware\Bundle\SearchBundleDBAL\ProductNumberSearch as OriginalProductNumberSearch;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeItem;
@@ -51,26 +52,54 @@ class ProductNumberSearchTest extends TestCase
     {
         parent::tearDown();
 
-        Shopware()->Container()->reset('front');
-        Shopware()->Container()->load('front');
         Shopware()->Container()->reset('config');
         Shopware()->Container()->load('config');
     }
 
     public function productNumberSearchProvider()
     {
-        $xmlResponse = $this->getXmlResponse();
-        $filters = $xmlResponse->addChild('filters');
-        $filters->addChild('filter');
+        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
+        $xmlResponse = new SimpleXMLElement($data);
+
+        $query = $xmlResponse->addChild('query');
+        $query->addChild('queryString', 'queryString');
+
+        $results = $xmlResponse->addChild('results');
+        $results->addChild('count', 5);
+        $products = $xmlResponse->addChild('products');
+
+        for ($i = 1; $i <= 5; $i++) {
+            $product = $products->addChild('product');
+            $product->addAttribute('id', $i);
+        }
 
         $xml = $xmlResponse->asXML();
 
         return [
-            'Shopware internal search, unrelated to FINDOLOGIC' => [false, true, $xml, 0],
-            'Shopware internal search' => [false, false, $xml, 0],
-            'Shopware search, unrelated to FINDOLOGIC' => [true, true, $xml, 0],
-            'FINDOLOGIC returns invalid response' => [true, false, null, 1],
-            'FINDOLOGIC search' => [true, false, $xml, 1]
+            'Shopware internal search, unrelated to FINDOLOGIC' => [
+                'isFetchCount' => false,
+                'isUseShopSearch' => true,
+                'response' => $xml,
+                'invokationCount' => 0
+            ],
+            'Shopware internal search' => [
+                'isFetchCount' => false,
+                'isUseShopSearch' => false,
+                'response' => $xml,
+                'invokationCount' => 0
+            ],
+            'Shopware search, unrelated to FINDOLOGIC' => [
+                'isFetchCount' => true,
+                'isUseShopSearch' => true,
+                'response' => $xml,
+                'invokationCount' => 0
+            ],
+            'FINDOLOGIC search' => [
+                'isFetchCount' => true,
+                'isUseShopSearch' => false,
+                'response' => $xml,
+                'invokationCount' => 1
+            ]
         ];
     }
 
@@ -87,6 +116,9 @@ class ProductNumberSearchTest extends TestCase
     public function testProductNumberSearchImplementation($isFetchCount, $isUseShopSearch, $response, $invokationCount)
     {
         $criteria = new Criteria();
+        if (!method_exists($criteria, 'setFetchCount')) {
+            $this->markTestSkipped('Ignoring this test for Shopware 5.2.x');
+        }
         $criteria->setFetchCount($isFetchCount);
 
         Shopware()->Session()->findologicDI = $isUseShopSearch;
@@ -106,7 +138,7 @@ class ProductNumberSearchTest extends TestCase
             ->method('createProductQuery')
             ->willReturn($mockedQuery);
 
-        $originalService = $this->createMock(\Shopware\Bundle\SearchBundleDBAL\ProductNumberSearch::class);
+        $originalService = $this->createMock(OriginalProductNumberSearch::class);
 
         $productNumberSearch = new ProductNumberSearch(
             $originalService,
@@ -121,13 +153,125 @@ class ProductNumberSearchTest extends TestCase
             ->setMethods(['Request'])
             ->disableOriginalConstructor()
             ->getMock();
-        $front->method('Request')->willReturn($request);
+        $front->expects($this->any())
+            ->method('Request')
+            ->willReturn($request);
 
         // Assign mocked variable to application container
         Shopware()->Container()->set('front', $front);
 
         $context = Shopware()->Container()->get('shopware_storefront.context_service')->getContext();
         $productNumberSearch->search($criteria, $context);
+    }
+
+    public function facetWithPriceFilterProvider()
+    {
+        $xmlResponse = $this->getXmlResponse();
+        $filters = $xmlResponse->addChild('filters');
+
+        $this->setPriceFilter($filters);
+
+        return [
+            'Price filters which are selected only contain the value that was selected' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResult' => new RangeFacetResult(
+                    'price',
+                    true,
+                    'Price',
+                    66.20,
+                    99.0,
+                    66.20,
+                    99.0,
+                    'min',
+                    'max'
+                ),
+                'condition' => new PriceCondition(66.20, 99.00)
+
+            ],
+            'All price filter values are displayed if no filters are selected' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResult' => new RangeFacetResult(
+                    'price',
+                    false,
+                    'Price',
+                    0.0,
+                    99.0,
+                    4.2,
+                    69.0,
+                    'min',
+                    'max'
+                ),
+                'condition' => null
+            ]
+        ];
+    }
+    /**
+     * @dataProvider allFiltersProvider
+     * @dataProvider facetWithNoHandlerProvider
+     * @dataProvider facetWithInvalidModeProvider
+     * @dataProvider missingFilterProvider
+     *
+     * @param SimpleXMLElement $xmlResponse
+     * @param array $expectedResults
+     *
+     * @throws Exception
+     */
+    public function testProductNumberSearchResultWithAllFilters(SimpleXMLElement $xmlResponse, array $expectedResults)
+    {
+        $xml = $xmlResponse->asXML();
+
+        $criteria = new Criteria();
+        if (method_exists($criteria, 'setFetchCount')) {
+            $criteria->setFetchCount(true);
+        }
+
+        Shopware()->Session()->findologicDI = false;
+        Shopware()->Session()->isSearchPage = true;
+
+        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['execute'])
+            ->getMockForAbstractClass();
+
+        $mockedQuery->expects($this->once())->method('execute')->willReturn($xml);
+
+        // Mock querybuilder factory method to check that custom implementation does not get called
+        // as original implementation will be called in this case
+        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+        $mockQuerybuilderFactory->expects($this->once())
+            ->method('createProductQuery')
+            ->willReturn($mockedQuery);
+
+        $originalService = $this->createMock(ProductNumberSearch::class);
+        $productNumberSearch = new ProductNumberSearch($originalService, $mockQuerybuilderFactory);
+
+        $request = new RequestHttp();
+        $request->setModuleName('frontend');
+
+        // Create Mock object for Shopware Front Request
+        $front = $this->getMockBuilder(Front::class)
+            ->setMethods(['Request'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $front->method('Request')->willReturn($request);
+
+        $hydrator = new CustomListingHydrator();
+
+        foreach ($xmlResponse->filters->filter as $filter) {
+            $facet = $hydrator->hydrateFacet($filter);
+            $criteria->addFacet($facet->getFacet());
+        }
+
+        // Assign mocked variable to application container
+        Shopware()->Container()->set('front', $front);
+
+        $context = Shopware()->Container()->get('shopware_storefront.context_service')->getContext();
+        $searchResult = $productNumberSearch->search($criteria, $context);
+        $resultFacets = $searchResult->getFacets();
+
+        foreach ($resultFacets as $key => $resultFacet) {
+            $this->assertInstanceOf($expectedResults[$key], $resultFacet);
+        }
     }
 
     public function allFiltersProvider()
@@ -202,115 +346,6 @@ class ProductNumberSearchTest extends TestCase
                     TreeFacetResult::class,
                     ValueListFacetResult::class
                 ]
-            ]
-        ];
-    }
-
-    /**
-     * @dataProvider allFiltersProvider
-     * @dataProvider facetWithNoHandlerProvider
-     * @dataProvider facetWithInvalidModeProvider
-     * @dataProvider missingFilterProvider
-     *
-     * @param SimpleXMLElement $xmlResponse
-     * @param array $expectedResults
-     *
-     * @throws Exception
-     */
-    public function testProductNumberSearchResultWithAllFilters(SimpleXMLElement $xmlResponse, array $expectedResults)
-    {
-        $xml = $xmlResponse->asXML();
-
-        $criteria = new Criteria();
-        $criteria->setFetchCount(true);
-
-        Shopware()->Session()->findologicDI = false;
-        Shopware()->Session()->isSearchPage = true;
-
-        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['execute'])
-            ->getMockForAbstractClass();
-
-        $mockedQuery->expects($this->once())->method('execute')->willReturn($xml);
-
-        // Mock querybuilder factory method to check that custom implementation does not get called
-        // as original implementation will be called in this case
-        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
-        $mockQuerybuilderFactory->expects($this->once())
-            ->method('createProductQuery')
-            ->willReturn($mockedQuery);
-
-        $originalService = $this->createMock(ProductNumberSearch::class);
-        $productNumberSearch = new ProductNumberSearch($originalService, $mockQuerybuilderFactory);
-
-        $request = new RequestHttp();
-        $request->setModuleName('frontend');
-
-        // Create Mock object for Shopware Front Request
-        $front = $this->getMockBuilder(Front::class)
-            ->setMethods(['Request'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $front->method('Request')->willReturn($request);
-
-        $hydrator = new CustomListingHydrator();
-
-        foreach ($xmlResponse->filters->filter as $filter) {
-            $facet = $hydrator->hydrateFacet($filter);
-            $criteria->addFacet($facet->getFacet());
-        }
-
-        // Assign mocked variable to application container
-        Shopware()->Container()->set('front', $front);
-
-        $context = Shopware()->Container()->get('shopware_storefront.context_service')->getContext();
-        $searchResult = $productNumberSearch->search($criteria, $context);
-        $resultFacets = $searchResult->getFacets();
-
-        foreach ($resultFacets as $key => $resultFacet) {
-            $this->assertInstanceOf($expectedResults[$key], $resultFacet);
-        }
-    }
-
-    public function facetWithPriceFilterProvider()
-    {
-        $xmlResponse = $this->getXmlResponse();
-        $filters = $xmlResponse->addChild('filters');
-
-        $this->setPriceFilter($filters);
-
-        return [
-            'Price filters which are selected only contain the value that was selected' => [
-                'xmlResponse' => $xmlResponse,
-                'expectedResult' => new RangeFacetResult(
-                    'price',
-                    true,
-                    'Price',
-                    66.20,
-                    99.0,
-                    66.20,
-                    99.0,
-                    'min',
-                    'max'
-                ),
-                'condition' => new PriceCondition(66.20, 99.00)
-
-            ],
-            'All price filter values are displayed if no filters are selected' => [
-                'xmlResponse' => $xmlResponse,
-                'expectedResult' => new RangeFacetResult(
-                    'price',
-                    false,
-                    'Price',
-                    0.0,
-                    99.0,
-                    4.2,
-                    69.0,
-                    'min',
-                    'max'
-                ),
-                'condition' => null
             ]
         ];
     }
@@ -407,7 +442,9 @@ class ProductNumberSearchTest extends TestCase
         ConditionInterface $condition = null
     ) {
         $criteria = new Criteria();
-        $criteria->setFetchCount(true);
+        if (method_exists($criteria, 'setFetchCount')) {
+            $criteria->setFetchCount(true);
+        }
         if ($condition) {
             $criteria->addCondition($condition);
         }
