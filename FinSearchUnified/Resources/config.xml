@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="../../../../engine/Shopware/Components/Plugin/schema/config.xsd">
+    xsi:noNamespaceSchemaLocation="../../../../engine/Shopware/Components/Plugin/schema/config.xsd">
 
     <elements>
         <element type="text" required="true" scope="shop">
@@ -34,8 +34,25 @@
                 export)</label>
             <description lang="de">Sollten Sie mehrere Subkategorien in Ihrer Cross-Selling Kategorie haben, fügen sie jede Subkategorie ein.</description>
             <description lang="en">If you have multiple subcategories in your Cross-Selling category, make sure to add all subcategories.</description>
-            <store>Shopware.apps.Base.store.Category</store>
+            <store><![CDATA[Ext.define('Findologic.Category.Form', {
+    extend: 'Shopware.apps.Base.store.Category',
+    autoLoad: true,
+    pageSize: 25,
+    proxy: {
+        type: 'ajax',
+        url: window.location.href.substr(0, window.location.href.indexOf('backend')) + 'backend/Category/getPathByQuery',
+        reader: {
+            type: 'json',
+            root: 'data',
+            totalProperty: 'total'
+        }
+    }
+    }).create();//new ]]>
+            </store>
             <options>
+                <valueField>id</valueField>
+                <displayField>name</displayField>
+                <isCustomStore>true</isCustomStore>
                 <multiSelect>true</multiSelect>
             </options>
         </element>
