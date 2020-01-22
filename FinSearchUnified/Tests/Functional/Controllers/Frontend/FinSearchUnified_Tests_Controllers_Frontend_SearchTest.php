@@ -172,6 +172,9 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             $query->addChild('originalQuery', $originalQuery);
         }
 
+        $filters = $xmlResponse->addChild('filters');
+        $filters->addChild('filter');
+
         $results = $xmlResponse->addChild('results');
         $results->addChild('count', 5);
         $products = $xmlResponse->addChild('products');
