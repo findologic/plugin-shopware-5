@@ -204,7 +204,7 @@ class StaticHelper
     {
         $request = Shopware()->Front()->Request();
         $isCLIMode = $request === null;
-        if ($isCLIMode) {
+        if ($isCLIMode || !Shopware()->Container()->has('shop')) {
             return true;
         }
 
