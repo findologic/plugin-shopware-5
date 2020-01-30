@@ -204,6 +204,11 @@ class StaticHelper
     {
         $request = Shopware()->Front()->Request();
         $isCLIMode = $request === null;
+
+        /*
+         * Shop is not available in the Backend for the search of the Product Stream preview.
+         * Shopware tries to create a new Session and throws an exception, because the Shop is not available
+         */
         if ($isCLIMode || !Shopware()->Container()->has('shop')) {
             return true;
         }
