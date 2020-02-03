@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler;
 
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
+use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\SearchBundle\FacetInterface;
@@ -85,7 +86,7 @@ class TextFacetHandler implements PartialFacetHandlerInterface
                 unset($actives[$index]);
             }
 
-            if ($freq && !$active) {
+            if ($freq && !$active && !StaticHelper::checkIfProductAndFilterLiveReloadingIsEnabled()) {
                 $label = sprintf('%s (%d)', $name, $freq);
             } else {
                 $label = $name;

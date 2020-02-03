@@ -388,4 +388,14 @@ class StaticHelper
     {
         return (isset($_COOKIE['fallback-search']) && (bool)$_COOKIE['fallback-search']) === true;
     }
+
+    /**
+     * @return bool
+     */
+    public static function checkIfProductAndFilterLiveReloadingIsEnabled()
+    {
+        $listingMode = Shopware()->Config()->offsetGet('listingMode');
+
+        return ($listingMode === 'filter_ajax_reload');
+    }
 }

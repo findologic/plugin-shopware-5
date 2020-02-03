@@ -10,7 +10,9 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\RangeFacetHandle
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\TextFacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Helper\StaticHelper;
+use Psr\Cache\CacheItemPoolInterface;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -21,6 +23,8 @@ use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use SimpleXMLElement;
+use Zend_Cache_Core;
+use Zend_Cache_Exception;
 
 class ProductNumberSearch implements ProductNumberSearchInterface
 {
@@ -40,16 +44,24 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     private $facetHandlers;
 
     /**
+     * @var Zend_Cache_Core
+     */
+    private $cache;
+
+    /**
      * @param ProductNumberSearchInterface $service
      * @param QueryBuilderFactoryInterface $queryBuilderFactory
+     * @param Zend_Cache_Core $cache
      */
     public function __construct(
         ProductNumberSearchInterface $service,
-        QueryBuilderFactoryInterface $queryBuilderFactory
+        QueryBuilderFactoryInterface $queryBuilderFactory,
+        Zend_Cache_Core $cache
     ) {
         $this->originalService = $service;
         $this->queryBuilderFactory = $queryBuilderFactory;
         $this->facetHandlers = self::registerFacetHandlers();
+        $this->cache = $cache;
     }
 
     /**
@@ -87,6 +99,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             static::setFallbackFlag(1);
             static::setFallbackSearchFlag(1);
             static::redirectToSameUrl();
+
             return null;
         }
         static::setFallbackFlag(0);
@@ -99,7 +112,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         $totalResults = (int)$xmlResponse->results->count;
         $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
         $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
-        $facets = $this->createFacets($criteria, $xmlResponse->filters->filter);
+        $facets = $this->createFacets($criteria, $context, $xmlResponse->filters->filter);
 
         $searchResult = new ProductNumberSearchResult($searchResult, $totalResults, $facets);
 
@@ -163,13 +176,23 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
     /**
      * @param Criteria $criteria
+     * @param ShopContextInterface $context
      * @param SimpleXMLElement|null $filters
      *
      * @return array
+     * @throws Zend_Cache_Exception
      */
-    protected function createFacets(Criteria $criteria, SimpleXMLElement $filters = null)
+    protected function createFacets(Criteria $criteria, ShopContextInterface $context, SimpleXMLElement $filters = null)
     {
         $facets = [];
+
+        /** @var QueryBuilder $query */
+        $query = $this->queryBuilderFactory->createSearchNavigationQuery($criteria, $context);
+        $response = $query->execute();
+        $xmlResponse = StaticHelper::getXmlFromResponse($response);
+
+        $cacheUrlID = md5(Shopware()->Front()->Request()->getRequestUri());
+        $this->cache->save($xmlResponse, sprintf('finsearch_%s', $cacheUrlID), ['FINDOLOGIC'], 86400);
 
         /** @var ProductAttributeFacet $criteriaFacet */
         foreach ($criteria->getFacets() as $criteriaFacet) {
@@ -180,7 +203,8 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
             $selectedFilter = $selectedFilterByResponse = $this->fetchSelectedFilterByResponse($filters, $field);
             if (!$selectedFilterByResponse) {
-                $selectedFilter = $this->fetchSelectedFilterByUserCondition($criteria, $criteriaFacet);
+                $selectedFilter =
+                    $this->fetchSelectedFilterByUserCondition($criteria, $criteriaFacet, $xmlResponse->filters->filter);
                 if (!$selectedFilter) {
                     continue;
                 }
@@ -216,11 +240,15 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     /**
      * @param Criteria $criteria
      * @param FacetInterface $criteriaFacet
+     * @param SimpleXMLElement $filter
      *
      * @return SimpleXMLElement|null
      */
-    private function fetchSelectedFilterByUserCondition(Criteria $criteria, FacetInterface $criteriaFacet)
-    {
+    private function fetchSelectedFilterByUserCondition(
+        Criteria $criteria,
+        FacetInterface $criteriaFacet,
+        SimpleXMLElement $filter
+    ) {
         if ($criteria->hasUserCondition($criteriaFacet->getName())) {
             $facetName = $criteriaFacet->getName();
         } elseif ($criteria->hasUserCondition('price')) {
@@ -231,19 +259,26 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         $condition = $criteria->getUserCondition($facetName);
 
+        $filterItems = [];
+        foreach ($filter as $filterItem) {
+            $filterItems[] = $filterItem->items;
+        }
+
         return $this->createSelectedFilter(
             $criteriaFacet,
-            $condition
+            $condition,
+            $filterItems
         );
     }
 
     /**
      * @param FacetInterface $facet
      * @param ConditionInterface $condition
+     * @param array $filterItems
      *
      * @return SimpleXMLElement
      */
-    private function createSelectedFilter(FacetInterface $facet, ConditionInterface $condition)
+    private function createSelectedFilter(FacetInterface $facet, ConditionInterface $condition, array $filterItems)
     {
         $data = '<filter />';
         $filter = new SimpleXMLElement($data);
@@ -279,7 +314,10 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         $filter->addChild('name', $condition->getField());
         $filter->addChild('type', 'label');
-        $filter->addChild('items');
+        $items = $filter->addChild('items');
+        foreach ($filterItems as $item) {
+            $items->addChild('item', $item);
+        }
 
         return $filter;
     }

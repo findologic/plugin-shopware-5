@@ -250,4 +250,29 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
 
         return $querybuilder;
     }
+
+    /**
+     * @param Criteria $criteria
+     * @param ShopContextInterface $context
+     *
+     * @return QueryBuilder
+     * @throws Exception
+     */
+    public function createSearchNavigationQuery(Criteria $criteria, ShopContextInterface $context)
+    {
+        $query = $this->createQueryBuilder();
+
+        if ($query instanceof SearchQueryBuilder && $criteria->hasCondition('search')) {
+            $condition = $criteria->getCondition('search');
+        } else {
+            $condition = $criteria->getCondition('cat');
+        }
+
+        $handler = $this->getConditionHandler($condition);
+        if ($handler !== null) {
+            $handler->generateCondition($condition, $query, $context);
+        }
+
+        return $query;
+    }
 }
