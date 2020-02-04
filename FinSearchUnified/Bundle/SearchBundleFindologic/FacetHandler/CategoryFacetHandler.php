@@ -122,7 +122,10 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
                 'children' => $filterItem->items->item ? $this->parseCategories($filterItem->items->item, $actives) : []
             ];
 
-            if ($frequency && !StaticHelper::checkIfProductAndFilterLiveReloadingIsEnabled()) {
+            // Do not set filter item frequency if "Product & Filter live reloading" is enabled in the Shopware Backend.
+            $filterReloadingEnabled = StaticHelper::checkIfProductAndFilterLiveReloadingIsEnabled();
+
+            if ($frequency && !$filterReloadingEnabled) {
                 $categories[$name]['frequency'] = $frequency;
             }
         }

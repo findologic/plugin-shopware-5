@@ -10,9 +10,7 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\RangeFacetHandle
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\TextFacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Helper\StaticHelper;
-use Psr\Cache\CacheItemPoolInterface;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -185,14 +183,19 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     protected function createFacets(Criteria $criteria, ShopContextInterface $context, SimpleXMLElement $filters = null)
     {
         $facets = [];
+        $url = md5(Shopware()->Front()->Request()->getRequestUri());
+        $cacheId = sprintf('finsearch_%s', $url);
 
-        /** @var QueryBuilder $query */
-        $query = $this->queryBuilderFactory->createSearchNavigationQuery($criteria, $context);
-        $response = $query->execute();
+        if ($this->cache->load($cacheId) === false) {
+            /** @var QueryBuilder $query */
+            $query = $this->queryBuilderFactory->createSearchNavigationQuery($criteria, $context);
+            $response = $query->execute();
+            $this->cache->save(serialize($response), $cacheId, ['FINDOLOGIC'], 86400);
+        } else {
+            $response = unserialize($this->cache->load($cacheId));
+        }
+
         $xmlResponse = StaticHelper::getXmlFromResponse($response);
-
-        $cacheUrlID = md5(Shopware()->Front()->Request()->getRequestUri());
-        $this->cache->save($xmlResponse, sprintf('finsearch_%s', $cacheUrlID), ['FINDOLOGIC'], 86400);
 
         /** @var ProductAttributeFacet $criteriaFacet */
         foreach ($criteria->getFacets() as $criteriaFacet) {
@@ -203,8 +206,11 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
             $selectedFilter = $selectedFilterByResponse = $this->fetchSelectedFilterByResponse($filters, $field);
             if (!$selectedFilterByResponse) {
-                $selectedFilter =
-                    $this->fetchSelectedFilterByUserCondition($criteria, $criteriaFacet, $xmlResponse->filters->filter);
+                $selectedFilter = $this->fetchSelectedFilterByUserCondition(
+                    $criteria,
+                    $criteriaFacet,
+                    $xmlResponse->filters->filter
+                );
                 if (!$selectedFilter) {
                     continue;
                 }
@@ -240,14 +246,14 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     /**
      * @param Criteria $criteria
      * @param FacetInterface $criteriaFacet
-     * @param SimpleXMLElement $filter
+     * @param SimpleXMLElement $allFilters
      *
      * @return SimpleXMLElement|null
      */
     private function fetchSelectedFilterByUserCondition(
         Criteria $criteria,
         FacetInterface $criteriaFacet,
-        SimpleXMLElement $filter
+        SimpleXMLElement $allFilters
     ) {
         if ($criteria->hasUserCondition($criteriaFacet->getName())) {
             $facetName = $criteriaFacet->getName();
@@ -260,8 +266,9 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         $condition = $criteria->getUserCondition($facetName);
 
         $filterItems = [];
-        foreach ($filter as $filterItem) {
-            $filterItems[] = $filterItem->items;
+
+        foreach ($allFilters->items->item as $filterItem) {
+            $filterItems[] = $filterItem;
         }
 
         return $this->createSelectedFilter(
@@ -315,6 +322,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         $filter->addChild('name', $condition->getField());
         $filter->addChild('type', 'label');
         $items = $filter->addChild('items');
+
         foreach ($filterItems as $item) {
             $items->addChild('item', $item);
         }

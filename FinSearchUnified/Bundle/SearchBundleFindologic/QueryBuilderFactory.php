@@ -262,10 +262,10 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     {
         $query = $this->createQueryBuilder();
 
-        if ($query instanceof SearchQueryBuilder && $criteria->hasCondition('search')) {
+        if ($query instanceof SearchQueryBuilder) {
             $condition = $criteria->getCondition('search');
         } else {
-            $condition = $criteria->getCondition('cat');
+            $condition = $criteria->getCondition('category');
         }
 
         $handler = $this->getConditionHandler($condition);
