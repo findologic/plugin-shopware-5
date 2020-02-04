@@ -265,10 +265,11 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         $condition = $criteria->getUserCondition($facetName);
 
-        $filterItems = [];
+        $selectedFilter = $allFilters->xpath(sprintf('//name[.="%s"]/parent::*', $criteriaFacet->getField()))[0];
 
-        foreach ($allFilters->items->item as $filterItem) {
-            $filterItems[] = $filterItem;
+        $filterItems = [];
+        foreach ($selectedFilter->items->item as $filterItem) {
+            $filterItems[] = (string)$filterItem->name;
         }
 
         return $this->createSelectedFilter(
@@ -281,11 +282,11 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     /**
      * @param FacetInterface $facet
      * @param ConditionInterface $condition
-     * @param array $filterItems
+     * @param array $filterNames
      *
      * @return SimpleXMLElement
      */
-    private function createSelectedFilter(FacetInterface $facet, ConditionInterface $condition, array $filterItems)
+    private function createSelectedFilter(FacetInterface $facet, ConditionInterface $condition, array $filterNames)
     {
         $data = '<filter />';
         $filter = new SimpleXMLElement($data);
@@ -323,8 +324,9 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         $filter->addChild('type', 'label');
         $items = $filter->addChild('items');
 
-        foreach ($filterItems as $item) {
-            $items->addChild('item', $item);
+        foreach ($filterNames as $name) {
+            $itemElement = $items->addChild('item');
+            $itemElement->addChild('name', $name);
         }
 
         return $filter;
