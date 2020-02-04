@@ -264,18 +264,21 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         }
 
         $condition = $criteria->getUserCondition($facetName);
+        $field = $criteriaFacet->getField();
 
-        $selectedFilter = $allFilters->xpath(sprintf('//name[.="%s"]/parent::*', $criteriaFacet->getField()))[0];
+        $selectedFilter = $this->fetchSelectedFilterByResponse($allFilters, $field);
+        $filterNames = [];
 
-        $filterItems = [];
-        foreach ($selectedFilter->items->item as $filterItem) {
-            $filterItems[] = (string)$filterItem->name;
+        if ($selectedFilter) {
+            foreach ($selectedFilter->items->item as $filterItem) {
+                $filterNames[] = (string)$filterItem->name;
+            }
         }
 
         return $this->createSelectedFilter(
             $criteriaFacet,
             $condition,
-            $filterItems
+            $filterNames
         );
     }
 
