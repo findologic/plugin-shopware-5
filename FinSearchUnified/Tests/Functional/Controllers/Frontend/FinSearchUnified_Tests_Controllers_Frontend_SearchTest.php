@@ -192,6 +192,8 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         if (method_exists($criteria, 'setFetchCount')) {
             $criteria->setFetchCount(true);
         }
+
+        $this->Request()->setParam('sSearch', 'blubbergurke');
         $criteria->addBaseCondition(new SearchTermCondition('blubbergurke'));
         $storeFrontCriteriaFactoryMock = $this->getMockBuilder(StoreFrontCriteriaFactory::class)
             ->disableOriginalConstructor()
