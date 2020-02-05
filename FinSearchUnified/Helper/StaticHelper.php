@@ -363,7 +363,7 @@ class StaticHelper
         $originalQuery = (string)$query->originalQuery;
         $didYouMeanQuery = (string)$query->didYouMeanQuery;
         $queryString = $query->queryString;
-        $queryStringType = (string)$queryString->attributes()->type;
+        $queryStringType = $queryString->attributes() !== null ? (string)$queryString->attributes()->type : null;
 
         if ((!empty($originalQuery) || !empty($didYouMeanQuery)) && $queryStringType !== 'forced') {
             /** @var Enlight_View_Default $view */

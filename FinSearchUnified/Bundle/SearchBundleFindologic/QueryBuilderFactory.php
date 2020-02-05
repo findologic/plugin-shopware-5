@@ -261,16 +261,20 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     public function createSearchNavigationQuery(Criteria $criteria, ShopContextInterface $context)
     {
         $query = $this->createQueryBuilder();
+        $condition = null;
 
         if ($query instanceof SearchQueryBuilder) {
             $condition = $criteria->getCondition('search');
-        } else {
+        }
+        if ($query instanceof NavigationQueryBuilder) {
             $condition = $criteria->getCondition('category');
         }
 
-        $handler = $this->getConditionHandler($condition);
-        if ($handler !== null) {
-            $handler->generateCondition($condition, $query, $context);
+        if ($condition !== null) {
+            $handler = $this->getConditionHandler($condition);
+            if ($handler !== null) {
+                $handler->generateCondition($condition, $query, $context);
+            }
         }
 
         return $query;

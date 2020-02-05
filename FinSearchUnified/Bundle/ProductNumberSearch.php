@@ -190,9 +190,9 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             /** @var QueryBuilder $query */
             $query = $this->queryBuilderFactory->createSearchNavigationQuery($criteria, $context);
             $response = $query->execute();
-            $this->cache->save(serialize($response), $cacheId, ['FINDOLOGIC'], 86400);
+            $this->cache->save($response, $cacheId, ['FINDOLOGIC'], 86400);
         } else {
-            $response = unserialize($this->cache->load($cacheId));
+            $response = $this->cache->load($cacheId);
         }
 
         $xmlResponse = StaticHelper::getXmlFromResponse($response);
