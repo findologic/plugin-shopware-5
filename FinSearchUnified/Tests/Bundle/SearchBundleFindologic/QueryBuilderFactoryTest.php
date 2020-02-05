@@ -14,6 +14,7 @@ use Shopware\Bundle\SearchBundle\Condition\IsAvailableCondition;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
 use Shopware\Bundle\SearchBundle\Condition\SimpleCondition;
+use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Sorting\PopularitySorting;
 use Shopware\Bundle\SearchBundle\Sorting\SimpleSorting;
@@ -43,11 +44,7 @@ class QueryBuilderFactoryTest extends TestCase
         // By default, the search page is true
         Shopware()->Session()->offsetSet('isSearchPage', true);
 
-        $this->factory = new QueryBuilderFactory(
-            Shopware()->Container()->get('http_client'),
-            Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
-            Shopware()->Container()->get('config')
-        );
+        $this->factory = Shopware()->Container()->get('fin_search_unified.query_builder_factory');
 
         /** @var ContextServiceInterface $contextService */
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
@@ -350,5 +347,44 @@ class QueryBuilderFactoryTest extends TestCase
             'Search request' => [true, SearchQueryBuilder::class],
             'Navigation request' => [false, NavigationQueryBuilder::class],
         ];
+    }
+
+    public function conditionProvider()
+    {
+        return [
+            'Search condition' => [
+                'condition' => new SearchTermCondition('blubbergurke'),
+                'key' => 'query',
+                'expected' => 'blubbergurke'
+            ],
+            'Category condition' => [
+                'condition' => new CategoryCondition([5, 12]),
+                'key' => 'selected',
+                'expected' => ['cat' => ['Genusswelten', 'Genusswelten_Tees und Zubehör_Tees']]
+            ]
+
+        ];
+    }
+
+    /**
+     * @dataProvider conditionProvider
+     *
+     * @param ConditionInterface $condition
+     * @param string $key
+     * @param mixed $expected
+     *
+     * @throws Exception
+     */
+    public function testSearchNavigationQuerybuilder(ConditionInterface $condition, $key, $expected)
+    {
+        Shopware()->Session()->offsetSet('isSearchPage', $condition instanceof SearchTermCondition);
+
+        $criteria = new Criteria();
+        $criteria->addCondition($condition);
+
+        $query = $this->factory->createSearchNavigationQuery($criteria, $this->context);
+        $params = $query->getParameters();
+        $this->assertArrayHasKey($key, $params);
+        $this->assertSame($expected, $params[$key]);
     }
 }

@@ -630,7 +630,7 @@ class StaticHelperTest extends TestCase
     private function updateParentCategoryName(Category $parent, $restore = true)
     {
         // Stop when Shopware's root category is reached. Changing it can and will break unrelated tests.
-        if ($parent->getId() === 1) {
+        if ($parent->getId() <= 3) {
             return;
         }
 
