@@ -204,7 +204,10 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             }
             $field = $criteriaFacet->getField();
 
-            $selectedFilter = $selectedFilterByResponse = $this->fetchSelectedFilterByResponse($xmlResponse->filters->filter, $field);
+            $selectedFilter = $selectedFilterByResponse = $this->fetchSelectedFilterByResponse(
+                $xmlResponse->filters->filter,
+                $field
+            );
             if (!$selectedFilterByResponse) {
                 $selectedFilter = $this->fetchSelectedFilterByUserCondition(
                     $criteria,
