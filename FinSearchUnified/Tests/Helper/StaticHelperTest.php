@@ -559,6 +559,31 @@ class StaticHelperTest extends TestCase
     }
 
     /**
+     * @throws Zend_Cache_Exception
+     */
+    public function testUseShopSearchWhenShopIsNotAvailable()
+    {
+        $request = new RequestHttp();
+        $request->setModuleName('backend');
+
+        // Create Mock object for Shopware Front Request
+        $front = $this->createMock(Front::class);
+        $front->method('Request')
+            ->willReturn($request);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('front', $front);
+
+        $shop = Shopware()->Container()->get('shop');
+        Shopware()->Container()->reset('shop');
+
+        $result = StaticHelper::useShopSearch();
+        $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
+
+        Shopware()->Container()->set('shop', $shop);
+    }
+
+    /**
      * @dataProvider controlCharacterProvider
      *
      * @param string $text
