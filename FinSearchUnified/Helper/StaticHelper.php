@@ -161,7 +161,7 @@ class StaticHelper
      */
     public static function isEmpty($value)
     {
-        if (is_numeric($value)) {
+        if (is_numeric($value) || is_object($value)) {
             return false;
         }
 

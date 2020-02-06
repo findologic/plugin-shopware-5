@@ -959,4 +959,48 @@ class StaticHelperTest extends TestCase
             'Integration type is DI but DI is not enabled' => ['Direct Integration', 'API', false],
         ];
     }
+
+    public function nonEmptyValueProvider()
+    {
+        return [
+            ' i am not empty',
+            new SimpleXMLElement('<notEmpty/>'),
+            23,
+            1,
+            '_',
+            ['not empty at all' => 'really']
+        ];
+    }
+
+    /**
+     * @dataProvider nonEmptyValueProvider
+     */
+    public function testValuesThatAreNotEmptyAreReturnedAsSuch($value)
+    {
+        $this->assertFalse(StaticHelper::isEmpty($value));
+    }
+
+
+    public function emptyValueProvider()
+    {
+        return [
+            '',
+            ' ',
+            '     ',
+            '          ',
+            0,
+            '0',
+            [],
+            [''],
+            0.0,
+        ];
+    }
+
+    /**
+     * @dataProvider emptyValueProvider
+     */
+    public function testValuesThatArEmptyAreReturnedAsSuch($value)
+    {
+        $this->assertTrue(StaticHelper::isEmpty($value));
+    }
 }
