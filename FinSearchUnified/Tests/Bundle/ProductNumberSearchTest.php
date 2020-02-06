@@ -700,8 +700,6 @@ class ProductNumberSearchTest extends TestCase
 
         $mockedQuery->expects($this->once())->method('execute')->willReturn($response);
 
-        // Mock querybuilder factory method to check that custom implementation does not get called
-        // as original implementation will be called in this case
         $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
         $mockQuerybuilderFactory->expects($this->once())
             ->method('createSearchNavigationQuery')

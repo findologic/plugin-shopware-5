@@ -70,7 +70,7 @@ class QueryBuilderFactoryTest extends TestCase
 
         $hashed = StaticHelper::calculateUsergroupHash(
             Shopware()->Container()->get('config')->offsetGet('ShopKey'),
-            'EK'
+            $this->context->getCurrentCustomerGroup()->getKey()
         );
 
         $this->assertArrayHasKey('usergrouphash', $params, 'Usergroup was expected to be present in the parameters');
