@@ -6,6 +6,16 @@
 
     <services>
 
+        <service
+                id="fin_search_unified_es.product_number_search"
+                class="FinSearchUnified\Bundle\ProductNumberSearch"
+                decorates="shopware_search_es.product_number_search"
+                public="false"
+        >
+            <argument type="service" id="fin_search_unified_es.product_number_search.inner" />
+            <argument type="service" id="fin_search_unified.query_builder_factory" />
+        </service>
+
         <!-- Copied service to be compatible with Shopware < 5.2.21 -->
         <service id="shopware_search_es.service_subscriber" class="FinSearchUnified\Bundle\SearchBundleES\Subscriber\ServiceSubscriber">
             <argument type="service" id="service_container" />
