@@ -44,7 +44,11 @@ class QueryBuilderFactoryTest extends TestCase
         // By default, the search page is true
         Shopware()->Session()->offsetSet('isSearchPage', true);
 
-        $this->factory = Shopware()->Container()->get('fin_search_unified.query_builder_factory');
+        $this->factory = new QueryBuilderFactory(
+            Shopware()->Container()->get('http_client'),
+            Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
+            Shopware()->Container()->get('config')
+        );
 
         /** @var ContextServiceInterface $contextService */
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
@@ -69,8 +73,8 @@ class QueryBuilderFactoryTest extends TestCase
         $params = $query->getParameters();
 
         $hashed = StaticHelper::calculateUsergroupHash(
-            Shopware()->Container()->get('config')->offsetGet('ShopKey'),
-            $this->context->getCurrentCustomerGroup()->getKey()
+            Shopware()->Config()->offsetGet('ShopKey'),
+            'EK'
         );
 
         $this->assertArrayHasKey('usergrouphash', $params, 'Usergroup was expected to be present in the parameters');
@@ -132,6 +136,9 @@ class QueryBuilderFactoryTest extends TestCase
         $this->assertCount(3, $attrib, 'Expected attributes to not contain any other parameters');
     }
 
+    /**
+     * @throws Exception
+     */
     public function testSimpleCondition()
     {
         $criteria = new Criteria();
