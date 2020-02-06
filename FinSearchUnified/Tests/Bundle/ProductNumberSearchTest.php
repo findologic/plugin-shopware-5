@@ -646,6 +646,9 @@ class ProductNumberSearchTest extends TestCase
         $listingMode
     ) {
         $configArray = [
+            ['ActivateFindologic', true],
+            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
+            ['ActivateFindologicForCategoryPages', false],
             ['listingMode', $listingMode]
         ];
 
