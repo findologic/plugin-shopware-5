@@ -17,6 +17,7 @@ use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
+use Shopware\Bundle\SearchBundle\FacetResult\MediaListFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeItem;
@@ -159,49 +160,6 @@ class ProductNumberSearchTest extends TestCase
         $productNumberSearch->search($criteria, $context);
     }
 
-    public function facetWithPriceFilterProvider()
-    {
-        $xmlResponse = $this->getXmlResponse();
-        unset($xmlResponse->filters);
-        $filters = $xmlResponse->addChild('filters');
-
-        $this->setPriceFilter($filters);
-
-        return [
-            'Price filters which are selected only contain the value that was selected' => [
-                'xmlResponse' => $xmlResponse,
-                'expectedResult' => new RangeFacetResult(
-                    'price',
-                    true,
-                    'Price',
-                    0.0,
-                    99.0,
-                    4.2,
-                    69.0,
-                    'min',
-                    'max'
-                ),
-                'condition' => new PriceCondition(4.2, 69.0)
-
-            ],
-            'All price filter values are displayed if no filters are selected' => [
-                'xmlResponse' => $xmlResponse,
-                'expectedResult' => new RangeFacetResult(
-                    'price',
-                    false,
-                    'Price',
-                    0.0,
-                    99.0,
-                    4.2,
-                    69.0,
-                    'min',
-                    'max'
-                ),
-                'condition' => null
-            ]
-        ];
-    }
-
     /**
      * @dataProvider allFiltersProvider
      * @dataProvider facetWithNoHandlerProvider
@@ -278,20 +236,23 @@ class ProductNumberSearchTest extends TestCase
 
     public function allFiltersProvider()
     {
-        $xmlResponse = $this->getXmlResponse();
-        unset($xmlResponse->filters);
-        $filters = $xmlResponse->addChild('filters');
-
-        $this->setPriceFilter($filters);
-        $this->setCategoryFilter($filters);
-        $this->setVendorFilter($filters);
+        $xmlResponse = Utility::getDemoXML();
 
         return [
             'Parse all filters' => [
                 'xmlResponse' => $xmlResponse,
                 'expectedResults' => [
-                    RangeFacetResult::class,
                     TreeFacetResult::class,
+                    RangeFacetResult::class,
+                    MediaListFacetResult::class,
+                    ValueListFacetResult::class,
+                    ValueListFacetResult::class,
+                    ValueListFacetResult::class,
+                    ValueListFacetResult::class,
+                    ValueListFacetResult::class,
+                    ValueListFacetResult::class,
+                    ValueListFacetResult::class,
+                    ValueListFacetResult::class,
                     ValueListFacetResult::class
                 ]
             ]
@@ -300,7 +261,7 @@ class ProductNumberSearchTest extends TestCase
 
     public function facetWithNoHandlerProvider()
     {
-        $xmlResponse = $this->getXmlResponse();
+        $xmlResponse = Utility::getDemoXML();
         unset($xmlResponse->filters);
         $filters = $xmlResponse->addChild('filters');
 
@@ -319,7 +280,7 @@ class ProductNumberSearchTest extends TestCase
 
     public function facetWithInvalidModeProvider()
     {
-        $xmlResponse = $this->getXmlResponse();
+        $xmlResponse = Utility::getDemoXML();
         unset($xmlResponse->filters);
         $filters = $xmlResponse->addChild('filters');
 
@@ -338,7 +299,7 @@ class ProductNumberSearchTest extends TestCase
 
     public function missingFilterProvider()
     {
-        $xmlResponse = $this->getXmlResponse();
+        $xmlResponse = Utility::getDemoXML();
         unset($xmlResponse->filters);
         $filters = $xmlResponse->addChild('filters');
 
@@ -356,16 +317,59 @@ class ProductNumberSearchTest extends TestCase
         ];
     }
 
+    public function facetWithPriceFilterProvider()
+    {
+        $xmlResponse = Utility::getDemoXML();
+        unset($xmlResponse->filters);
+        $filters = $xmlResponse->addChild('filters');
+
+        $this->setPriceFilter($filters);
+
+        return [
+            'Price filters which are selected only contain the value that was selected' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResult' => new RangeFacetResult(
+                    'price',
+                    true,
+                    'Price',
+                    0.0,
+                    99.0,
+                    4.2,
+                    69.0,
+                    'min',
+                    'max'
+                ),
+                'condition' => new PriceCondition(4.2, 69.0)
+
+            ],
+            'All price filter values are displayed if no filters are selected' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResult' => new RangeFacetResult(
+                    'price',
+                    false,
+                    'Price',
+                    0.0,
+                    99.0,
+                    4.2,
+                    69.0,
+                    'min',
+                    'max'
+                ),
+                'condition' => null
+            ]
+        ];
+    }
+
     public function facetWithVendorFilterProvider()
     {
-        $xmlResponse = $this->getXmlResponse();
+        $xmlResponse = Utility::getDemoXML();
         unset($xmlResponse->filters);
         $filters = $xmlResponse->addChild('filters');
 
         $this->setVendorFilter($filters);
 
         return [
-            'Vendor filters which are selected only contain the value that was selected' => [
+            'All vendor filter values are displayed along with selected filter' => [
                 'xmlResponse' => $xmlResponse,
                 'expectedResult' => new ValueListFacetResult(
                     'product_attribute_vendor',
@@ -398,7 +402,7 @@ class ProductNumberSearchTest extends TestCase
 
     public function facetWithCategoryFilterProvider()
     {
-        $xmlResponse = $this->getXmlResponse();
+        $xmlResponse = Utility::getDemoXML();
         unset($xmlResponse->filters);
         $filters = $xmlResponse->addChild('filters');
 
@@ -478,17 +482,9 @@ class ProductNumberSearchTest extends TestCase
         $request->setRequestUri('/findologic');
         Shopware()->Front()->setRequest($request);
 
-        if ($condition) {
-            // No filters are selected in the XML response
-            $xml = clone $xmlResponse;
-            unset($xml->filters);
-            $filters = $xml->addChild('filters');
-            $response = $xml->asXML();
-        } else {
-            // Filters are present in the XML response
-            $filters = $xmlResponse->filters->filter;
-            $response = $xmlResponse->asXML();
-        }
+        // Filters are present in the XML response
+        $filters = $xmlResponse->filters->filter;
+        $response = $xmlResponse->asXML();
 
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
 
@@ -516,14 +512,6 @@ class ProductNumberSearchTest extends TestCase
         $facetResult = current($result);
 
         $this->assertEquals($expectedResult, $facetResult);
-    }
-
-    /**
-     * @return SimpleXMLElement
-     */
-    private function getXmlResponse()
-    {
-        return Utility::getDemoXML();
     }
 
     /**
@@ -588,7 +576,7 @@ class ProductNumberSearchTest extends TestCase
 
     public function facetWithCategoryFilterProviderWhenProductAndFilterLiveReloadingIsEnabled()
     {
-        $xmlResponse = $this->getXmlResponse();
+        $xmlResponse = Utility::getDemoXML();
         unset($xmlResponse->filters);
         $filters = $xmlResponse->addChild('filters');
 
@@ -603,7 +591,16 @@ class ProductNumberSearchTest extends TestCase
                     true,
                     'Category',
                     [
-                        new TreeItem('Living Room', 'Living Room', false, []),
+                        new TreeItem('Bekleidung', 'Bekleidung', false, [
+                            new TreeItem('Bekleidung_Herren', 'Herren', false, []),
+                            new TreeItem('Bekleidung_Damen', 'Damen', false, []),
+                        ]),
+                        new TreeItem('Freizeit & Elektro', 'Freizeit & Elektro', false, []),
+                        new TreeItem('Lebensmittel', 'Lebensmittel', false, [
+                            new TreeItem('Lebensmittel_Süßes', 'Süßes', false, []),
+                            new TreeItem('Lebensmittel_Backwaren', 'Backwaren', false, []),
+                            new TreeItem('Lebensmittel_Fisch', 'Fisch', false, []),
+                        ]),
                         new TreeItem('FINDOLOGIC', 'FINDOLOGIC', true, [])
                     ]
                 ),
@@ -618,7 +615,16 @@ class ProductNumberSearchTest extends TestCase
                     true,
                     'Category',
                     [
-                        new TreeItem('Living Room', 'Living Room (10)', false, []),
+                        new TreeItem('Bekleidung', 'Bekleidung (6)', false, [
+                            new TreeItem('Bekleidung_Herren', 'Herren (4)', false, []),
+                            new TreeItem('Bekleidung_Damen', 'Damen (3)', false, []),
+                        ]),
+                        new TreeItem('Freizeit & Elektro', 'Freizeit & Elektro (4)', false, []),
+                        new TreeItem('Lebensmittel', 'Lebensmittel (4)', false, [
+                            new TreeItem('Lebensmittel_Süßes', 'Süßes (2)', false, []),
+                            new TreeItem('Lebensmittel_Backwaren', 'Backwaren (1)', false, []),
+                            new TreeItem('Lebensmittel_Fisch', 'Fisch (1)', false, []),
+                        ]),
                         new TreeItem('FINDOLOGIC', 'FINDOLOGIC', true, [])
                     ]
                 ),
@@ -738,7 +744,7 @@ class ProductNumberSearchTest extends TestCase
 
     public function cacheResponseProvider()
     {
-        $xmlResponse = $this->getXmlResponse();
+        $xmlResponse = Utility::getDemoXML();
 
         return [
             'Querybuilder is not used as response is provided from cache' => [
