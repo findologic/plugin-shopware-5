@@ -4,11 +4,15 @@ namespace FinSearchUnified\Tests;
 
 use Exception;
 use FINDOLOGIC\Export\Helpers\EmptyValueNotAllowedException;
+use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
+use FinSearchUnified\Components\ProductStream\Repository;
 use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\ShopwareProcess;
 use FinSearchUnified\Tests\Helper\Utility;
+use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
+use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
 use Shopware\Components\Api\Manager;
 use Shopware\Models\Article\Article;
 use Shopware_Components_Config as Config;
@@ -28,9 +32,6 @@ class PluginTest extends TestCase
 
         Shopware()->Container()->reset('fin_search_unified.article_model_factory');
         Shopware()->Container()->load('fin_search_unified.article_model_factory');
-
-        Shopware()->Container()->reset('config');
-        Shopware()->Container()->load('config');
 
         Utility::sResetArticles();
     }
@@ -99,7 +100,7 @@ class PluginTest extends TestCase
         return [
             'No cross-sell categeories configured' => ['crossSellingCategories' => [], 'expectedCount' => 1],
             'One cross-sell category configured' => ['crossSellingCategories' => [5], 'expectedCount' => 1],
-            'Multiple cross-sell category configured' => ['crossSellingCategories' => [5, 7, 12], 'expectedCount' => 0],
+            'Multiple cross-sell category configured' => ['crossSellingCategories' => [5, 12, 19], 'expectedCount' => 0],
         ];
     }
 
@@ -111,22 +112,14 @@ class PluginTest extends TestCase
      */
     public function testArticleExportWithCrossSellingCategories($crossSellingCategories, $expectedCount)
     {
-        $assignedCategories = [5, 7, 12];
+        $assignedCategories = [5, 12, 19];
         $this->createTestProduct('SOMENUMBER', true, $assignedCategories);
 
-        // Create Mock object for Shopware Config
-        $mockConfig = $this->getMockBuilder(Config::class)
-            ->setMethods(['offsetGet'])
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $configArray = [
-            ['CrossSellingCategories', $crossSellingCategories]
-        ];
-        $mockConfig->method('offsetGet')->willReturnMap($configArray);
-        Shopware()->Container()->set('config', $mockConfig);
+        Shopware()->Container()->get('config_writer')->save('CrossSellingCategories', $crossSellingCategories);
 
         $exportedCount = $this->runExportAndReturnCount();
+
+        Shopware()->Container()->get('config_writer')->save('CrossSellingCategories', []);
 
         $this->assertSame($expectedCount, $exportedCount);
     }
@@ -149,8 +142,8 @@ class PluginTest extends TestCase
                 ['id' => 5],
             ],
             'images' => [
-                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
+                ['link' => 'https://via.placeholder.com/100/09f/000.png'],
             ],
             'mainDetail' => [
                 'number' => 'FINDOLOGIC' . $number,
@@ -208,11 +201,32 @@ class PluginTest extends TestCase
     private function runExportAndReturnCount()
     {
         try {
-            $shopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
-            /** @var ShopwareProcess $blController */
-            $blController = Shopware()->Container()->get('fin_search_unified.shopware_process');
-            $blController->setShopKey($shopKey);
-            $xmlDocument = $blController->getFindologicXml();
+            $mockRepository = $this->createMock(Repository::class);
+            $mockRepository->method('prepareCriteria');
+
+            $products = [];
+
+            for ($i = 0; $i < 10; $i++) {
+                $product = new BaseProduct(rand(), rand(), uniqid());
+                $products[] = $product;
+            }
+
+            $results = new ProductNumberSearchResult($products, 10, []);
+
+            $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
+
+            $mockProductNumberSearch = $this->createMock(ProductNumberSearch::class);
+            $mockProductNumberSearch->expects($this->exactly(2))->method('search')->willReturn($results);
+
+            $shopwareProcess = new ShopwareProcess(
+                Shopware()->Container()->get('cache'),
+                $mockRepository,
+                $contextService,
+                $mockProductNumberSearch
+            );
+
+            $shopwareProcess->setShopKey('ABCDABCDABCDABCDABCDABCDABCDABCD');
+            $xmlDocument = $shopwareProcess->getFindologicXml();
 
             // Parse the xml and return the count of the products exported
             $xml = new SimpleXMLElement($xmlDocument);
