@@ -15,7 +15,6 @@ use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
 use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
 use Shopware\Components\Api\Manager;
 use Shopware\Models\Article\Article;
-use Shopware_Components_Config as Config;
 use SimpleXMLElement;
 
 class PluginTest extends TestCase
@@ -98,9 +97,18 @@ class PluginTest extends TestCase
     public function crossSellingCategoryProvider()
     {
         return [
-            'No cross-sell categeories configured' => ['crossSellingCategories' => [], 'expectedCount' => 1],
-            'One cross-sell category configured' => ['crossSellingCategories' => [5], 'expectedCount' => 1],
-            'Multiple cross-sell category configured' => ['crossSellingCategories' => [5, 12, 19], 'expectedCount' => 0],
+            'No cross-sell categeories configured' => [
+                'crossSellingCategories' => [],
+                'expectedCount' => 1
+            ],
+            'One cross-sell category configured' => [
+                'crossSellingCategories' => [5],
+                'expectedCount' => 1
+            ],
+            'Multiple cross-sell category configured' => [
+                'crossSellingCategories' => [5, 12, 19],
+                'expectedCount' => 0
+            ],
         ];
     }
 
