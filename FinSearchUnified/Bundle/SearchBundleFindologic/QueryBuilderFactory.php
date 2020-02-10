@@ -258,8 +258,10 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
      * @return QueryBuilder
      * @throws Exception
      */
-    public function createSearchNavigationQueryWithoutAdditionalFilters(Criteria $criteria, ShopContextInterface $context)
-    {
+    public function createSearchNavigationQueryWithoutAdditionalFilters(
+        Criteria $criteria,
+        ShopContextInterface $context
+    ) {
         $query = $this->createQueryBuilder();
         $condition = null;
 
