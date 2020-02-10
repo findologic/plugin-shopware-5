@@ -559,6 +559,31 @@ class StaticHelperTest extends TestCase
     }
 
     /**
+     * @throws Zend_Cache_Exception
+     */
+    public function testUseShopSearchWhenShopIsNotAvailable()
+    {
+        $request = new RequestHttp();
+        $request->setModuleName('backend');
+
+        // Create Mock object for Shopware Front Request
+        $front = $this->createMock(Front::class);
+        $front->method('Request')
+            ->willReturn($request);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('front', $front);
+
+        $shop = Shopware()->Container()->get('shop');
+        Shopware()->Container()->reset('shop');
+
+        $result = StaticHelper::useShopSearch();
+        $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
+
+        Shopware()->Container()->set('shop', $shop);
+    }
+
+    /**
      * @dataProvider controlCharacterProvider
      *
      * @param string $text
@@ -958,5 +983,49 @@ class StaticHelperTest extends TestCase
             'Integration type is API but DI is enabled' => ['API', 'Direct Integration', true],
             'Integration type is DI but DI is not enabled' => ['Direct Integration', 'API', false],
         ];
+    }
+
+    public function nonEmptyValueProvider()
+    {
+        return [
+            ' i am not empty',
+            new SimpleXMLElement('<notEmpty/>'),
+            23,
+            1,
+            '_',
+            ['not empty at all' => 'really']
+        ];
+    }
+
+    /**
+     * @dataProvider nonEmptyValueProvider
+     */
+    public function testValuesThatAreNotEmptyAreReturnedAsSuch($value)
+    {
+        $this->assertFalse(StaticHelper::isEmpty($value));
+    }
+
+
+    public function emptyValueProvider()
+    {
+        return [
+            '',
+            ' ',
+            '     ',
+            '          ',
+            0,
+            '0',
+            [],
+            [''],
+            0.0,
+        ];
+    }
+
+    /**
+     * @dataProvider emptyValueProvider
+     */
+    public function testValuesThatArEmptyAreReturnedAsSuch($value)
+    {
+        $this->assertTrue(StaticHelper::isEmpty($value));
     }
 }

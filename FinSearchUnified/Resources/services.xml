@@ -4,11 +4,6 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd"
 >
-    <!-- Required for Shopware 5.2.x support -->
-    <imports>
-        <import resource="shopware/searchBundleES.xml" />
-    </imports>
-
     <parameters>
         <parameter key="fin_search_unified.view_dir">%fin_search_unified.plugin_dir%/Resources/views</parameter>
     </parameters>
@@ -102,16 +97,6 @@
             <argument type="service" id="cache" />
         </service>
 
-        <service
-            id="fin_search_unified_es.product_number_search"
-            class="FinSearchUnified\Bundle\ProductNumberSearch"
-            decorates="shopware_search_es.product_number_search"
-            public="false"
-        >
-            <argument type="service" id="fin_search_unified_es.product_number_search.inner" />
-            <argument type="service" id="fin_search_unified.query_builder_factory" />
-        </service>
-
         <service id="fin_search_unified.commands.export_command" class="FinSearchUnified\Commands\ExportCommand">
             <tag name="console.command" />
         </service>
@@ -174,21 +159,6 @@
         <service class="FinSearchUnified\Components\Environment" id="fin_search_unified.environment" />
 
         <!-- Re-declare non-existent shopware services in our xml for backward compatibility -->
-        <service
-            id="shopware_search_es.product_number_search"
-            class="Shopware\Bundle\SearchBundleES\ProductNumberSearch"
-        >
-            <factory service="shopware_search_es.product_number_search_factory" method="factory" />
-            <argument type="service" id="service_container" />
-        </service>
-
-        <service
-            id="shopware_search_es.product_number_search_factory"
-            class="Shopware\Bundle\SearchBundleES\DependencyInjection\Factory\ProductNumberSearchFactory"
-        >
-            <argument type="collection" />
-        </service>
-
         <service id="shopware.routing.matchers.rewrite_matcher" class="Shopware\Components\Routing\Matchers\RewriteMatcher">
             <argument type="service" id="dbal_connection"/>
             <argument type="service" id="query_alias_mapper"/>
