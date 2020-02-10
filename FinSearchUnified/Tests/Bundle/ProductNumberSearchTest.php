@@ -26,6 +26,7 @@ use Shopware\Bundle\SearchBundle\FacetResult\ValueListItem;
 use Shopware\Bundle\SearchBundle\FacetResultInterface;
 use Shopware\Bundle\SearchBundleDBAL\ProductNumberSearch as OriginalProductNumberSearch;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
+use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use Shopware_Components_Config as Config;
 use SimpleXMLElement;
 use Zend_Cache_Core;
@@ -33,7 +34,7 @@ use Zend_Cache_Core;
 class ProductNumberSearchTest extends TestCase
 {
     /**
-     * @var \Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface
+     * @var ShopContextInterface
      */
     private $context;
 
@@ -591,16 +592,26 @@ class ProductNumberSearchTest extends TestCase
                     true,
                     'Category',
                     [
-                        new TreeItem('Bekleidung', 'Bekleidung', false, [
+                        new TreeItem(
+                            'Bekleidung',
+                            'Bekleidung',
+                            false,
+                            [
                             new TreeItem('Bekleidung_Herren', 'Herren', false, []),
                             new TreeItem('Bekleidung_Damen', 'Damen', false, []),
-                        ]),
+                            ]
+                        ),
                         new TreeItem('Freizeit & Elektro', 'Freizeit & Elektro', false, []),
-                        new TreeItem('Lebensmittel', 'Lebensmittel', false, [
+                        new TreeItem(
+                            'Lebensmittel',
+                            'Lebensmittel',
+                            false,
+                            [
                             new TreeItem('Lebensmittel_Süßes', 'Süßes', false, []),
                             new TreeItem('Lebensmittel_Backwaren', 'Backwaren', false, []),
                             new TreeItem('Lebensmittel_Fisch', 'Fisch', false, []),
-                        ]),
+                            ]
+                        ),
                         new TreeItem('FINDOLOGIC', 'FINDOLOGIC', true, [])
                     ]
                 ),
@@ -615,16 +626,26 @@ class ProductNumberSearchTest extends TestCase
                     true,
                     'Category',
                     [
-                        new TreeItem('Bekleidung', 'Bekleidung (6)', false, [
+                        new TreeItem(
+                            'Bekleidung',
+                            'Bekleidung (6)',
+                            false,
+                            [
                             new TreeItem('Bekleidung_Herren', 'Herren (4)', false, []),
                             new TreeItem('Bekleidung_Damen', 'Damen (3)', false, []),
-                        ]),
+                            ]
+                        ),
                         new TreeItem('Freizeit & Elektro', 'Freizeit & Elektro (4)', false, []),
-                        new TreeItem('Lebensmittel', 'Lebensmittel (4)', false, [
+                        new TreeItem(
+                            'Lebensmittel',
+                            'Lebensmittel (4)',
+                            false,
+                            [
                             new TreeItem('Lebensmittel_Süßes', 'Süßes (2)', false, []),
                             new TreeItem('Lebensmittel_Backwaren', 'Backwaren (1)', false, []),
                             new TreeItem('Lebensmittel_Fisch', 'Fisch (1)', false, []),
-                        ]),
+                            ]
+                        ),
                         new TreeItem('FINDOLOGIC', 'FINDOLOGIC', true, [])
                     ]
                 ),

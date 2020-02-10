@@ -183,17 +183,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     protected function createFacets(Criteria $criteria, ShopContextInterface $context, SimpleXMLElement $filters = null)
     {
         $facets = [];
-        $url = md5(Shopware()->Front()->Request()->getRequestUri());
-        $cacheId = sprintf('finsearch_%s', $url);
-
-        if ($this->cache->load($cacheId) === false) {
-            /** @var QueryBuilder $query */
-            $query = $this->queryBuilderFactory->createSearchNavigationQuery($criteria, $context);
-            $response = $query->execute();
-            $this->cache->save($response, $cacheId, ['FINDOLOGIC'], 86400);
-        } else {
-            $response = $this->cache->load($cacheId);
-        }
+        $response = $this->getResponse($criteria, $context);
 
         $xmlResponse = StaticHelper::getXmlFromResponse($response);
 
@@ -351,5 +341,29 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     {
         header('Location: ' . Shopware()->Front()->Request()->getRequestUri());
         exit;
+    }
+
+    /**
+     * @param Criteria $criteria
+     * @param ShopContextInterface $context
+     *
+     * @return false|mixed|string|null
+     * @throws Zend_Cache_Exception
+     */
+    private function getResponse(Criteria $criteria, ShopContextInterface $context)
+    {
+        $url = md5(Shopware()->Front()->Request()->getRequestUri());
+        $cacheId = sprintf('finsearch_%s', $url);
+
+        if ($this->cache->load($cacheId) === false) {
+            /** @var QueryBuilder $query */
+            $query = $this->queryBuilderFactory->createSearchNavigationQuery($criteria, $context);
+            $response = $query->execute();
+            $this->cache->save($response, $cacheId, ['FINDOLOGIC'], 60 * 60 * 24);
+        } else {
+            $response = $this->cache->load($cacheId);
+        }
+
+        return $response;
     }
 }

@@ -123,7 +123,7 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
             ];
 
             // Do not set filter item frequency if "Product & Filter live reloading" is enabled in the Shopware Backend.
-            $filterReloadingEnabled = StaticHelper::checkIfProductAndFilterLiveReloadingIsEnabled();
+            $filterReloadingEnabled = StaticHelper::isProductAndFilterLiveReloadingEnabled();
 
             if ($frequency && !$filterReloadingEnabled) {
                 $categories[$name]['frequency'] = $frequency;

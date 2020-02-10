@@ -392,7 +392,7 @@ class StaticHelper
     /**
      * @return bool
      */
-    public static function checkIfProductAndFilterLiveReloadingIsEnabled()
+    public static function isProductAndFilterLiveReloadingEnabled()
     {
         $listingMode = Shopware()->Config()->offsetGet('listingMode');
 
