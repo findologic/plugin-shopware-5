@@ -135,15 +135,6 @@
             <argument type="service" id="config" />
         </service>
 
-        <service
-            id="shopware.routing.matchers.rewrite_matcher"
-            class="Shopware\Components\Routing\Matchers\RewriteMatcher"
-        >
-            <argument type="service" id="dbal_connection" />
-            <argument type="service" id="query_alias_mapper" />
-            <tag name="router.matcher" priority="50" />
-        </service>
-
         <service id="fin_search_unified.subscriber.widgets" class="FinSearchUnified\Subscriber\Widgets">
             <tag name="shopware.event_subscriber" />
             <argument id="cache" type="service" />

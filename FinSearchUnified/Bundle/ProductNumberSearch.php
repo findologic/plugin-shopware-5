@@ -183,7 +183,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     protected function createFacets(Criteria $criteria, ShopContextInterface $context, SimpleXMLElement $filters = null)
     {
         $facets = [];
-        $response = $this->getResponse($criteria, $context);
+        $response = $this->getResponseWithoutFilters($criteria, $context);
 
         $xmlResponse = StaticHelper::getXmlFromResponse($response);
 
@@ -350,14 +350,14 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      * @return false|mixed|string|null
      * @throws Zend_Cache_Exception
      */
-    private function getResponse(Criteria $criteria, ShopContextInterface $context)
+    private function getResponseWithoutFilters(Criteria $criteria, ShopContextInterface $context)
     {
         $url = md5(Shopware()->Front()->Request()->getRequestUri());
         $cacheId = sprintf('finsearch_%s', $url);
 
         if ($this->cache->load($cacheId) === false) {
             /** @var QueryBuilder $query */
-            $query = $this->queryBuilderFactory->createSearchNavigationQuery($criteria, $context);
+            $query = $this->queryBuilderFactory->createSearchNavigationQueryWithoutAdditionalFilters($criteria, $context);
             $response = $query->execute();
             $this->cache->save($response, $cacheId, ['FINDOLOGIC'], 60 * 60 * 24);
         } else {

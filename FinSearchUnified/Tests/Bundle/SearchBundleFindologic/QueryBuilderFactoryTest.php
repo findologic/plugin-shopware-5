@@ -389,7 +389,7 @@ class QueryBuilderFactoryTest extends TestCase
         $criteria = new Criteria();
         $criteria->addCondition($condition);
 
-        $query = $this->factory->createSearchNavigationQuery($criteria, $this->context);
+        $query = $this->factory->createSearchNavigationQueryWithoutAdditionalFilters($criteria, $this->context);
         $params = $query->getParameters();
         $this->assertArrayHasKey($key, $params);
         $this->assertSame($expected, $params[$key]);
@@ -405,7 +405,7 @@ class QueryBuilderFactoryTest extends TestCase
         $criteria = new Criteria();
         $criteria->addCondition(new IsAvailableCondition());
 
-        $query = $this->factory->createSearchNavigationQuery($criteria, $this->context);
+        $query = $this->factory->createSearchNavigationQueryWithoutAdditionalFilters($criteria, $this->context);
         $params = $query->getParameters();
         $this->assertArrayNotHasKey('selected', $params);
         $this->assertArrayNotHasKey('query', $params);

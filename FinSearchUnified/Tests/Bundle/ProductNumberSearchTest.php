@@ -732,7 +732,7 @@ class ProductNumberSearchTest extends TestCase
 
         $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
         $mockQuerybuilderFactory->expects($this->once())
-            ->method('createSearchNavigationQuery')
+            ->method('createSearchNavigationQueryWithoutAdditionalFilters')
             ->willReturn($mockedQuery);
 
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
@@ -830,7 +830,7 @@ class ProductNumberSearchTest extends TestCase
 
         $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
         $mockQuerybuilderFactory->expects($this->exactly($queryCount))
-            ->method('createSearchNavigationQuery')
+            ->method('createSearchNavigationQueryWithoutAdditionalFilters')
             ->willReturn($mockedQuery);
 
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
