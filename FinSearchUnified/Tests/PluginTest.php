@@ -11,6 +11,7 @@ use FinSearchUnified\ShopwareProcess;
 use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Components\Api\Manager;
 use Shopware\Models\Article\Article;
+use Shopware_Components_Config as Config;
 use SimpleXMLElement;
 
 class PluginTest extends TestCase
@@ -27,6 +28,9 @@ class PluginTest extends TestCase
 
         Shopware()->Container()->reset('fin_search_unified.article_model_factory');
         Shopware()->Container()->load('fin_search_unified.article_model_factory');
+
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->load('config');
 
         Utility::sResetArticles();
     }
@@ -90,13 +94,51 @@ class PluginTest extends TestCase
         $this->assertEquals($expectedCount, $actual, sprintf($errorMessage, $actual));
     }
 
+    public function crossSellingCategoryProvider()
+    {
+        return [
+            'No cross-sell categeories configured' => ['crossSellingCategories' => [], 'expectedCount' => 1],
+            'One cross-sell category configured' => ['crossSellingCategories' => [5], 'expectedCount' => 1],
+            'Multiple cross-sell category configured' => ['crossSellingCategories' => [5, 7, 12], 'expectedCount' => 0],
+        ];
+    }
+
+    /**
+     * @dataProvider crossSellingCategoryProvider
+     *
+     * @param int[] $crossSellingCategories
+     * @param int $expectedCount
+     */
+    public function testArticleExportWithCrossSellingCategories($crossSellingCategories, $expectedCount)
+    {
+        $assignedCategories = [5, 7, 12];
+        $this->createTestProduct('SOMENUMBER', true, $assignedCategories);
+
+        // Create Mock object for Shopware Config
+        $mockConfig = $this->getMockBuilder(Config::class)
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $configArray = [
+            ['CrossSellingCategories', $crossSellingCategories]
+        ];
+        $mockConfig->method('offsetGet')->willReturnMap($configArray);
+        Shopware()->Container()->set('config', $mockConfig);
+
+        $exportedCount = $this->runExportAndReturnCount();
+
+        $this->assertSame($expectedCount, $exportedCount);
+    }
+
     /**
      * @param int|string $number
      * @param bool $isActive
+     * @param array $categories
      *
      * @return Article|null
      */
-    private function createTestProduct($number, $isActive)
+    private function createTestProduct($number, $isActive, $categories = [])
     {
         $testArticle = [
             'name' => 'FindologicArticle' . $number,
@@ -123,6 +165,14 @@ class PluginTest extends TestCase
             ],
         ];
 
+        if (!empty($categories)) {
+            $assignedCategories = [];
+            foreach ($categories as $category) {
+                $assignedCategories[] = ['id' => $category];
+            }
+            $testArticle['categories'] = $assignedCategories;
+        }
+
         try {
             $resource = Manager::getResource('Article');
 
@@ -139,7 +189,7 @@ class PluginTest extends TestCase
         // Create articles with the provided data to test the export functionality
         $this->createTestProduct('SOMENUMBER', true);
         $findologicArticleFactoryMock = $this->createMock(FindologicArticleFactory::class);
-        $findologicArticleFactoryMock->expects($this->exactly(2))->method('create')->willThrowException(
+        $findologicArticleFactoryMock->expects($this->once())->method('create')->willThrowException(
             new EmptyValueNotAllowedException()
         );
 
