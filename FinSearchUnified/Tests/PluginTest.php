@@ -4,26 +4,36 @@ namespace FinSearchUnified\Tests;
 
 use Exception;
 use FINDOLOGIC\Export\Helpers\EmptyValueNotAllowedException;
-use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
-use FinSearchUnified\Components\ProductStream\Repository;
 use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
-use FinSearchUnified\ShopwareProcess;
 use FinSearchUnified\Tests\Helper\Utility;
-use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
-use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
 use Shopware\Components\Api\Manager;
 use Shopware\Models\Article\Article;
+use Shopware_Components_Config;
 use SimpleXMLElement;
 
 class PluginTest extends TestCase
 {
-    protected static $ensureLoadedPlugins = [
-        'FinSearchUnified' => [
-            'ShopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD'
-        ],
-    ];
+    protected function setUp()
+    {
+        parent::setUp();
+
+        $configArray = [
+            ['ActivateFindologic', true],
+            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
+            ['ActivateFindologicForCategoryPages', false]
+        ];
+        // Create mock object for Shopware Config and explicitly return the values
+        $mockConfig = $this->getMockBuilder(Shopware_Components_Config::class)
+            ->setMethods(['offsetGet', 'get'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig->method('offsetGet')->willReturnMap($configArray);
+        $mockConfig->method('get')->willReturnMap($configArray);
+
+        Shopware()->Container()->set('config', $mockConfig);
+    }
 
     protected function tearDown()
     {
@@ -31,6 +41,8 @@ class PluginTest extends TestCase
 
         Shopware()->Container()->reset('fin_search_unified.article_model_factory');
         Shopware()->Container()->load('fin_search_unified.article_model_factory');
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->load('config');
 
         Utility::sResetArticles();
     }
@@ -123,12 +135,23 @@ class PluginTest extends TestCase
         $assignedCategories = [5, 12, 19];
         $this->createTestProduct('SOMENUMBER', true, $assignedCategories);
 
-        Shopware()->Container()->get('config_writer')->save('CrossSellingCategories', $crossSellingCategories);
+        $configArray = [
+            ['ActivateFindologic', true],
+            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
+            ['ActivateFindologicForCategoryPages', false],
+            ['CrossSellingCategories', $crossSellingCategories]
+        ];
+        // Create mock object for Shopware Config and explicitly return the values
+        $mockConfig = $this->getMockBuilder(Shopware_Components_Config::class)
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig->method('offsetGet')
+            ->willReturnMap($configArray);
+
+        Shopware()->Container()->set('config', $mockConfig);
 
         $exportedCount = $this->runExportAndReturnCount();
-
-        Shopware()->Container()->get('config_writer')->save('CrossSellingCategories', []);
-
         $this->assertSame($expectedCount, $exportedCount);
     }
 
@@ -209,30 +232,7 @@ class PluginTest extends TestCase
     private function runExportAndReturnCount()
     {
         try {
-            $mockRepository = $this->createMock(Repository::class);
-            $mockRepository->method('prepareCriteria');
-
-            $products = [];
-
-            for ($i = 0; $i < 10; $i++) {
-                $product = new BaseProduct(rand(), rand(), uniqid());
-                $products[] = $product;
-            }
-
-            $results = new ProductNumberSearchResult($products, 10, []);
-
-            $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
-
-            $mockProductNumberSearch = $this->createMock(ProductNumberSearch::class);
-            $mockProductNumberSearch->expects($this->exactly(2))->method('search')->willReturn($results);
-
-            $shopwareProcess = new ShopwareProcess(
-                Shopware()->Container()->get('cache'),
-                $mockRepository,
-                $contextService,
-                $mockProductNumberSearch
-            );
-
+            $shopwareProcess = Shopware()->Container()->get('fin_search_unified.shopware_process');
             $shopwareProcess->setShopKey('ABCDABCDABCDABCDABCDABCDABCDABCD');
             $xmlDocument = $shopwareProcess->getFindologicXml();
 
