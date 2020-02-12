@@ -10,30 +10,15 @@ use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Components\Api\Manager;
 use Shopware\Models\Article\Article;
-use Shopware_Components_Config;
 use SimpleXMLElement;
 
 class PluginTest extends TestCase
 {
-    protected function setUp()
-    {
-        parent::setUp();
-
-        $configArray = [
-            ['ActivateFindologic', true],
-            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
-            ['ActivateFindologicForCategoryPages', false]
-        ];
-        // Create mock object for Shopware Config and explicitly return the values
-        $mockConfig = $this->getMockBuilder(Shopware_Components_Config::class)
-            ->setMethods(['offsetGet', 'get'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $mockConfig->method('offsetGet')->willReturnMap($configArray);
-        $mockConfig->method('get')->willReturnMap($configArray);
-
-        Shopware()->Container()->set('config', $mockConfig);
-    }
+    protected static $ensureLoadedPlugins = [
+        'FinSearchUnified' => [
+            'ShopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD'
+        ]
+    ];
 
     protected function tearDown()
     {
@@ -41,8 +26,6 @@ class PluginTest extends TestCase
 
         Shopware()->Container()->reset('fin_search_unified.article_model_factory');
         Shopware()->Container()->load('fin_search_unified.article_model_factory');
-        Shopware()->Container()->reset('config');
-        Shopware()->Container()->load('config');
 
         Utility::sResetArticles();
     }
@@ -139,23 +122,14 @@ class PluginTest extends TestCase
         $assignedCategories = [8, 9, 10];
         $this->createTestProduct('SOMENUMBER', true, $assignedCategories);
 
-        $configArray = [
-            ['ActivateFindologic', true],
-            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
-            ['ActivateFindologicForCategoryPages', false],
-            ['CrossSellingCategories', $crossSellingCategories]
-        ];
-        // Create mock object for Shopware Config and explicitly return the values
-        $mockConfig = $this->getMockBuilder(Shopware_Components_Config::class)
-            ->setMethods(['offsetGet'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $mockConfig->method('offsetGet')
-            ->willReturnMap($configArray);
-
-        Shopware()->Container()->set('config', $mockConfig);
+        Shopware()->Container()->get('config_writer')->save('CrossSellingCategories', $crossSellingCategories);
+        Shopware()->Container()->get('cache')->clean();
 
         $exportedCount = $this->runExportAndReturnCount();
+
+        Shopware()->Container()->get('config_writer')->save('CrossSellingCategories', []);
+        Shopware()->Container()->get('cache')->clean();
+
         $this->assertSame($expectedCount, $exportedCount);
     }
 
