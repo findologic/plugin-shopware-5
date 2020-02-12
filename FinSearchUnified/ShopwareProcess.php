@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\ORM\PersistentCollection;
 use Enlight_Exception;
@@ -109,7 +110,7 @@ class ShopwareProcess
         if (!empty($crossSellingCategories)) {
             $articlesQuery->join('articles.categories', 'category')
                 ->andWhere('category.id NOT IN (:ids)')
-                ->setParameter('ids', $crossSellingCategories);
+                ->setParameter('ids', $crossSellingCategories, Connection::PARAM_INT_ARRAY);
         }
 
         $countQuery = $this->articleRepository->createQueryBuilder('articles')

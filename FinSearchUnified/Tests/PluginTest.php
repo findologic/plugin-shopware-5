@@ -109,16 +109,20 @@ class PluginTest extends TestCase
     public function crossSellingCategoryProvider()
     {
         return [
-            'No cross-sell categeories configured' => [
+            'No cross-sell categories configured' => [
                 'crossSellingCategories' => [],
                 'expectedCount' => 1
             ],
-            'One cross-sell category configured' => [
+            'Article does not exist in cross-sell category configured' => [
                 'crossSellingCategories' => [5],
                 'expectedCount' => 1
             ],
-            'Multiple cross-sell category configured' => [
-                'crossSellingCategories' => [5, 12, 19],
+            'Article exists in one of the cross-sell categories configured' => [
+                'crossSellingCategories' => [8, 9],
+                'expectedCount' => 1
+            ],
+            'Article exists in all of cross-sell categories configured' => [
+                'crossSellingCategories' => [8, 9, 10],
                 'expectedCount' => 0
             ],
         ];
@@ -132,7 +136,7 @@ class PluginTest extends TestCase
      */
     public function testArticleExportWithCrossSellingCategories($crossSellingCategories, $expectedCount)
     {
-        $assignedCategories = [5, 12, 19];
+        $assignedCategories = [8, 9, 10];
         $this->createTestProduct('SOMENUMBER', true, $assignedCategories);
 
         $configArray = [
