@@ -915,7 +915,42 @@ class FindologicArticleModelTest extends TestCase
         $this->assertArrayNotHasKey('attr1', $values);
     }
 
-    public function testTranslatedBooleanProperties()
+    public function booleanValueProvider()
+    {
+        return [
+            'Boolean true should be translated in de_DE language' => [
+                'highlight' => true,
+                'locale' => 1,
+                'expectedValue' => 'Ja'
+            ],
+            'Boolean true should be translated in en_GB language' => [
+                'highlight' => true,
+                'locale' => 2,
+                'expectedValue' => 'Yes'
+            ],
+            'Boolean false should be translated in de_DE language' => [
+                'highlight' => false,
+                'locale' => 1,
+                'expectedValue' => 'Nein'
+            ],
+            'Boolean false should be translated in en_GB language' => [
+                'highlight' => false,
+                'locale' => 2,
+                'expectedValue' => 'No'
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider booleanValueProvider
+     *
+     * @param bool $highlight
+     * @param int $locale
+     * @param string $expectedValue
+     *
+     * @throws ReflectionException
+     */
+    public function testTranslatedBooleanProperties($highlight, $locale, $expectedValue)
     {
         $articleConfiguration = [
             'name' => 'Sample Article',
@@ -941,8 +976,11 @@ class FindologicArticleModelTest extends TestCase
                     ],
                 ]
             ],
-            'highlight' => true
+            'highlight' => $highlight
         ];
+
+        $shop = Manager::getResource('Shop')->getRepository()->find($locale);
+        Shopware()->Snippets()->setShop($shop);
 
         $baseCategory = new Category();
         $baseCategory->setId(5);
@@ -966,6 +1004,6 @@ class FindologicArticleModelTest extends TestCase
         $values = current($values);
 
         $this->assertArrayHasKey('highlight', $values);
-        $this->assertSame('Ja', $values['highlight']);
+        $this->assertSame($expectedValue, $values['highlight']);
     }
 }

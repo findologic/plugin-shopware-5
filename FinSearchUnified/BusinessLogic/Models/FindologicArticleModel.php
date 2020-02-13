@@ -715,10 +715,10 @@ class FindologicArticleModel
     {
         $allProperties = [];
         $rewrtieLink = Shopware()->Modules()->Core()->sRewriteLink();
-        if (!StaticHelper::isEmpty($this->baseArticle->getHighlight())) {
-            $allProperties[] =
-                new Property('highlight', ['' => $this->translateBooleanAsSnippet($this->baseArticle->getHighlight())]);
-        }
+        $allProperties[] = new Property(
+            'highlight',
+            ['' => $this->translateBooleanAsSnippet($this->baseArticle->getHighlight())]
+        );
         if (!StaticHelper::isEmpty($this->baseArticle->getTax())) {
             $allProperties[] = new Property('tax', ['' => $this->baseArticle->getTax()->getTax()]);
         }
@@ -838,6 +838,11 @@ class FindologicArticleModel
         return $this->xmlArticle;
     }
 
+    /**
+     * @param bool $status
+     *
+     * @return string
+     */
     private function translateBooleanAsSnippet($status)
     {
         if ($status) {
