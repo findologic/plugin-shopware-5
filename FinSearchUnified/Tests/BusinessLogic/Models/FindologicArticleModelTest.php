@@ -914,4 +914,58 @@ class FindologicArticleModelTest extends TestCase
 
         $this->assertArrayNotHasKey('attr1', $values);
     }
+
+    public function testTranslatedBooleanProperties()
+    {
+        $articleConfiguration = [
+            'name' => 'Sample Article',
+            'active' => true,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5],
+            ],
+            'images' => [
+                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC2',
+                'active' => true,
+                'inStock' => 16,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+            'highlight' => true
+        ];
+
+        $baseCategory = new Category();
+        $baseCategory->setId(5);
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCDABCDABCDABCDABCDABCDABCDABCD',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+        $reflector = new ReflectionClass(Item::class);
+        $properties = $reflector->getProperty('properties');
+        $properties->setAccessible(true);
+        $values = $properties->getValue($xmlArticle);
+        $values = current($values);
+
+        $this->assertArrayHasKey('highlight', $values);
+        $this->assertSame('Ja', $values['highlight']);
+    }
 }

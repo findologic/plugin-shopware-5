@@ -663,18 +663,18 @@ class FindologicArticleModel
         }
 
         // Add is new
-        $newFlag = 0;
+        $newFlag = $this->translateBooleanAsSnippet(0);
         if ($this->legacyStruct['newArticle']) {
-            $newFlag = 1;
+            $newFlag = $this->translateBooleanAsSnippet(1);
         }
         $xmlNewFlag = new Attribute('new', [$newFlag]);
         $allAttributes[] = $xmlNewFlag;
 
         // Add free_shipping
         if ($this->baseVariant->getShippingFree() == '') {
-            $freeShipping = 0;
+            $freeShipping = $this->translateBooleanAsSnippet(0);
         } else {
-            $freeShipping = $this->baseArticle->getMainDetail()->getShippingFree();
+            $freeShipping = $this->translateBooleanAsSnippet($this->baseArticle->getMainDetail()->getShippingFree());
         }
 
         $allAttributes[] = new Attribute('free_shipping', [$freeShipping]);
@@ -716,7 +716,8 @@ class FindologicArticleModel
         $allProperties = [];
         $rewrtieLink = Shopware()->Modules()->Core()->sRewriteLink();
         if (!StaticHelper::isEmpty($this->baseArticle->getHighlight())) {
-            $allProperties[] = new Property('highlight', ['' => $this->baseArticle->getHighlight()]);
+            $allProperties[] =
+                new Property('highlight', ['' => $this->translateBooleanAsSnippet($this->baseArticle->getHighlight())]);
         }
         if (!StaticHelper::isEmpty($this->baseArticle->getTax())) {
             $allProperties[] = new Property('tax', ['' => $this->baseArticle->getTax()->getTax()]);
@@ -835,5 +836,16 @@ class FindologicArticleModel
     public function getXmlRepresentation()
     {
         return $this->xmlArticle;
+    }
+
+    private function translateBooleanAsSnippet($status)
+    {
+        if ($status) {
+            $snippet = 'list/render_value/notified/yes';
+        } else {
+            $snippet = 'list/render_value/notified/no';
+        }
+
+        return Shopware()->Snippets()->getNamespace('backend/notification/view/main')->get($snippet);
     }
 }
