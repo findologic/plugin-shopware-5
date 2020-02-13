@@ -23,7 +23,7 @@ class RangeFacetHandler implements PartialFacetHandlerInterface
         $max = (float)$filter->attributes->totalRange->max;
 
         if ($min === $max) {
-            return null;
+            // return null;
         }
 
         $activeMin = (float)$filter->attributes->selectedRange->min;
