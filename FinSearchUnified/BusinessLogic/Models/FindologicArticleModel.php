@@ -173,6 +173,8 @@ class FindologicArticleModel
             $this->setVariantOrdernumbers();
             $this->setProperties();
         }
+
+        $this->isCrossSellingCategoryConfigured();
     }
 
     protected function setUpStruct()
@@ -836,5 +838,17 @@ class FindologicArticleModel
     public function getXmlRepresentation()
     {
         return $this->xmlArticle;
+    }
+
+    private function isCrossSellingCategoryConfigured()
+    {
+        $crossSellingCategories = Shopware()->Config()->offsetGet('CrossSellingCategories');
+        /** @var Category $category */
+        foreach ($this->baseArticle->getCategories() as $category) {
+            if (in_array($category->getId(), $crossSellingCategories, true)) {
+                $this->shouldBeExported = false;
+                break;
+            }
+        }
     }
 }

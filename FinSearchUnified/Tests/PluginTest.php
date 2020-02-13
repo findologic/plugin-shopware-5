@@ -7,6 +7,7 @@ use FINDOLOGIC\Export\Helpers\EmptyValueNotAllowedException;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
+use FinSearchUnified\ShopwareProcess;
 use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Components\Api\Manager;
 use Shopware\Models\Article\Article;
@@ -102,7 +103,7 @@ class PluginTest extends TestCase
             ],
             'Article exists in one of the cross-sell categories configured' => [
                 'crossSellingCategories' => [8, 9],
-                'expectedCount' => 1
+                'expectedCount' => 0
             ],
             'Article exists in all of cross-sell categories configured' => [
                 'crossSellingCategories' => [8, 9, 10],
@@ -204,6 +205,7 @@ class PluginTest extends TestCase
     private function runExportAndReturnCount()
     {
         try {
+            /** @var ShopwareProcess $shopwareProcess */
             $shopwareProcess = Shopware()->Container()->get('fin_search_unified.shopware_process');
             $shopwareProcess->setShopKey('ABCDABCDABCDABCDABCDABCDABCDABCD');
             $xmlDocument = $shopwareProcess->getFindologicXml();

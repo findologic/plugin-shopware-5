@@ -89,10 +89,7 @@ class ShopwareProcess
     public function getAllProductsAsXmlArray($selectedLanguage = 'de_DE', $start = 0, $count = 0)
     {
         $response = new XmlInformation();
-
         $baseCategory = $this->shop->getCategory();
-
-        $crossSellingCategories = Shopware()->Config()->offsetGet('CrossSellingCategories');
 
         $this->customerRepository = Shopware()->Container()->get('models')->getRepository(Customer::class);
         $this->articleRepository = Shopware()->Container()->get('models')->getRepository(Article::class);
@@ -105,12 +102,6 @@ class ShopwareProcess
 
         if ($count > 0) {
             $articlesQuery->setMaxResults($count)->setFirstResult($start);
-        }
-
-        if (!empty($crossSellingCategories)) {
-            $articlesQuery->join('articles.categories', 'category')
-                ->andWhere('category.id NOT IN (:ids)')
-                ->setParameter('ids', $crossSellingCategories, Connection::PARAM_INT_ARRAY);
         }
 
         $countQuery = $this->articleRepository->createQueryBuilder('articles')
