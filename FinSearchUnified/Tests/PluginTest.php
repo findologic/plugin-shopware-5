@@ -121,15 +121,9 @@ class PluginTest extends TestCase
     {
         $assignedCategories = [8, 9, 10];
         $this->createTestProduct('SOMENUMBER', true, $assignedCategories);
-
-        Shopware()->Container()->get('config_writer')->save('CrossSellingCategories', $crossSellingCategories);
-        Shopware()->Container()->get('cache')->clean();
-
+        Shopware()->Config()->CrossSellingCategories = $crossSellingCategories;
         $exportedCount = $this->runExportAndReturnCount();
-
-        Shopware()->Container()->get('config_writer')->save('CrossSellingCategories', []);
-        Shopware()->Container()->get('cache')->clean();
-
+        unset(Shopware()->Config()->CrossSellingCategories);
         $this->assertSame($expectedCount, $exportedCount);
     }
 
