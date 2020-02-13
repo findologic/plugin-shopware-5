@@ -16,7 +16,6 @@ use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\TestCase;
 use PHPUnit\Framework\Assert;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
-use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Components\Api\Exception\CustomValidationException;
 use Shopware\Components\Api\Exception\NotFoundException;
 use Shopware\Components\Api\Exception\ParameterMissingException;
@@ -29,7 +28,6 @@ use Shopware_Components_Config as Config;
 use SimpleXMLElement;
 use Zend_Cache_Core;
 use Zend_Cache_Exception;
-use Zend_Http_Client_Exception;
 
 class StaticHelperTest extends TestCase
 {
@@ -561,6 +559,31 @@ class StaticHelperTest extends TestCase
     }
 
     /**
+     * @throws Zend_Cache_Exception
+     */
+    public function testUseShopSearchWhenShopIsNotAvailable()
+    {
+        $request = new RequestHttp();
+        $request->setModuleName('backend');
+
+        // Create Mock object for Shopware Front Request
+        $front = $this->createMock(Front::class);
+        $front->method('Request')
+            ->willReturn($request);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('front', $front);
+
+        $shop = Shopware()->Container()->get('shop');
+        Shopware()->Container()->reset('shop');
+
+        $result = StaticHelper::useShopSearch();
+        $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
+
+        Shopware()->Container()->set('shop', $shop);
+    }
+
+    /**
      * @dataProvider controlCharacterProvider
      *
      * @param string $text
@@ -785,74 +808,6 @@ class StaticHelperTest extends TestCase
     }
 
     /**
-     * @dataProvider discountFilterProvider
-     * @dataProvider priceFilterProvider
-     *
-     * @param array $filterData
-     * @param array $parameters
-     * @param bool $expectedFacetState
-     * @param string $expectedMinField
-     * @param string $expectedMaxField
-     *
-     * @throws Zend_Http_Client_Exception
-     */
-    public function testCreateRangeSliderFacetMethod(
-        array $filterData,
-        array $parameters,
-        $expectedFacetState,
-        $expectedMinField,
-        $expectedMaxField
-    ) {
-        // Minimal XML to be able to call createRangeSlideFacet
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $xmlResponse = new SimpleXMLElement($data);
-        $filters = $xmlResponse->addChild('filters');
-        $filter = $filters->addChild('filter');
-        $filter->addChild('type', 'range-slider');
-        $filter->addChild('items')->addChild('item');
-
-        // Generate sample XML to mock the filters data
-        foreach ($filterData as $key => $value) {
-            if ($key === 'attributes') {
-                $attributes = $filter->addChild('attributes');
-                foreach ($value as $type => $ranges) {
-                    $rangeType = $attributes->addChild($type);
-                    foreach ($ranges as $minMax => $range) {
-                        $rangeType->addChild($minMax, $range);
-                    }
-                }
-            } else {
-                $filter->addChild($key, $value);
-            }
-        }
-        $request = new RequestHttp();
-        $request->setModuleName('frontend');
-        $request->setParams($parameters);
-
-        // Create Mock object for Shopware Front Request
-        $front = $this->getMockBuilder(Front::class)
-            ->setMethods(['Request'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $front->expects($this->once())
-            ->method('Request')
-            ->willReturn($request);
-
-        // Assign mocked session variable to application container
-        Shopware()->Container()->set('front', $front);
-
-        $facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
-
-        /** @var RangeFacetResult $facet */
-        foreach ($facets as $facet) {
-            $this->assertInstanceOf(RangeFacetResult::class, $facet);
-            $this->assertSame($expectedFacetState, $facet->isActive());
-            $this->assertSame($expectedMinField, $facet->getMinFieldName());
-            $this->assertSame($expectedMaxField, $facet->getMaxFieldName());
-        }
-    }
-
-    /**
      * @return array
      */
     public function discountFilterProvider()
@@ -1028,5 +983,49 @@ class StaticHelperTest extends TestCase
             'Integration type is API but DI is enabled' => ['API', 'Direct Integration', true],
             'Integration type is DI but DI is not enabled' => ['Direct Integration', 'API', false],
         ];
+    }
+
+    public function nonEmptyValueProvider()
+    {
+        return [
+            ' i am not empty',
+            new SimpleXMLElement('<notEmpty/>'),
+            23,
+            1,
+            '_',
+            ['not empty at all' => 'really']
+        ];
+    }
+
+    /**
+     * @dataProvider nonEmptyValueProvider
+     */
+    public function testValuesThatAreNotEmptyAreReturnedAsSuch($value)
+    {
+        $this->assertFalse(StaticHelper::isEmpty($value));
+    }
+
+
+    public function emptyValueProvider()
+    {
+        return [
+            '',
+            ' ',
+            '     ',
+            '          ',
+            0,
+            '0',
+            [],
+            [''],
+            0.0,
+        ];
+    }
+
+    /**
+     * @dataProvider emptyValueProvider
+     */
+    public function testValuesThatArEmptyAreReturnedAsSuch($value)
+    {
+        $this->assertTrue(StaticHelper::isEmpty($value));
     }
 }

@@ -80,7 +80,7 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
     {
         $params = $request->getParams();
 
-        return array_key_exists('sSearch', $params);
+        return array_key_exists('sSearch', $params) || strtolower($request->getControllerName()) === 'search';
     }
 
     /**

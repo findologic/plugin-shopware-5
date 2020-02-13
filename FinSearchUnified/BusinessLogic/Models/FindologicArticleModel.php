@@ -31,7 +31,6 @@ use Shopware\Components\Model\ModelRepository;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Article\Detail;
 use Shopware\Models\Article\Image;
-use Shopware\Models\Attribute\Article as ArticleAttribute;
 use Shopware\Models\Category\Category;
 use Shopware\Models\Customer\Group;
 use Shopware\Models\Media\Media;
@@ -786,11 +785,11 @@ class FindologicArticleModel
     }
 
     /**
-     * @param ArticleAttribute $attributes
+     * @param $attributes
      *
      * @return array
      */
-    protected function getAttributesByInstance(ArticleAttribute $attributes = null)
+    protected function getAttributesByInstance($attributes = null)
     {
         if (!$attributes) {
             return [];
