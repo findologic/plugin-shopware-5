@@ -663,16 +663,16 @@ class FindologicArticleModel
         }
 
         // Add is new
-        $newFlag = $this->translateBooleanAsSnippet(0);
+        $newFlag = $this->translateBooleanAsSnippet(false);
         if ($this->legacyStruct['newArticle']) {
-            $newFlag = $this->translateBooleanAsSnippet(1);
+            $newFlag = $this->translateBooleanAsSnippet(true);
         }
         $xmlNewFlag = new Attribute('new', [$newFlag]);
         $allAttributes[] = $xmlNewFlag;
 
         // Add free_shipping
         if ($this->baseVariant->getShippingFree() == '') {
-            $freeShipping = $this->translateBooleanAsSnippet(0);
+            $freeShipping = $this->translateBooleanAsSnippet(false);
         } else {
             $freeShipping = $this->translateBooleanAsSnippet($this->baseArticle->getMainDetail()->getShippingFree());
         }
@@ -683,7 +683,7 @@ class FindologicArticleModel
         $cheapestPrice = $this->productStruct->getCheapestPrice();
         $hasPseudoPrice = $cheapestPrice->getCalculatedPseudoPrice() > $cheapestPrice->getCalculatedPrice();
         $onSale = $this->productStruct->isCloseouts() || $hasPseudoPrice;
-        $allAttributes[] = new Attribute('sale', [(int)$onSale]);
+        $allAttributes[] = new Attribute('sale', [$this->translateBooleanAsSnippet($onSale)]);
 
         $allAttributes = array_merge($allAttributes, $this->getAttributes());
 
