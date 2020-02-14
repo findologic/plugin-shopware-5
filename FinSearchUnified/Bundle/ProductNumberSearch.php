@@ -195,7 +195,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             $field = $criteriaFacet->getField();
 
             $selectedFilter = $selectedFilterByResponse = $this->fetchSelectedFilterByResponse(
-                $filters,
+                $xmlResponse->filters->filter,
                 $field
             );
             if (!$selectedFilterByResponse) {
@@ -250,6 +250,8 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     ) {
         if ($criteria->hasUserCondition($criteriaFacet->getName())) {
             $facetName = $criteriaFacet->getName();
+        } elseif ($criteria->hasUserCondition('price')) {
+            $facetName = 'price';
         } else {
             return null;
         }
