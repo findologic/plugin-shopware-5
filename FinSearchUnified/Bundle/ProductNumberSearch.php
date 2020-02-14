@@ -223,6 +223,8 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     {
         if ($criteria->hasUserCondition($criteriaFacet->getName())) {
             $facetName = $criteriaFacet->getName();
+        } elseif ($criteriaFacet->getField() === 'price') {
+            $facetName = 'price';
         } else {
             return null;
         }
