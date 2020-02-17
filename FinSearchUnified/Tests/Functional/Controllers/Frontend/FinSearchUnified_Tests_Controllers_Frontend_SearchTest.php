@@ -67,7 +67,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         $this->setConfig('ActivateFindologic', true);
         $this->setConfig('ActivateFindologicForCategoryPages', false);
-        $this->setConfig('ShopKey', '0000000000000000ZZZZZZZZZZZZZZZZ');
+        $this->setConfig('ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD');
     }
 
     protected function tearDown()
@@ -172,6 +172,9 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             $query->addChild('originalQuery', $originalQuery);
         }
 
+        $filters = $xmlResponse->addChild('filters');
+        $filters->addChild('filter');
+
         $results = $xmlResponse->addChild('results');
         $results->addChild('count', 5);
         $products = $xmlResponse->addChild('products');
@@ -184,7 +187,11 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         Shopware()->Session()->offsetSet('findologicDI', false);
 
         $criteria = new Criteria();
-        $criteria->setFetchCount(true);
+
+        // Method may not exist for Shopware 5.2.x
+        if (method_exists($criteria, 'setFetchCount')) {
+            $criteria->setFetchCount(true);
+        }
         $criteria->addBaseCondition(new SearchTermCondition('blubbergurke'));
         $storeFrontCriteriaFactoryMock = $this->getMockBuilder(StoreFrontCriteriaFactory::class)
             ->disableOriginalConstructor()

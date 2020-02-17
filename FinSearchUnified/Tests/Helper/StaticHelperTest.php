@@ -16,7 +16,6 @@ use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\TestCase;
 use PHPUnit\Framework\Assert;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
-use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Components\Api\Exception\CustomValidationException;
 use Shopware\Components\Api\Exception\NotFoundException;
 use Shopware\Components\Api\Exception\ParameterMissingException;
@@ -29,7 +28,6 @@ use Shopware_Components_Config as Config;
 use SimpleXMLElement;
 use Zend_Cache_Core;
 use Zend_Cache_Exception;
-use Zend_Http_Client_Exception;
 
 class StaticHelperTest extends TestCase
 {
@@ -188,6 +186,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
+                'fallbackSearchCookie' => null,
                 'expected' => true
             ],
             'Shopkey is empty' => [
@@ -197,6 +196,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
+                'fallbackSearchCookie' => null,
                 'expected' => true
             ],
             "Shopkey is 'Findologic Shopkey'" => [
@@ -206,6 +206,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
+                'fallbackSearchCookie' => null,
                 'expected' => true
             ],
             'FINDOLOGIC is active but integration type is DI' => [
@@ -215,6 +216,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => true,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
+                'fallbackSearchCookie' => null,
                 'expected' => true
             ],
             'FINDOLOGIC is active but the current page is neither the search nor a category page' => [
@@ -224,6 +226,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => false,
+                'fallbackSearchCookie' => null,
                 'expected' => true
             ],
             'FINDOLOGIC is not active on category pages' => [
@@ -233,6 +236,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
+                'fallbackSearchCookie' => null,
                 'expected' => true
             ],
             'FINDOLOGIC is active on search page' => [
@@ -242,6 +246,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
+                'fallbackSearchCookie' => null,
                 'expected' => false
             ],
             'FINDOLOGIC is active on category pages' => [
@@ -251,8 +256,49 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
+                'fallbackSearchCookie' => null,
                 'expected' => false
-            ]
+            ],
+            'Cookie "fallback-search" is set and true' => [
+                'activateFindologic' => true,
+                'shopKey' => '80AB18D4BE2654E78244106AD315DC2C',
+                'activateFindologicForCategoryPages' => false,
+                'findologicDI' => false,
+                'isSearchPage' => true,
+                'isCategoryPage' => false,
+                'fallbackSearchCookie' => true,
+                'expected' => true
+            ],
+            'Cookie "fallback-search" is set and its value is 1' => [
+                'activateFindologic' => true,
+                'shopKey' => '80AB18D4BE2654E78244106AD315DC2C',
+                'activateFindologicForCategoryPages' => false,
+                'findologicDI' => false,
+                'isSearchPage' => true,
+                'isCategoryPage' => false,
+                'fallbackSearchCookie' => 1,
+                'expected' => true
+            ],
+            'Cookie "fallback-search" is set and false' => [
+                'activateFindologic' => true,
+                'shopKey' => '80AB18D4BE2654E78244106AD315DC2C',
+                'activateFindologicForCategoryPages' => false,
+                'findologicDI' => false,
+                'isSearchPage' => true,
+                'isCategoryPage' => false,
+                'fallbackSearchCookie' => false,
+                'expected' => false
+            ],
+            'Cookie "fallback-search" is not set' => [
+                'activateFindologic' => true,
+                'shopKey' => '80AB18D4BE2654E78244106AD315DC2C',
+                'activateFindologicForCategoryPages' => false,
+                'findologicDI' => false,
+                'isSearchPage' => true,
+                'isCategoryPage' => false,
+                'fallbackSearchCookie' => null,
+                'expected' => false
+            ],
         ];
     }
 
@@ -375,6 +421,7 @@ class StaticHelperTest extends TestCase
      * @param bool $checkIntegration
      * @param bool $isSearchPage
      * @param bool $isCategoryPage
+     * @param bool|null $fallbackCookie
      * @param bool $expected
      *
      * @throws Zend_Cache_Exception
@@ -386,6 +433,7 @@ class StaticHelperTest extends TestCase
         $checkIntegration,
         $isSearchPage,
         $isCategoryPage,
+        $fallbackCookie,
         $expected
     ) {
         $configArray = [
@@ -396,6 +444,8 @@ class StaticHelperTest extends TestCase
         ];
         $request = new RequestHttp();
         $request->setModuleName('frontend');
+
+        $_COOKIE['fallback-search'] = $fallbackCookie;
 
         // Create Mock object for Shopware Front Request
         $front = $this->createMock(Front::class);
@@ -506,6 +556,31 @@ class StaticHelperTest extends TestCase
 
         $result = StaticHelper::useShopSearch();
         $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
+    }
+
+    /**
+     * @throws Zend_Cache_Exception
+     */
+    public function testUseShopSearchWhenShopIsNotAvailable()
+    {
+        $request = new RequestHttp();
+        $request->setModuleName('backend');
+
+        // Create Mock object for Shopware Front Request
+        $front = $this->createMock(Front::class);
+        $front->method('Request')
+            ->willReturn($request);
+
+        // Assign mocked session variable to application container
+        Shopware()->Container()->set('front', $front);
+
+        $shop = Shopware()->Container()->get('shop');
+        Shopware()->Container()->reset('shop');
+
+        $result = StaticHelper::useShopSearch();
+        $this->assertTrue($result, 'Expected shop search to be triggered but FINDOLOGIC was triggered instead');
+
+        Shopware()->Container()->set('shop', $shop);
     }
 
     /**
@@ -733,74 +808,6 @@ class StaticHelperTest extends TestCase
     }
 
     /**
-     * @dataProvider discountFilterProvider
-     * @dataProvider priceFilterProvider
-     *
-     * @param array $filterData
-     * @param array $parameters
-     * @param bool $expectedFacetState
-     * @param string $expectedMinField
-     * @param string $expectedMaxField
-     *
-     * @throws Zend_Http_Client_Exception
-     */
-    public function testCreateRangeSliderFacetMethod(
-        array $filterData,
-        array $parameters,
-        $expectedFacetState,
-        $expectedMinField,
-        $expectedMaxField
-    ) {
-        // Minimal XML to be able to call createRangeSlideFacet
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $xmlResponse = new SimpleXMLElement($data);
-        $filters = $xmlResponse->addChild('filters');
-        $filter = $filters->addChild('filter');
-        $filter->addChild('type', 'range-slider');
-        $filter->addChild('items')->addChild('item');
-
-        // Generate sample XML to mock the filters data
-        foreach ($filterData as $key => $value) {
-            if ($key === 'attributes') {
-                $attributes = $filter->addChild('attributes');
-                foreach ($value as $type => $ranges) {
-                    $rangeType = $attributes->addChild($type);
-                    foreach ($ranges as $minMax => $range) {
-                        $rangeType->addChild($minMax, $range);
-                    }
-                }
-            } else {
-                $filter->addChild($key, $value);
-            }
-        }
-        $request = new RequestHttp();
-        $request->setModuleName('frontend');
-        $request->setParams($parameters);
-
-        // Create Mock object for Shopware Front Request
-        $front = $this->getMockBuilder(Front::class)
-            ->setMethods(['Request'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $front->expects($this->once())
-            ->method('Request')
-            ->willReturn($request);
-
-        // Assign mocked session variable to application container
-        Shopware()->Container()->set('front', $front);
-
-        $facets = StaticHelper::getFacetResultsFromXml($xmlResponse);
-
-        /** @var RangeFacetResult $facet */
-        foreach ($facets as $facet) {
-            $this->assertInstanceOf(RangeFacetResult::class, $facet);
-            $this->assertSame($expectedFacetState, $facet->isActive());
-            $this->assertSame($expectedMinField, $facet->getMinFieldName());
-            $this->assertSame($expectedMaxField, $facet->getMaxFieldName());
-        }
-    }
-
-    /**
      * @return array
      */
     public function discountFilterProvider()
@@ -976,5 +983,49 @@ class StaticHelperTest extends TestCase
             'Integration type is API but DI is enabled' => ['API', 'Direct Integration', true],
             'Integration type is DI but DI is not enabled' => ['Direct Integration', 'API', false],
         ];
+    }
+
+    public function nonEmptyValueProvider()
+    {
+        return [
+            ' i am not empty',
+            new SimpleXMLElement('<notEmpty/>'),
+            23,
+            1,
+            '_',
+            ['not empty at all' => 'really']
+        ];
+    }
+
+    /**
+     * @dataProvider nonEmptyValueProvider
+     */
+    public function testValuesThatAreNotEmptyAreReturnedAsSuch($value)
+    {
+        $this->assertFalse(StaticHelper::isEmpty($value));
+    }
+
+
+    public function emptyValueProvider()
+    {
+        return [
+            '',
+            ' ',
+            '     ',
+            '          ',
+            0,
+            '0',
+            [],
+            [''],
+            0.0,
+        ];
+    }
+
+    /**
+     * @dataProvider emptyValueProvider
+     */
+    public function testValuesThatArEmptyAreReturnedAsSuch($value)
+    {
+        $this->assertTrue(StaticHelper::isEmpty($value));
     }
 }

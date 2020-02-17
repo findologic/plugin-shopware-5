@@ -2,10 +2,11 @@
 
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\FacetHandler;
 
+use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
+use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundle\FacetResult\ColorListItem;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\ColorFacetHandler;
 use FinSearchUnified\Tests\TestCase;
-use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
@@ -104,7 +105,7 @@ class ColorFacetHandlerTest extends TestCase
                 ],
                 'Condition' => null,
                 'Facet Result' => new MediaListFacetResult(
-                    'color',
+                    'product_attribute_color',
                     false,
                     'Farbe',
                     [
@@ -135,7 +136,7 @@ class ColorFacetHandlerTest extends TestCase
                 ],
                 'Condition' => null,
                 'Facet Result' => new MediaListFacetResult(
-                    'color',
+                    'product_attribute_color',
                     false,
                     'Farbe',
                     [
@@ -166,11 +167,11 @@ class ColorFacetHandlerTest extends TestCase
                 ],
                 'Condition' => new ProductAttributeCondition(
                     'color',
-                    ConditionInterface::OPERATOR_EQ,
+                    Operator::EQ,
                     ['Red', 'Green']
                 ),
                 'Facet Result' => new MediaListFacetResult(
-                    'color',
+                    'product_attribute_color',
                     true,
                     'Farbe',
                     [
@@ -201,11 +202,11 @@ class ColorFacetHandlerTest extends TestCase
                 ],
                 'Condition' => new ProductAttributeCondition(
                     'color',
-                    ConditionInterface::OPERATOR_EQ,
+                    Operator::EQ,
                     ['Zima Blue']
                 ),
                 'Facet Result' => new MediaListFacetResult(
-                    'color',
+                    'product_attribute_color',
                     true,
                     'Farbe',
                     [

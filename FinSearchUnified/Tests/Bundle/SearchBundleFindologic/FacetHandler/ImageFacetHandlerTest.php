@@ -2,12 +2,13 @@
 
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\FacetHandler;
 
+use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
+use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\ImageFacetHandler;
 use FinSearchUnified\Tests\TestCase;
 use GuzzleHttp\Client;
 use GuzzleHttp\Message\Response;
 use GuzzleHttp\Subscriber\Mock;
-use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
@@ -19,6 +20,18 @@ use SimpleXMLElement;
 
 class ImageFacetHandlerTest extends TestCase
 {
+    public function filterProvider()
+    {
+        return [
+            'Filter with "select" type' => ['select', true, false],
+            'Filter with "label" type' => ['label', true, false],
+            'Filter with "range-slider" type' => ['range-slider', true, false],
+            'Filter with "color" type without image' => ['color', false, false],
+            'Filter with "color" type with image' => ['color', true, true],
+            'Filter with "image" type' => ['image', true, true],
+        ];
+    }
+
     /**
      * @dataProvider filterProvider
      *
@@ -44,15 +57,60 @@ class ImageFacetHandlerTest extends TestCase
         $this->assertSame($doesSupport, $result);
     }
 
-    public function filterProvider()
+    public function imageFilterProvider()
     {
         return [
-            'Filter with "select" type' => ['select', true, false],
-            'Filter with "label" type' => ['label', true, false],
-            'Filter with "range-slider" type' => ['range-slider', true, false],
-            'Filter with "color" type without image' => ['color', false, false],
-            'Filter with "color" type with image' => ['color', true, true],
-            'Filter with "image" type' => ['image', true, true],
+            'Image filter with condition' => [
+                'filterData' => [
+                    ['name' => 'Red', 'image' => '', 'status' => 404],
+                    ['name' => 'Green', 'image' => '', 'status' => 404],
+                    ['name' => 'Zima Blue', 'image' => 'https://example.com/zima-blue.gif', 'status' => 200],
+                    ['name' => 'Yellow', 'image' => 'https://example.com/yellow.gif', 'status' => 200],
+                    ['name' => 'Purple', 'image' => 'https://example.com/purple.gif', 'status' => 404],
+                    ['name' => 'Light Purple', 'image' => 'https://example.com/light-purple.gif', 'status' => 404],
+                ],
+                'condition' =>
+                    new ProductAttributeCondition(
+                        'vendor',
+                        Operator::EQ,
+                        ['Red', 'Zima Blue', 'Purple']
+                    ),
+                'facetData' =>
+                    [
+                        ['id' => 'Red', 'active' => true, 'media' => null],
+                        ['id' => 'Green', 'active' => false, 'media' => null],
+                        ['id' => 'Zima Blue', 'active' => true, 'media' => 'https://example.com/zima-blue.gif'],
+                        ['id' => 'Yellow', 'active' => false, 'media' => 'https://example.com/yellow.gif'],
+                        ['id' => 'Purple', 'active' => true, 'media' => null],
+                        ['id' => 'Light Purple', 'active' => false, 'media' => null],
+                    ]
+            ],
+            'Image filter without condition' => [
+                'filterData' => [
+                    ['name' => 'Red', 'image' => '', 'status' => 404],
+                ],
+                'condition' => null,
+                'facetData' =>
+                    [
+                        ['id' => 'Red', 'active' => false, 'media' => null]
+                    ]
+            ],
+            'Image filter with condition but without filters' => [
+                'filterData' => [],
+                'condition' =>
+                    new ProductAttributeCondition(
+                        'vendor',
+                        Operator::EQ,
+                        ['Red', 'Zima Blue', 'Purple']
+                    ),
+                'facetData' =>
+                    [
+                        ['id' => 'Red', 'active' => true, 'media' => null],
+                        ['id' => 'Zima Blue', 'active' => true, 'media' => null],
+                        ['id' => 'Purple', 'active' => true, 'media' => null]
+                    ]
+            ],
+
         ];
     }
 
@@ -131,47 +189,6 @@ class ImageFacetHandlerTest extends TestCase
         );
 
         $this->assertEquals($facetResult, $result);
-    }
-
-    public function imageFilterProvider()
-    {
-        return [
-            'Image filter with condition' => [
-                'filterData' => [
-                    ['name' => 'Red', 'image' => '', 'status' => 404],
-                    ['name' => 'Green', 'image' => '', 'status' => 404],
-                    ['name' => 'Zima Blue', 'image' => 'https://example.com/zima-blue.gif', 'status' => 200],
-                    ['name' => 'Yellow', 'image' => 'https://example.com/yellow.gif', 'status' => 200],
-                    ['name' => 'Purple', 'image' => 'https://example.com/purple.gif', 'status' => 404],
-                    ['name' => 'Light Purple', 'image' => 'https://example.com/light-purple.gif', 'status' => 404],
-                ],
-                'condition' =>
-                    new ProductAttributeCondition(
-                        'vendor',
-                        ConditionInterface::OPERATOR_EQ,
-                        ['Red', 'Zima Blue', 'Purple']
-                    ),
-                'facetData' =>
-                    [
-                        ['id' => 'Red', 'active' => true, 'media' => null],
-                        ['id' => 'Green', 'active' => false, 'media' => null],
-                        ['id' => 'Zima Blue', 'active' => true, 'media' => 'https://example.com/zima-blue.gif'],
-                        ['id' => 'Yellow', 'active' => false, 'media' => 'https://example.com/yellow.gif'],
-                        ['id' => 'Purple', 'active' => true, 'media' => null],
-                        ['id' => 'Light Purple', 'active' => false, 'media' => null],
-                    ]
-            ],
-            'Image filter without condition' => [
-                'filterData' => [
-                    ['name' => 'Red', 'image' => '', 'status' => 404],
-                ],
-                'condition' => null,
-                'facetData' =>
-                    [
-                        ['id' => 'Red', 'active' => false, 'media' => null]
-                    ]
-            ],
-        ];
     }
 
     /**

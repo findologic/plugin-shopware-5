@@ -15,7 +15,7 @@ class ConfigLoaderTest extends TestCase
 {
     protected static $ensureLoadedPlugins = [
         'FinSearchUnified' => [
-            'ShopKey' => '0000000000000000ZZZZZZZZZZZZZZZZ'
+            'ShopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD'
         ],
     ];
 
@@ -276,7 +276,6 @@ class ConfigLoaderTest extends TestCase
 
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
         $mockedCache->expects($this->never())->method('save');
-
         $mockedCache->expects($loadCallCount)
             ->method('load')
             ->with($expectedCacheKey)

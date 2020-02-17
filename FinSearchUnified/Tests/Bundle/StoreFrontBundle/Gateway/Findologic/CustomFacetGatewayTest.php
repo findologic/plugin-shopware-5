@@ -9,13 +9,10 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGateway;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
+use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use FinSearchUnified\Tests\TestCase;
-use ReflectionException;
-use ReflectionObject;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
-use Shopware\Bundle\StoreFrontBundle\Gateway\DBAL;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
-use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use Shopware_Components_Config;
 use SimpleXMLElement;
 
@@ -32,33 +29,6 @@ class CustomFacetGatewayTest extends TestCase
         Shopware()->Session()->offsetUnset('isSearchPage');
         Shopware()->Session()->offsetUnset('isCategoryPage');
         Shopware()->Session()->offsetUnset('findologicDI');
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function testUseOriginalServiceWhenShopSearchIsTriggered()
-    {
-        /** @var ContextServiceInterface $contextService */
-        $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
-        $context = $contextService->getShopContext();
-
-        $mockOriginalService = $this->getMockBuilder(DBAL\CustomFacetGateway::class)
-            ->setMethods(['getList'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $mockOriginalService->expects($this->once())->method('getList');
-
-        $mockQuerybuilder = $this->createMock(QueryBuilderFactory::class);
-        $mockQuerybuilder->expects($this->never())->method('createProductQuery');
-
-        $facetGateway = new CustomFacetGateway(
-            $mockOriginalService,
-            Shopware()->Container()->get('fin_search_unified.custom_listing_hydrator'),
-            $mockQuerybuilder
-        );
-
-        $facetGateway->getList([3], $context);
     }
 
     /**
@@ -87,7 +57,7 @@ class CustomFacetGatewayTest extends TestCase
 
         $configArray = [
             ['ActivateFindologic', true],
-            ['ShopKey', 'ABCD0815'],
+            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
             ['ActivateFindologicForCategoryPages', false]
         ];
         // Create mock object for Shopware Config and explicitly return the values
@@ -104,13 +74,9 @@ class CustomFacetGatewayTest extends TestCase
         Shopware()->Session()->offsetSet('isCategoryPage', false);
         Shopware()->Session()->offsetSet('findologicDI', false);
 
-        $mockOriginalService = $this->getMockBuilder(DBAL\CustomFacetGateway::class)
-            ->setMethods(['getList'])
-            ->disableOriginalConstructor()
+        $mockHydrator = $this->getMockBuilder(CustomListingHydrator::class)
+            ->setMethods(['hydrateFacet'])
             ->getMock();
-        $mockOriginalService->expects($this->once())->method('getList');
-
-        $mockHydrator = $this->createMock(CustomListingHydrator::class);
         $mockHydrator->expects($this->never())
             ->method('hydrateFacet');
 
@@ -128,12 +94,11 @@ class CustomFacetGatewayTest extends TestCase
             ->willReturn($mockedQuery);
 
         $facetGateway = new CustomFacetGateway(
-            $mockOriginalService,
             $mockHydrator,
             $mockQuerybuilderFactory
         );
 
-        $facetGateway->getList([3], $context);
+        $this->assertCount(0, $facetGateway->getList([3], $context));
     }
 
     /**
@@ -212,7 +177,7 @@ class CustomFacetGatewayTest extends TestCase
 
         $configArray = [
             ['ActivateFindologic', true],
-            ['ShopKey', 'ABCD0815'],
+            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
             ['ActivateFindologicForCategoryPages', false]
         ];
         // Create mock object for Shopware Config and explicitly return the values
@@ -228,12 +193,6 @@ class CustomFacetGatewayTest extends TestCase
         Shopware()->Session()->offsetSet('isSearchPage', true);
         Shopware()->Session()->offsetSet('isCategoryPage', false);
         Shopware()->Session()->offsetSet('findologicDI', false);
-
-        $mockOriginalService = $this->getMockBuilder(DBAL\CustomFacetGateway::class)
-            ->setMethods(['getList'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $mockOriginalService->expects($this->never())->method('getList');
 
         $xmlResponse = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>');
 
@@ -264,7 +223,6 @@ class CustomFacetGatewayTest extends TestCase
             ->willReturn($mockedQuery);
 
         $facetGateway = new CustomFacetGateway(
-            $mockOriginalService,
             $originalHydrator,
             $mockQuerybuilderFactory
         );
