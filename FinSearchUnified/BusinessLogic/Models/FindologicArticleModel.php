@@ -232,7 +232,7 @@ class FindologicArticleModel
 
             $this->shouldBeExported = true;
             // Remove inactive variants
-            if ($detail->getActive() === 0) {
+            if (!$detail->getActive()) {
                 continue;
             }
 
@@ -282,7 +282,7 @@ class FindologicArticleModel
             if ($detail->getInStock() < 1) {
                 continue;
             }
-            if ($detail->getActive() == 1) {
+            if ($detail->getActive()) {
                 /** @var \Shopware\Models\Article\Price $price */
                 foreach ($detail->getPrices() as $price) {
                     /** @var Group $customerGroup */
