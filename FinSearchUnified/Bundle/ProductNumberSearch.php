@@ -87,6 +87,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             static::setFallbackFlag(1);
             static::setFallbackSearchFlag(1);
             static::redirectToSameUrl();
+
             return null;
         }
         static::setFallbackFlag(0);

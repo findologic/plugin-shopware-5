@@ -11,6 +11,7 @@ use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGatew
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use FinSearchUnified\Tests\TestCase;
+use ReflectionObject;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware_Components_Config;
@@ -74,9 +75,7 @@ class CustomFacetGatewayTest extends TestCase
         Shopware()->Session()->offsetSet('isCategoryPage', false);
         Shopware()->Session()->offsetSet('findologicDI', false);
 
-        $mockHydrator = $this->getMockBuilder(CustomListingHydrator::class)
-            ->setMethods(['hydrateFacet'])
-            ->getMock();
+        $mockHydrator = $this->createMock(CustomListingHydrator::class);
         $mockHydrator->expects($this->never())
             ->method('hydrateFacet');
 
@@ -353,8 +352,6 @@ class CustomFacetGatewayTest extends TestCase
      * @param $defaultInvoke
      * @param $defaultCategoryFacet
      * @param $defaultVendorFacet
-     *
-     * @throws ReflectionException
      */
     public function testDefaultHydrateFacets(
         array $filterData,
@@ -364,12 +361,6 @@ class CustomFacetGatewayTest extends TestCase
         $defaultCategoryFacet,
         $defaultVendorFacet
     ) {
-        $mockOriginalService = $this->getMockBuilder(DBAL\CustomFacetGateway::class)
-            ->setMethods(['getList'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $mockOriginalService->expects($this->never())->method('getList');
-
         $xmlResponse = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>');
 
         $results = $xmlResponse->addChild('results');
@@ -398,7 +389,6 @@ class CustomFacetGatewayTest extends TestCase
         $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
 
         $facetGateway = new CustomFacetGateway(
-            $mockOriginalService,
             $mockHydrator,
             $mockQuerybuilderFactory
         );
