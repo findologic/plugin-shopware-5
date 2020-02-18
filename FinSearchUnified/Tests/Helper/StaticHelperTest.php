@@ -23,7 +23,6 @@ use Shopware\Components\Api\Exception\ValidationException;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource;
 use Shopware\Components\HttpClient\GuzzleHttpClient;
-use Shopware\Models\Category\Category;
 use Shopware_Components_Config as Config;
 use SimpleXMLElement;
 use Zend_Cache_Core;
@@ -623,58 +622,10 @@ class StaticHelperTest extends TestCase
      */
     public function testBuildCategoryName($categoryId, $category, $expected)
     {
-        $categoryModel = $this->categoryResource->update($categoryId, [
-            'name' => $category
-        ]);
-        $this->assertInstanceOf(Category::class, $categoryModel);
-
-        $this->updateParentCategoryName($categoryModel->getParent(), false);
-
+        $categoryModel = $this->categoryResource->update($categoryId, ['name' => $category]);
         $result = StaticHelper::buildCategoryName($categoryModel->getId());
-
-        $this->categoryResource->update($categoryId, [
-            'name' => trim($category)
-        ]);
-
-        $this->updateParentCategoryName($categoryModel->getParent());
-
+        $this->categoryResource->update($categoryId, ['name' => trim($category)]);
         $this->assertSame($expected, $result, 'Expected category name to be trimmed but was not');
-    }
-
-    /**
-     * Helper method to recursively update parent category name
-     *
-     * @param Category $parent
-     * @param bool $restore
-     *
-     * @throws CustomValidationException
-     * @throws NotFoundException
-     * @throws ParameterMissingException
-     * @throws ValidationException
-     */
-    private function updateParentCategoryName(Category $parent, $restore = true)
-    {
-        // Stop when Shopware's root category is reached. Changing it can and will break unrelated tests.
-        if ($parent->getId() === 1) {
-            return;
-        }
-
-        if ($restore) {
-            $name = trim($parent->getName());
-        } else {
-            $name = str_pad(
-                $parent->getName(),
-                strlen($parent->getName()) + 2,
-                ' ',
-                STR_PAD_BOTH
-            );
-        }
-
-        $this->categoryResource->update($parent->getId(), [
-            'name' => $name
-        ]);
-
-        $this->updateParentCategoryName($parent->getParent(), $restore);
     }
 
     public function smartDidYouMeanProvider()
@@ -762,28 +713,32 @@ class StaticHelperTest extends TestCase
         } else {
             $view->expects($this->once())
                 ->method('assign')
-                ->with($this->callback(function ($data) use (
-                    $expectedType,
-                    $expectedAlternativeQuery,
-                    $expectedOriginalQuery
-                ) {
-                    Assert::assertArrayHasKey(
-                        'finSmartDidYouMean',
-                        $data,
-                        '"finSmartDidYouMean" was not assigned to the view'
-                    );
+                ->with(
+                    $this->callback(
+                        function ($data) use (
+                            $expectedType,
+                            $expectedAlternativeQuery,
+                            $expectedOriginalQuery
+                        ) {
+                            Assert::assertArrayHasKey(
+                                'finSmartDidYouMean',
+                                $data,
+                                '"finSmartDidYouMean" was not assigned to the view'
+                            );
 
-                    Assert::assertEquals(
-                        [
-                            'type' => $expectedType,
-                            'alternative_query' => $expectedAlternativeQuery,
-                            'original_query' => $expectedOriginalQuery
-                        ],
-                        $data['finSmartDidYouMean']
-                    );
+                            Assert::assertEquals(
+                                [
+                                    'type' => $expectedType,
+                                    'alternative_query' => $expectedAlternativeQuery,
+                                    'original_query' => $expectedOriginalQuery
+                                ],
+                                $data['finSmartDidYouMean']
+                            );
 
-                    return true;
-                }));
+                            return true;
+                        }
+                    )
+                );
         }
         $action = $this->createMock(Action::class);
         $action->method('View')
