@@ -255,7 +255,7 @@ class ProductNumberSearchTest extends TestCase
             ->getMock();
         $front->method('Request')->willReturn($request);
 
-        $hydrator = new CustomListingHydrator();
+        $hydrator = Shopware()->Container()->get('fin_search_unified.custom_listing_hydrator');
 
         foreach ($xmlResponse->filters->filter as $filter) {
             $facet = $hydrator->hydrateFacet($filter);
@@ -449,7 +449,7 @@ class ProductNumberSearchTest extends TestCase
             $criteria->addCondition($condition);
         }
 
-        $hydrator = new CustomListingHydrator();
+        $hydrator = Shopware()->Container()->get('fin_search_unified.custom_listing_hydrator');
 
         foreach ($xmlResponse->filters->filter as $filter) {
             $facetResult = $hydrator->hydrateFacet($filter);

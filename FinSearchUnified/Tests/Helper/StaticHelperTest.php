@@ -988,11 +988,11 @@ class StaticHelperTest extends TestCase
     public function nonEmptyValueProvider()
     {
         return [
-            ' i am not empty',
-            new SimpleXMLElement('<notEmpty/>'),
-            23,
-            1,
-            '_',
+            [' i am not empty'],
+            [new SimpleXMLElement('<notEmpty/>')],
+            [23],
+            [1],
+            ['_'],
             ['not empty at all' => 'really']
         ];
     }
@@ -1005,19 +1005,15 @@ class StaticHelperTest extends TestCase
         $this->assertFalse(StaticHelper::isEmpty($value));
     }
 
-
     public function emptyValueProvider()
     {
         return [
-            '',
-            ' ',
-            '     ',
-            '          ',
-            0,
-            '0',
-            [],
             [''],
-            0.0,
+            [' '],
+            ['     '],
+            ['          '],
+            [[]],
+            [['']]
         ];
     }
 
