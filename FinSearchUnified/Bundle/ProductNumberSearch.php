@@ -95,6 +95,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         static::redirectOnLandingpage($xmlResponse);
         StaticHelper::setPromotion($xmlResponse);
         StaticHelper::setSmartDidYouMean($xmlResponse);
+        StaticHelper::setQueryInfoMessage($xmlResponse);
 
         $totalResults = (int)$xmlResponse->results->count;
         $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);

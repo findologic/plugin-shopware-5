@@ -2,15 +2,16 @@
 
 {block name="frontend_search_headline"}
     <h1 class="search--headline">
-        {if $finSmartDidYouMean == false || $finSmartDidYouMean.type == 'did-you-mean'}
-            {s name='SearchHeadline'}{/s}
+        {if $snippetType == 'query'}
+            {s namespace='frontend/search/query_info_message' name='frontend/search/query_info_message/query'}{/s}
+        {elseif $snippetType == 'cat'}
+            {s namespace='frontend/search/query_info_message' name='frontend/search/query_info_message/cat'}{/s}
+        {elseif $snippetType == 'vendor'}
+            {s namespace='frontend/search/query_info_message' name='frontend/search/query_info_message/vendor'}{/s}
         {else}
-            {s name='frontend/search/fuzzy/search_head_line'}
-                The following products have been found matching your search "{$finSmartDidYouMean.alternative_query}": <span class="headline--product-count">{$sSearchResults.sArticlesCount}</span>
-            {/s}
+            {s namespace='frontend/search/query_info_message' name='frontend/search/query_info_message/default'}{/s}
         {/if}
     </h1>
-
     {if $finSmartDidYouMean}
         <p id="fl-smart-did-you-mean" class="search--headline">
             {if $finSmartDidYouMean.type == 'did-you-mean'}

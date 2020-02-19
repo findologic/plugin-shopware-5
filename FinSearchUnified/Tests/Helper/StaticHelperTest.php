@@ -6,6 +6,7 @@ use Enlight_Components_Session_Namespace as Session;
 use Enlight_Controller_Action as Action;
 use Enlight_Controller_Front as Front;
 use Enlight_Controller_Plugins_ViewRenderer_Bootstrap as ViewRenderer;
+use Enlight_Controller_Request_RequestHttp;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use Enlight_Plugin_Namespace_Loader as Plugins;
 use Enlight_View_Default as View;
@@ -623,18 +624,24 @@ class StaticHelperTest extends TestCase
      */
     public function testBuildCategoryName($categoryId, $category, $expected)
     {
-        $categoryModel = $this->categoryResource->update($categoryId, [
-            'name' => $category
-        ]);
+        $categoryModel = $this->categoryResource->update(
+            $categoryId,
+            [
+                'name' => $category
+            ]
+        );
         $this->assertInstanceOf(Category::class, $categoryModel);
 
         $this->updateParentCategoryName($categoryModel->getParent(), false);
 
         $result = StaticHelper::buildCategoryName($categoryModel->getId());
 
-        $this->categoryResource->update($categoryId, [
-            'name' => trim($category)
-        ]);
+        $this->categoryResource->update(
+            $categoryId,
+            [
+                'name' => trim($category)
+            ]
+        );
 
         $this->updateParentCategoryName($categoryModel->getParent());
 
@@ -670,9 +677,12 @@ class StaticHelperTest extends TestCase
             );
         }
 
-        $this->categoryResource->update($parent->getId(), [
-            'name' => $name
-        ]);
+        $this->categoryResource->update(
+            $parent->getId(),
+            [
+                'name' => $name
+            ]
+        );
 
         $this->updateParentCategoryName($parent->getParent(), $restore);
     }
@@ -762,28 +772,32 @@ class StaticHelperTest extends TestCase
         } else {
             $view->expects($this->once())
                 ->method('assign')
-                ->with($this->callback(function ($data) use (
-                    $expectedType,
-                    $expectedAlternativeQuery,
-                    $expectedOriginalQuery
-                ) {
-                    Assert::assertArrayHasKey(
-                        'finSmartDidYouMean',
-                        $data,
-                        '"finSmartDidYouMean" was not assigned to the view'
-                    );
+                ->with(
+                    $this->callback(
+                        function ($data) use (
+                            $expectedType,
+                            $expectedAlternativeQuery,
+                            $expectedOriginalQuery
+                        ) {
+                            Assert::assertArrayHasKey(
+                                'finSmartDidYouMean',
+                                $data,
+                                '"finSmartDidYouMean" was not assigned to the view'
+                            );
 
-                    Assert::assertEquals(
-                        [
-                            'type' => $expectedType,
-                            'alternative_query' => $expectedAlternativeQuery,
-                            'original_query' => $expectedOriginalQuery
-                        ],
-                        $data['finSmartDidYouMean']
-                    );
+                            Assert::assertEquals(
+                                [
+                                    'type' => $expectedType,
+                                    'alternative_query' => $expectedAlternativeQuery,
+                                    'original_query' => $expectedOriginalQuery
+                                ],
+                                $data['finSmartDidYouMean']
+                            );
 
-                    return true;
-                }));
+                            return true;
+                        }
+                    )
+                );
         }
         $action = $this->createMock(Action::class);
         $action->method('View')
@@ -1005,7 +1019,6 @@ class StaticHelperTest extends TestCase
         $this->assertFalse(StaticHelper::isEmpty($value));
     }
 
-
     public function emptyValueProvider()
     {
         return [
@@ -1027,5 +1040,207 @@ class StaticHelperTest extends TestCase
     public function testValuesThatArEmptyAreReturnedAsSuch($value)
     {
         $this->assertTrue(StaticHelper::isEmpty($value));
+    }
+
+    public function queryInfoMessageProvider()
+    {
+        return [
+            'Submitting an empty search' => [
+                'queryString' => '',
+                'queryStringType' => null,
+                'params' => ['cat' => '', 'vendor' => ''],
+                'queryInvokeCount' => $this->never(),
+                'finSmartDidYouMean' => [],
+                'filterName' => '',
+                'cat' => '',
+                'smartQuery' => '',
+                'vendor' => '',
+                'snippetType' => 'default'
+            ],
+            'Submitting an empty search with a selected category' => [
+                'queryString' => '',
+                'queryStringType' => null,
+                'params' => ['cat' => 'Genusswelten', 'vendor' => ''],
+                'queryInvokeCount' => $this->never(),
+                'finSmartDidYouMean' => [],
+                'filterName' => 'Kategorie',
+                'cat' => 'Genusswelten',
+                'smartQuery' => '',
+                'vendor' => '',
+                'snippetType' => 'cat'
+            ],
+            'Submitting an empty search with a selected sub-category' => [
+                'queryString' => '',
+                'queryStringType' => null,
+                'params' => ['cat' => 'Genusswelten_Tees', 'vendor' => ''],
+                'queryInvokeCount' => $this->never(),
+                'finSmartDidYouMean' => [],
+                'filterName' => 'Kategorie',
+                'cat' => 'Tees',
+                'smartQuery' => '',
+                'vendor' => '',
+                'snippetType' => 'cat'
+            ],
+            'Submitting an empty search with a selected vendor' => [
+                'queryString' => '',
+                'queryStringType' => null,
+                'params' => ['cat' => '', 'vendor' => 'Shopware Food'],
+                'queryInvokeCount' => $this->never(),
+                'finSmartDidYouMean' => [],
+                'filterName' => 'Hersteller',
+                'cat' => '',
+                'smartQuery' => '',
+                'vendor' => 'Shopware Food',
+                'snippetType' => 'vendor'
+            ],
+            'Submitting a search with some query' => [
+                'queryString' => 'some query',
+                'queryStringType' => null,
+                'params' => ['cat' => '', 'vendor' => ''],
+                'queryInvokeCount' => $this->never(),
+                'finSmartDidYouMean' => [],
+                'filterName' => '',
+                'cat' => '',
+                'smartQuery' => 'some query',
+                'vendor' => '',
+                'snippetType' => 'query'
+            ],
+            'Submitting a search with some query and a selected category and vendor filter' => [
+                'queryString' => 'some query',
+                'queryStringType' => null,
+                'params' => ['cat' => 'Genusswelten', 'vendor' => 'Shopware Food'],
+                'queryInvokeCount' => $this->never(),
+                'finSmartDidYouMean' => [],
+                'filterName' => '',
+                'cat' => '',
+                'smartQuery' => 'some query',
+                'vendor' => '',
+                'snippetType' => 'query'
+            ],
+            'Submitting a search where the response will have an improved query' => [
+                'queryString' => 'special',
+                'queryStringType' => 'improved',
+                'params' => ['cat' => '', 'vendor' => ''],
+                'queryInvokeCount' => $this->once(),
+                'finSmartDidYouMean' => ['alternative_query' => 'very special'],
+                'filterName' => '',
+                'cat' => '',
+                'smartQuery' => 'very special',
+                'vendor' => '',
+                'snippetType' => 'query'
+            ],
+            'Submitting a search where the response will have a corrected query' => [
+                'queryString' => 'standord',
+                'queryStringType' => 'improved',
+                'params' => ['cat' => '', 'vendor' => ''],
+                'queryInvokeCount' => $this->once(),
+                'finSmartDidYouMean' => ['alternative_query' => 'standard'],
+                'filterName' => '',
+                'cat' => '',
+                'smartQuery' => 'standard',
+                'vendor' => '',
+                'snippetType' => 'query'
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider queryInfoMessageProvider
+     *
+     * @param string $queryString
+     * @param string $queryStringType
+     * @param array $params
+     * @param $queryInvokeCount
+     * @param array $finSmartDidYouMean
+     * @param string $filterName
+     * @param string $cat
+     * @param string $smartQuery
+     * @param string $vendor
+     * @param string $snippetType
+     */
+    public function testQueryInfoMessage(
+        $queryString,
+        $queryStringType,
+        $params,
+        $queryInvokeCount,
+        $finSmartDidYouMean,
+        $filterName,
+        $cat,
+        $smartQuery,
+        $vendor,
+        $snippetType
+    ) {
+        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
+        $xmlResponse = new SimpleXMLElement($data);
+
+        $query = $xmlResponse->addChild('query');
+        $queryString = $query->addChild('queryString', $queryString);
+        $queryString->addAttribute('type', $queryStringType);
+
+        $request = new Enlight_Controller_Request_RequestHttp();
+        foreach ($params as $key => $value) {
+            $request->setParam($key, $value);
+        }
+
+        // Create mocked view
+        $view = $this->createMock(View::class);
+        $view->expects($queryInvokeCount)->method('getAssign')
+            ->with('finSmartDidYouMean')
+            ->willReturn($finSmartDidYouMean);
+
+        $expectedData = [
+            'finQueryInfoMessage' => [
+                'filter_name' => $filterName,
+                'query' => $smartQuery,
+                'cat' => $cat,
+                'vendor' => $vendor
+            ],
+            'snippetType' => $snippetType
+        ];
+
+        $view->expects($this->once())
+            ->method('assign')
+            ->with(
+                $this->callback(
+                    static function ($data) use ($expectedData) {
+                        Assert::assertArrayHasKey(
+                            'finQueryInfoMessage',
+                            $data,
+                            '"finQueryInfoMessage" was not assigned to the view'
+                        );
+                        Assert::assertArrayHasKey(
+                            'snippetType',
+                            $data,
+                            '"snippetType" was not assigned to the view'
+                        );
+
+                        Assert::assertEquals($expectedData, $data);
+
+                        return true;
+                    }
+                )
+            );
+        $action = $this->createMock(Action::class);
+        $action->method('View')
+            ->willReturn($view);
+
+        $renderer = $this->createMock(ViewRenderer::class);
+        $renderer->method('Action')
+            ->willReturn($action);
+
+        $plugin = $this->createMock(Plugins::class);
+        $plugin->method('get')
+            ->with('ViewRenderer')
+            ->willReturn($renderer);
+
+        $front = $this->createMock(Front::class);
+        $front->method('Plugins')
+            ->willReturn($plugin);
+        $front->method('Request')
+            ->willReturn($request);
+
+        Shopware()->Container()->set('front', $front);
+
+        StaticHelper::setQueryInfoMessage($xmlResponse);
     }
 }

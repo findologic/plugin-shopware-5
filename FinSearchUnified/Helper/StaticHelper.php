@@ -392,4 +392,80 @@ class StaticHelper
     {
         return (isset($_COOKIE['fallback-search']) && (bool)$_COOKIE['fallback-search']) === true;
     }
+
+    /**
+     * @param SimpleXMLElement $xmlResponse
+     */
+    public static function setQueryInfoMessage(SimpleXMLElement $xmlResponse)
+    {
+        $query = $xmlResponse->query;
+        $queryStringType = (string)$query->queryString->attributes()->type;
+        $queryString = (string)$query->queryString;
+
+        /** @var Enlight_View_Default $view */
+        $view = Shopware()->Container()->get('front')->Plugins()->get('ViewRenderer')->Action()->View();
+        $snippetManager = Shopware()->Container()->get('snippets')->getNamespace('frontend/search/query_info_message');
+
+        list($vendor, $cat, $smartQuery, $filterName, $snippetType) = self::extractSnippetValues(
+            $queryStringType,
+            $queryString,
+            $view,
+            $snippetManager
+        );
+
+        $view->assign(
+            [
+                'finQueryInfoMessage' => [
+                    'filter_name' => $filterName,
+                    'query' => $smartQuery,
+                    'cat' => $cat,
+                    'vendor' => $vendor
+                ],
+                'snippetType' => $snippetType
+            ]
+        );
+    }
+
+    /**
+     * @param $queryStringType
+     * @param $queryString
+     * @param Enlight_View_Default $view
+     * @param $snippetManager
+     *
+     * @return array
+     */
+    private static function extractSnippetValues(
+        $queryStringType,
+        $queryString,
+        Enlight_View_Default $view,
+        $snippetManager
+    ) {
+        $request = Shopware()->Front()->Request();
+        $params = $request->getParams();
+
+        $filterName = $smartQuery = $cat = $vendor = '';
+
+        if ((($queryStringType === 'corrected') && !empty($queryString)) ||
+            (($queryStringType === 'improved') && !empty($queryString))) {
+            $snippetType = 'query';
+            $finSmartDidYouMean = $view->getAssign('finSmartDidYouMean');
+            $smartQuery = $finSmartDidYouMean['alternative_query'];
+        } elseif (!empty($queryString)) {
+            $snippetType = 'query';
+            $smartQuery = $queryString;
+        } elseif (isset($params['cat']) && !empty($params['cat'])) {
+            $categories = explode('_', $params['cat']);
+            $cat = end($categories);
+            $filterName = $snippetManager->get('frontend/search/query_info_message/filter_category');
+            $snippetType = 'cat';
+        } elseif (isset($params['vendor']) && !empty($params['vendor'])) {
+            $vendor = $params['vendor'];
+            $filterName = $snippetManager->get('frontend/search/query_info_message/filter_vendor');
+            $snippetType = 'vendor';
+        } else {
+            $snippetType = 'default';
+        }
+
+        return [$vendor, $cat, $smartQuery, $filterName, $snippetType];
+    }
 }

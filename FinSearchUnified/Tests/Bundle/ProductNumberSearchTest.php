@@ -2,27 +2,32 @@
 
 namespace FinSearchUnified\Tests\Bundle;
 
+use Enlight_Controller_Action as Action;
+use Enlight_Controller_Front as Front;
+use Enlight_Controller_Plugins_ViewRenderer_Bootstrap as ViewRenderer;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
-use Enlight_Exception;
+use Enlight_Plugin_Namespace_Loader as Plugins;
+use Enlight_View_Default as View;
 use Exception;
 use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Tests\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 use ReflectionException;
 use ReflectionObject;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
-use Shopware\Bundle\SearchBundleDBAL\ProductNumberSearch as OriginalProductNumberSearch;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeItem;
 use Shopware\Bundle\SearchBundle\FacetResult\ValueListFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\ValueListItem;
 use Shopware\Bundle\SearchBundle\FacetResultInterface;
+use Shopware\Bundle\SearchBundleDBAL\ProductNumberSearch as OriginalProductNumberSearch;
 use Shopware_Components_Config as Config;
 use SimpleXMLElement;
 
@@ -51,6 +56,9 @@ class ProductNumberSearchTest extends TestCase
     protected function tearDown()
     {
         parent::tearDown();
+
+        Shopware()->Container()->reset('front');
+        Shopware()->Container()->load('front');
 
         Shopware()->Container()->reset('config');
         Shopware()->Container()->load('config');
@@ -145,19 +153,8 @@ class ProductNumberSearchTest extends TestCase
             $mockQuerybuilderFactory
         );
 
-        $request = new RequestHttp();
-        $request->setModuleName('frontend');
+        $front = $this->getFrontViewMock();
 
-        // Create Mock object for Shopware Front Request
-        $front = $this->getMockBuilder(Front::class)
-            ->setMethods(['Request'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $front->expects($this->any())
-            ->method('Request')
-            ->willReturn($request);
-
-        // Assign mocked variable to application container
         Shopware()->Container()->set('front', $front);
 
         $context = Shopware()->Container()->get('shopware_storefront.context_service')->getContext();
@@ -205,6 +202,7 @@ class ProductNumberSearchTest extends TestCase
             ]
         ];
     }
+
     /**
      * @dataProvider allFiltersProvider
      * @dataProvider facetWithNoHandlerProvider
@@ -245,15 +243,7 @@ class ProductNumberSearchTest extends TestCase
         $originalService = $this->createMock(ProductNumberSearch::class);
         $productNumberSearch = new ProductNumberSearch($originalService, $mockQuerybuilderFactory);
 
-        $request = new RequestHttp();
-        $request->setModuleName('frontend');
-
-        // Create Mock object for Shopware Front Request
-        $front = $this->getMockBuilder(Front::class)
-            ->setMethods(['Request'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $front->method('Request')->willReturn($request);
+        $front = $this->getFrontViewMock();
 
         $hydrator = new CustomListingHydrator();
 
@@ -560,5 +550,37 @@ class ProductNumberSearchTest extends TestCase
             $ventorItem->addChild('name', 'FINDOLOGIC');
             $ventorItem->addChild('frequency', 54);
         }
+    }
+
+    /**
+     * @return Front|MockObject
+     */
+    private function getFrontViewMock()
+    {
+        $request = new RequestHttp();
+        $request->setModuleName('frontend');
+
+        // Create mocked view
+        $view = $this->createMock(View::class);
+        $action = $this->createMock(Action::class);
+        $action->method('View')
+            ->willReturn($view);
+
+        $renderer = $this->createMock(ViewRenderer::class);
+        $renderer->method('Action')
+            ->willReturn($action);
+
+        $plugin = $this->createMock(Plugins::class);
+        $plugin->method('get')
+            ->with('ViewRenderer')
+            ->willReturn($renderer);
+
+        $front = $this->createMock(Front::class);
+        $front->method('Plugins')
+            ->willReturn($plugin);
+        $front->method('Request')
+            ->willReturn($request);
+
+        return $front;
     }
 }
