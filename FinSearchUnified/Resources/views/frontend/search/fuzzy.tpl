@@ -3,13 +3,33 @@
 {block name="frontend_search_headline"}
     <h1 class="search--headline">
         {if $snippetType == 'query'}
-            {s namespace='frontend/search/query_info_message' name='frontend/search/query_info_message/query'}{/s}
+            {s namespace='frontend/search/query_info_message' name='frontend/search/query_info_message/query'}
+                'Search results for {$finQueryInfoMessage.query} (
+                <strong>{$sSearchResults.sArticlesCount}</strong>
+                hits)'
+            {/s}
         {elseif $snippetType == 'cat'}
-            {s namespace='frontend/search/query_info_message' name='frontend/search/query_info_message/cat'}{/s}
+            {s namespace='frontend/search/query_info_message' name='frontend/search/query_info_message/cat'}
+                'Search results for {$finQueryInfoMessage.filter_name}
+                <strong>{$finQueryInfoMessage.cat}</strong>
+                (
+                <strong>{$sSearchResults.sArticlesCount}</strong>
+                hits)'
+            {/s}
         {elseif $snippetType == 'vendor'}
-            {s namespace='frontend/search/query_info_message' name='frontend/search/query_info_message/vendor'}{/s}
+            {s namespace='frontend/search/query_info_message' name='frontend/search/query_info_message/vendor'}
+                'Search results for {$finQueryInfoMessage.filter_name}
+                <strong>{$finQueryInfoMessage.vendor}</strong>
+                (
+                <strong>{$sSearchResults.sArticlesCount}</strong>
+                hits)'
+            {/s}
         {else}
-            {s namespace='frontend/search/query_info_message' name='frontend/search/query_info_message/default'}{/s}
+            {s namespace='frontend/search/query_info_message' name='frontend/search/query_info_message/default'}
+                'Search results (
+                <strong>{$sSearchResults.sArticlesCount}</strong>
+                hits)'
+            {/s}
         {/if}
     </h1>
     {if $finSmartDidYouMean}
