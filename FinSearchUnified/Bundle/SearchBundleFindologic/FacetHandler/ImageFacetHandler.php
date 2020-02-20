@@ -26,7 +26,7 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
      * @param GuzzleFactory $guzzleFactory
      * @param array $guzzleConfig
      */
-    public function __construct(GuzzleFactory $guzzleFactory, array $guzzleConfig)
+    public function __construct(GuzzleFactory $guzzleFactory, array $guzzleConfig = [])
     {
         $this->guzzleClient = $guzzleFactory->createClient($guzzleConfig);
     }
@@ -76,12 +76,12 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
     }
 
     /**
-     * @param array $active
+     * @param array $actives
      * @param SimpleXMLElement $filterItems
      *
      * @return array
      */
-    private function getMediaListItems(array $active, SimpleXMLElement $filterItems)
+    private function getMediaListItems(array $actives, SimpleXMLElement $filterItems)
     {
         $listItems = [];
         $items = [];
@@ -89,29 +89,43 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
 
         foreach ($filterItems as $filterItem) {
             $name = (string)$filterItem->name;
-            $isActive = in_array($name, $active);
+            $index = array_search($name, $actives);
+
+            if ($index === false) {
+                $active = false;
+            } else {
+                $active = true;
+                unset($actives[$index]);
+            }
 
             if (empty($filterItem->image)) {
                 $listItems[] = new MediaListItem(
                     $name,
                     $name,
-                    $isActive
+                    $active
                 );
             } else {
                 $url = (string)$filterItem->image;
 
                 $items[$url] = [
                     'name' => $name,
-                    'active' => $isActive
+                    'active' => $active
                 ];
 
                 $requests[] = $this->guzzleClient->createRequest('HEAD', $url);
             }
         }
 
+        if (empty($requests)) {
+            foreach ($actives as $element) {
+                $listItems[] = new MediaListItem($element, $element, true);
+            }
+
+            return $listItems;
+        }
+
         $options = [
             'complete' => function (CompleteEvent $event) use ($items, &$listItems) {
-
                 $url = $event->getRequest()->getUrl();
                 $data = $items[$url];
 
@@ -126,7 +140,6 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
                 );
             },
             'error' => function (ErrorEvent $event) use ($items, &$listItems) {
-
                 $url = $event->getRequest()->getUrl();
                 $data = $items[$url];
 

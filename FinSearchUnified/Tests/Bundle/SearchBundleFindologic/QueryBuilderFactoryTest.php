@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic;
 
 use Exception;
+use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundleFindologic\NavigationQueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
@@ -11,7 +12,6 @@ use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Condition\IsAvailableCondition;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
-use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
 use Shopware\Bundle\SearchBundle\Condition\SimpleCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
