@@ -12,7 +12,6 @@ use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use SimpleXMLElement;
-use Zend_Cache_Exception;
 
 class CustomFacetGateway implements CustomFacetGatewayInterface
 {
@@ -105,8 +104,6 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
      * @param SimpleXMLElement $filters
      *
      * @return CustomFacet[]
-     * @return array
-     * @throws Zend_Cache_Exception
      */
     private function hydrate(SimpleXMLElement $filters)
     {
