@@ -401,7 +401,7 @@ class StaticHelper
         /** @var Enlight_View_Default $view */
         $view = Shopware()->Container()->get('front')->Plugins()->get('ViewRenderer')->Action()->View();
 
-        $snippetExtractor = new SnippetExtractor($xmlResponse, $view);
+        $snippetExtractor = new QueryInfoMessageParser($xmlResponse, $view);
 
         $view->assign(
             [

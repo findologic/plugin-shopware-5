@@ -5,7 +5,7 @@ namespace FinSearchUnified\Helper;
 use Enlight_View_Default;
 use SimpleXMLElement;
 
-class SnippetExtractor
+class QueryInfoMessageParser
 {
     /**
      * @var SimpleXMLElement
@@ -47,10 +47,10 @@ class SnippetExtractor
         $this->xmlResponse = $xmlResponse;
         $this->view = $view;
 
-        $this->extract();
+        $this->parse();
     }
 
-    private function extract()
+    private function parse()
     {
         $query = $this->xmlResponse->query;
         $queryStringType = (string)$query->queryString->attributes()->type;
