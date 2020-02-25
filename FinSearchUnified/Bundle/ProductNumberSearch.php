@@ -183,9 +183,12 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     protected function createFacets(Criteria $criteria, ShopContextInterface $context, SimpleXMLElement $filters = null)
     {
         $facets = [];
-        $response = $this->getResponseWithoutFilters($criteria, $context);
 
-        $xmlResponse = StaticHelper::getXmlFromResponse($response);
+        $xmlResponse = null;
+        if (StaticHelper::isProductAndFilterLiveReloadingEnabled()) {
+            $response = $this->getResponseWithoutFilters($criteria, $context);
+            $xmlResponse = StaticHelper::getXmlFromResponse($response);
+        }
 
         /** @var ProductAttributeFacet $criteriaFacet */
         foreach ($criteria->getFacets() as $criteriaFacet) {
@@ -202,14 +205,23 @@ class ProductNumberSearch implements ProductNumberSearchInterface
                 $selectedFilter = $this->fetchSelectedFilterByUserCondition(
                     $criteria,
                     $criteriaFacet,
-                    $filters
+                    $xmlResponse ? $xmlResponse->filters->filter : $filters
                 );
+
                 if (!$selectedFilter) {
+                    if (!StaticHelper::isProductAndFilterLiveReloadingEnabled()) {
+                        continue;
+                    }
+
                     $selectedFilter = $selectedFilterByResponse = $this->fetchSelectedFilterByResponse(
                         $xmlResponse->filters->filter,
                         $field
                     );
-                    unset($selectedFilter->items);
+                    // We need the filter values for initial requests, so they are shown if the initial filter
+                    // was deselected.
+                    if (Shopware()->Front()->Request()->getActionName() !== 'defaultSearch') {
+                        unset($selectedFilter->items);
+                    }
                     $selectedFilter->addChild('items');
                 }
             }
