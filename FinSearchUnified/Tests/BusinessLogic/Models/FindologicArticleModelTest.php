@@ -976,5 +976,4 @@ class FindologicArticleModelTest extends TestCase
 
         $this->assertArrayNotHasKey('attr1', $values);
     }
-
 }
