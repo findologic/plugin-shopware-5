@@ -9,6 +9,7 @@ use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
+use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
 use ReflectionException;
@@ -134,6 +135,9 @@ class ProductNumberSearchTest extends TestCase
         $mockQuerybuilderFactory->expects($this->exactly($invokationCount))
             ->method('createProductQuery')
             ->willReturn($mockedQuery);
+        $mockQuerybuilderFactory->expects($this->any())
+            ->method('createSearchNavigationQueryWithoutAdditionalFilters')
+            ->willReturn($mockedQuery);
 
         $originalService = $this->createMock(OriginalProductNumberSearch::class);
 
@@ -143,13 +147,6 @@ class ProductNumberSearchTest extends TestCase
         Shopware()->Front()->setRequest($request);
 
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
-
-        $cacheKey = sprintf('finsearch_%s', md5($request->getRequestUri()));
-
-        $mockedCache->expects($invokationCount > 0 ? $this->exactly(2) : $this->exactly(0))
-            ->method('load')
-            ->with($cacheKey)
-            ->willReturn($response);
 
         $productNumberSearch = new ProductNumberSearch(
             $originalService,
@@ -204,13 +201,6 @@ class ProductNumberSearchTest extends TestCase
         Shopware()->Front()->setRequest($request);
 
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
-
-        $cacheKey = sprintf('finsearch_%s', md5($request->getRequestUri()));
-
-        $mockedCache->expects($this->exactly(2))
-            ->method('load')
-            ->with($cacheKey)
-            ->willReturn($xmlResponse->asXML());
 
         $originalService = $this->createMock(ProductNumberSearch::class);
         $productNumberSearch = new ProductNumberSearch(
@@ -489,13 +479,6 @@ class ProductNumberSearchTest extends TestCase
 
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
 
-        $cacheKey = sprintf('finsearch_%s', md5($request->getRequestUri()));
-
-        $mockedCache->expects($this->exactly(2))
-            ->method('load')
-            ->with($cacheKey)
-            ->willReturn($response);
-
         $productNumberSearch = new ProductNumberSearch(
             $originalService,
             Shopware()->Container()->get('fin_search_unified.query_builder_factory'),
@@ -593,24 +576,10 @@ class ProductNumberSearchTest extends TestCase
                     'Category',
                     [
                         new TreeItem(
-                            'Bekleidung',
-                            'Bekleidung',
+                            'Living Room',
+                            'Living Room',
                             false,
-                            [
-                            new TreeItem('Bekleidung_Herren', 'Herren', false, []),
-                            new TreeItem('Bekleidung_Damen', 'Damen', false, []),
-                            ]
-                        ),
-                        new TreeItem('Freizeit & Elektro', 'Freizeit & Elektro', false, []),
-                        new TreeItem(
-                            'Lebensmittel',
-                            'Lebensmittel',
-                            false,
-                            [
-                            new TreeItem('Lebensmittel_Süßes', 'Süßes', false, []),
-                            new TreeItem('Lebensmittel_Backwaren', 'Backwaren', false, []),
-                            new TreeItem('Lebensmittel_Fisch', 'Fisch', false, []),
-                            ]
+                            []
                         ),
                         new TreeItem('FINDOLOGIC', 'FINDOLOGIC', true, [])
                     ]
@@ -627,24 +596,10 @@ class ProductNumberSearchTest extends TestCase
                     'Category',
                     [
                         new TreeItem(
-                            'Bekleidung',
-                            'Bekleidung (6)',
+                            'Living Room',
+                            'Living Room (10)',
                             false,
-                            [
-                            new TreeItem('Bekleidung_Herren', 'Herren (4)', false, []),
-                            new TreeItem('Bekleidung_Damen', 'Damen (3)', false, []),
-                            ]
-                        ),
-                        new TreeItem('Freizeit & Elektro', 'Freizeit & Elektro (4)', false, []),
-                        new TreeItem(
-                            'Lebensmittel',
-                            'Lebensmittel (4)',
-                            false,
-                            [
-                            new TreeItem('Lebensmittel_Süßes', 'Süßes (2)', false, []),
-                            new TreeItem('Lebensmittel_Backwaren', 'Backwaren (1)', false, []),
-                            new TreeItem('Lebensmittel_Fisch', 'Fisch (1)', false, []),
-                            ]
+                            []
                         ),
                         new TreeItem('FINDOLOGIC', 'FINDOLOGIC', true, [])
                     ]
@@ -713,6 +668,7 @@ class ProductNumberSearchTest extends TestCase
         $request = new RequestHttp();
         $request->setModuleName('frontend');
         $request->setRequestUri('/findologic');
+        $request->setActionName('defaultSearch');
         Shopware()->Front()->setRequest($request);
 
         // No filters are selected in the XML response
@@ -728,21 +684,23 @@ class ProductNumberSearchTest extends TestCase
             ->setMethods(['execute'])
             ->getMockForAbstractClass();
 
-        $mockedQuery->expects($this->once())->method('execute')->willReturn($response);
-
         $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
-        $mockQuerybuilderFactory->expects($this->once())
-            ->method('createSearchNavigationQueryWithoutAdditionalFilters')
-            ->willReturn($mockedQuery);
-
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
 
-        $cacheKey = sprintf('finsearch_%s', md5($request->getRequestUri()));
+        if (StaticHelper::isProductAndFilterLiveReloadingEnabled()) {
+            $mockedQuery->expects($this->once())->method('execute')->willReturn($response);
 
-        $mockedCache->expects($this->once())
-            ->method('load')
-            ->with($cacheKey)
-            ->willReturn(false);
+            $mockQuerybuilderFactory->expects($this->once())
+                ->method('createSearchNavigationQueryWithoutAdditionalFilters')
+                ->willReturn($mockedQuery);
+
+            $cacheKey = sprintf('finsearch_%s', md5($request->getRequestUri()));
+
+            $mockedCache->expects($this->once())
+                ->method('load')
+                ->with($cacheKey)
+                ->willReturn(false);
+        }
 
         $productNumberSearch = new ProductNumberSearch(
             $originalService,
@@ -821,26 +779,9 @@ class ProductNumberSearchTest extends TestCase
         $request->setRequestUri('/findologic');
         Shopware()->Front()->setRequest($request);
 
-        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['execute'])
-            ->getMockForAbstractClass();
-
-        $mockedQuery->expects($this->exactly($queryCount))->method('execute')->willReturn($response);
-
         $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
-        $mockQuerybuilderFactory->expects($this->exactly($queryCount))
-            ->method('createSearchNavigationQueryWithoutAdditionalFilters')
-            ->willReturn($mockedQuery);
 
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
-
-        $cacheKey = sprintf('finsearch_%s', md5($request->getRequestUri()));
-
-        $mockedCache->expects($this->exactly($cacheLoadCount))
-            ->method('load')
-            ->with($cacheKey)
-            ->willReturn($cacheResponse);
 
         $productNumberSearch = new ProductNumberSearch(
             $originalService,

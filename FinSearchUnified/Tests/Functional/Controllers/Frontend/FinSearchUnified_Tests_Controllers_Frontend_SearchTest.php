@@ -208,16 +208,13 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             ->setMethods(['execute'])
             ->getMockForAbstractClass();
 
-        $mockedQuery->expects($this->exactly(2))->method('execute')->willReturn($xmlResponse->asXML());
+        $mockedQuery->expects($this->once())->method('execute')->willReturn($xmlResponse->asXML());
 
         // Mock querybuilder factory method to check that custom implementation does not get called
         // as original implementation will be called in this case
         $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
         $mockQuerybuilderFactory->expects($this->once())
             ->method('createProductQuery')
-            ->willReturn($mockedQuery);
-        $mockQuerybuilderFactory->expects($this->once())
-            ->method('createSearchNavigationQueryWithoutAdditionalFilters')
             ->willReturn($mockedQuery);
 
         $originalService = $this->getMockBuilder(SearchBundleDBAL\ProductNumberSearch::class)
