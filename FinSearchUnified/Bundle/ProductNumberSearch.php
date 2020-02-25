@@ -188,6 +188,10 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         if (StaticHelper::isProductAndFilterLiveReloadingEnabled()) {
             $response = $this->getResponseWithoutFilters($criteria, $context);
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
+
+            if (!$xmlResponse->filters->filter) {
+                return [];
+            }
         }
 
         /** @var ProductAttributeFacet $criteriaFacet */
