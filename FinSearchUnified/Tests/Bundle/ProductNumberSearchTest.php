@@ -576,10 +576,24 @@ class ProductNumberSearchTest extends TestCase
                     'Category',
                     [
                         new TreeItem(
-                            'Living Room',
-                            'Living Room',
+                            'Bekleidung',
+                            'Bekleidung',
                             false,
-                            []
+                            [
+                                new TreeItem('Bekleidung_Herren', 'Herren', false, []),
+                                new TreeItem('Bekleidung_Damen', 'Damen', false, []),
+                            ]
+                        ),
+                        new TreeItem('Freizeit & Elektro', 'Freizeit & Elektro', false, []),
+                        new TreeItem(
+                            'Lebensmittel',
+                            'Lebensmittel',
+                            false,
+                            [
+                                new TreeItem('Lebensmittel_Süßes', 'Süßes', false, []),
+                                new TreeItem('Lebensmittel_Backwaren', 'Backwaren', false, []),
+                                new TreeItem('Lebensmittel_Fisch', 'Fisch', false, []),
+                            ]
                         ),
                         new TreeItem('FINDOLOGIC', 'FINDOLOGIC', true, [])
                     ]
@@ -669,6 +683,7 @@ class ProductNumberSearchTest extends TestCase
         $request->setModuleName('frontend');
         $request->setRequestUri('/findologic');
         $request->setActionName('defaultSearch');
+        $request->setControllerName('search');
         Shopware()->Front()->setRequest($request);
 
         // No filters are selected in the XML response
@@ -676,8 +691,31 @@ class ProductNumberSearchTest extends TestCase
         unset($xml->filters);
         $filters = $xml->addChild('filters');
 
+        $xmlResponse = Utility::getDemoXML();
+        $response = $xmlResponse->asXML();
+
+        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['execute'])
+            ->getMockForAbstractClass();
+
         $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
+
+        if (StaticHelper::isProductAndFilterLiveReloadingEnabled()) {
+            $mockedQuery->expects($this->once())->method('execute')->willReturn($response);
+
+            $mockQuerybuilderFactory->expects($this->once())
+                ->method('createSearchNavigationQueryWithoutAdditionalFilters')
+                ->willReturn($mockedQuery);
+
+            $cacheKey = sprintf('finsearch_%s', md5($request->getRequestUri()));
+
+            $mockedCache->expects($this->once())
+                ->method('load')
+                ->with($cacheKey)
+                ->willReturn(false);
+        }
 
         $productNumberSearch = new ProductNumberSearch(
             $originalService,
