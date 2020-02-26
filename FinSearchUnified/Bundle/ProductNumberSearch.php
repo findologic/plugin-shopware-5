@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Bundle;
 
+use Enlight_Controller_Request_Request;
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\CategoryFacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\ColorFacetHandler;
@@ -21,6 +22,7 @@ use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use SimpleXMLElement;
+use Symfony\Component\HttpFoundation\Request;
 use Zend_Cache_Core;
 use Zend_Cache_Exception;
 
@@ -184,14 +186,19 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     {
         $facets = [];
 
-        $xmlResponse = null;
-        if (StaticHelper::isProductAndFilterLiveReloadingEnabled()) {
+        $request = Shopware()->Front()->Request();
+        if (!$this->isAjaxRequest($request) && StaticHelper::isProductAndFilterLiveReloadingEnabled()) {
             $response = $this->getResponseWithoutFilters($criteria, $context);
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
 
             if (!$xmlResponse->filters->filter) {
                 return [];
             }
+
+            // Show all filters for the initial requests for ajax reloading. This is required because Shopware
+            // needs a general overview of all available filters before disabling other filters that may
+            // not be available.
+            $filters = $xmlResponse->filters->filter;
         }
 
         /** @var ProductAttributeFacet $criteriaFacet */
@@ -208,25 +215,10 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             if (!$selectedFilterByResponse) {
                 $selectedFilter = $this->fetchSelectedFilterByUserCondition(
                     $criteria,
-                    $criteriaFacet,
-                    $xmlResponse ? $xmlResponse->filters->filter : $filters
+                    $criteriaFacet
                 );
-
                 if (!$selectedFilter) {
-                    if (!StaticHelper::isProductAndFilterLiveReloadingEnabled()) {
-                        continue;
-                    }
-
-                    $selectedFilter = $selectedFilterByResponse = $this->fetchSelectedFilterByResponse(
-                        $xmlResponse->filters->filter,
-                        $field
-                    );
-                    // We need the filter values for initial requests, so they are shown if the initial filter
-                    // was deselected.
-                    if (Shopware()->Front()->Request()->getActionName() !== 'defaultSearch') {
-                        unset($selectedFilter->items);
-                    }
-                    $selectedFilter->addChild('items');
+                    continue;
                 }
             }
 
@@ -242,6 +234,24 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         }
 
         return $facets;
+    }
+
+    private function isAjaxRequest(Enlight_Controller_Request_Request $request)
+    {
+        $isIndexSearchRequest = (
+            $request->getControllerName() === 'search' &&
+            $request->getActionName() === 'defaultSearch'
+        );
+        $isIndexNavigationRequest = (
+            $request->getControllerName() === 'listing' &&
+            $request->getActionName() === 'index'
+        );
+
+        return (
+            StaticHelper::isProductAndFilterLiveReloadingEnabled() &&
+            !$isIndexSearchRequest &&
+            !$isIndexNavigationRequest
+        );
     }
 
     /**
@@ -260,14 +270,12 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     /**
      * @param Criteria $criteria
      * @param FacetInterface $criteriaFacet
-     * @param SimpleXMLElement $allFilters
      *
      * @return SimpleXMLElement|null
      */
     private function fetchSelectedFilterByUserCondition(
         Criteria $criteria,
-        FacetInterface $criteriaFacet,
-        SimpleXMLElement $allFilters
+        FacetInterface $criteriaFacet
     ) {
         if ($criteria->hasUserCondition($criteriaFacet->getName())) {
             $facetName = $criteriaFacet->getName();
@@ -278,32 +286,20 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         }
 
         $condition = $criteria->getUserCondition($facetName);
-        $field = $criteriaFacet->getField();
-
-        $selectedFilter = $this->fetchSelectedFilterByResponse($allFilters, $field);
-        $filterNames = [];
-
-        if ($selectedFilter) {
-            foreach ($selectedFilter->items->item as $filterItem) {
-                $filterNames[] = (string)$filterItem->name;
-            }
-        }
 
         return $this->createSelectedFilter(
             $criteriaFacet,
-            $condition,
-            $filterNames
+            $condition
         );
     }
 
     /**
      * @param FacetInterface $facet
      * @param ConditionInterface $condition
-     * @param array $filterNames
      *
      * @return SimpleXMLElement
      */
-    private function createSelectedFilter(FacetInterface $facet, ConditionInterface $condition, array $filterNames)
+    private function createSelectedFilter(FacetInterface $facet, ConditionInterface $condition)
     {
         $data = '<filter />';
         $filter = new SimpleXMLElement($data);
@@ -339,12 +335,6 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         $filter->addChild('name', $condition->getField());
         $filter->addChild('type', 'label');
-        $items = $filter->addChild('items');
-
-        foreach ($filterNames as $name) {
-            $itemElement = $items->addChild('item');
-            $itemElement->addChild('name', $name);
-        }
 
         return $filter;
     }
