@@ -676,31 +676,8 @@ class ProductNumberSearchTest extends TestCase
         unset($xml->filters);
         $filters = $xml->addChild('filters');
 
-        $xmlResponse = Utility::getDemoXML();
-        $response = $xmlResponse->asXML();
-
-        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['execute'])
-            ->getMockForAbstractClass();
-
         $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
-
-        if (StaticHelper::isProductAndFilterLiveReloadingEnabled()) {
-            $mockedQuery->expects($this->once())->method('execute')->willReturn($response);
-
-            $mockQuerybuilderFactory->expects($this->once())
-                ->method('createSearchNavigationQueryWithoutAdditionalFilters')
-                ->willReturn($mockedQuery);
-
-            $cacheKey = sprintf('finsearch_%s', md5($request->getRequestUri()));
-
-            $mockedCache->expects($this->once())
-                ->method('load')
-                ->with($cacheKey)
-                ->willReturn(false);
-        }
 
         $productNumberSearch = new ProductNumberSearch(
             $originalService,
