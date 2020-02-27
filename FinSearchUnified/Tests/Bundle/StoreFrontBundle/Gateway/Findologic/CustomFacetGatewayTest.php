@@ -90,7 +90,7 @@ class CustomFacetGatewayTest extends TestCase
         // as original implementation will be called in this case
         $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
         $mockQuerybuilderFactory->expects($this->once())
-            ->method('createProductQuery')
+            ->method('createSearchNavigationQueryWithoutAdditionalFilters')
             ->willReturn($mockedQuery);
 
         $facetGateway = new CustomFacetGateway(
@@ -205,7 +205,7 @@ class CustomFacetGatewayTest extends TestCase
         // as original implementation will be called in this case
         $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
         $mockQuerybuilderFactory->expects($this->once())
-            ->method('createProductQuery')
+            ->method('createSearchNavigationQueryWithoutAdditionalFilters')
             ->willReturn($mockedQuery);
 
         $facetGateway = new CustomFacetGateway(

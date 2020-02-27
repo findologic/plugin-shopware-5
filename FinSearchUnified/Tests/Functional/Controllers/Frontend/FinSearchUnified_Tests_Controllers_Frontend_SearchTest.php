@@ -192,6 +192,8 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         if (method_exists($criteria, 'setFetchCount')) {
             $criteria->setFetchCount(true);
         }
+
+        $this->Request()->setParam('sSearch', 'blubbergurke');
         $criteria->addBaseCondition(new SearchTermCondition('blubbergurke'));
         $storeFrontCriteriaFactoryMock = $this->getMockBuilder(StoreFrontCriteriaFactory::class)
             ->disableOriginalConstructor()
@@ -221,7 +223,11 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             ->getMock();
         $originalService->expects($this->never())->method('search');
 
-        $productNumberSearch = new ProductNumberSearch($originalService, $mockQuerybuilderFactory);
+        $productNumberSearch = new ProductNumberSearch(
+            $originalService,
+            $mockQuerybuilderFactory,
+            Shopware()->Container()->get('cache')
+        );
 
         $productSearch = new ProductSearch(
             Shopware()->Container()->get('shopware_storefront.list_product_service'),

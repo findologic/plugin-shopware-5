@@ -628,6 +628,42 @@ class StaticHelperTest extends TestCase
         $this->assertSame($expected, $result, 'Expected category name to be trimmed but was not');
     }
 
+    /**
+     * Helper method to recursively update parent category name
+     *
+     * @param Category $parent
+     * @param bool $restore
+     *
+     * @throws CustomValidationException
+     * @throws NotFoundException
+     * @throws ParameterMissingException
+     * @throws ValidationException
+     */
+    private function updateParentCategoryName(Category $parent, $restore = true)
+    {
+        // Stop when Shopware's root category is reached. Changing it can and will break unrelated tests.
+        if ($parent->getId() <= 3) {
+            return;
+        }
+
+        if ($restore) {
+            $name = trim($parent->getName());
+        } else {
+            $name = str_pad(
+                $parent->getName(),
+                strlen($parent->getName()) + 2,
+                ' ',
+                STR_PAD_BOTH
+            );
+        }
+
+        $this->categoryResource->update($parent->getId(), [
+            'name' => $name
+        ]);
+
+        $this->updateParentCategoryName($parent->getParent(), $restore);
+    }
+
     public function smartDidYouMeanProvider()
     {
         return [

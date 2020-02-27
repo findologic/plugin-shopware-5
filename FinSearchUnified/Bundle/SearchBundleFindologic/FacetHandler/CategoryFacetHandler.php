@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler;
 
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
+use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\FacetInterface;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
@@ -121,7 +122,10 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
                 'children' => $filterItem->items->item ? $this->parseCategories($filterItem->items->item, $actives) : []
             ];
 
-            if ($frequency) {
+            // Do not set filter item frequency if "Product & Filter live reloading" is enabled in the Shopware Backend.
+            $filterReloadingEnabled = StaticHelper::isProductAndFilterLiveReloadingEnabled();
+
+            if ($frequency && !$filterReloadingEnabled) {
                 $categories[$name]['frequency'] = $frequency;
             }
         }

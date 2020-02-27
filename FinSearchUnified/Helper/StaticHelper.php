@@ -367,7 +367,7 @@ class StaticHelper
         $originalQuery = (string)$query->originalQuery;
         $didYouMeanQuery = (string)$query->didYouMeanQuery;
         $queryString = $query->queryString;
-        $queryStringType = (string)$queryString->attributes()->type;
+        $queryStringType = $queryString->attributes() !== null ? (string)$queryString->attributes()->type : null;
 
         if ((!empty($originalQuery) || !empty($didYouMeanQuery)) && $queryStringType !== 'forced') {
             /** @var Enlight_View_Default $view */
@@ -391,5 +391,15 @@ class StaticHelper
     private static function checkIfFallbackSearchCookieIsSet()
     {
         return (isset($_COOKIE['fallback-search']) && (bool)$_COOKIE['fallback-search']) === true;
+    }
+
+    /**
+     * @return bool
+     */
+    public static function isProductAndFilterLiveReloadingEnabled()
+    {
+        $listingMode = Shopware()->Config()->offsetGet('listingMode');
+
+        return ($listingMode === 'filter_ajax_reload');
     }
 }
