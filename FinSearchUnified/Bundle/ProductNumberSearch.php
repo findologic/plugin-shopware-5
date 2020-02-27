@@ -22,7 +22,6 @@ use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use SimpleXMLElement;
-use Symfony\Component\HttpFoundation\Request;
 use Zend_Cache_Core;
 use Zend_Cache_Exception;
 
