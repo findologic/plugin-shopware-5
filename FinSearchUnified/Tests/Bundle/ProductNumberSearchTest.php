@@ -9,6 +9,8 @@ use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
+use FinSearchUnified\Helper\StaticHelper;
+use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
 use ReflectionException;
 use ReflectionObject;
@@ -16,18 +18,27 @@ use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
-use Shopware\Bundle\SearchBundleDBAL\ProductNumberSearch as OriginalProductNumberSearch;
+use Shopware\Bundle\SearchBundle\FacetResult\MediaListFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeItem;
 use Shopware\Bundle\SearchBundle\FacetResult\ValueListFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\ValueListItem;
 use Shopware\Bundle\SearchBundle\FacetResultInterface;
+use Shopware\Bundle\SearchBundleDBAL\ProductNumberSearch as OriginalProductNumberSearch;
+use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
+use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use Shopware_Components_Config as Config;
 use SimpleXMLElement;
+use Zend_Cache_Core;
 
 class ProductNumberSearchTest extends TestCase
 {
+    /**
+     * @var ShopContextInterface
+     */
+    private $context;
+
     protected function setUp()
     {
         parent::setUp();
@@ -46,6 +57,10 @@ class ProductNumberSearchTest extends TestCase
             ->willReturnMap($configArray);
 
         Shopware()->Container()->set('config', $mockConfig);
+
+        /** @var ContextServiceInterface $contextService */
+        $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
+        $this->context = $contextService->getShopContext();
     }
 
     protected function tearDown()
@@ -58,46 +73,25 @@ class ProductNumberSearchTest extends TestCase
 
     public function productNumberSearchProvider()
     {
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $xmlResponse = new SimpleXMLElement($data);
-
-        $query = $xmlResponse->addChild('query');
-        $query->addChild('queryString', 'queryString');
-
-        $results = $xmlResponse->addChild('results');
-        $results->addChild('count', 5);
-        $products = $xmlResponse->addChild('products');
-
-        for ($i = 1; $i <= 5; $i++) {
-            $product = $products->addChild('product');
-            $product->addAttribute('id', $i);
-        }
-
-        $xml = $xmlResponse->asXML();
-
         return [
             'Shopware internal search, unrelated to FINDOLOGIC' => [
                 'isFetchCount' => false,
                 'isUseShopSearch' => true,
-                'response' => $xml,
                 'invokationCount' => 0
             ],
             'Shopware internal search' => [
                 'isFetchCount' => false,
                 'isUseShopSearch' => false,
-                'response' => $xml,
                 'invokationCount' => 0
             ],
             'Shopware search, unrelated to FINDOLOGIC' => [
                 'isFetchCount' => true,
                 'isUseShopSearch' => true,
-                'response' => $xml,
                 'invokationCount' => 0
             ],
             'FINDOLOGIC search' => [
                 'isFetchCount' => true,
                 'isUseShopSearch' => false,
-                'response' => $xml,
                 'invokationCount' => 1
             ]
         ];
@@ -108,17 +102,21 @@ class ProductNumberSearchTest extends TestCase
      *
      * @param bool $isFetchCount
      * @param bool $isUseShopSearch
-     * @param string|null $response
      * @param int $invokationCount
      *
      * @throws Exception
      */
-    public function testProductNumberSearchImplementation($isFetchCount, $isUseShopSearch, $response, $invokationCount)
+    public function testProductNumberSearchImplementation($isFetchCount, $isUseShopSearch, $invokationCount)
     {
         $criteria = new Criteria();
         if (!method_exists($criteria, 'setFetchCount')) {
             $this->markTestSkipped('Ignoring this test for Shopware 5.2.x');
         }
+
+        $xmlResponse = Utility::getDemoXML();
+        unset($xmlResponse->promotion);
+        $response = $xmlResponse->asXML();
+
         $criteria->setFetchCount($isFetchCount);
 
         Shopware()->Session()->findologicDI = $isUseShopSearch;
@@ -137,74 +135,29 @@ class ProductNumberSearchTest extends TestCase
         $mockQuerybuilderFactory->expects($this->exactly($invokationCount))
             ->method('createProductQuery')
             ->willReturn($mockedQuery);
+        $mockQuerybuilderFactory->expects($this->any())
+            ->method('createSearchNavigationQueryWithoutAdditionalFilters')
+            ->willReturn($mockedQuery);
 
         $originalService = $this->createMock(OriginalProductNumberSearch::class);
 
-        $productNumberSearch = new ProductNumberSearch(
-            $originalService,
-            $mockQuerybuilderFactory
-        );
-
         $request = new RequestHttp();
         $request->setModuleName('frontend');
+        $request->setRequestUri('/findologic');
+        Shopware()->Front()->setRequest($request);
 
-        // Create Mock object for Shopware Front Request
-        $front = $this->getMockBuilder(Front::class)
-            ->setMethods(['Request'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $front->expects($this->any())
-            ->method('Request')
-            ->willReturn($request);
+        $mockedCache = $this->createMock(Zend_Cache_Core::class);
 
-        // Assign mocked variable to application container
-        Shopware()->Container()->set('front', $front);
+        $productNumberSearch = new ProductNumberSearch(
+            $originalService,
+            $mockQuerybuilderFactory,
+            $mockedCache
+        );
 
         $context = Shopware()->Container()->get('shopware_storefront.context_service')->getContext();
         $productNumberSearch->search($criteria, $context);
     }
 
-    public function facetWithPriceFilterProvider()
-    {
-        $xmlResponse = $this->getXmlResponse();
-        $filters = $xmlResponse->addChild('filters');
-
-        $this->setPriceFilter($filters);
-
-        return [
-            'Price filters which are selected only contain the value that was selected' => [
-                'xmlResponse' => $xmlResponse,
-                'expectedResult' => new RangeFacetResult(
-                    'price',
-                    true,
-                    'Price',
-                    66.20,
-                    99.0,
-                    66.20,
-                    99.0,
-                    'min',
-                    'max'
-                ),
-                'condition' => new PriceCondition(66.20, 99.00)
-
-            ],
-            'All price filter values are displayed if no filters are selected' => [
-                'xmlResponse' => $xmlResponse,
-                'expectedResult' => new RangeFacetResult(
-                    'price',
-                    false,
-                    'Price',
-                    0.0,
-                    99.0,
-                    4.2,
-                    69.0,
-                    'min',
-                    'max'
-                ),
-                'condition' => null
-            ]
-        ];
-    }
     /**
      * @dataProvider allFiltersProvider
      * @dataProvider facetWithNoHandlerProvider
@@ -242,18 +195,19 @@ class ProductNumberSearchTest extends TestCase
             ->method('createProductQuery')
             ->willReturn($mockedQuery);
 
-        $originalService = $this->createMock(ProductNumberSearch::class);
-        $productNumberSearch = new ProductNumberSearch($originalService, $mockQuerybuilderFactory);
-
         $request = new RequestHttp();
         $request->setModuleName('frontend');
+        $request->setRequestUri('/findologic');
+        Shopware()->Front()->setRequest($request);
 
-        // Create Mock object for Shopware Front Request
-        $front = $this->getMockBuilder(Front::class)
-            ->setMethods(['Request'])
-            ->disableOriginalConstructor()
-            ->getMock();
-        $front->method('Request')->willReturn($request);
+        $mockedCache = $this->createMock(Zend_Cache_Core::class);
+
+        $originalService = $this->createMock(ProductNumberSearch::class);
+        $productNumberSearch = new ProductNumberSearch(
+            $originalService,
+            $mockQuerybuilderFactory,
+            $mockedCache
+        );
 
         $hydrator = new CustomListingHydrator();
 
@@ -261,9 +215,6 @@ class ProductNumberSearchTest extends TestCase
             $facet = $hydrator->hydrateFacet($filter);
             $criteria->addFacet($facet->getFacet());
         }
-
-        // Assign mocked variable to application container
-        Shopware()->Container()->set('front', $front);
 
         $context = Shopware()->Container()->get('shopware_storefront.context_service')->getContext();
         $searchResult = $productNumberSearch->search($criteria, $context);
@@ -276,19 +227,23 @@ class ProductNumberSearchTest extends TestCase
 
     public function allFiltersProvider()
     {
-        $xmlResponse = $this->getXmlResponse();
-        $filters = $xmlResponse->addChild('filters');
-
-        $this->setPriceFilter($filters);
-        $this->setCategoryFilter($filters);
-        $this->setVendorFilter($filters);
+        $xmlResponse = Utility::getDemoXML();
 
         return [
             'Parse all filters' => [
                 'xmlResponse' => $xmlResponse,
                 'expectedResults' => [
-                    RangeFacetResult::class,
                     TreeFacetResult::class,
+                    RangeFacetResult::class,
+                    MediaListFacetResult::class,
+                    ValueListFacetResult::class,
+                    ValueListFacetResult::class,
+                    ValueListFacetResult::class,
+                    ValueListFacetResult::class,
+                    ValueListFacetResult::class,
+                    ValueListFacetResult::class,
+                    ValueListFacetResult::class,
+                    ValueListFacetResult::class,
                     ValueListFacetResult::class
                 ]
             ]
@@ -297,7 +252,8 @@ class ProductNumberSearchTest extends TestCase
 
     public function facetWithNoHandlerProvider()
     {
-        $xmlResponse = $this->getXmlResponse();
+        $xmlResponse = Utility::getDemoXML();
+        unset($xmlResponse->filters);
         $filters = $xmlResponse->addChild('filters');
 
         $this->setCategoryFilter($filters);
@@ -315,7 +271,8 @@ class ProductNumberSearchTest extends TestCase
 
     public function facetWithInvalidModeProvider()
     {
-        $xmlResponse = $this->getXmlResponse();
+        $xmlResponse = Utility::getDemoXML();
+        unset($xmlResponse->filters);
         $filters = $xmlResponse->addChild('filters');
 
         $this->setCategoryFilter($filters);
@@ -333,7 +290,8 @@ class ProductNumberSearchTest extends TestCase
 
     public function missingFilterProvider()
     {
-        $xmlResponse = $this->getXmlResponse();
+        $xmlResponse = Utility::getDemoXML();
+        unset($xmlResponse->filters);
         $filters = $xmlResponse->addChild('filters');
 
         $this->setCategoryFilter($filters);
@@ -350,21 +308,66 @@ class ProductNumberSearchTest extends TestCase
         ];
     }
 
+    public function facetWithPriceFilterProvider()
+    {
+        $xmlResponse = Utility::getDemoXML();
+        unset($xmlResponse->filters);
+        $filters = $xmlResponse->addChild('filters');
+
+        $this->setPriceFilter($filters);
+
+        return [
+            'Price filters which are selected only contain the value that was selected' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResult' => new RangeFacetResult(
+                    'price',
+                    true,
+                    'Price',
+                    0.0,
+                    99.0,
+                    4.2,
+                    69.0,
+                    'min',
+                    'max'
+                ),
+                'condition' => new PriceCondition(4.2, 69.0)
+
+            ],
+            'All price filter values are displayed if no filters are selected' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResult' => new RangeFacetResult(
+                    'price',
+                    false,
+                    'Price',
+                    0.0,
+                    99.0,
+                    4.2,
+                    69.0,
+                    'min',
+                    'max'
+                ),
+                'condition' => null
+            ]
+        ];
+    }
+
     public function facetWithVendorFilterProvider()
     {
-        $xmlResponse = $this->getXmlResponse();
+        $xmlResponse = Utility::getDemoXML();
+        unset($xmlResponse->filters);
         $filters = $xmlResponse->addChild('filters');
 
         $this->setVendorFilter($filters);
 
         return [
-            'Vendor filters which are selected only contain the value that was selected' => [
+            'All vendor filter values are displayed along with selected filter' => [
                 'xmlResponse' => $xmlResponse,
                 'expectedResult' => new ValueListFacetResult(
                     'product_attribute_vendor',
                     true,
                     'Brand',
                     [
+                        new ValueListItem('Manufacturer', 'Manufacturer (40)', false),
                         new ValueListItem('FINDOLOGIC', 'FINDOLOGIC', true)
                     ],
                     'vendor'
@@ -390,7 +393,8 @@ class ProductNumberSearchTest extends TestCase
 
     public function facetWithCategoryFilterProvider()
     {
-        $xmlResponse = $this->getXmlResponse();
+        $xmlResponse = Utility::getDemoXML();
+        unset($xmlResponse->filters);
         $filters = $xmlResponse->addChild('filters');
 
         $this->setCategoryFilter($filters);
@@ -404,6 +408,7 @@ class ProductNumberSearchTest extends TestCase
                     true,
                     'Category',
                     [
+                        new TreeItem('Living Room', 'Living Room (10)', false, []),
                         new TreeItem('FINDOLOGIC', 'FINDOLOGIC', true, [])
                     ]
                 ),
@@ -435,12 +440,17 @@ class ProductNumberSearchTest extends TestCase
      * @param ConditionInterface|null $condition
      *
      * @throws ReflectionException
+     * @throws Enlight_Exception
      */
     public function testCreateFacets(
         SimpleXMLElement $xmlResponse,
         FacetResultInterface $expectedResult,
         ConditionInterface $condition = null
     ) {
+        $request = new RequestHttp();
+        $request->setRequestUri('/findologic?q=1');
+
+        Shopware()->Front()->setRequest($request);
         $criteria = new Criteria();
         if (method_exists($criteria, 'setFetchCount')) {
             $criteria->setFetchCount(true);
@@ -456,50 +466,36 @@ class ProductNumberSearchTest extends TestCase
             $criteria->addFacet($facetResult->getFacet());
         }
 
-        $productNumberSearch = Shopware()->Container()->get('fin_search_unified.product_number_search');
+        $originalService = $this->createMock(OriginalProductNumberSearch::class);
+
+        $request = new RequestHttp();
+        $request->setModuleName('frontend');
+        $request->setRequestUri('/findologic');
+        Shopware()->Front()->setRequest($request);
+
+        // Filters are present in the XML response
+        $filters = $xmlResponse->filters->filter;
+        $response = $xmlResponse->asXML();
+
+        $mockedCache = $this->createMock(Zend_Cache_Core::class);
+
+        $productNumberSearch = new ProductNumberSearch(
+            $originalService,
+            Shopware()->Container()->get('fin_search_unified.query_builder_factory'),
+            $mockedCache
+        );
+
         $reflector = new ReflectionObject($productNumberSearch);
         $method = $reflector->getMethod('createFacets');
         $method->setAccessible(true);
 
-        if ($condition) {
-            // No filters are selected in the XML response
-            $filters = $this->getXmlResponse()->addChild('filters');
-        } else {
-            // Filters are present in the XML response
-            $filters = $xmlResponse->filters->filter;
-        }
-
-        $result = $method->invokeArgs($productNumberSearch, [$criteria, $filters]);
+        $result = $method->invokeArgs($productNumberSearch, [$criteria, $this->context, $filters]);
 
         $this->assertNotEmpty($result);
 
         $facetResult = current($result);
 
         $this->assertEquals($expectedResult, $facetResult);
-    }
-
-    /**
-     * @return SimpleXMLElement
-     */
-    private function getXmlResponse()
-    {
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $xmlResponse = new SimpleXMLElement($data);
-
-        $query = $xmlResponse->addChild('query');
-        $queryString = $query->addChild('queryString', 'queryString');
-        $queryString->addAttribute('type', 'corrected');
-
-        $results = $xmlResponse->addChild('results');
-        $results->addChild('count', 5);
-        $products = $xmlResponse->addChild('products');
-
-        for ($i = 1; $i <= 5; $i++) {
-            $product = $products->addChild('product');
-            $product->addAttribute('id', $i);
-        }
-
-        return $xmlResponse;
     }
 
     /**
@@ -560,5 +556,259 @@ class ProductNumberSearchTest extends TestCase
             $ventorItem->addChild('name', 'FINDOLOGIC');
             $ventorItem->addChild('frequency', 54);
         }
+    }
+
+    public function facetWithCategoryFilterProviderWhenProductAndFilterLiveReloadingIsEnabled()
+    {
+        $xmlResponse = Utility::getDemoXML();
+        unset($xmlResponse->filters);
+        $filters = $xmlResponse->addChild('filters');
+
+        $this->setCategoryFilter($filters);
+
+        return [
+            'No frequencies are set when live reloading is enabled' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResult' => new TreeFacetResult(
+                    'product_attribute_cat',
+                    'cat',
+                    true,
+                    'Category',
+                    [
+                        new TreeItem(
+                            'Bekleidung',
+                            'Bekleidung',
+                            false,
+                            [
+                                new TreeItem('Bekleidung_Herren', 'Herren', false, []),
+                                new TreeItem('Bekleidung_Damen', 'Damen', false, []),
+                            ]
+                        ),
+                        new TreeItem('Freizeit & Elektro', 'Freizeit & Elektro', false, []),
+                        new TreeItem(
+                            'Lebensmittel',
+                            'Lebensmittel',
+                            false,
+                            [
+                                new TreeItem('Lebensmittel_Süßes', 'Süßes', false, []),
+                                new TreeItem('Lebensmittel_Backwaren', 'Backwaren', false, []),
+                                new TreeItem('Lebensmittel_Fisch', 'Fisch', false, []),
+                            ]
+                        ),
+                        new TreeItem('FINDOLOGIC', 'FINDOLOGIC', true, [])
+                    ]
+                ),
+                'condition' => new ProductAttributeCondition('cat', '=', 'FINDOLOGIC'),
+                'config' => 'filter_ajax_reload'
+            ],
+            'Frequencies are set when live reloading is not enabled' => [
+                'xmlResponse' => $xmlResponse,
+                'expectedResult' => new TreeFacetResult(
+                    'product_attribute_cat',
+                    'cat',
+                    true,
+                    'Category',
+                    [
+                        new TreeItem(
+                            'Living Room',
+                            'Living Room (10)',
+                            false,
+                            []
+                        ),
+                        new TreeItem('FINDOLOGIC', 'FINDOLOGIC', true, [])
+                    ]
+                ),
+                'condition' => new ProductAttributeCondition('cat', '=', 'FINDOLOGIC'),
+                'config' => 'full_page_reload'
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider facetWithCategoryFilterProviderWhenProductAndFilterLiveReloadingIsEnabled
+     *
+     * @param SimpleXMLElement $xmlResponse
+     * @param FacetResultInterface $expectedResult
+     * @param ConditionInterface|null $condition
+     * @param string $listingMode
+     *
+     * @throws Enlight_Exception
+     * @throws ReflectionException
+     */
+    public function testCreateFacetsWhenProductAndFilterLiveReloadingIsEnabled(
+        SimpleXMLElement $xmlResponse,
+        FacetResultInterface $expectedResult,
+        ConditionInterface $condition,
+        $listingMode
+    ) {
+        $configArray = [
+            ['ActivateFindologic', true],
+            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
+            ['ActivateFindologicForCategoryPages', false],
+            ['listingMode', $listingMode]
+        ];
+
+        // Create mock object for Shopware Config and explicitly return the values
+        $mockConfig = $this->getMockBuilder(Config::class)
+            ->setMethods(['offsetGet'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig->method('offsetGet')
+            ->willReturnMap($configArray);
+
+        Shopware()->Container()->set('config', $mockConfig);
+
+        $request = new RequestHttp();
+        $request->setRequestUri('/findologic?q=1');
+
+        Shopware()->Front()->setRequest($request);
+        $criteria = new Criteria();
+        if (method_exists($criteria, 'setFetchCount')) {
+            $criteria->setFetchCount(true);
+        }
+        if ($condition) {
+            $criteria->addCondition($condition);
+        }
+
+        $hydrator = new CustomListingHydrator();
+
+        foreach ($xmlResponse->filters->filter as $filter) {
+            $facetResult = $hydrator->hydrateFacet($filter);
+            $criteria->addFacet($facetResult->getFacet());
+        }
+
+        $originalService = $this->createMock(OriginalProductNumberSearch::class);
+
+        $request = new RequestHttp();
+        $request->setModuleName('frontend');
+        $request->setRequestUri('/findologic');
+        $request->setActionName('defaultSearch');
+        $request->setControllerName('search');
+        Shopware()->Front()->setRequest($request);
+
+        // No filters are selected in the XML response
+        $xml = clone $xmlResponse;
+        unset($xml->filters);
+        $filters = $xml->addChild('filters');
+
+        $xmlResponse = Utility::getDemoXML();
+        $response = $xmlResponse->asXML();
+
+        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['execute'])
+            ->getMockForAbstractClass();
+
+        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+        $mockedCache = $this->createMock(Zend_Cache_Core::class);
+
+        if (StaticHelper::isProductAndFilterLiveReloadingEnabled()) {
+            $mockedQuery->expects($this->once())->method('execute')->willReturn($response);
+
+            $mockQuerybuilderFactory->expects($this->once())
+                ->method('createSearchNavigationQueryWithoutAdditionalFilters')
+                ->willReturn($mockedQuery);
+
+            $cacheKey = sprintf('finsearch_%s', md5($request->getRequestUri()));
+
+            $mockedCache->expects($this->once())
+                ->method('load')
+                ->with($cacheKey)
+                ->willReturn(false);
+        }
+
+        $productNumberSearch = new ProductNumberSearch(
+            $originalService,
+            $mockQuerybuilderFactory,
+            $mockedCache
+        );
+
+        $reflector = new ReflectionObject($productNumberSearch);
+        $method = $reflector->getMethod('createFacets');
+        $method->setAccessible(true);
+
+        $result = $method->invokeArgs($productNumberSearch, [$criteria, $this->context, $filters]);
+
+        $this->assertNotEmpty($result);
+
+        $facetResult = current($result);
+
+        $this->assertEquals($expectedResult, $facetResult);
+    }
+
+    public function cacheResponseProvider()
+    {
+        $xmlResponse = Utility::getDemoXML();
+
+        return [
+            'Querybuilder is not used as response is provided from cache' => [
+                'xmlResponse' => $xmlResponse,
+                'cacheResponse' => $xmlResponse->asXML(),
+                'cacheLoadCount' => 2,
+                'queryCount' => 0
+            ],
+            'Querybuilder is used as response is not provided from cache' => [
+                'xmlResponse' => $xmlResponse,
+                'cacheResponse' => false,
+                'cacheLoadCount' => 1,
+                'queryCount' => 1
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider cacheResponseProvider
+     *
+     * @param SimpleXMLElement $xmlResponse
+     * @param string|bool $cacheResponse
+     * @param int $cacheLoadCount
+     * @param int $queryCount
+     *
+     * @throws Enlight_Exception
+     * @throws ReflectionException
+     */
+    public function testCacheResponse($xmlResponse, $cacheResponse, $cacheLoadCount, $queryCount)
+    {
+        $response = $xmlResponse->asXML();
+
+        $request = new RequestHttp();
+        $request->setRequestUri('/findologic?q=1');
+
+        Shopware()->Front()->setRequest($request);
+        $criteria = new Criteria();
+        if (method_exists($criteria, 'setFetchCount')) {
+            $criteria->setFetchCount(true);
+        }
+
+        $hydrator = new CustomListingHydrator();
+
+        foreach ($xmlResponse->filters->filter as $filter) {
+            $facetResult = $hydrator->hydrateFacet($filter);
+            $criteria->addFacet($facetResult->getFacet());
+        }
+
+        $originalService = $this->createMock(OriginalProductNumberSearch::class);
+
+        $request = new RequestHttp();
+        $request->setModuleName('frontend');
+        $request->setRequestUri('/findologic');
+        Shopware()->Front()->setRequest($request);
+
+        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+
+        $mockedCache = $this->createMock(Zend_Cache_Core::class);
+
+        $productNumberSearch = new ProductNumberSearch(
+            $originalService,
+            $mockQuerybuilderFactory,
+            $mockedCache
+        );
+
+        $reflector = new ReflectionObject($productNumberSearch);
+        $method = $reflector->getMethod('createFacets');
+        $method->setAccessible(true);
+
+        $result = $method->invokeArgs($productNumberSearch, [$criteria, $this->context, $xmlResponse->filters->filter]);
+        $this->assertNotEmpty($result);
     }
 }

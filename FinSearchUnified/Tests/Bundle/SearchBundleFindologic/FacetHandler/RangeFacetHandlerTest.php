@@ -188,15 +188,15 @@ class RangeFacetHandlerTest extends TestCase
                 'Length',
                 new ProductAttributeCondition('attr6', Operator::EQ, ['min' => 4.20, 'max' => 6.09]),
                 new RangeFacetResult(
-                    'product_attribute_attr6',
+                    'attr6',
                     true,
                     'Length',
                     4.20,
                     69.00,
                     4.20,
                     6.09,
-                    'minproduct_attribute_attr6',
-                    'maxproduct_attribute_attr6'
+                    'minattr6',
+                    'maxattr6'
                 )
             ]
         ];

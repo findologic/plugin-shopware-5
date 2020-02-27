@@ -149,6 +149,11 @@ class FindologicArticleModel
         $this->cache = Shopware()->Container()->get('cache');
         $this->logger = Shopware()->Container()->get('pluginlogger');
 
+        // If the article consists of any of the cross-selling categories, we do not want to export it
+        if ($this->isCrossSellingCategoryConfiguredForArticle()) {
+            return;
+        }
+
         $this->setUpStruct();
 
         if ($this->legacyStruct) {
@@ -852,5 +857,16 @@ class FindologicArticleModel
         }
 
         return Shopware()->Snippets()->getNamespace('backend/notification/view/main')->get($snippet);
+    }
+
+    private function isCrossSellingCategoryConfiguredForArticle()
+    {
+        $crossSellingCategories = Shopware()->Config()->offsetGet('CrossSellingCategories');
+        /** @var Category $category */
+        foreach ($this->baseArticle->getCategories() as $category) {
+            if (in_array($category->getId(), $crossSellingCategories, true)) {
+                return true;
+            }
+        }
     }
 }
