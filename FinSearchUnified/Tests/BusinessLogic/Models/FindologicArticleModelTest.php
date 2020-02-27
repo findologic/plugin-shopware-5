@@ -914,4 +914,96 @@ class FindologicArticleModelTest extends TestCase
 
         $this->assertArrayNotHasKey('attr1', $values);
     }
+
+    public function booleanValueProvider()
+    {
+        return [
+            'Boolean true should be translated in de_DE language' => [
+                'highlight' => true,
+                'locale' => 1,
+                'expectedValue' => 'Ja'
+            ],
+            'Boolean true should be translated in en_GB language' => [
+                'highlight' => true,
+                'locale' => 2,
+                'expectedValue' => 'Yes'
+            ],
+            'Boolean false should be translated in de_DE language' => [
+                'highlight' => false,
+                'locale' => 1,
+                'expectedValue' => 'Nein'
+            ],
+            'Boolean false should be translated in en_GB language' => [
+                'highlight' => false,
+                'locale' => 2,
+                'expectedValue' => 'No'
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider booleanValueProvider
+     *
+     * @param bool $highlight
+     * @param int $locale
+     * @param string $expectedValue
+     *
+     * @throws ReflectionException
+     */
+    public function testTranslatedBooleanProperties($highlight, $locale, $expectedValue)
+    {
+        $articleConfiguration = [
+            'name' => 'Sample Article',
+            'active' => true,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5],
+            ],
+            'images' => [
+                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC2',
+                'active' => true,
+                'inStock' => 16,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+            'highlight' => $highlight
+        ];
+
+        $shop = Manager::getResource('Shop')->getRepository()->find($locale);
+        Shopware()->Snippets()->setShop($shop);
+
+        $baseCategory = new Category();
+        $baseCategory->setId(5);
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCDABCDABCDABCDABCDABCDABCDABCD',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+        $reflector = new ReflectionClass(Item::class);
+        $properties = $reflector->getProperty('properties');
+        $properties->setAccessible(true);
+        $values = $properties->getValue($xmlArticle);
+        $values = current($values);
+
+        $this->assertArrayHasKey('highlight', $values);
+        $this->assertSame($expectedValue, $values['highlight']);
+    }
 }
