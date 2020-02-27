@@ -272,13 +272,11 @@ class ConfigLoaderTest extends TestCase
     public function testCacheWithNonExistingKey($cacheResponse, $loadCallCount)
     {
         $httpClient = Shopware()->Container()->get('http_client');
-        $expectedCacheKey = sprintf('%s_%s', 'fin_service_config', $this->shopkey);
 
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
         $mockedCache->expects($this->never())->method('save');
         $mockedCache->expects($loadCallCount)
             ->method('load')
-            ->with($expectedCacheKey)
             ->willReturn($cacheResponse);
 
         $configLoader = new ConfigLoader(

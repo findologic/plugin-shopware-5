@@ -18,7 +18,7 @@ class PluginTest extends TestCase
     protected static $ensureLoadedPlugins = [
         'FinSearchUnified' => [
             'ShopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD'
-        ],
+        ]
     ];
 
     protected function tearDown()
@@ -90,13 +90,52 @@ class PluginTest extends TestCase
         $this->assertEquals($expectedCount, $actual, sprintf($errorMessage, $actual));
     }
 
+    public function crossSellingCategoryProvider()
+    {
+        return [
+            'No cross-sell categories configured' => [
+                'crossSellingCategories' => [],
+                'expectedCount' => 1
+            ],
+            'Article does not exist in cross-sell category configured' => [
+                'crossSellingCategories' => [5],
+                'expectedCount' => 1
+            ],
+            'Article exists in one of the cross-sell categories configured' => [
+                'crossSellingCategories' => [8, 9],
+                'expectedCount' => 0
+            ],
+            'Article exists in all of cross-sell categories configured' => [
+                'crossSellingCategories' => [8, 9, 10],
+                'expectedCount' => 0
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider crossSellingCategoryProvider
+     *
+     * @param int[] $crossSellingCategories
+     * @param int $expectedCount
+     */
+    public function testArticleExportWithCrossSellingCategories($crossSellingCategories, $expectedCount)
+    {
+        $assignedCategories = [8, 9, 10];
+        $this->createTestProduct('SOMENUMBER', true, $assignedCategories);
+        Shopware()->Config()->CrossSellingCategories = $crossSellingCategories;
+        $exportedCount = $this->runExportAndReturnCount();
+        unset(Shopware()->Config()->CrossSellingCategories);
+        $this->assertSame($expectedCount, $exportedCount);
+    }
+
     /**
      * @param int|string $number
      * @param bool $isActive
+     * @param array $categories
      *
      * @return Article|null
      */
-    private function createTestProduct($number, $isActive)
+    private function createTestProduct($number, $isActive, $categories = [])
     {
         $testArticle = [
             'name' => 'FindologicArticle' . $number,
@@ -107,8 +146,8 @@ class PluginTest extends TestCase
                 ['id' => 5],
             ],
             'images' => [
-                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+                ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
+                ['link' => 'https://via.placeholder.com/100/09f/000.png'],
             ],
             'mainDetail' => [
                 'number' => 'FINDOLOGIC' . $number,
@@ -122,6 +161,14 @@ class PluginTest extends TestCase
                 ]
             ],
         ];
+
+        if (!empty($categories)) {
+            $assignedCategories = [];
+            foreach ($categories as $category) {
+                $assignedCategories[] = ['id' => $category];
+            }
+            $testArticle['categories'] = $assignedCategories;
+        }
 
         try {
             $resource = Manager::getResource('Article');
@@ -139,7 +186,7 @@ class PluginTest extends TestCase
         // Create articles with the provided data to test the export functionality
         $this->createTestProduct('SOMENUMBER', true);
         $findologicArticleFactoryMock = $this->createMock(FindologicArticleFactory::class);
-        $findologicArticleFactoryMock->expects($this->exactly(2))->method('create')->willThrowException(
+        $findologicArticleFactoryMock->expects($this->once())->method('create')->willThrowException(
             new EmptyValueNotAllowedException()
         );
 
@@ -158,11 +205,10 @@ class PluginTest extends TestCase
     private function runExportAndReturnCount()
     {
         try {
-            $shopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
-            /** @var ShopwareProcess $blController */
-            $blController = Shopware()->Container()->get('fin_search_unified.shopware_process');
-            $blController->setShopKey($shopKey);
-            $xmlDocument = $blController->getFindologicXml();
+            /** @var ShopwareProcess $shopwareProcess */
+            $shopwareProcess = Shopware()->Container()->get('fin_search_unified.shopware_process');
+            $shopwareProcess->setShopKey('ABCDABCDABCDABCDABCDABCDABCDABCD');
+            $xmlDocument = $shopwareProcess->getFindologicXml();
 
             // Parse the xml and return the count of the products exported
             $xml = new SimpleXMLElement($xmlDocument);

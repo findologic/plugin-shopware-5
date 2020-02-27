@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Bundle;
 
+use Enlight_Controller_Request_Request;
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\CategoryFacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\ColorFacetHandler;
@@ -21,6 +22,8 @@ use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use SimpleXMLElement;
+use Zend_Cache_Core;
+use Zend_Cache_Exception;
 
 class ProductNumberSearch implements ProductNumberSearchInterface
 {
@@ -40,16 +43,24 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     private $facetHandlers;
 
     /**
+     * @var Zend_Cache_Core
+     */
+    private $cache;
+
+    /**
      * @param ProductNumberSearchInterface $service
      * @param QueryBuilderFactoryInterface $queryBuilderFactory
+     * @param Zend_Cache_Core $cache
      */
     public function __construct(
         ProductNumberSearchInterface $service,
-        QueryBuilderFactoryInterface $queryBuilderFactory
+        QueryBuilderFactoryInterface $queryBuilderFactory,
+        Zend_Cache_Core $cache
     ) {
         $this->originalService = $service;
         $this->queryBuilderFactory = $queryBuilderFactory;
         $this->facetHandlers = self::registerFacetHandlers();
+        $this->cache = $cache;
     }
 
     /**
@@ -100,7 +111,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         $totalResults = (int)$xmlResponse->results->count;
         $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
         $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
-        $facets = $this->createFacets($criteria, $xmlResponse->filters->filter);
+        $facets = $this->createFacets($criteria, $context, $xmlResponse->filters->filter);
 
         $searchResult = new ProductNumberSearchResult($searchResult, $totalResults, $facets);
 
@@ -164,13 +175,30 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
     /**
      * @param Criteria $criteria
+     * @param ShopContextInterface $context
      * @param SimpleXMLElement|null $filters
      *
      * @return array
+     * @throws Zend_Cache_Exception
      */
-    protected function createFacets(Criteria $criteria, SimpleXMLElement $filters = null)
+    protected function createFacets(Criteria $criteria, ShopContextInterface $context, SimpleXMLElement $filters = null)
     {
         $facets = [];
+
+        $request = Shopware()->Front()->Request();
+        if (!$this->isAjaxRequest($request) && StaticHelper::isProductAndFilterLiveReloadingEnabled()) {
+            $response = $this->getResponseWithoutFilters($criteria, $context);
+            $xmlResponse = StaticHelper::getXmlFromResponse($response);
+
+            if (!$xmlResponse->filters->filter) {
+                return [];
+            }
+
+            // Show all filters for the initial requests for ajax reloading. This is required because Shopware
+            // needs a general overview of all available filters before disabling other filters that may
+            // not be available.
+            $filters = $xmlResponse->filters->filter;
+        }
 
         /** @var ProductAttributeFacet $criteriaFacet */
         foreach ($criteria->getFacets() as $criteriaFacet) {
@@ -179,9 +207,15 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             }
             $field = $criteriaFacet->getField();
 
-            $selectedFilter = $selectedFilterByResponse = $this->fetchSelectedFilterByResponse($filters, $field);
+            $selectedFilter = $selectedFilterByResponse = $this->fetchSelectedFilterByResponse(
+                $filters,
+                $field
+            );
             if (!$selectedFilterByResponse) {
-                $selectedFilter = $this->fetchSelectedFilterByUserCondition($criteria, $criteriaFacet);
+                $selectedFilter = $this->fetchSelectedFilterByUserCondition(
+                    $criteria,
+                    $criteriaFacet
+                );
                 if (!$selectedFilter) {
                     continue;
                 }
@@ -199,6 +233,24 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         }
 
         return $facets;
+    }
+
+    private function isAjaxRequest(Enlight_Controller_Request_Request $request)
+    {
+        $isIndexSearchRequest = (
+            $request->getControllerName() === 'search' &&
+            $request->getActionName() === 'defaultSearch'
+        );
+        $isIndexNavigationRequest = (
+            $request->getControllerName() === 'listing' &&
+            $request->getActionName() === 'index'
+        );
+
+        return (
+            StaticHelper::isProductAndFilterLiveReloadingEnabled() &&
+            !$isIndexSearchRequest &&
+            !$isIndexNavigationRequest
+        );
     }
 
     /**
@@ -220,11 +272,13 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      *
      * @return SimpleXMLElement|null
      */
-    private function fetchSelectedFilterByUserCondition(Criteria $criteria, FacetInterface $criteriaFacet)
-    {
+    private function fetchSelectedFilterByUserCondition(
+        Criteria $criteria,
+        FacetInterface $criteriaFacet
+    ) {
         if ($criteria->hasUserCondition($criteriaFacet->getName())) {
             $facetName = $criteriaFacet->getName();
-        } elseif ($criteria->hasUserCondition('price')) {
+        } elseif ($criteriaFacet->getField() === 'price') {
             $facetName = 'price';
         } else {
             return null;
@@ -280,7 +334,6 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         $filter->addChild('name', $condition->getField());
         $filter->addChild('type', 'label');
-        $filter->addChild('items');
 
         return $filter;
     }
@@ -298,5 +351,30 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     {
         header('Location: ' . Shopware()->Front()->Request()->getRequestUri());
         exit;
+    }
+
+    /**
+     * @param Criteria $criteria
+     * @param ShopContextInterface $context
+     *
+     * @return false|mixed|string|null
+     * @throws Zend_Cache_Exception
+     */
+    private function getResponseWithoutFilters(Criteria $criteria, ShopContextInterface $context)
+    {
+        $url = md5(Shopware()->Front()->Request()->getRequestUri());
+        $cacheId = sprintf('finsearch_%s', $url);
+
+        if ($this->cache->load($cacheId) === false) {
+            /** @var QueryBuilder $query */
+            $query =
+                $this->queryBuilderFactory->createSearchNavigationQueryWithoutAdditionalFilters($criteria, $context);
+            $response = $query->execute();
+            $this->cache->save($response, $cacheId, ['FINDOLOGIC'], 60 * 60 * 24);
+        } else {
+            $response = $this->cache->load($cacheId);
+        }
+
+        return $response;
     }
 }
