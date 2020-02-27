@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\ORM\PersistentCollection;
 use Enlight_Exception;
@@ -88,34 +89,31 @@ class ShopwareProcess
     public function getAllProductsAsXmlArray($selectedLanguage = 'de_DE', $start = 0, $count = 0)
     {
         $response = new XmlInformation();
-
         $baseCategory = $this->shop->getCategory();
 
         $this->customerRepository = Shopware()->Container()->get('models')->getRepository(Customer::class);
         $this->articleRepository = Shopware()->Container()->get('models')->getRepository(Article::class);
 
+        $articlesQuery = $this->articleRepository->createQueryBuilder('articles')
+            ->select('articles')
+            ->where('articles.active = :active')
+            ->orderBy('articles.id')
+            ->setParameter('active', true);
+
         if ($count > 0) {
-            $countQuery = $this->articleRepository->createQueryBuilder('articles')
-                ->select('count(articles.id)')
-                ->where('articles.active = :active')
-                ->setParameter('active', true);
-
-            $response->total = $countQuery->getQuery()->getScalarResult()[0][1];
-
-            $articlesQuery = $this->articleRepository->createQueryBuilder('articles')
-                ->select('articles')
-                ->where('articles.active = :active')
-                ->orderBy('articles.id')
-                ->setMaxResults($count)
-                ->setFirstResult($start)
-                ->setParameter('active', true);
-            /** @var array $allArticles */
-            $allArticles = $articlesQuery->getQuery()->execute();
-        } else {
-            /** @var array $allArticles */
-            $allArticles = $this->shop->getCategory()->getAllArticles();
-            $response->total = count($allArticles);
+            $articlesQuery->setMaxResults($count)->setFirstResult($start);
         }
+
+        $countQuery = $this->articleRepository->createQueryBuilder('articles')
+            ->select('count(articles.id)')
+            ->where('articles.active = :active')
+            ->orderBy('articles.id')
+            ->setParameter('active', true);
+
+        $response->total = $countQuery->getQuery()->getScalarResult()[0][1];
+
+        /** @var array $allArticles */
+        $allArticles = $articlesQuery->getQuery()->execute();
 
         // Own Model for XML extraction
         $findologicArticles = [];
