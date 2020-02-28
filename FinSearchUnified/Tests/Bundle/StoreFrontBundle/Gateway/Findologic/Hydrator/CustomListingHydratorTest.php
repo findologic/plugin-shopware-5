@@ -3,9 +3,14 @@
 namespace FinSearchUnified\Tests\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator;
 
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
+use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
+use FinSearchUnified\Components\ConfigLoader;
 use FinSearchUnified\Tests\TestCase;
+use ReflectionException;
+use ReflectionObject;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use SimpleXMLElement;
+use Zend_Cache_Exception;
 
 class CustomListingHydratorTest extends TestCase
 {
@@ -18,7 +23,7 @@ class CustomListingHydratorTest extends TestCase
     {
         parent::setUp();
 
-        $this->hydrator = new CustomListingHydrator();
+        $this->hydrator = Shopware()->Container()->get('fin_search_unified.custom_listing_hydrator');
     }
 
     /**
@@ -240,12 +245,12 @@ class CustomListingHydratorTest extends TestCase
                 'Expected string to return unchanged'
             ],
             'Filter name with spaces' => [
-                "Findologic 1 2 3",
+                'Findologic 1 2 3',
                 'Findologic_1_2_3',
                 'Expected whitespaces to be stripped way'
             ],
             'Filter name with dots' => [
-                "Findologic...Rocks",
+                'Findologic...Rocks',
                 'Findologic_Rocks',
                 'Expected dots to be stripped way'
             ],
@@ -278,5 +283,93 @@ class CustomListingHydratorTest extends TestCase
     {
         $result = $this->hydrator->getFormFieldName($text);
         $this->assertEquals($expected, $result, $errorMessage);
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function testCreateCustomFacet()
+    {
+        $name = 'Price';
+        $label = 'Price';
+        $mode = 'range-slider';
+        $formFieldName = 'Price';
+
+        $customFacet = new CustomFacet();
+        $customFacet->setName($name);
+        $customFacet->setUniqueKey($name);
+
+        $productAttributeFacet = new ProductAttributeFacet($name, $mode, $formFieldName, $label);
+        $customFacet->setFacet($productAttributeFacet);
+
+        $reflector = new ReflectionObject($this->hydrator);
+        $method = $reflector->getMethod('createCustomFacet');
+        $method->setAccessible(true);
+        $facet = $method->invokeArgs($this->hydrator, [$name, $mode, $label]);
+        $this->assertEquals($customFacet, $facet);
+    }
+
+    /**
+     * @throws Zend_Cache_Exception
+     */
+    public function testHydrateDefaultFacets()
+    {
+        $smartSuggestBlock = [
+            'cat' => 'Category',
+            'vendor' => 'Manufacturer'
+        ];
+
+        $configLoaderMock = $this->createMock(ConfigLoader::class);
+        $configLoaderMock->method('getSmartSuggestBlocks')->willReturn($smartSuggestBlock);
+
+        $hydrator = new CustomListingHydrator(
+            $configLoaderMock
+        );
+
+        $defaultCategoryFacet = $this->getDefaultCategoryFacet();
+        $defaultVendorFacet = $this->getDefaultVendorFacet();
+
+        $this->assertEquals($defaultCategoryFacet, $hydrator->hydrateDefaultCategoryFacet());
+        $this->assertEquals($defaultVendorFacet, $hydrator->hydrateDefaultVendorFacet());
+    }
+
+    /**
+     * @return CustomFacet
+     */
+    private function getDefaultVendorFacet()
+    {
+        $name = 'vendor';
+        $mode = 'radio';
+        $formFieldName = 'vendor';
+        $label = 'Manufacturer';
+
+        $customFacet = new CustomFacet();
+        $customFacet->setName($name);
+        $customFacet->setUniqueKey($name);
+
+        $productAttributeFacet = new ProductAttributeFacet($name, $mode, $formFieldName, $label);
+        $customFacet->setFacet($productAttributeFacet);
+
+        return $customFacet;
+    }
+
+    /**
+     * @return CustomFacet
+     */
+    private function getDefaultCategoryFacet()
+    {
+        $name = 'cat';
+        $mode = 'radio';
+        $formFieldName = 'cat';
+        $label = 'Category';
+
+        $customFacet = new CustomFacet();
+        $customFacet->setName($name);
+        $customFacet->setUniqueKey($name);
+
+        $productAttributeFacet = new ProductAttributeFacet($name, $mode, $formFieldName, $label);
+        $customFacet->setFacet($productAttributeFacet);
+
+        return $customFacet;
     }
 }

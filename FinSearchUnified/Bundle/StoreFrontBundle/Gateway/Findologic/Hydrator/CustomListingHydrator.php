@@ -3,11 +3,20 @@
 namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator;
 
 use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
+use FinSearchUnified\Components\ConfigLoader;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use SimpleXMLElement;
+use Zend_Cache_Exception;
 
 class CustomListingHydrator
 {
+    private $configLoader;
+
+    public function __construct(ConfigLoader $configLoader)
+    {
+        $this->configLoader = $configLoader;
+    }
+
     /**
      * @param SimpleXMLElement $select
      *
@@ -20,12 +29,6 @@ class CustomListingHydrator
         $type = (string)$select->type;
         $select = (string)$select->select;
 
-        $formFieldName = $this->getFormFieldName($name);
-
-        $customFacet = new CustomFacet();
-        $customFacet->setName($name);
-        $customFacet->setUniqueKey($name);
-
         if ($type === 'range-slider') {
             $mode = ProductAttributeFacet::MODE_RANGE_RESULT;
         } elseif ($select === 'single') {
@@ -36,11 +39,7 @@ class CustomListingHydrator
             $mode = ProductAttributeFacet::MODE_VALUE_LIST_RESULT;
         }
 
-        $productAttributeFacet = new ProductAttributeFacet($name, $mode, $formFieldName, $label);
-
-        $customFacet->setFacet($productAttributeFacet);
-
-        return $customFacet;
+        return $this->createCustomFacet($name, $mode, $label);
     }
 
     /**
@@ -66,5 +65,54 @@ class CustomListingHydrator
 
         // Fall back to the original name if it couldn't be escaped.
         return $escapedName ?: $name;
+    }
+
+    /**
+     * @param string $name
+     * @param string $mode
+     * @param string $label
+     *
+     * @return CustomFacet
+     */
+    private function createCustomFacet($name, $mode, $label)
+    {
+        $formFieldName = $this->getFormFieldName($name);
+
+        $customFacet = new CustomFacet();
+        $customFacet->setName($name);
+        $customFacet->setUniqueKey($name);
+
+        $productAttributeFacet = new ProductAttributeFacet($name, $mode, $formFieldName, $label);
+        $customFacet->setFacet($productAttributeFacet);
+
+        return $customFacet;
+    }
+
+    /**
+     * @return CustomFacet
+     * @throws Zend_Cache_Exception
+     */
+    public function hydrateDefaultCategoryFacet()
+    {
+        $smartSuggestion = $this->configLoader->getSmartSuggestBlocks();
+        $label = $smartSuggestion['cat'];
+        $name = 'cat';
+        $mode = ProductAttributeFacet::MODE_RADIO_LIST_RESULT;
+
+        return $this->createCustomFacet($name, $mode, $label);
+    }
+
+    /**
+     * @return CustomFacet
+     * @throws Zend_Cache_Exception
+     */
+    public function hydrateDefaultVendorFacet()
+    {
+        $smartSuggestion = $this->configLoader->getSmartSuggestBlocks();
+        $label = $smartSuggestion['vendor'];
+        $name = 'vendor';
+        $mode = ProductAttributeFacet::MODE_RADIO_LIST_RESULT;
+
+        return $this->createCustomFacet($name, $mode, $label);
     }
 }

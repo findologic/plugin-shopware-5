@@ -37,9 +37,11 @@
         </service>
 
         <service
-            id="fin_search_unified.custom_listing_hydrator"
             class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator"
-        />
+            id="fin_search_unified.custom_listing_hydrator"
+        >
+            <argument id="fin_search_unified.config_loader" type="service" />
+        </service>
 
         <service
             class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGateway"
@@ -82,7 +84,7 @@
         </service>
 
         <service
-            id="FinSearchUnified.color_picker_facet_result"
+            id="fin_search_unified.color_picker_facet_result"
             class="FinSearchUnified\Bundle\FacetResult\ColorPickerFacetResult"
         />
 
@@ -118,6 +120,7 @@
             <argument type="service" id="shopware_search.store_front_criteria_factory" />
             <argument type="service" id="fin_search_unified.product_stream.criteria_factory.inner" />
         </service>
+
         <service
             id="fin_search_unified.product_stream.repository"
             class="FinSearchUnified\Components\ProductStream\Repository"
@@ -150,10 +153,11 @@
         <service class="FinSearchUnified\Components\Environment" id="fin_search_unified.environment" />
 
         <!-- Re-declare non-existent shopware services in our xml for backward compatibility -->
-        <service id="shopware.routing.matchers.rewrite_matcher" class="Shopware\Components\Routing\Matchers\RewriteMatcher">
-            <argument type="service" id="dbal_connection"/>
-            <argument type="service" id="query_alias_mapper"/>
-            <tag name="router.matcher" priority="50"/>
+        <service id="shopware.routing.matchers.rewrite_matcher"
+            class="Shopware\Components\Routing\Matchers\RewriteMatcher">
+            <argument type="service" id="dbal_connection" />
+            <argument type="service" id="query_alias_mapper" />
+            <tag name="router.matcher" priority="50" />
         </service>
         <!-- Shopware services re-declaration ends here -->
 
