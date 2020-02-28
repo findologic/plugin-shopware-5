@@ -195,6 +195,62 @@ class FindologicArticleModelTest extends TestCase
                     ],
                 ]
             ],
+            'configuratorSet' => [
+                'groups' => [
+                    [
+                        'name' => 'Size',
+                        "options" => [
+                            [
+                                "name" => "S"
+                            ],
+                            [
+                                "name" => "M"
+                            ],
+                            [
+                                "name" => "L"
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            'variants' => [
+                [
+                    'isMain' => false,
+                    'number' => 'FINDOLOGIC1.1',
+                    'inStock' => 2,
+                    'active' => true,
+                    'configuratorOptions' => [
+                        [
+                            'group' => 'Size',
+                            'option' => 'L'
+                        ]
+                    ]
+                ],
+                [
+                    'isMain' => false,
+                    'number' => 'FINDOLOGIC1.2',
+                    'inStock' => 5,
+                    'active' => true,
+                    'configuratorOptions' => [
+                        [
+                            'group' => 'Size',
+                            'option' => 'M'
+                        ]
+                    ]
+                ],
+                [
+                    'isMain' => false,
+                    'number' => 'FINDOLOGIC1.3',
+                    'inStock' => 7,
+                    'active' => false,
+                    'configuratorOptions' => [
+                        [
+                            'group' => 'Size',
+                            'option' => 'S'
+                        ]
+                    ]
+                ]
+            ],
             'filterGroupId' => 1,
             'propertyValues' => [
                 [
@@ -251,8 +307,8 @@ class FindologicArticleModelTest extends TestCase
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
-
         $reflector = new ReflectionClass(Item::class);
+
         $attributes = $reflector->getProperty('attributes');
         $attributes->setAccessible(true);
         $values = $attributes->getValue($xmlArticle);
@@ -260,6 +316,12 @@ class FindologicArticleModelTest extends TestCase
         $this->assertArrayNotHasKey('color', $values);
         $this->assertArrayNotHasKey('size', $values);
         $this->assertArrayHasKey('awesomeness', $values);
+
+        $xmlOrdernumbers = $reflector->getProperty('ordernumbers');
+        $xmlOrdernumbers->setAccessible(true);
+        $ordernumbers = array_pop($xmlOrdernumbers->getValue($xmlArticle)->getValues());
+
+        $this->assertCount(2, $ordernumbers);
     }
 
     public function testArticleKeywords()
