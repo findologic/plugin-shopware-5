@@ -102,12 +102,12 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
     /**
      * Parse the filter items and build an array structure
      *
-     * @param SimpleXMLElement $filterItems
-     * @param array $actives
+     * @param SimpleXMLElement|null $filterItems
+     * @param array|null $actives
      *
      * @return array
      */
-    private function parseCategories(SimpleXMLElement $filterItems, array $actives)
+    private function parseCategories(SimpleXMLElement $filterItems = null, array $actives = null)
     {
         $categories = [];
 
