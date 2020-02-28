@@ -9,6 +9,7 @@ use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
+use FinSearchUnified\Components\ConfigLoader;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
@@ -670,7 +671,11 @@ class ProductNumberSearchTest extends TestCase
             $criteria->addCondition($condition);
         }
 
-        $hydrator = new CustomListingHydrator();
+        $configLoaderMock = $this->getMockBuilder(ConfigLoader::class)
+            ->disableOriginalConstructor()
+            ->setMethods([])
+            ->getMock();
+        $hydrator = new CustomListingHydrator($configLoaderMock);
 
         foreach ($xmlResponse->filters->filter as $filter) {
             $facetResult = $hydrator->hydrateFacet($filter);
@@ -780,7 +785,12 @@ class ProductNumberSearchTest extends TestCase
             $criteria->setFetchCount(true);
         }
 
-        $hydrator = new CustomListingHydrator();
+
+        $configLoaderMock = $this->getMockBuilder(ConfigLoader::class)
+            ->disableOriginalConstructor()
+            ->setMethods([])
+            ->getMock();
+        $hydrator = new CustomListingHydrator($configLoaderMock);
 
         foreach ($xmlResponse->filters->filter as $filter) {
             $facetResult = $hydrator->hydrateFacet($filter);
