@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Tests\Helper;
 
 use Exception;
+use SimpleXMLElement;
 
 class Utility
 {
@@ -62,5 +63,12 @@ class Utility
             );
         } catch (Exception $ignored) {
         }
+    }
+
+    public static function getDemoXML($file = 'demoResponse.xml')
+    {
+        $response = file_get_contents(__DIR__ . '/../MockData/XMLResponse/' . $file);
+
+        return new SimpleXMLElement($response);
     }
 }

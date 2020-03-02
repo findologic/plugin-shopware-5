@@ -6,13 +6,13 @@ use Enlight_Controller_Request_RequestHttp as Request;
 use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\StoreFrontBundle\Service\CustomFacetServiceInterface;
+use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\CombinedCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\CriteriaRequestHandlerInterface;
 use Shopware\Bundle\SearchBundle\Facet\CombinedConditionFacet;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
-use Shopware\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
 class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInterface

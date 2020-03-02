@@ -15,7 +15,11 @@ class ConfigLoader
     const CONFIG_FILE = 'config.json';
     const CACHE_ID = 'fin_service_config';
     const CACHE_LIFETIME = 86400;
-    const WHITE_LIST = ['isStagingShop' => null, 'directIntegration' => ['enabled' => null]];
+    const WHITE_LIST = [
+        'isStagingShop' => null,
+        'directIntegration' => ['enabled' => null],
+        'blocks' => ['cat' => null, 'vendor' => null]
+    ];
 
     /**
      * @var HttpClientInterface
@@ -133,11 +137,23 @@ class ConfigLoader
         switch ($key) {
             case 'directIntegration':
                 return $config[$key]['enabled'];
+            case 'blocks':
             case 'isStagingShop':
                 return $config[$key];
             default:
                 return $default;
         }
+    }
+
+    /**
+     * @param mixed[] $default
+     *
+     * @return mixed|null
+     * @throws Zend_Cache_Exception
+     */
+    public function getSmartSuggestBlocks($default = [])
+    {
+        return $this->get('blocks', $default);
     }
 
     /**
