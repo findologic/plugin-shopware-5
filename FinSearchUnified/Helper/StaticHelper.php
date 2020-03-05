@@ -401,17 +401,17 @@ class StaticHelper
         /** @var Enlight_View_Default $view */
         $view = Shopware()->Container()->get('front')->Plugins()->get('ViewRenderer')->Action()->View();
 
-        $snippetExtractor = new QueryInfoMessageParser($xmlResponse, $view);
+        $queryInfoMessageParser = new QueryInfoMessageParser($xmlResponse, $view);
 
         $view->assign(
             [
                 'finQueryInfoMessage' => [
-                    'filter_name' => $snippetExtractor->getFilterName(),
-                    'query' => $snippetExtractor->getSmartQuery(),
-                    'cat' => $snippetExtractor->getCategory(),
-                    'vendor' => $snippetExtractor->getVendor()
+                    'filter_name' => $queryInfoMessageParser->getFilterName(),
+                    'query' => $queryInfoMessageParser->getSmartQuery(),
+                    'cat' => $queryInfoMessageParser->getCategory(),
+                    'vendor' => $queryInfoMessageParser->getVendor()
                 ],
-                'snippetType' => $snippetExtractor->getSnippetType()
+                'snippetType' => $queryInfoMessageParser->getSnippetType()
             ]
         );
     }
