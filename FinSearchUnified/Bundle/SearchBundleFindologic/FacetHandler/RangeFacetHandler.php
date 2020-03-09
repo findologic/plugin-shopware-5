@@ -49,7 +49,9 @@ class RangeFacetHandler implements PartialFacetHandlerInterface
             $activeMin,
             $activeMax,
             $minFieldName,
-            $maxFieldName
+            $maxFieldName,
+            [],
+            $filter->attributes->unit
         );
     }
 

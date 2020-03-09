@@ -67,7 +67,9 @@ class RangeFacetHandlerTest extends TestCase
             $field,
             ProductAttributeFacet::MODE_RANGE_RESULT,
             $field,
-            $label
+            $label,
+            null,
+            $facetResult->getSuffix()
         );
         $criteria = new Criteria();
         if ($condition !== null) {
@@ -132,7 +134,9 @@ class RangeFacetHandlerTest extends TestCase
                     4.20,
                     69.00,
                     'min',
-                    'max'
+                    'max',
+                    [],
+                    '€'
                 )
             ],
             'Price filter is selected' => [
