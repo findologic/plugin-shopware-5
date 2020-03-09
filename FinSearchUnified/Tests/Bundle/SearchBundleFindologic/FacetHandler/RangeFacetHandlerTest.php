@@ -67,9 +67,7 @@ class RangeFacetHandlerTest extends TestCase
             $field,
             ProductAttributeFacet::MODE_RANGE_RESULT,
             $field,
-            $label,
-            null,
-            $facetResult->getSuffix()
+            $label
         );
         $criteria = new Criteria();
         if ($condition !== null) {
@@ -119,7 +117,8 @@ class RangeFacetHandlerTest extends TestCase
                         'selectedRange' => [
                             'min' => 4.20,
                             'max' => 69.00
-                        ]
+                        ],
+                        'unit' => '€'
                     ]
                 ],
                 'price',
@@ -221,10 +220,15 @@ class RangeFacetHandlerTest extends TestCase
             if (is_array($value)) {
                 $attributes = $filter->addChild($key);
                 foreach ($value as $range => $itemData) {
-                    $range = $attributes->addChild($range);
-                    foreach ($itemData as $k => $v) {
-                        $range->addChild($k, $v);
+                    if (is_array($itemData)) {
+                        $range = $attributes->addChild($range);
+                        foreach ($itemData as $k => $v) {
+                            $range->addChild($k, $v);
+                        }
+                        continue;
                     }
+
+                    $attributes->addChild($range, $itemData);
                 }
             } else {
                 $filter->addChild($key, $value);
