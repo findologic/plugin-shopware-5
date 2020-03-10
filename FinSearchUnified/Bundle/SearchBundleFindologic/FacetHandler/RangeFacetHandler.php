@@ -40,6 +40,7 @@ class RangeFacetHandler implements PartialFacetHandlerInterface
             $conditionField = $conditionName = 'price';
         }
 
+        $unit = !empty($filter->attributes->unit) ? (string)$filter->attributes->unit : null;
         return new RangeFacetResult(
             $conditionField,
             $criteria->hasCondition($conditionName),
@@ -51,7 +52,7 @@ class RangeFacetHandler implements PartialFacetHandlerInterface
             $minFieldName,
             $maxFieldName,
             [],
-            $filter->attributes->unit
+            $unit
         );
     }
 
