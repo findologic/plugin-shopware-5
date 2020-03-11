@@ -84,6 +84,12 @@ class RangeFacetHandlerTest extends TestCase
 
     public function rangeFacetResultProvider()
     {
+        $shopwareVersion = $_ENV['SHOPWARE_VERSION'] ?? '5.3.0';
+        $supportsUnit = version_compare($shopwareVersion, '5.3.0', '<');
+
+        // Shopware >5.3.0 does not support units.
+        $expectedUnit = $supportsUnit ? RangeFacetHandler::TEMPLATE_PATH : '€';
+
         return [
             'Total range boundaries are the same' => [
                 [
@@ -135,7 +141,7 @@ class RangeFacetHandlerTest extends TestCase
                     'min',
                     'max',
                     [],
-                    '€'
+                    $expectedUnit
                 )
             ],
             'Price filter is selected' => [
