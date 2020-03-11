@@ -84,7 +84,7 @@ class RangeFacetHandlerTest extends TestCase
 
     public function rangeFacetResultProvider()
     {
-        $shopwareVersion = $_ENV['SHOPWARE_VERSION'] ?? '5.3.0';
+        $shopwareVersion = isset($_ENV['SHOPWARE_VERSION']) ? $_ENV['SHOPWARE_VERSION'] : '5.2.0';
         $supportsUnit = version_compare($shopwareVersion, '5.3.0', '<');
 
         // Shopware >5.3.0 does not support units.
