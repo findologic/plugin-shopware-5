@@ -12,10 +12,24 @@ use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResultInterface;
+use Shopware_Components_Config as Config;
 use SimpleXMLElement;
 
 class RangeFacetHandlerTest extends TestCase
 {
+    public function setUp()
+    {
+        $mockConfig = $this->getMockBuilder(Config::class)
+            ->setMethods(['get'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig->expects($this->any())
+            ->method('get')
+            ->willReturn(!empty(getenv('SHOPWARE_VERSION')) ? getenv('SHOPWARE_VERSION') : '5.6.4');
+
+        Shopware()->Container()->set('config', $mockConfig);
+    }
+
     /**
      * @dataProvider filterProvider
      *
@@ -84,7 +98,7 @@ class RangeFacetHandlerTest extends TestCase
 
     public function rangeFacetResultProvider()
     {
-        $shopwareVersion = getenv('SHOPWARE_VERSION') ? getenv('SHOPWARE_VERSION') : '5.2.0';
+        $shopwareVersion = getenv('SHOPWARE_VERSION') ? getenv('SHOPWARE_VERSION') : '5.6.4';
         $supportsUnit = version_compare($shopwareVersion, '5.3.0', '<');
 
         // Shopware >5.3.0 does not support units.
