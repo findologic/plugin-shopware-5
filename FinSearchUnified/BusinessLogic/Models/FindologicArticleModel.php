@@ -848,7 +848,7 @@ class FindologicArticleModel
      *
      * @return string
      */
-    private function translateBooleanAsSnippet($status)
+    protected function translateBooleanAsSnippet($status)
     {
         if ($status) {
             $snippet = 'list/render_value/notified/yes';
@@ -859,7 +859,7 @@ class FindologicArticleModel
         return Shopware()->Snippets()->getNamespace('backend/notification/view/main')->get($snippet);
     }
 
-    private function isCrossSellingCategoryConfiguredForArticle()
+    protected function isCrossSellingCategoryConfiguredForArticle()
     {
         $crossSellingCategories = Shopware()->Config()->offsetGet('CrossSellingCategories');
         /** @var Category $category */
