@@ -68,9 +68,6 @@ class RangeFacetHandler implements PartialFacetHandlerInterface
     {
         $shopwareVersion = Shopware()->Config()->get('version');
 
-        var_dump($shopwareVersion);
-        var_dump(version_compare($shopwareVersion, '5.3', '<'));
-
         if (version_compare($shopwareVersion, '5.3', '<')) {
             // Shopware >5.3.0 does not support units. In Shopware 5.2.x this argument is the template path.
             return self::TEMPLATE_PATH;
