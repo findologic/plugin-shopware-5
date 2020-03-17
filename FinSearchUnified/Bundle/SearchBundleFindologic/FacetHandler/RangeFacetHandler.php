@@ -67,6 +67,10 @@ class RangeFacetHandler implements PartialFacetHandlerInterface
     private function getUnit(SimpleXMLElement $filter)
     {
         $shopwareVersion = Shopware()->Config()->get('version');
+
+        var_dump($shopwareVersion);
+        var_dump(version_compare($shopwareVersion, '5.3.0', '<'));
+
         if (version_compare($shopwareVersion, '5.3.0', '<')) {
             // Shopware >5.3.0 does not support units. In Shopware 5.2.x this argument is the template path.
             return self::TEMPLATE_PATH;
