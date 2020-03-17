@@ -50,7 +50,7 @@ before_script:
   - cd ${PLUGIN_DIRECTORY}/${PLUGIN_NAME}
 
 script:
-  - SHOPWARE_VERSION=${SHOPWARE_VERSION} composer test
+  - composer test
 
 jobs:
   include:
