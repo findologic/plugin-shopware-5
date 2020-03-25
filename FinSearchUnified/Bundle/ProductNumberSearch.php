@@ -287,6 +287,10 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         $condition = $criteria->getUserCondition($facetName);
 
+        if (!$condition) {
+            return null;
+        }
+
         return $this->createSelectedFilter(
             $criteriaFacet,
             $condition

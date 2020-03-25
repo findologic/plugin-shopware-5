@@ -780,6 +780,55 @@ class ProductNumberSearchTest extends TestCase
         $this->assertEquals($expectedResult, $facetResult);
     }
 
+    public function testCreateFacetsWhenFiltersInResponseAreEmpty()
+    {
+        $criteria = new Criteria();
+        $originalService = $this->createMock(OriginalProductNumberSearch::class);
+
+        $configLoaderMock = $this->getMockBuilder(ConfigLoader::class)
+            ->disableOriginalConstructor()
+            ->setMethods([])
+            ->getMock();
+        $hydrator = new CustomListingHydrator($configLoaderMock);
+
+        $xmlResponse = Utility::getDemoXML();
+        foreach ($xmlResponse->filters->filter as $filter) {
+            $facetResult = $hydrator->hydrateFacet($filter);
+            $criteria->addFacet($facetResult->getFacet());
+        }
+
+        unset($xmlResponse->filters);
+        $filters = $xmlResponse->addChild('filters');
+
+        if (method_exists($criteria, 'setFetchCount')) {
+            $criteria->setFetchCount(true);
+        }
+
+        $request = new RequestHttp();
+        $request->setModuleName('frontend');
+        $request->setRequestUri('/findologic');
+        $request->setActionName('defaultSearch');
+        $request->setControllerName('search');
+        Shopware()->Front()->setRequest($request);
+
+        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+        $mockedCache = $this->createMock(Zend_Cache_Core::class);
+
+        $productNumberSearch = new ProductNumberSearch(
+            $originalService,
+            $mockQuerybuilderFactory,
+            $mockedCache
+        );
+
+        $reflector = new ReflectionObject($productNumberSearch);
+        $method = $reflector->getMethod('createFacets');
+        $method->setAccessible(true);
+
+        $result = $method->invokeArgs($productNumberSearch, [$criteria, $this->context, $filters]);
+
+        $this->assertEmpty($result);
+    }
+
     public function cacheResponseProvider()
     {
         $xmlResponse = Utility::getDemoXML();
