@@ -12,10 +12,24 @@ use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResultInterface;
+use Shopware_Components_Config as Config;
 use SimpleXMLElement;
 
 class RangeFacetHandlerTest extends TestCase
 {
+    public function setUp()
+    {
+        $mockConfig = $this->getMockBuilder(Config::class)
+            ->setMethods(['get'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig->expects($this->any())
+            ->method('get')
+            ->willReturn(!empty(getenv('SHOPWARE_VERSION')) ? getenv('SHOPWARE_VERSION') : '5.6.4');
+
+        Shopware()->Container()->set('config', $mockConfig);
+    }
+
     /**
      * @dataProvider filterProvider
      *
@@ -84,6 +98,12 @@ class RangeFacetHandlerTest extends TestCase
 
     public function rangeFacetResultProvider()
     {
+        $shopwareVersion = getenv('SHOPWARE_VERSION') ? getenv('SHOPWARE_VERSION') : '5.6.4';
+        $supportsUnit = version_compare($shopwareVersion, '5.3', '<');
+
+        // Shopware >5.3.0 does not support units.
+        $expectedUnit = $supportsUnit ? RangeFacetHandler::TEMPLATE_PATH : '€';
+
         return [
             'Total range boundaries are the same' => [
                 [
@@ -117,7 +137,8 @@ class RangeFacetHandlerTest extends TestCase
                         'selectedRange' => [
                             'min' => 4.20,
                             'max' => 69.00
-                        ]
+                        ],
+                        'unit' => '€'
                     ]
                 ],
                 'price',
@@ -132,7 +153,9 @@ class RangeFacetHandlerTest extends TestCase
                     4.20,
                     69.00,
                     'min',
-                    'max'
+                    'max',
+                    [],
+                    $expectedUnit
                 )
             ],
             'Price filter is selected' => [
@@ -188,15 +211,15 @@ class RangeFacetHandlerTest extends TestCase
                 'Length',
                 new ProductAttributeCondition('attr6', Operator::EQ, ['min' => 4.20, 'max' => 6.09]),
                 new RangeFacetResult(
-                    'product_attribute_attr6',
+                    'attr6',
                     true,
                     'Length',
                     4.20,
                     69.00,
                     4.20,
                     6.09,
-                    'minproduct_attribute_attr6',
-                    'maxproduct_attribute_attr6'
+                    'minattr6',
+                    'maxattr6'
                 )
             ]
         ];
@@ -217,10 +240,15 @@ class RangeFacetHandlerTest extends TestCase
             if (is_array($value)) {
                 $attributes = $filter->addChild($key);
                 foreach ($value as $range => $itemData) {
-                    $range = $attributes->addChild($range);
-                    foreach ($itemData as $k => $v) {
-                        $range->addChild($k, $v);
+                    if (is_array($itemData)) {
+                        $range = $attributes->addChild($range);
+                        foreach ($itemData as $k => $v) {
+                            $range->addChild($k, $v);
+                        }
+                        continue;
                     }
+
+                    $attributes->addChild($range, $itemData);
                 }
             } else {
                 $filter->addChild($key, $value);

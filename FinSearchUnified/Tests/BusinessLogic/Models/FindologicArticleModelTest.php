@@ -195,6 +195,62 @@ class FindologicArticleModelTest extends TestCase
                     ],
                 ]
             ],
+            'configuratorSet' => [
+                'groups' => [
+                    [
+                        'name' => 'Size',
+                        "options" => [
+                            [
+                                "name" => "S"
+                            ],
+                            [
+                                "name" => "M"
+                            ],
+                            [
+                                "name" => "L"
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            'variants' => [
+                [
+                    'isMain' => false,
+                    'number' => 'FINDOLOGIC1.1',
+                    'inStock' => 2,
+                    'active' => true,
+                    'configuratorOptions' => [
+                        [
+                            'group' => 'Size',
+                            'option' => 'L'
+                        ]
+                    ]
+                ],
+                [
+                    'isMain' => false,
+                    'number' => 'FINDOLOGIC1.2',
+                    'inStock' => 5,
+                    'active' => true,
+                    'configuratorOptions' => [
+                        [
+                            'group' => 'Size',
+                            'option' => 'M'
+                        ]
+                    ]
+                ],
+                [
+                    'isMain' => false,
+                    'number' => 'FINDOLOGIC1.3',
+                    'inStock' => 7,
+                    'active' => false,
+                    'configuratorOptions' => [
+                        [
+                            'group' => 'Size',
+                            'option' => 'S'
+                        ]
+                    ]
+                ]
+            ],
             'filterGroupId' => 1,
             'propertyValues' => [
                 [
@@ -251,8 +307,8 @@ class FindologicArticleModelTest extends TestCase
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
-
         $reflector = new ReflectionClass(Item::class);
+
         $attributes = $reflector->getProperty('attributes');
         $attributes->setAccessible(true);
         $values = $attributes->getValue($xmlArticle);
@@ -260,6 +316,12 @@ class FindologicArticleModelTest extends TestCase
         $this->assertArrayNotHasKey('color', $values);
         $this->assertArrayNotHasKey('size', $values);
         $this->assertArrayHasKey('awesomeness', $values);
+
+        $xmlOrdernumbers = $reflector->getProperty('ordernumbers');
+        $xmlOrdernumbers->setAccessible(true);
+        $ordernumbers = array_pop($xmlOrdernumbers->getValue($xmlArticle)->getValues());
+
+        $this->assertCount(2, $ordernumbers);
     }
 
     public function testArticleKeywords()
@@ -913,5 +975,97 @@ class FindologicArticleModelTest extends TestCase
         $values = $properties->getValue($xmlArticle);
 
         $this->assertArrayNotHasKey('attr1', $values);
+    }
+
+    public function booleanValueProvider()
+    {
+        return [
+            'Boolean true should be translated in de_DE language' => [
+                'highlight' => true,
+                'locale' => 1,
+                'expectedValue' => 'Ja'
+            ],
+            'Boolean true should be translated in en_GB language' => [
+                'highlight' => true,
+                'locale' => 2,
+                'expectedValue' => 'Yes'
+            ],
+            'Boolean false should be translated in de_DE language' => [
+                'highlight' => false,
+                'locale' => 1,
+                'expectedValue' => 'Nein'
+            ],
+            'Boolean false should be translated in en_GB language' => [
+                'highlight' => false,
+                'locale' => 2,
+                'expectedValue' => 'No'
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider booleanValueProvider
+     *
+     * @param bool $highlight
+     * @param int $locale
+     * @param string $expectedValue
+     *
+     * @throws ReflectionException
+     */
+    public function testTranslatedBooleanProperties($highlight, $locale, $expectedValue)
+    {
+        $articleConfiguration = [
+            'name' => 'Sample Article',
+            'active' => true,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5],
+            ],
+            'images' => [
+                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC2',
+                'active' => true,
+                'inStock' => 16,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+            'highlight' => $highlight
+        ];
+
+        $shop = Manager::getResource('Shop')->getRepository()->find($locale);
+        Shopware()->Snippets()->setShop($shop);
+
+        $baseCategory = new Category();
+        $baseCategory->setId(5);
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCDABCDABCDABCDABCDABCDABCDABCD',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+        $reflector = new ReflectionClass(Item::class);
+        $properties = $reflector->getProperty('properties');
+        $properties->setAccessible(true);
+        $values = $properties->getValue($xmlArticle);
+        $values = current($values);
+
+        $this->assertArrayHasKey('highlight', $values);
+        $this->assertSame($expectedValue, $values['highlight']);
     }
 }

@@ -24,7 +24,6 @@ use Shopware\Components\Api\Exception\ValidationException;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource;
 use Shopware\Components\HttpClient\GuzzleHttpClient;
-use Shopware\Models\Category\Category;
 use Shopware_Components_Config as Config;
 use SimpleXMLElement;
 use Zend_Cache_Core;
@@ -624,27 +623,9 @@ class StaticHelperTest extends TestCase
      */
     public function testBuildCategoryName($categoryId, $category, $expected)
     {
-        $categoryModel = $this->categoryResource->update(
-            $categoryId,
-            [
-                'name' => $category
-            ]
-        );
-        $this->assertInstanceOf(Category::class, $categoryModel);
-
-        $this->updateParentCategoryName($categoryModel->getParent(), false);
-
+        $categoryModel = $this->categoryResource->update($categoryId, ['name' => $category]);
         $result = StaticHelper::buildCategoryName($categoryModel->getId());
-
-        $this->categoryResource->update(
-            $categoryId,
-            [
-                'name' => trim($category)
-            ]
-        );
-
-        $this->updateParentCategoryName($categoryModel->getParent());
-
+        $this->categoryResource->update($categoryId, ['name' => trim($category)]);
         $this->assertSame($expected, $result, 'Expected category name to be trimmed but was not');
     }
 
@@ -662,7 +643,7 @@ class StaticHelperTest extends TestCase
     private function updateParentCategoryName(Category $parent, $restore = true)
     {
         // Stop when Shopware's root category is reached. Changing it can and will break unrelated tests.
-        if ($parent->getId() === 1) {
+        if ($parent->getId() <= 3) {
             return;
         }
 
@@ -1002,11 +983,11 @@ class StaticHelperTest extends TestCase
     public function nonEmptyValueProvider()
     {
         return [
-            ' i am not empty',
-            new SimpleXMLElement('<notEmpty/>'),
-            23,
-            1,
-            '_',
+            [' i am not empty'],
+            [new SimpleXMLElement('<notEmpty/>')],
+            [23],
+            [1],
+            ['_'],
             ['not empty at all' => 'really']
         ];
     }
@@ -1022,15 +1003,12 @@ class StaticHelperTest extends TestCase
     public function emptyValueProvider()
     {
         return [
-            '',
-            ' ',
-            '     ',
-            '          ',
-            0,
-            '0',
-            [],
             [''],
-            0.0,
+            [' '],
+            ['     '],
+            ['          '],
+            [[]],
+            [['']]
         ];
     }
 

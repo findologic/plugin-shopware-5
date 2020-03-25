@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="../../../../engine/Shopware/Components/Plugin/schema/config.xsd">
+    xsi:noNamespaceSchemaLocation="../../../../engine/Shopware/Components/Plugin/schema/config.xsd">
 
     <elements>
         <element type="text" required="true" scope="shop">
@@ -26,6 +26,35 @@
             <value>true</value>
             <description lang="de">Aktiviert die FINDOLOGIC Suche für Kategorieseiten.</description>
             <description lang="en">Activate the FINDOLOGIC search provider for category pages.</description>
+        </element>
+        <element type="combo">
+            <name>CrossSellingCategories</name>
+            <label lang="de">Cross-Selling Kategorien (Produkte in diesen Kategorien werden vom Export ausgeschlossen)</label>
+            <label lang="en">Cross-Selling categories (products in these categories are excluded from the
+                export)</label>
+            <description lang="de">Sollten Sie mehrere Subkategorien in Ihrer Cross-Selling Kategorie haben, fügen sie jede Subkategorie ein.</description>
+            <description lang="en">If you have multiple subcategories in your Cross-Selling category, make sure to add all subcategories.</description>
+            <store><![CDATA[Ext.define('Findologic.Category.Form', {
+    extend: 'Shopware.apps.Base.store.Category',
+    autoLoad: true,
+    pageSize: 25,
+    proxy: {
+        type: 'ajax',
+        url: window.location.href.substr(0, window.location.href.indexOf('backend')) + 'backend/Category/getPathByQuery',
+        reader: {
+            type: 'json',
+            root: 'data',
+            totalProperty: 'total'
+        }
+    }
+    }).create();//new ]]>
+            </store>
+            <options>
+                <valueField>id</valueField>
+                <displayField>name</displayField>
+                <isCustomStore>true</isCustomStore>
+                <multiSelect>true</multiSelect>
+            </options>
         </element>
         <element type="text" required="true" scope="shop">
             <name>SearchResultContainer</name>

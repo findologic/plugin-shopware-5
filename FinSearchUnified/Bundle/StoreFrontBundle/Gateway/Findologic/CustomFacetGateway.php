@@ -49,7 +49,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         $criteria->offset(0)->limit(1);
 
         /** @var QueryBuilder $query */
-        $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
+        $query = $this->queryBuilderFactory->createSearchNavigationQueryWithoutAdditionalFilters($criteria, $context);
 
         $response = $query->execute();
 
@@ -108,9 +108,28 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
     private function hydrate(SimpleXMLElement $filters)
     {
         $facets = [];
+        $hasCategoryFacet = false;
+        $hasVendorFacet = false;
 
         foreach ($filters as $filter) {
-            $facets[] = $this->hydrator->hydrateFacet($filter);
+            $facet = $this->hydrator->hydrateFacet($filter);
+            $facetName = $facet->getName();
+
+            if ($facetName === 'vendor') {
+                $hasVendorFacet = true;
+            }
+            if ($facetName === 'cat') {
+                $hasCategoryFacet = true;
+            }
+
+            $facets[] = $facet;
+        }
+
+        if (!$hasCategoryFacet) {
+            $facets[] = $this->hydrator->hydrateDefaultCategoryFacet();
+        }
+        if (!$hasVendorFacet) {
+            $facets[] = $this->hydrator->hydrateDefaultVendorFacet();
         }
 
         return $facets;
