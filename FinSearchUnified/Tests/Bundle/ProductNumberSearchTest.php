@@ -153,7 +153,8 @@ class ProductNumberSearchTest extends TestCase
 
         $originalService = $this->createMock(OriginalProductNumberSearch::class);
 
-        $front = $this->getFrontViewMock();
+        $request = new RequestHttp();
+        $request->setModuleName('frontend');
         $request->setRequestUri('/findologic');
         Shopware()->Front()->setRequest($request);
 
