@@ -152,12 +152,6 @@ class ProductNumberSearchTest extends TestCase
             ->willReturn($mockedQuery);
 
         $originalService = $this->createMock(OriginalProductNumberSearch::class);
-
-        $request = new RequestHttp();
-        $request->setModuleName('frontend');
-        $request->setRequestUri('/findologic');
-        Shopware()->Front()->setRequest($request);
-
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
 
         $productNumberSearch = new ProductNumberSearch(
@@ -165,6 +159,9 @@ class ProductNumberSearchTest extends TestCase
             $mockQuerybuilderFactory,
             $mockedCache
         );
+
+        $front = $this->getFrontViewMock();
+        Shopware()->Container()->set('front', $front);
 
         $context = Shopware()->Container()->get('shopware_storefront.context_service')->getContext();
         $productNumberSearch->search($criteria, $context);
