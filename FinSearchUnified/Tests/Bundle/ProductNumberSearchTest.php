@@ -51,11 +51,14 @@ class ProductNumberSearchTest extends TestCase
         ];
         // Create mock object for Shopware Config and explicitly return the values
         $mockConfig = $this->getMockBuilder(Config::class)
-            ->setMethods(['offsetGet'])
+            ->setMethods(['offsetGet', 'get'])
             ->disableOriginalConstructor()
             ->getMock();
         $mockConfig->method('offsetGet')
             ->willReturnMap($configArray);
+        $mockConfig->expects($this->any())
+            ->method('get')
+            ->willReturn(!empty(getenv('SHOPWARE_VERSION')) ? getenv('SHOPWARE_VERSION') : '5.6.4');
 
         Shopware()->Container()->set('config', $mockConfig);
 
