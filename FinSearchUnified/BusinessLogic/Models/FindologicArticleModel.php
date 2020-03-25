@@ -719,7 +719,7 @@ class FindologicArticleModel
     protected function setProperties()
     {
         $allProperties = [];
-        $rewrtieLink = Shopware()->Modules()->Core()->sRewriteLink();
+        $rewriteLink = Shopware()->Modules()->Core()->sRewriteLink();
         $allProperties[] = new Property(
             'highlight',
             ['' => $this->translateBooleanAsSnippet($this->baseArticle->getHighlight())]
@@ -759,9 +759,9 @@ class FindologicArticleModel
             $allProperties[] = new Property('release_date', ['' => $releaseDate]);
         }
 
-        $wishListUrl = $rewrtieLink . self::WISHLIST_URL . $this->baseVariant->getNumber();
-        $compareUrl = $rewrtieLink . self::COMPARE_URL . $this->baseArticle->getId();
-        $cartUrl = $rewrtieLink . self::CART_URL . $this->baseVariant->getNumber();
+        $wishListUrl = $rewriteLink . self::WISHLIST_URL . $this->baseVariant->getNumber();
+        $compareUrl = $rewriteLink . self::COMPARE_URL . $this->baseArticle->getId();
+        $cartUrl = $rewriteLink . self::CART_URL . $this->baseVariant->getNumber();
 
         $allProperties[] = new Property('wishlistUrl', ['' => $wishListUrl]);
         $allProperties[] = new Property('compareUrl', ['' => $compareUrl]);
@@ -848,7 +848,7 @@ class FindologicArticleModel
      *
      * @return string
      */
-    private function translateBooleanAsSnippet($status)
+    protected function translateBooleanAsSnippet($status)
     {
         if ($status) {
             $snippet = 'list/render_value/notified/yes';
@@ -859,7 +859,7 @@ class FindologicArticleModel
         return Shopware()->Snippets()->getNamespace('backend/notification/view/main')->get($snippet);
     }
 
-    private function isCrossSellingCategoryConfiguredForArticle()
+    protected function isCrossSellingCategoryConfiguredForArticle()
     {
         $crossSellingCategories = Shopware()->Config()->offsetGet('CrossSellingCategories');
         /** @var Category $category */

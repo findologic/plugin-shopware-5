@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler;
 
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
+use Shopware;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\FacetInterface;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
@@ -10,6 +11,8 @@ use SimpleXMLElement;
 
 class RangeFacetHandler implements PartialFacetHandlerInterface
 {
+    const TEMPLATE_PATH = 'frontend/listing/filter/facet-range.tpl';
+
     /**
      * @param FacetInterface $facet
      * @param Criteria $criteria
@@ -51,8 +54,26 @@ class RangeFacetHandler implements PartialFacetHandlerInterface
             $minFieldName,
             $maxFieldName,
             [],
-            $filter->attributes->unit
+            $this->getUnit($filter)
         );
+    }
+
+    /**
+     * Fetches the unit from the filter. May return the template path if Shopware version is >5.3.0.
+     *
+     * @param SimpleXMLElement $filter
+     * @return string|null
+     */
+    private function getUnit(SimpleXMLElement $filter)
+    {
+        $shopwareVersion = Shopware()->Config()->get('version');
+
+        if (version_compare($shopwareVersion, '5.3', '<')) {
+            // Shopware >5.3.0 does not support units. In Shopware 5.2.x this argument is the template path.
+            return self::TEMPLATE_PATH;
+        }
+
+        return !empty($filter->attributes->unit) ? (string)$filter->attributes->unit : null;
     }
 
     /**
