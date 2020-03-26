@@ -3,10 +3,91 @@
 namespace FinSearchUnified\Tests\Helper;
 
 use Exception;
+use FinSearchUnified\ShopwareProcess;
+use Shopware\Components\Api\Manager;
+use Shopware\Models\Article\Article;
 use SimpleXMLElement;
 
 class Utility
 {
+    /**
+     * @param int|string $number
+     * @param bool $isActive
+     * @param array $categories
+     *
+     * @return Article|null
+     */
+    public static function createTestProduct($number, $isActive, $categories = [])
+    {
+        $testArticle = [
+            'name' => 'FindologicArticle' . $number,
+            'active' => $isActive,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 5],
+            ],
+            'images' => [
+                ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
+                ['link' => 'https://via.placeholder.com/100/09f/000.png'],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC' . $number,
+                'active' => $isActive,
+                'inStock' => 16,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+        ];
+
+        if (!empty($categories)) {
+            $assignedCategories = [];
+            foreach ($categories as $category) {
+                $assignedCategories[] = ['id' => $category];
+            }
+            $testArticle['categories'] = $assignedCategories;
+        }
+
+        try {
+            $resource = Manager::getResource('Article');
+
+            return $resource->create($testArticle);
+        } catch (Exception $e) {
+            echo sprintf('Exception: %s', $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Method to run the actual export functionality and parse the xml to return the
+     * number of articles returned
+     *
+     * @return int
+     */
+    public static function runExportAndReturnCount()
+    {
+        try {
+            /** @var ShopwareProcess $shopwareProcess */
+            $shopwareProcess = Shopware()->Container()->get('fin_search_unified.shopware_process');
+            $shopwareProcess->setShopKey('ABCDABCDABCDABCDABCDABCDABCDABCD');
+            $xmlDocument = $shopwareProcess->getFindologicXml();
+
+            // Parse the xml and return the count of the products exported
+            $xml = new SimpleXMLElement($xmlDocument);
+
+            return (int)$xml->items->attributes()->count;
+        } catch (Exception $e) {
+            echo sprintf('Exception: %s', $e->getMessage());
+        }
+
+        return 0;
+    }
+
     /**
      * Delete all articles
      */

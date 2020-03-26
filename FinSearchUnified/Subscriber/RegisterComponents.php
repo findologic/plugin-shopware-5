@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Subscriber;
 
+use Composer\Autoload\ClassLoader;
 use Enlight\Event\SubscriberInterface;
 
 class RegisterComponents implements SubscriberInterface
@@ -29,6 +30,11 @@ class RegisterComponents implements SubscriberInterface
 
     public function registerComponents()
     {
-        require_once $this->pluginPath . '/vendor/autoload.php';
+        $loader = require_once $this->pluginPath . '/vendor/autoload.php';
+        // This is required, because FINDOLOGIC-API requires a later version of Guzzle than Shopware 5.
+        if ($loader instanceof ClassLoader) {
+            $loader->unregister();
+            $loader->register(false);
+        }
     }
 }
