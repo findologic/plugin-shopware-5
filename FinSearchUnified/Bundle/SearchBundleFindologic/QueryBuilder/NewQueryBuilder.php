@@ -170,8 +170,8 @@ abstract class NewQueryBuilder
      */
     public function addUserGroup($usergroup)
     {
-        $hashedGroup = StaticHelper::calculateUsergroupHash($this->shopKey, $usergroup);
-        $this->searchNavigationRequest->addGroup($hashedGroup);
+        $usergrouphash = StaticHelper::calculateUsergroupHash($this->shopKey, $usergroup);
+        $this->searchNavigationRequest->addUserGroup($usergrouphash);
     }
 
     /**

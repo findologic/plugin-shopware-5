@@ -265,12 +265,12 @@ class NewSearchQueryBuilderTest extends TestCase
             $searchNavigationRequest
         );
 
-        $hashed = StaticHelper::calculateUsergroupHash($this->config->offsetGet('ShopKey'), $userGroup);
+        $usergrouphash = StaticHelper::calculateUsergroupHash($this->config->offsetGet('ShopKey'), $userGroup);
         $queryBuilder->addUserGroup($userGroup);
 
         $params = $searchNavigationRequest->getParams();
-        $this->assertArrayHasKey('group', $params);
-        $this->assertSame($hashed, current($params['group']));
+        $this->assertArrayHasKey('usergrouphash', $params);
+        $this->assertSame($usergrouphash, current($params['usergrouphash']));
     }
 
     public function addFlagDataProvider()
