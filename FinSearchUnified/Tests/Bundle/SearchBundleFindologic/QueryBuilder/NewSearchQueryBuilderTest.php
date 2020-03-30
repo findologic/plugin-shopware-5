@@ -2,24 +2,21 @@
 
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\QueryBuilder;
 
+use FINDOLOGIC\Api\Client;
 use FINDOLOGIC\Api\Requests\SearchNavigation\NavigationRequest;
 use FINDOLOGIC\Api\Requests\SearchNavigation\SearchRequest;
 use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewNavigationQueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewSearchQueryBuilder;
 use FinSearchUnified\Helper\StaticHelper;
+use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware_Components_Config;
 
 class NewSearchQueryBuilderTest extends TestCase
 {
-    protected static $ensureLoadedPlugins = [
-        'FinSearchUnified' => [
-            'ShopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD'
-        ]
-    ];
-
     /**
      * @var InstallerService
      */
@@ -36,6 +33,7 @@ class NewSearchQueryBuilderTest extends TestCase
 
         $this->installerService = Shopware()->Container()->get('shopware.plugin_manager');
         $this->config = Shopware()->Config();
+        $this->config->ShopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
 
         // Set default values for test
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
@@ -52,10 +50,15 @@ class NewSearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         $searchNavigationRequest->setQuery('findologic');
 
+        /** @var Client|MockObject $apiClientMock */
+        $apiClientMock = $this->getMockBuilder(Client::class)->disableOriginalConstructor()->getMock();
+        $apiClientMock->expects($this->once())->method('send')->willReturn(
+            new Xml21Response(Utility::getDemoXML()->asXML())
+        );
         $queryBuilder = new NewSearchQueryBuilder(
             $this->installerService,
             $this->config,
-            null,
+            $apiClientMock,
             $searchNavigationRequest
         );
         $response = $queryBuilder->execute();
@@ -301,6 +304,7 @@ class NewSearchQueryBuilderTest extends TestCase
 
     /**
      * @dataProvider addFlagDataProvider
+     *
      * @param $flagValue
      * @param $expectedValue
      */
