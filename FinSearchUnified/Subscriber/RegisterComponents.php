@@ -30,11 +30,6 @@ class RegisterComponents implements SubscriberInterface
 
     public function registerComponents()
     {
-        $loader = require_once $this->pluginPath . '/vendor/autoload.php';
-        // This is required, because FINDOLOGIC-API requires a later version of Guzzle than Shopware 5.
-        if ($loader instanceof ClassLoader) {
-            $loader->unregister();
-            $loader->register(false);
-        }
+        require_once $this->pluginPath . '/vendor/autoload.php';
     }
 }
