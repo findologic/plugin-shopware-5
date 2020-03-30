@@ -58,6 +58,7 @@ abstract class NewQueryBuilder
 
         if ($apiClient === null) {
             $apiConfig = new Config();
+            $apiConfig->setServiceId($this->shopKey);
             $apiClient = new Client($apiConfig);
         }
 
