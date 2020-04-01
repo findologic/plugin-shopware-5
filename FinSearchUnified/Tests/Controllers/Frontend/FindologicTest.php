@@ -81,4 +81,16 @@ class FindologicTest extends Enlight_Components_Test_Plugin_TestCase
 
         return null;
     }
+
+    /**
+     * Allows to set a Shopware config
+     *
+     * @param string $name
+     */
+    protected function setConfig($name, $value)
+    {
+        Shopware()->Container()->get('config_writer')->save($name, $value);
+        Shopware()->Container()->get('cache')->clean();
+        Shopware()->Container()->get('config')->setShop(Shopware()->Shop());
+    }
 }

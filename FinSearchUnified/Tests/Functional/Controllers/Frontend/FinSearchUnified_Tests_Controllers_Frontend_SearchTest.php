@@ -75,16 +75,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
     {
         parent::tearDown();
 
-        Shopware()->Session()->offsetUnset('findologicDI');
-
-        Shopware()->Container()->reset('shopware_search.store_front_criteria_factory');
-        Shopware()->Container()->load('shopware_search.store_front_criteria_factory');
-
-        Shopware()->Container()->reset('shopware_search.product_search');
-        Shopware()->Container()->load('shopware_search.product_search');
-
-        Shopware()->Container()->reset('fin_search_unified.subscriber.frontend');
-        Shopware()->Container()->load('fin_search_unified.subscriber.frontend');
+        $this->reset();
         // Explicitly reset this super global since it might influence unrelated tests.
         $_GET = [];
     }
@@ -185,7 +176,8 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             $product->addAttribute('id', $i);
         }
 
-        Shopware()->Session()->offsetSet('findologicDI', false);
+        Shopware()->Session()->findologicDI = false;
+        Shopware()->Session()->isSearchPage = true;
 
         $criteria = new Criteria();
 
@@ -195,6 +187,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         }
 
         $this->Request()->setParam('sSearch', 'blubbergurke');
+
         $criteria->addBaseCondition(new SearchTermCondition('blubbergurke'));
         $storeFrontCriteriaFactoryMock = $this->getMockBuilder(StoreFrontCriteriaFactory::class)
             ->disableOriginalConstructor()
