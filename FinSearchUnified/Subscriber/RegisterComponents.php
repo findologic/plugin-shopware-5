@@ -2,7 +2,6 @@
 
 namespace FinSearchUnified\Subscriber;
 
-use Composer\Autoload\ClassLoader;
 use Enlight\Event\SubscriberInterface;
 
 class RegisterComponents implements SubscriberInterface
