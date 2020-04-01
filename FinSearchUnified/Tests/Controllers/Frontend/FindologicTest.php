@@ -2,13 +2,12 @@
 
 namespace FinSearchUnified\Tests\Controllers\Frontend;
 
-use Enlight_Components_Test_Controller_TestCase;
-use Enlight_Controller_Response_ResponseHttp;
+use Enlight_Components_Test_Plugin_TestCase;
 use Exception;
 use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Components\Api\Manager;
 
-class FindologicTest extends Enlight_Components_Test_Controller_TestCase
+class FindologicTest extends Enlight_Components_Test_Plugin_TestCase
 {
     protected function tearDown()
     {
@@ -23,9 +22,8 @@ class FindologicTest extends Enlight_Components_Test_Controller_TestCase
         $shopkey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
         $this->setConfig('ShopKey', $shopkey);
 
-        /** @var Enlight_Controller_Response_ResponseHttp $response */
         $response = $this->dispatch(sprintf('findologic?shopkey=%s', $shopkey));
-        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame(200, $response->getHttpResponseCode());
 
         $responseHeaders = $response->getHeaders();
         $headerHandler = Shopware()->Container()->get('fin_search_unified.helper.header_handler');
