@@ -4,6 +4,7 @@ use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Tests\Helper\Utility;
+use PHPUnit\Framework\MockObject\MockObject;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductSearch;
@@ -217,6 +218,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             ->method('createProductQuery')
             ->willReturn($mockedQuery);
 
+        /** @var ProductNumberSearch|MockObject $originalService */
         $originalService = $this->getMockBuilder(SearchBundleDBAL\ProductNumberSearch::class)
             ->disableOriginalConstructor()
             ->setMethods(['search'])
