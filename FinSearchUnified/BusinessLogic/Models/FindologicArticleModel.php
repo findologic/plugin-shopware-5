@@ -871,7 +871,7 @@ class FindologicArticleModel
         return false;
     }
 
-    protected function buildCategoryTree($category)
+    protected function buildCategoryTree(Category $category)
     {
         if ($category->getId() === $this->baseCategory->getId()) {
             return $category->getName();
