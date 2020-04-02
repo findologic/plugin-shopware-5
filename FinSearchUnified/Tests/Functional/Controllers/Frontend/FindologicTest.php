@@ -24,7 +24,7 @@ class FindologicTest extends Enlight_Components_Test_Plugin_TestCase
         Utility::setConfig('ShopKey', $shopkey);
 
         $this->dispatch(sprintf('findologic?shopkey=%s', $shopkey));
-        $this->assertSame(200, $this->Response()->getStatusCode());
+        $this->assertSame(200, $this->Response()->getHttpResponseCode());
 
         $responseHeaders = $this->Response()->getHeaders();
         $headerHandler = Shopware()->Container()->get('fin_search_unified.helper.header_handler');
