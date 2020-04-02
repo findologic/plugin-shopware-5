@@ -873,7 +873,7 @@ class FindologicArticleModel
 
     protected function buildCategoryTree($category)
     {
-        if ($category === $this->baseCategory) {
+        if ($category->getId() === $this->baseCategory->getId()) {
             return $category->getName();
         }
 
