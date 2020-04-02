@@ -164,7 +164,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
         $this->assertEquals(get_class($findologicArticle), FindologicArticleModel::class);
     }
@@ -296,14 +296,14 @@ class FindologicArticleModelTest extends TestCase
         $baseCategory = new Category();
         $baseCategory->setId(100);
 
-        $article = $this->createTestProduct($articleConfiguration);
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
         $findologicArticle = $this->articleFactory->create(
-            $article,
+            $articleFromConfiguration,
             'ABCD0815',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -365,7 +365,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -402,7 +402,7 @@ class FindologicArticleModelTest extends TestCase
     public function testArticleWithSEOUrl(array $articleConfiguration, $expectedUrl)
     {
         $baseCategory = new Category();
-        $baseCategory->setId(5);
+        $baseCategory->setId(100);
 
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
@@ -419,7 +419,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -827,7 +827,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -895,7 +895,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -964,7 +964,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -1054,7 +1054,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
