@@ -1,5 +1,10 @@
 <?php
 
+namespace FinSearchUnified\Functional\Controllers\Frontend;
+
+use Enlight_Components_Test_Plugin_TestCase;
+use Enlight_Exception;
+use Exception;
 use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
@@ -11,8 +16,11 @@ use Shopware\Bundle\SearchBundle\ProductSearch;
 use Shopware\Bundle\SearchBundle\StoreFrontCriteriaFactory;
 use Shopware\Bundle\SearchBundleDBAL;
 use Shopware\Components\Api\Manager;
+use Shopware\Components\Theme\Util;
+use SimpleXMLElement;
+use Zend_Cache_Exception;
 
-class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Components_Test_Plugin_TestCase
+class SearchTest extends Enlight_Components_Test_Plugin_TestCase
 {
     public static function setUpBeforeClass()
     {
@@ -66,16 +74,25 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
     {
         parent::setUp();
 
-        $this->setConfig('ActivateFindologic', true);
-        $this->setConfig('ActivateFindologicForCategoryPages', false);
-        $this->setConfig('ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD');
+        Utility::setConfig('ActivateFindologic', true);
+        Utility::setConfig('ActivateFindologicForCategoryPages', false);
+        Utility::setConfig('ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD');
     }
 
     protected function tearDown()
     {
         parent::tearDown();
 
-        $this->reset();
+        Shopware()->Session()->offsetUnset('findologicDI');
+
+        Shopware()->Container()->reset('shopware_search.store_front_criteria_factory');
+        Shopware()->Container()->load('shopware_search.store_front_criteria_factory');
+
+        Shopware()->Container()->reset('shopware_search.product_search');
+        Shopware()->Container()->load('shopware_search.product_search');
+
+        Shopware()->Container()->reset('fin_search_unified.subscriber.frontend');
+        Shopware()->Container()->load('fin_search_unified.subscriber.frontend');
         // Explicitly reset this super global since it might influence unrelated tests.
         $_GET = [];
     }
@@ -137,6 +154,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
      * @param string $expectedLink
      *
      * @throws Exception
+     * @throws Enlight_Exception
      */
     public function testSmartDidYouMeanSuggestionsAreDisplayed(
         $didYouMeanQuery,
@@ -176,8 +194,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             $product->addAttribute('id', $i);
         }
 
-        Shopware()->Session()->findologicDI = false;
-        Shopware()->Session()->isSearchPage = true;
+        Shopware()->Session()->offsetSet('findologicDI', false);
 
         $criteria = new Criteria();
 
@@ -231,18 +248,18 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         Shopware()->Container()->set('shopware_search.product_search', $productSearch);
 
-        $response = $this->dispatch('/search?sSearch=blubbergurke');
+        $this->dispatch('/search?sSearch=blubbergurke');
 
         if (empty($expectedText)) {
             $this->assertNotContains(
                 '<p id="fl-smart-did-you-mean" class="search--headline">',
-                $response->getBody(),
+                $this->Response()->getBody(),
                 'Expected smart-did-you-mean tags to NOT be rendered'
             );
         } else {
             $this->assertContains(
                 '<p id="fl-smart-did-you-mean" class="search--headline">',
-                $response->getBody(),
+                $this->Response()->getBody(),
                 'Expected smart-did-you-mean tags to be visible'
             );
             // Get shop locale to check for text in relevant language
@@ -250,31 +267,16 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             $text = isset($expectedText[$locale]) ? $expectedText[$locale] : $expectedText['en_GB'];
             $this->assertContains(
                 $text,
-                $response->getBody(),
+                $this->Response()->getBody(),
                 'Incorrect text was displayed'
             );
             if ($expectedLink !== '') {
                 $this->assertContains(
                     $expectedLink,
-                    $response->getBody(),
+                    $this->Response()->getBody(),
                     'Incorrect target link was generated'
                 );
             }
         }
-    }
-
-    /**
-     * Allows to set a Shopware config
-     *
-     * @param string $name
-     * @param mixed $value
-     *
-     * @throws Zend_Cache_Exception
-     */
-    protected function setConfig($name, $value)
-    {
-        Shopware()->Container()->get('config_writer')->save($name, $value);
-        Shopware()->Container()->get('cache')->clean();
-        Shopware()->Container()->get('config')->setShop(Shopware()->Shop());
     }
 }

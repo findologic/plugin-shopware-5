@@ -1,6 +1,6 @@
 <?php
 
-namespace FinSearchUnified\Tests\Controllers\Frontend;
+namespace FinSearchUnified\Functional\Controllers\Frontend;
 
 use Enlight_Components_Test_Plugin_TestCase;
 use Exception;
@@ -12,6 +12,7 @@ class FindologicTest extends Enlight_Components_Test_Plugin_TestCase
     protected function tearDown()
     {
         parent::tearDown();
+        $this->reset();
         Utility::sResetArticles();
     }
 
@@ -20,12 +21,12 @@ class FindologicTest extends Enlight_Components_Test_Plugin_TestCase
         $this->createTestProduct(1, true);
 
         $shopkey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
-        $this->setConfig('ShopKey', $shopkey);
+        Utility::setConfig('ShopKey', $shopkey);
 
-        $response = $this->dispatch(sprintf('findologic?shopkey=%s', $shopkey));
-        $this->assertSame(200, $response->getHttpResponseCode());
+        $this->dispatch(sprintf('findologic?shopkey=%s', $shopkey));
+        $this->assertSame(200, $this->Response()->getStatusCode());
 
-        $responseHeaders = $response->getHeaders();
+        $responseHeaders = $this->Response()->getHeaders();
         $headerHandler = Shopware()->Container()->get('fin_search_unified.helper.header_handler');
 
         foreach ($responseHeaders as $responseHeader) {
@@ -80,17 +81,5 @@ class FindologicTest extends Enlight_Components_Test_Plugin_TestCase
         }
 
         return null;
-    }
-
-    /**
-     * Allows to set a Shopware config
-     *
-     * @param string $name
-     */
-    protected function setConfig($name, $value)
-    {
-        Shopware()->Container()->get('config_writer')->save($name, $value);
-        Shopware()->Container()->get('cache')->clean();
-        Shopware()->Container()->get('config')->setShop(Shopware()->Shop());
     }
 }
