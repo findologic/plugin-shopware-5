@@ -84,6 +84,8 @@ class SearchTest extends Enlight_Components_Test_Plugin_TestCase
         parent::tearDown();
 
         Shopware()->Session()->offsetUnset('findologicDI');
+        Shopware()->Session()->offsetUnset('isSearchPage');
+        Shopware()->Session()->offsetUnset('isCategoryPage');
 
         Shopware()->Container()->reset('shopware_search.store_front_criteria_factory');
         Shopware()->Container()->load('shopware_search.store_front_criteria_factory');
@@ -194,6 +196,8 @@ class SearchTest extends Enlight_Components_Test_Plugin_TestCase
             $product->addAttribute('id', $i);
         }
 
+        Shopware()->Session()->offsetSet('isSearchPage', true);
+        Shopware()->Session()->offsetSet('isCategoryPage', false);
         Shopware()->Session()->offsetSet('findologicDI', false);
 
         $criteria = new Criteria();
