@@ -1,18 +1,21 @@
 <?php
 
+use FinSearchUnified\Bundle\ControllerBundle\DependencyInjection\Compiler\RegisterControllerCompilerPass;
 use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Components\Api\Manager;
+use Shopware\Components\Plugin;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class FinSearchUnified_Tests_Controllers_Frontend_FindologicTest extends Enlight_Components_Test_Plugin_TestCase
 {
-    protected function setUp() {
+    public function setUp()
+    {
         parent::setUp();
 
         /** @var Plugin $plugin */
         $plugin = Shopware()->Container()->get('kernel')->getPlugins()['FinSearchUnified'];
         $compiler = new RegisterControllerCompilerPass([$plugin]);
-        $compiler->process(Shopware()->Container());
-
+        $compiler->process($container = new ContainerBuilder());
     }
 
     protected function tearDown()
