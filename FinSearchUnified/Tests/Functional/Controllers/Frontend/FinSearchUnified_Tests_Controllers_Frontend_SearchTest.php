@@ -1,26 +1,17 @@
 <?php
 
-namespace FinSearchUnified\Functional\Controllers\Frontend;
-
-use Enlight_Components_Test_Plugin_TestCase;
-use Enlight_Exception;
-use Exception;
 use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Tests\Helper\Utility;
-use PHPUnit\Framework\MockObject\MockObject;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductSearch;
 use Shopware\Bundle\SearchBundle\StoreFrontCriteriaFactory;
 use Shopware\Bundle\SearchBundleDBAL;
 use Shopware\Components\Api\Manager;
-use Shopware\Components\Theme\Util;
-use SimpleXMLElement;
-use Zend_Cache_Exception;
 
-class SearchTest extends Enlight_Components_Test_Plugin_TestCase
+class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Components_Test_Plugin_TestCase
 {
     public static function setUpBeforeClass()
     {

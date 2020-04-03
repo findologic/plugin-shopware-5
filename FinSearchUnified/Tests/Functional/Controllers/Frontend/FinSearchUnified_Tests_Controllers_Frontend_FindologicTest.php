@@ -1,13 +1,9 @@
 <?php
 
-namespace FinSearchUnified\Functional\Controllers\Frontend;
-
-use Enlight_Components_Test_Plugin_TestCase;
-use Exception;
 use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Components\Api\Manager;
 
-class FindologicTest extends Enlight_Components_Test_Plugin_TestCase
+class FinSearchUnified_Tests_Controllers_Frontend_FindologicTest extends Enlight_Components_Test_Plugin_TestCase
 {
     protected function tearDown()
     {
