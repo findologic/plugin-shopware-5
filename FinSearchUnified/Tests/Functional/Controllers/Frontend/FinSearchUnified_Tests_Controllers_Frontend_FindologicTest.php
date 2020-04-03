@@ -15,7 +15,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_FindologicTest extends Enlight
         /** @var Plugin $plugin */
         $plugin = Shopware()->Container()->get('kernel')->getPlugins()['FinSearchUnified'];
         $compiler = new RegisterControllerCompilerPass([$plugin]);
-        $compiler->process($container = new ContainerBuilder());
+        $compiler->process(new ContainerBuilder());
     }
 
     protected function tearDown()
