@@ -5,6 +5,16 @@ use Shopware\Components\Api\Manager;
 
 class FinSearchUnified_Tests_Controllers_Frontend_FindologicTest extends Enlight_Components_Test_Plugin_TestCase
 {
+    protected function setUp() {
+        parent::setUp();
+
+        /** @var Plugin $plugin */
+        $plugin = Shopware()->Container()->get('kernel')->getPlugins()['FinSearchUnified'];
+        $compiler = new RegisterControllerCompilerPass([$plugin]);
+        $compiler->process(Shopware()->Container());
+
+    }
+
     protected function tearDown()
     {
         parent::tearDown();
