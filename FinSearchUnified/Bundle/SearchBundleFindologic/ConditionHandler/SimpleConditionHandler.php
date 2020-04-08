@@ -3,14 +3,16 @@
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler;
 
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandlerInterface;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
 use Shopware\Bundle\SearchBundle\Condition\SimpleCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
+/**
+ * @deprecated
+ */
 class SimpleConditionHandler implements ConditionHandlerInterface
 {
-
     /**
      * Checks if the passed condition can be handled by this class.
      *
@@ -27,12 +29,12 @@ class SimpleConditionHandler implements ConditionHandlerInterface
      * Handles the passed condition object.
      *
      * @param ConditionInterface $condition
-     * @param QueryBuilder $query
+     * @param NewQueryBuilder $query
      * @param ShopContextInterface $context
      */
     public function generateCondition(
         ConditionInterface $condition,
-        QueryBuilder $query,
+        NewQueryBuilder $query,
         ShopContextInterface $context
     ) {
         $query->addFlag($condition->getName(), true);

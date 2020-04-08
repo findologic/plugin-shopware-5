@@ -2,7 +2,7 @@
 
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler;
 
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandlerInterface;
 use Shopware\Bundle\SearchBundle\Sorting\ReleaseDateSorting;
 use Shopware\Bundle\SearchBundle\SortingInterface;
@@ -26,10 +26,10 @@ class ReleaseDateSortingHandler implements SortingHandlerInterface
      * Handles the passed sorting object
      *
      * @param SortingInterface $sorting
-     * @param QueryBuilder $query
+     * @param NewQueryBuilder $query
      * @param ShopContextInterface $context
      */
-    public function generateSorting(SortingInterface $sorting, QueryBuilder $query, ShopContextInterface $context)
+    public function generateSorting(SortingInterface $sorting, NewQueryBuilder $query, ShopContextInterface $context)
     {
         /** @var ReleaseDateSorting $sorting */
         $query->addOrder('dateadded ' . $sorting->getDirection());

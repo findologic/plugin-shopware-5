@@ -3,8 +3,8 @@
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\SortingHandler;
 
 use Exception;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
-use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewSearchQueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\ProductNameSortingHandler;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Sorting\ProductNameSorting;
@@ -14,14 +14,14 @@ use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
 class ProductNameSortingHandlerTest extends TestCase
 {
     /**
-     * @var QueryBuilder
+     * @var NewQueryBuilder
      */
     private $querybuilder;
 
     /**
      * @var ProductContextInterface
      */
-    private $context = null;
+    private $context;
 
     /**
      * @throws Exception
@@ -30,8 +30,7 @@ class ProductNameSortingHandlerTest extends TestCase
     {
         parent::setUp();
 
-        $this->querybuilder = new SearchQueryBuilder(
-            Shopware()->Container()->get('http_client'),
+        $this->querybuilder = new NewSearchQueryBuilder(
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
             Shopware()->Config()
         );
@@ -65,9 +64,13 @@ class ProductNameSortingHandlerTest extends TestCase
         $parameters = $this->querybuilder->getParameters();
 
         $this->assertArrayHasKey('order', $parameters, 'Product Name Sorting was not applied');
-        $this->assertSame($expectedOrder, $parameters['order'], sprintf(
-            'Expected sorting to be %s',
-            $expectedOrder
-        ));
+        $this->assertSame(
+            $expectedOrder,
+            $parameters['order'],
+            sprintf(
+                'Expected sorting to be %s',
+                $expectedOrder
+            )
+        );
     }
 }

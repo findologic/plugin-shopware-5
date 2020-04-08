@@ -1,9 +1,13 @@
 <?php
 
+use FINDOLOGIC\Api\Responses\Response;
 use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilderFactory;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Tests\Helper\Utility;
+use PHPUnit\Framework\MockObject\MockObject;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductSearch;
@@ -203,20 +207,23 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         Shopware()->Container()->set('shopware_search.store_front_criteria_factory', $storeFrontCriteriaFactoryMock);
 
-        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
+        $mockedQuery = $this->getMockBuilder(NewQueryBuilder::class)
             ->disableOriginalConstructor()
             ->setMethods(['execute'])
             ->getMockForAbstractClass();
 
-        $mockedQuery->expects($this->once())->method('execute')->willReturn($xmlResponse->asXML());
+        $responseMock = $this->createMock(Response::class);
+        $responseMock->method('getRawResponse')->willReturn($xmlResponse->asXML());
+        $mockedQuery->expects($this->once())->method('execute')->willReturn($responseMock);
 
         // Mock querybuilder factory method to check that custom implementation does not get called
         // as original implementation will be called in this case
-        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+        $mockQuerybuilderFactory = $this->createMock(NewQueryBuilderFactory::class);
         $mockQuerybuilderFactory->expects($this->once())
             ->method('createProductQuery')
             ->willReturn($mockedQuery);
 
+        /** @var ProductNumberSearch|MockObject $originalService */
         $originalService = $this->getMockBuilder(SearchBundleDBAL\ProductNumberSearch::class)
             ->disableOriginalConstructor()
             ->setMethods(['search'])

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "96a0122ddbb75f31c2b8bf1b754320f2",
+    "content-hash": "f83565c26ab0ea16e15f0e31cbcecd4a",
     "packages": [
         {
             "name": "findologic/findologic-api",
@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/findologic/findologic-api.git",
-                "reference": "dd692b4"
+                "reference": "3e43ea6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/findologic/findologic-api/zipball/dd692b4",
-                "reference": "dd692b4",
+                "url": "https://api.github.com/repos/findologic/findologic-api/zipball/3e43ea6",
+                "reference": "3e43ea6",
                 "shasum": ""
             },
             "require": {
@@ -63,7 +63,7 @@
                 }
             ],
             "description": "Library for FINDOLOGIC API requests",
-            "time": "2020-03-30T13:10:35+00:00"
+            "time": "2020-04-07T12:26:34+00:00"
         },
         {
             "name": "findologic/libflexport",
@@ -578,5 +578,6 @@
     "platform": {
         "php": ">=5.6.4"
     },
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "1.1.0"
 }

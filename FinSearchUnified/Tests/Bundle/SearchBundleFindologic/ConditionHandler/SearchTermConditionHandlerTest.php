@@ -2,9 +2,11 @@
 
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\ConditionHandler;
 
+use Enlight_Controller_Request_RequestHttp;
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\SearchTermConditionHandler;
-use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewSearchQueryBuilder;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
@@ -12,14 +14,14 @@ use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
 class SearchTermConditionHandlerTest extends TestCase
 {
     /**
-     * @var SearchQueryBuilder
+     * @var NewQueryBuilder
      */
     private $querybuilder;
 
     /**
      * @var ProductContextInterface
      */
-    private $context = null;
+    private $context;
 
     /**
      * @throws Exception
@@ -27,8 +29,12 @@ class SearchTermConditionHandlerTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
-        $this->querybuilder = new SearchQueryBuilder(
-            Shopware()->Container()->get('http_client'),
+        $_SERVER['REMOTE_ADDR'] = '192.168.0.1';
+
+        $request = new Enlight_Controller_Request_RequestHttp();
+        Shopware()->Front()->setRequest($request);
+
+        $this->querybuilder = new NewSearchQueryBuilder(
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
             Shopware()->Config()
         );

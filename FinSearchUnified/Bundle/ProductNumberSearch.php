@@ -10,7 +10,8 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\ImageFacetHandle
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\RangeFacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\TextFacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilderFactoryInterface;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
@@ -19,7 +20,6 @@ use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\SearchBundle\FacetInterface;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
-use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use SimpleXMLElement;
 use Zend_Cache_Core;
@@ -33,7 +33,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     protected $originalService;
 
     /**
-     * @var QueryBuilderFactoryInterface
+     * @var NewQueryBuilderFactoryInterface
      */
     protected $queryBuilderFactory;
 
@@ -49,12 +49,12 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
     /**
      * @param ProductNumberSearchInterface $service
-     * @param QueryBuilderFactoryInterface $queryBuilderFactory
+     * @param NewQueryBuilderFactoryInterface $queryBuilderFactory
      * @param Zend_Cache_Core $cache
      */
     public function __construct(
         ProductNumberSearchInterface $service,
-        QueryBuilderFactoryInterface $queryBuilderFactory,
+        NewQueryBuilderFactoryInterface $queryBuilderFactory,
         Zend_Cache_Core $cache
     ) {
         $this->originalService = $service;
@@ -90,9 +90,9 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             return $this->originalService->search($criteria, $context);
         }
 
-        /** @var QueryBuilder $query */
+        /** @var NewQueryBuilder $query */
         $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
-        $response = $query->execute();
+        $response = $query->execute()->getRawResponse();
 
         if (empty($response)) {
             static::setFallbackFlag(1);
@@ -371,9 +371,11 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         $cacheId = sprintf('finsearch_%s', $url);
 
         if ($this->cache->load($cacheId) === false) {
-            /** @var QueryBuilder $query */
-            $query =
-                $this->queryBuilderFactory->createSearchNavigationQueryWithoutAdditionalFilters($criteria, $context);
+            /** @var NewQueryBuilder $query */
+            $query = $this->queryBuilderFactory->createSearchNavigationQueryWithoutAdditionalFilters(
+                $criteria,
+                $context
+            );
             $response = $query->execute();
             $this->cache->save($response, $cacheId, ['FINDOLOGIC'], 60 * 60 * 24);
         } else {

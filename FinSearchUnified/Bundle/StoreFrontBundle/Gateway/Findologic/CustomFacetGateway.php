@@ -2,16 +2,17 @@
 
 namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic;
 
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilderFactoryInterface;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\CustomFacetGatewayInterface;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
-use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use SimpleXMLElement;
+use Zend_Cache_Exception;
 
 class CustomFacetGateway implements CustomFacetGatewayInterface
 {
@@ -21,17 +22,17 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
     protected $hydrator;
 
     /**
-     * @var QueryBuilderFactoryInterface
+     * @var NewQueryBuilderFactoryInterface
      */
     protected $queryBuilderFactory;
 
     /**
      * @param CustomListingHydrator $hydrator
-     * @param QueryBuilderFactoryInterface $queryBuilderFactory
+     * @param NewQueryBuilderFactoryInterface $queryBuilderFactory
      */
     public function __construct(
         CustomListingHydrator $hydrator,
-        QueryBuilderFactoryInterface $queryBuilderFactory
+        NewQueryBuilderFactoryInterface $queryBuilderFactory
     ) {
         $this->hydrator = $hydrator;
         $this->queryBuilderFactory = $queryBuilderFactory;
@@ -42,16 +43,16 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
      * @param ShopContextInterface $context
      *
      * @return CustomFacet[]
+     * @throws Zend_Cache_Exception
      */
     public function getList(array $ids, ShopContextInterface $context)
     {
         $criteria = new Criteria();
         $criteria->offset(0)->limit(1);
 
-        /** @var QueryBuilder $query */
+        /** @var NewQueryBuilder $query */
         $query = $this->queryBuilderFactory->createSearchNavigationQueryWithoutAdditionalFilters($criteria, $context);
-
-        $response = $query->execute();
+        $response = $query->execute()->getRawResponse();
 
         if (!empty($response)) {
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
@@ -67,6 +68,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
      * @param ShopContextInterface $context
      *
      * @return array
+     * @throws Zend_Cache_Exception
      */
     public function getFacetsOfCategories(array $categoryIds, ShopContextInterface $context)
     {
@@ -77,7 +79,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         $criteria->addCondition(new CategoryCondition($categoryIds));
 
         $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
-        $response = $query->execute();
+        $response = $query->execute()->getRawResponse();
 
         if (!empty($response)) {
             $xmlResponse = StaticHelper::getXmlFromResponse($response);
@@ -104,6 +106,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
      * @param SimpleXMLElement $filters
      *
      * @return CustomFacet[]
+     * @throws Zend_Cache_Exception
      */
     private function hydrate(SimpleXMLElement $filters)
     {

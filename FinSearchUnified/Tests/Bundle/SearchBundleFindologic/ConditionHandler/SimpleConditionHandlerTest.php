@@ -2,8 +2,10 @@
 
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\ConditionHandler;
 
+use Enlight_Controller_Request_RequestHttp;
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\SimpleConditionHandler;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewSearchQueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\SimpleCondition;
@@ -12,14 +14,14 @@ use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
 class SimpleConditionHandlerTest extends TestCase
 {
     /**
-     * @var SearchQueryBuilder
+     * @var NewSearchQueryBuilder
      */
     private $querybuilder;
 
     /**
      * @var ProductContextInterface
      */
-    private $context = null;
+    private $context;
 
     /**
      * @throws Exception
@@ -27,8 +29,12 @@ class SimpleConditionHandlerTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
-        $this->querybuilder = new SearchQueryBuilder(
-            Shopware()->Container()->get('http_client'),
+        $_SERVER['REMOTE_ADDR'] = '192.168.0.1';
+
+        $request = new Enlight_Controller_Request_RequestHttp();
+        Shopware()->Front()->setRequest($request);
+
+        $this->querybuilder = new NewSearchQueryBuilder(
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
             Shopware()->Config()
         );
@@ -51,7 +57,8 @@ class SimpleConditionHandlerTest extends TestCase
 
         $params = $this->querybuilder->getParameters();
 
-        $this->assertArrayHasKey($name, $params, 'Expected parameter for simple condition not found');
-        $this->assertSame(true, $params[$name], 'Expected parameter to be true');
+        $this->assertArrayHasKey('attrib', $params, 'Expected attrib parameter not found');
+        $this->assertArrayHasKey($name, $params['attrib'], 'Expected attribute for simple condition not found');
+        $this->assertSame('1', current($params['attrib'][$name]), 'Expected parameter to be "1"');
     }
 }

@@ -25,6 +25,7 @@ class NavigationQueryBuilderTest extends TestCase
 
     protected function setUp()
     {
+        $this->markTestSkipped(sprintf('Obsolete test class: %s', get_class()));
         parent::setUp();
 
         $this->config = Shopware()->Container()->get('config');

@@ -25,4 +25,12 @@ class NewSearchQueryBuilder extends NewQueryBuilder
         $categoryPath = implode('_', $categories);
         $this->addParameter('cat', $categoryPath);
     }
+
+    protected function setDefaultParameters()
+    {
+        parent::setDefaultParameters();
+
+        $query = Shopware()->Front()->Request()->getParam('sSearch', '');
+        $this->searchNavigationRequest->setQuery($query);
+    }
 }
