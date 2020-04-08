@@ -40,6 +40,7 @@ class NewQueryBuilderFactoryTest extends TestCase
      */
     protected function setUp()
     {
+        $this->markTestSkipped(sprintf('Obsolete test class: %s', get_class()));
         parent::setUp();
 
         $request = new Enlight_Controller_Request_RequestHttp();

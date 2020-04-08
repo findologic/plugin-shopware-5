@@ -8,6 +8,9 @@ use Shopware\Bundle\SearchBundle\Condition\SimpleCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
+/**
+ * @deprecated
+ */
 class SimpleConditionHandler implements ConditionHandlerInterface
 {
     /**
