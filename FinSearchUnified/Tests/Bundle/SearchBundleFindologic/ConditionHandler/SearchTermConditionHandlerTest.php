@@ -29,10 +29,15 @@ class SearchTermConditionHandlerTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
+
         $_SERVER['REMOTE_ADDR'] = '192.168.0.1';
 
         $request = new Enlight_Controller_Request_RequestHttp();
         Shopware()->Front()->setRequest($request);
+
+        // By default, the search page is true
+        Shopware()->Session()->offsetSet('isSearchPage', true);
+        Shopware()->Config()->ShopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
 
         $this->querybuilder = new NewSearchQueryBuilder(
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),

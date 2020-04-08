@@ -42,6 +42,11 @@ class NewQueryBuilderFactoryTest extends TestCase
     {
         parent::setUp();
 
+        $_SERVER['REMOTE_ADDR'] = '192.168.0.1';
+
+        $request = new Enlight_Controller_Request_RequestHttp();
+        Shopware()->Front()->setRequest($request);
+
         // By default, the search page is true
         Shopware()->Session()->offsetSet('isSearchPage', true);
         Shopware()->Config()->ShopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
@@ -54,11 +59,6 @@ class NewQueryBuilderFactoryTest extends TestCase
         /** @var ContextServiceInterface $contextService */
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
         $this->context = $contextService->getShopContext();
-
-        $_SERVER['REMOTE_ADDR'] = '192.168.0.1';
-
-        $request = new Enlight_Controller_Request_RequestHttp();
-        Shopware()->Front()->setRequest($request);
     }
 
     protected function tearDown()
