@@ -31,8 +31,6 @@ class ProductNameSortingHandlerTest extends TestCase
     {
         parent::setUp();
 
-        $_SERVER['REMOTE_ADDR'] = '192.168.0.1';
-
         $request = new Enlight_Controller_Request_RequestHttp();
         Shopware()->Front()->setRequest($request);
 

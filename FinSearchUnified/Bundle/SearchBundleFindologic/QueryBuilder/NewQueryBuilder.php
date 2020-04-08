@@ -231,7 +231,7 @@ abstract class NewQueryBuilder
         } elseif ($_SERVER['REMOTE_ADDR']) {
             $ipAddress = $_SERVER['REMOTE_ADDR'];
         } else {
-            $ipAddress = 'UNKNOWN';
+            $ipAddress = '192.168.0.1';
         }
 
         $ipAddress = implode(',', array_unique(array_map('trim', explode(',', $ipAddress))));

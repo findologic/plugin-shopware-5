@@ -4,8 +4,8 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\SortingHandler;
 
 use Enlight_Controller_Request_RequestHttp;
 use Exception;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewSearchQueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\ReleaseDateSortingHandler;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Sorting\ReleaseDateSorting;
@@ -22,7 +22,7 @@ class ReleaseDateSortingHandlerTest extends TestCase
     /**
      * @var ProductContextInterface
      */
-    private $context = null;
+    private $context;
 
     /**
      * @throws Exception
@@ -31,8 +31,6 @@ class ReleaseDateSortingHandlerTest extends TestCase
     {
         parent::setUp();
 
-        $_SERVER['REMOTE_ADDR'] = '192.168.0.1';
-
         $request = new Enlight_Controller_Request_RequestHttp();
         Shopware()->Front()->setRequest($request);
 
@@ -40,7 +38,7 @@ class ReleaseDateSortingHandlerTest extends TestCase
         Shopware()->Session()->offsetSet('isSearchPage', true);
         Shopware()->Config()->ShopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
 
-        $this->querybuilder = new QueryBuilder\NewSearchQueryBuilder(
+        $this->querybuilder = new NewSearchQueryBuilder(
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
             Shopware()->Config()
         );

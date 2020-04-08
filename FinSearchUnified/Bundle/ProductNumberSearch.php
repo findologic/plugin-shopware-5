@@ -11,7 +11,6 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\RangeFacetHandle
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\TextFacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilderFactoryInterface;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
@@ -20,6 +19,7 @@ use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\SearchBundle\FacetInterface;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
+use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use SimpleXMLElement;
 use Zend_Cache_Core;
@@ -33,7 +33,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     protected $originalService;
 
     /**
-     * @var NewQueryBuilderFactoryInterface
+     * @var QueryBuilderFactoryInterface
      */
     protected $queryBuilderFactory;
 
@@ -49,12 +49,12 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
     /**
      * @param ProductNumberSearchInterface $service
-     * @param NewQueryBuilderFactoryInterface $queryBuilderFactory
+     * @param QueryBuilderFactoryInterface $queryBuilderFactory
      * @param Zend_Cache_Core $cache
      */
     public function __construct(
         ProductNumberSearchInterface $service,
-        NewQueryBuilderFactoryInterface $queryBuilderFactory,
+        QueryBuilderFactoryInterface $queryBuilderFactory,
         Zend_Cache_Core $cache
     ) {
         $this->originalService = $service;

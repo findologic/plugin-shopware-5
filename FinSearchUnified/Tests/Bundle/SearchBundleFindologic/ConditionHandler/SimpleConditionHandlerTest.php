@@ -6,7 +6,6 @@ use Enlight_Controller_Request_RequestHttp;
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\SimpleConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewSearchQueryBuilder;
-use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\SimpleCondition;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
@@ -29,8 +28,6 @@ class SimpleConditionHandlerTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
-
-        $_SERVER['REMOTE_ADDR'] = '192.168.0.1';
 
         $request = new Enlight_Controller_Request_RequestHttp();
         Shopware()->Front()->setRequest($request);

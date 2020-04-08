@@ -2,16 +2,11 @@
 
 namespace FinSearchUnified\Tests;
 
-use Exception;
 use FINDOLOGIC\Export\Helpers\EmptyValueNotAllowedException;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
-use FinSearchUnified\ShopwareProcess;
 use FinSearchUnified\Tests\Helper\Utility;
-use Shopware\Components\Api\Manager;
-use Shopware\Models\Article\Article;
-use SimpleXMLElement;
 
 class PluginTest extends TestCase
 {

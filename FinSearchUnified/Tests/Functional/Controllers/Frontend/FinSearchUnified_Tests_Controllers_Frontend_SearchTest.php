@@ -2,10 +2,8 @@
 
 use FINDOLOGIC\Api\Responses\Response;
 use FinSearchUnified\Bundle\ProductNumberSearch;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilderFactory;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
 use FinSearchUnified\Tests\Helper\Utility;
 use PHPUnit\Framework\MockObject\MockObject;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;

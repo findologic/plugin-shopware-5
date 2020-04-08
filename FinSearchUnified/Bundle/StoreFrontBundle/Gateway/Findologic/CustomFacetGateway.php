@@ -3,13 +3,13 @@
 namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic;
 
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilderFactoryInterface;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\CustomFacetGatewayInterface;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
+use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use SimpleXMLElement;
 use Zend_Cache_Exception;
@@ -22,17 +22,17 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
     protected $hydrator;
 
     /**
-     * @var NewQueryBuilderFactoryInterface
+     * @var QueryBuilderFactoryInterface
      */
     protected $queryBuilderFactory;
 
     /**
      * @param CustomListingHydrator $hydrator
-     * @param NewQueryBuilderFactoryInterface $queryBuilderFactory
+     * @param QueryBuilderFactoryInterface $queryBuilderFactory
      */
     public function __construct(
         CustomListingHydrator $hydrator,
-        NewQueryBuilderFactoryInterface $queryBuilderFactory
+        QueryBuilderFactoryInterface $queryBuilderFactory
     ) {
         $this->hydrator = $hydrator;
         $this->queryBuilderFactory = $queryBuilderFactory;
@@ -52,10 +52,11 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
 
         /** @var NewQueryBuilder $query */
         $query = $this->queryBuilderFactory->createSearchNavigationQueryWithoutAdditionalFilters($criteria, $context);
-        $response = $query->execute()->getRawResponse();
+        $response = $query->execute();
+        $rawResponse = $response->getRawResponse();
 
-        if (!empty($response)) {
-            $xmlResponse = StaticHelper::getXmlFromResponse($response);
+        if (!empty($rawResponse)) {
+            $xmlResponse = StaticHelper::getXmlFromResponse($rawResponse);
 
             return $this->hydrate($xmlResponse->filters->filter);
         }
@@ -79,10 +80,11 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         $criteria->addCondition(new CategoryCondition($categoryIds));
 
         $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
-        $response = $query->execute()->getRawResponse();
+        $response = $query->execute();
+        $rawResponse = $response->getRawResponse();
 
-        if (!empty($response)) {
-            $xmlResponse = StaticHelper::getXmlFromResponse($response);
+        if (!empty($rawResponse)) {
+            $xmlResponse = StaticHelper::getXmlFromResponse($rawResponse);
             $categoryFacets = [];
             $categoryFacets[$categoryId] = $this->hydrate($xmlResponse->filters->filter);
 

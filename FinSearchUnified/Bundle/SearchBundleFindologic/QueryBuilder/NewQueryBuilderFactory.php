@@ -18,10 +18,11 @@ use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\SortingInterface;
+use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use Shopware_Components_Config;
 
-class NewQueryBuilderFactory implements NewQueryBuilderFactoryInterface
+class NewQueryBuilderFactory implements QueryBuilderFactoryInterface
 {
     /**
      * @var InstallerService
