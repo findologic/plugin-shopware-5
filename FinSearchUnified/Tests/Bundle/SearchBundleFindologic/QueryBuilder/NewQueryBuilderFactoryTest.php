@@ -1,12 +1,13 @@
 <?php
 
-namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic;
+namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\QueryBuilder;
 
+use Enlight_Controller_Request_RequestHttp;
 use Exception;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
-use FinSearchUnified\Bundle\SearchBundleFindologic\NavigationQueryBuilder;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
-use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewNavigationQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilderFactory;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewSearchQueryBuilder;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
@@ -22,10 +23,10 @@ use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
-class QueryBuilderFactoryTest extends TestCase
+class NewQueryBuilderFactoryTest extends TestCase
 {
     /**
-     * @var QueryBuilderFactory
+     * @var NewQueryBuilderFactory
      */
     private $factory;
 
@@ -41,13 +42,16 @@ class QueryBuilderFactoryTest extends TestCase
     {
         parent::setUp();
 
+        $request = new Enlight_Controller_Request_RequestHttp();
+        Shopware()->Front()->setRequest($request);
+
         // By default, the search page is true
         Shopware()->Session()->offsetSet('isSearchPage', true);
+        Shopware()->Config()->ShopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
 
-        $this->factory = new QueryBuilderFactory(
-            Shopware()->Container()->get('http_client'),
+        $this->factory = new NewQueryBuilderFactory(
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
-            Shopware()->Container()->get('config')
+            Shopware()->Config()
         );
 
         /** @var ContextServiceInterface $contextService */
@@ -79,13 +83,14 @@ class QueryBuilderFactoryTest extends TestCase
 
         $this->assertArrayHasKey('usergrouphash', $params, 'Usergroup was expected to be present in the parameters');
         $this->assertSame(
-            $hashed,
+            [$hashed],
             $params['usergrouphash'],
             'Expected usergroup "EK" to hashed correctly in group parameter'
         );
 
         $this->assertArrayNotHasKey('attrib', $params, 'No attributes were expected to be present in the parameters');
-        $this->assertArrayNotHasKey('query', $params, 'No search query was expected to be present in the parameters');
+        $this->assertArrayHasKey('query', $params, 'Search query was expected to be present in the parameters');
+        $this->assertEmpty($params['query']);
     }
 
     /**
@@ -109,7 +114,7 @@ class QueryBuilderFactoryTest extends TestCase
         // CategoryCondition
         $this->assertArrayHasKey('cat', $attrib, 'Category was expected to be present in the attribute parameters');
         $this->assertEquals(
-            ['Genusswelten', 'Genusswelten_Tees und Zubehör_Tees'],
+            ['' => 'Genusswelten_Genusswelten_Tees und Zubehör_Tees'],
             $attrib['cat'],
             'Expected categories to contain the name of the provided category IDs'
         );
@@ -124,7 +129,7 @@ class QueryBuilderFactoryTest extends TestCase
         // ProductAttributeCondition
         $this->assertArrayHasKey('vendor', $attrib, 'Expected "vendor" to be available in the attribute parameters');
         $this->assertEquals(
-            ['Findologic Rockers'],
+            ['' => 'Findologic Rockers'],
             $attrib['vendor'],
             'Expected "vendor" to be an array containing "Findologic Rockers"'
         );
@@ -146,9 +151,11 @@ class QueryBuilderFactoryTest extends TestCase
 
         $query = $this->factory->createQuery($criteria, $this->context);
         $params = $query->getParameters();
+        $this->assertArrayHasKey('attrib', $params, 'Attributes were expected to be present in the parameters');
+        $attrib = $params['attrib'];
 
-        $this->assertArrayHasKey('ye', $params);
-        $this->assertEquals(true, $params['ye']);
+        $this->assertArrayHasKey('ye', $attrib);
+        $this->assertEquals(['' => '1'], $attrib['ye']);
     }
 
     /**
@@ -163,7 +170,7 @@ class QueryBuilderFactoryTest extends TestCase
 
         $this->assertArrayNotHasKey('order', $params, 'Sorting was not expected to be present in the parameters');
         $this->assertArrayNotHasKey('attrib', $params, 'No attributes were expected to be present in the parameters');
-        $this->assertArrayNotHasKey('query', $params, 'No search query was expected to be present in the parameters');
+        $this->assertArrayHasKey('query', $params, 'Search query was expected to be present in the parameters');
     }
 
     /**
@@ -224,7 +231,7 @@ class QueryBuilderFactoryTest extends TestCase
 
         $this->assertArrayNotHasKey('order', $params, 'Sorting was not expected to be present in the parameters');
         $this->assertArrayNotHasKey('attrib', $params, 'No attributes were expected to be present in the parameters');
-        $this->assertArrayNotHasKey('query', $params, 'No search query was expected to be present in the parameters ');
+        $this->assertArrayHasKey('query', $params, 'Search query was expected to be present in the parameters ');
     }
 
     /**
@@ -351,8 +358,8 @@ class QueryBuilderFactoryTest extends TestCase
     public function isSearchPageDataProvider()
     {
         return [
-            'Search request' => [true, SearchQueryBuilder::class],
-            'Navigation request' => [false, NavigationQueryBuilder::class],
+            'Search request' => [true, NewSearchQueryBuilder::class],
+            'Navigation request' => [false, NewNavigationQueryBuilder::class],
         ];
     }
 
@@ -367,7 +374,7 @@ class QueryBuilderFactoryTest extends TestCase
             'Category condition' => [
                 'condition' => new CategoryCondition([5, 12]),
                 'key' => 'selected',
-                'expected' => ['cat' => ['Genusswelten', 'Genusswelten_Tees und Zubehör_Tees']]
+                'expected' => ['cat' => ['Genusswelten_Genusswelten_Tees und Zubehör_Tees']]
             ]
 
         ];

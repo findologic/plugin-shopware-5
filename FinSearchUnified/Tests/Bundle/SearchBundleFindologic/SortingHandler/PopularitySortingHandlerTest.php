@@ -2,9 +2,10 @@
 
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\SortingHandler;
 
+use Enlight_Controller_Request_RequestHttp;
 use Exception;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
-use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewSearchQueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\PopularitySortingHandler;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Sorting\PopularitySorting;
@@ -14,7 +15,7 @@ use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
 class PopularitySortingHandlerTest extends TestCase
 {
     /**
-     * @var QueryBuilder
+     * @var NewQueryBuilder
      */
     private $querybuilder;
 
@@ -30,8 +31,14 @@ class PopularitySortingHandlerTest extends TestCase
     {
         parent::setUp();
 
-        $this->querybuilder = new SearchQueryBuilder(
-            Shopware()->Container()->get('http_client'),
+        $request = new Enlight_Controller_Request_RequestHttp();
+        Shopware()->Front()->setRequest($request);
+
+        // By default, the search page is true
+        Shopware()->Session()->offsetSet('isSearchPage', true);
+        Shopware()->Config()->ShopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
+
+        $this->querybuilder = new NewSearchQueryBuilder(
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
             Shopware()->Config()
         );
@@ -65,9 +72,13 @@ class PopularitySortingHandlerTest extends TestCase
         $parameters = $this->querybuilder->getParameters();
 
         $this->assertArrayHasKey('order', $parameters, 'Popularity Sorting was not applied');
-        $this->assertSame($expectedOrder, $parameters['order'], sprintf(
-            'Expected sorting to be %s',
-            $expectedOrder
-        ));
+        $this->assertSame(
+            $expectedOrder,
+            $parameters['order'],
+            sprintf(
+                'Expected sorting to be %s',
+                $expectedOrder
+            )
+        );
     }
 }

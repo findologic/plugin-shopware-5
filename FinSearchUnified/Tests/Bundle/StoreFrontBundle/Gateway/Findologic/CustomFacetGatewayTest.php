@@ -5,12 +5,14 @@ namespace FinSearchUnified\Tests\Bundle\StoreFrontBundle\Gateway\Findologic;
 use Enlight_Controller_Front;
 use Enlight_Controller_Request_RequestHttp;
 use Exception;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
+use FINDOLOGIC\Api\Responses\Response;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilderFactory;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGateway;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use FinSearchUnified\Tests\TestCase;
+use ReflectionException;
 use ReflectionObject;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
@@ -79,15 +81,18 @@ class CustomFacetGatewayTest extends TestCase
         $mockHydrator->expects($this->never())
             ->method('hydrateFacet');
 
-        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
+        $mockedQuery = $this->getMockBuilder(NewQueryBuilder::class)
             ->disableOriginalConstructor()
             ->setMethods(['execute'])
             ->getMockForAbstractClass();
-        $mockedQuery->expects($this->once())->method('execute')->willReturn(null);
+
+        $responseMock = $this->createMock(Response::class);
+        $responseMock->method('getRawResponse')->willReturn(null);
+        $mockedQuery->expects($this->once())->method('execute')->willReturn($responseMock);
 
         // Mock querybuilder factory method to check that custom implementation does not get called
         // as original implementation will be called in this case
-        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+        $mockQuerybuilderFactory = $this->createMock(NewQueryBuilderFactory::class);
         $mockQuerybuilderFactory->expects($this->once())
             ->method('createSearchNavigationQueryWithoutAdditionalFilters')
             ->willReturn($mockedQuery);
@@ -208,15 +213,18 @@ class CustomFacetGatewayTest extends TestCase
 
         $originalHydrator = Shopware()->Container()->get('fin_search_unified.custom_listing_hydrator');
 
-        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
+        $mockedQuery = $this->getMockBuilder(NewQueryBuilder::class)
             ->disableOriginalConstructor()
             ->setMethods(['execute'])
             ->getMockForAbstractClass();
-        $mockedQuery->expects($this->once())->method('execute')->willReturn($xmlResponse->asXML());
+
+        $responseMock = $this->createMock(Response::class);
+        $responseMock->method('getRawResponse')->willReturn($xmlResponse->asXML());
+        $mockedQuery->expects($this->once())->method('execute')->willReturn($responseMock);
 
         // Mock querybuilder factory method to check that custom implementation does not get called
         // as original implementation will be called in this case
-        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+        $mockQuerybuilderFactory = $this->createMock(NewQueryBuilderFactory::class);
         $mockQuerybuilderFactory->expects($this->once())
             ->method('createSearchNavigationQueryWithoutAdditionalFilters')
             ->willReturn($mockedQuery);
@@ -352,6 +360,8 @@ class CustomFacetGatewayTest extends TestCase
      * @param $defaultInvoke
      * @param $defaultCategoryFacet
      * @param $defaultVendorFacet
+     *
+     * @throws ReflectionException
      */
     public function testDefaultHydrateFacets(
         array $filterData,
@@ -386,7 +396,7 @@ class CustomFacetGatewayTest extends TestCase
             $vendorFacet
         );
 
-        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+        $mockQuerybuilderFactory = $this->createMock(NewQueryBuilderFactory::class);
 
         $facetGateway = new CustomFacetGateway(
             $mockHydrator,

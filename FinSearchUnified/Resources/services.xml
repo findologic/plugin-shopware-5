@@ -142,9 +142,8 @@
 
         <service
             id="fin_search_unified.query_builder_factory"
-            class="FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory"
+            class="FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilderFactory"
         >
-            <argument type="service" id="http_client" />
             <argument type="service" id="shopware_plugininstaller.plugin_manager" />
             <argument type="service" id="config" />
         </service>

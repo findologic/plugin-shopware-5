@@ -1,6 +1,6 @@
 <?php
 
-namespace FinSearchUnified\Bundle\SearchBundleFindologic;
+namespace FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\CategoryConditionHandler;
@@ -8,59 +8,46 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\PriceConditi
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\ProductAttributeConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\SearchTermConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\SimpleConditionHandler;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\PopularitySortingHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\PriceSortingHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\ProductNameSortingHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\ReleaseDateSortingHandler;
+use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandlerInterface;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
-use Shopware\Components\HttpClient\HttpClientInterface;
 use Shopware_Components_Config;
 
-class QueryBuilderFactory implements QueryBuilderFactoryInterface
+class NewQueryBuilderFactory implements QueryBuilderFactoryInterface
 {
-    /**
-     * @var HttpClientInterface
-     */
-    protected $httpClient;
-
     /**
      * @var InstallerService
      */
-    protected $installerService;
+    private $installerService;
 
     /**
      * @var Shopware_Components_Config
      */
-    protected $config;
+    private $config;
 
     /**
-     * @var array
+     * @var SortingHandlerInterface[]
      */
     private $sortingHandlers;
 
     /**
-     * @var array
+     * @var ConditionHandlerInterface[]
      */
     private $conditionHandlers;
 
-    /**
-     * QueryBuilderFactory constructor.
-     *
-     * @param HttpClientInterface $httpClient
-     * @param InstallerService $installerService
-     * @param Shopware_Components_Config $config
-     */
     public function __construct(
-        HttpClientInterface $httpClient,
         InstallerService $installerService,
         Shopware_Components_Config $config
     ) {
-        $this->httpClient = $httpClient;
         $this->installerService = $installerService;
         $this->config = $config;
 
@@ -117,10 +104,10 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
 
     /**
      * @param Criteria $criteria
-     * @param QueryBuilder $query
+     * @param NewQueryBuilder $query
      * @param ShopContextInterface $context
      */
-    private function addConditions(Criteria $criteria, QueryBuilder $query, ShopContextInterface $context)
+    private function addConditions(Criteria $criteria, NewQueryBuilder $query, ShopContextInterface $context)
     {
         foreach ($criteria->getConditions() as $condition) {
             $handler = $this->getConditionHandler($condition);
@@ -148,10 +135,10 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
 
     /**
      * @param Criteria $criteria
-     * @param QueryBuilder $query
+     * @param NewQueryBuilder $query
      * @param ShopContextInterface $context
      */
-    private function addSorting(Criteria $criteria, QueryBuilder $query, ShopContextInterface $context)
+    private function addSorting(Criteria $criteria, NewQueryBuilder $query, ShopContextInterface $context)
     {
         foreach ($criteria->getSortings() as $sorting) {
             $handler = $this->getSortingHandler($sorting);
@@ -169,7 +156,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
      * @param Criteria $criteria
      * @param ShopContextInterface $context
      *
-     * @return QueryBuilder
+     * @return NewQueryBuilder
      * @throws Exception
      */
     public function createQueryWithSorting(Criteria $criteria, ShopContextInterface $context)
@@ -187,7 +174,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
      * @param Criteria $criteria
      * @param ShopContextInterface $context
      *
-     * @return QueryBuilder
+     * @return NewQueryBuilder
      * @throws Exception
      */
     public function createProductQuery(Criteria $criteria, ShopContextInterface $context)
@@ -214,7 +201,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
      * @param Criteria $criteria
      * @param ShopContextInterface $context
      *
-     * @return QueryBuilder
+     * @return NewQueryBuilder
      * @throws Exception
      */
     public function createQuery(Criteria $criteria, ShopContextInterface $context)
@@ -227,22 +214,19 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     }
 
     /**
-     * @return QueryBuilder
-     * @throws Exception
+     * @return NewQueryBuilder
      */
     public function createQueryBuilder()
     {
         $isSearchPage = Shopware()->Session()->offsetGet('isSearchPage');
 
         if ($isSearchPage) {
-            $querybuilder = new SearchQueryBuilder(
-                $this->httpClient,
+            $querybuilder = new NewSearchQueryBuilder(
                 $this->installerService,
                 $this->config
             );
         } else {
-            $querybuilder = new NavigationQueryBuilder(
-                $this->httpClient,
+            $querybuilder = new NewNavigationQueryBuilder(
                 $this->installerService,
                 $this->config
             );
@@ -255,7 +239,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
      * @param Criteria $criteria
      * @param ShopContextInterface $context
      *
-     * @return QueryBuilder
+     * @return NewQueryBuilder
      * @throws Exception
      */
     public function createSearchNavigationQueryWithoutAdditionalFilters(
@@ -265,10 +249,10 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
         $query = $this->createQueryBuilder();
         $condition = null;
 
-        if ($query instanceof SearchQueryBuilder) {
+        if ($query instanceof NewSearchQueryBuilder) {
             $condition = $criteria->getCondition('search');
         }
-        if ($query instanceof NavigationQueryBuilder) {
+        if ($query instanceof NewNavigationQueryBuilder) {
             $condition = $criteria->getCondition('category');
         }
 

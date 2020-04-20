@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Bundle\SearchBundleFindologic;
 
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
 use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
@@ -20,12 +21,12 @@ interface SortingHandlerInterface
      * Handles the passed sorting object.
      *
      * @param SortingInterface $sorting
-     * @param QueryBuilder $query
+     * @param NewQueryBuilder $query
      * @param ShopContextInterface $context
      */
     public function generateSorting(
         SortingInterface $sorting,
-        QueryBuilder $query,
+        NewQueryBuilder $query,
         ShopContextInterface $context
     );
 }

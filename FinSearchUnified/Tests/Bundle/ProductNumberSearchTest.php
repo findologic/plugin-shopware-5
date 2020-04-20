@@ -9,9 +9,10 @@ use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use Enlight_Plugin_Namespace_Loader as Plugins;
 use Enlight_View_Default as View;
 use Exception;
+use FINDOLOGIC\Api\Responses\Response;
 use FinSearchUnified\Bundle\ProductNumberSearch;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilderFactory;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Components\ConfigLoader;
 use FinSearchUnified\Helper\StaticHelper;
@@ -25,13 +26,13 @@ use Shopware\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\FacetResult\MediaListFacetResult;
-use Shopware\Bundle\SearchBundleDBAL\ProductNumberSearch as OriginalProductNumberSearch;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeItem;
 use Shopware\Bundle\SearchBundle\FacetResult\ValueListFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\ValueListItem;
 use Shopware\Bundle\SearchBundle\FacetResultInterface;
+use Shopware\Bundle\SearchBundleDBAL\ProductNumberSearch as OriginalProductNumberSearch;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use Shopware_Components_Config as Config;
@@ -134,16 +135,18 @@ class ProductNumberSearchTest extends TestCase
         Shopware()->Session()->findologicDI = $isUseShopSearch;
         Shopware()->Session()->isSearchPage = !$isUseShopSearch;
 
-        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
+        $mockedQuery = $this->getMockBuilder(NewQueryBuilder::class)
             ->disableOriginalConstructor()
             ->setMethods(['execute'])
             ->getMockForAbstractClass();
 
-        $mockedQuery->expects($this->exactly($invokationCount))->method('execute')->willReturn($response);
+        $responseMock = $this->createMock(Response::class);
+        $responseMock->method('getRawResponse')->willReturn($response);
+        $mockedQuery->expects($this->exactly($invokationCount))->method('execute')->willReturn($responseMock);
 
         // Mock querybuilder factory method to check that custom implementation does not get called
         // as original implementation will be called in this case
-        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+        $mockQuerybuilderFactory = $this->createMock(NewQueryBuilderFactory::class);
         $mockQuerybuilderFactory->expects($this->exactly($invokationCount))
             ->method('createProductQuery')
             ->willReturn($mockedQuery);
@@ -166,7 +169,6 @@ class ProductNumberSearchTest extends TestCase
         $context = Shopware()->Container()->get('shopware_storefront.context_service')->getContext();
         $productNumberSearch->search($criteria, $context);
     }
-
 
     /**
      * @dataProvider allFiltersProvider
@@ -191,16 +193,18 @@ class ProductNumberSearchTest extends TestCase
         Shopware()->Session()->findologicDI = false;
         Shopware()->Session()->isSearchPage = true;
 
-        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
+        $mockedQuery = $this->getMockBuilder(NewQueryBuilder::class)
             ->disableOriginalConstructor()
             ->setMethods(['execute'])
             ->getMockForAbstractClass();
 
-        $mockedQuery->expects($this->once())->method('execute')->willReturn($xml);
+        $responseMock = $this->createMock(Response::class);
+        $responseMock->method('getRawResponse')->willReturn($xml);
+        $mockedQuery->expects($this->once())->method('execute')->willReturn($responseMock);
 
         // Mock querybuilder factory method to check that custom implementation does not get called
         // as original implementation will be called in this case
-        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+        $mockQuerybuilderFactory = $this->createMock(NewQueryBuilderFactory::class);
         $mockQuerybuilderFactory->expects($this->once())
             ->method('createProductQuery')
             ->willReturn($mockedQuery);
@@ -738,12 +742,12 @@ class ProductNumberSearchTest extends TestCase
         $xmlResponse = Utility::getDemoXML();
         $response = $xmlResponse->asXML();
 
-        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
+        $mockedQuery = $this->getMockBuilder(NewQueryBuilder::class)
             ->disableOriginalConstructor()
             ->setMethods(['execute'])
             ->getMockForAbstractClass();
 
-        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+        $mockQuerybuilderFactory = $this->createMock(NewQueryBuilderFactory::class);
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
 
         if (StaticHelper::isProductAndFilterLiveReloadingEnabled()) {
@@ -811,7 +815,7 @@ class ProductNumberSearchTest extends TestCase
         $request->setControllerName('search');
         Shopware()->Front()->setRequest($request);
 
-        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+        $mockQuerybuilderFactory = $this->createMock(NewQueryBuilderFactory::class);
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
 
         $productNumberSearch = new ProductNumberSearch(
@@ -873,7 +877,6 @@ class ProductNumberSearchTest extends TestCase
             $criteria->setFetchCount(true);
         }
 
-
         $configLoaderMock = $this->getMockBuilder(ConfigLoader::class)
             ->disableOriginalConstructor()
             ->setMethods([])
@@ -892,7 +895,7 @@ class ProductNumberSearchTest extends TestCase
         $request->setRequestUri('/findologic');
         Shopware()->Front()->setRequest($request);
 
-        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
+        $mockQuerybuilderFactory = $this->createMock(NewQueryBuilderFactory::class);
 
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
 

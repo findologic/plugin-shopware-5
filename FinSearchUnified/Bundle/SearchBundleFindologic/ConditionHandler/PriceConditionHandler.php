@@ -4,7 +4,7 @@ namespace FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler;
 
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandlerInterface;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
@@ -27,13 +27,16 @@ class PriceConditionHandler implements ConditionHandlerInterface
      * Handles the passed condition object.
      *
      * @param ConditionInterface $condition
-     * @param QueryBuilder $query
+     * @param NewQueryBuilder $query
      * @param ShopContextInterface $context
      *
      * @throws Exception
      */
-    public function generateCondition(ConditionInterface $condition, QueryBuilder $query, ShopContextInterface $context)
-    {
+    public function generateCondition(
+        ConditionInterface $condition,
+        NewQueryBuilder $query,
+        ShopContextInterface $context
+    ) {
         /** @var PriceCondition $condition */
         $minPrice = $condition->getMinPrice();
         $maxPrice = $condition->getMaxPrice() ?: PHP_INT_MAX;

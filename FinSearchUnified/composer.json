@@ -22,7 +22,7 @@
   "require": {
     "php": ">=5.6.4",
     "findologic/libflexport": "~1.2",
-    "findologic/findologic-api": "dev-backward-compatible"
+    "findologic/findologic-api": "dev-backward-compatible#3e43ea6"
   },
   "require-dev": {
     "squizlabs/php_codesniffer": "3.3.2"
