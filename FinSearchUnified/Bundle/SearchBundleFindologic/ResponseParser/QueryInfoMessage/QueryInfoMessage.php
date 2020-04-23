@@ -18,7 +18,7 @@ abstract class QueryInfoMessage
     /** @var string */
     protected $query;
 
-    public const
+    const
         TYPE_QUERY = 'query', // Search results for "<query>" (<count> hits)
         TYPE_CATEGORY = 'cat', // Search results for <cat-filter-name> <cat-name> (<count> hits)
         TYPE_VENDOR = 'vendor', // Search results for <vendor-filter-name> <vendor-name> (<count> hits)
@@ -37,7 +37,7 @@ abstract class QueryInfoMessage
         $query = null,
         $filterName = null,
         $filterValue = null
-    ): self {
+    ) {
         switch ($type) {
             case self::TYPE_QUERY:
                 static::assertQueryIsEmpty($query);
@@ -90,7 +90,7 @@ abstract class QueryInfoMessage
     /**
      * @param string $filterName
      */
-    public function setFilterName(string $filterName)
+    public function setFilterName($filterName)
     {
         $this->filterName = $filterName;
     }
@@ -106,7 +106,7 @@ abstract class QueryInfoMessage
     /**
      * @param string $filterValue
      */
-    public function setFilterValue(string $filterValue)
+    public function setFilterValue($filterValue)
     {
         $this->filterValue = $filterValue;
     }
@@ -122,7 +122,7 @@ abstract class QueryInfoMessage
     /**
      * @param string $type
      */
-    public function setType(string $type)
+    public function setType($type)
     {
         $this->type = $type;
     }

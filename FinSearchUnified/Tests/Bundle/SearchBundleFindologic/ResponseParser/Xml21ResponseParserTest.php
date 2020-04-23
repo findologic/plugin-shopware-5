@@ -1,10 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\ResponseParser;
 
 use Enlight_Controller_Request_RequestHttp;
+use Enlight_Exception;
 use Exception;
 use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Promotion;
@@ -148,7 +147,7 @@ class Xml21ResponseParserTest extends TestCase
         $this->assertSame('https://promotion.com/promotion.png', $promotion->getImage());
     }
 
-    public function queryInfoMessageProvider(): array
+    public function queryInfoMessageProvider()
     {
         return [
             'Alternative query is used' => [
@@ -207,13 +206,15 @@ class Xml21ResponseParserTest extends TestCase
      * @param array $params
      * @param string $expectedInstance
      * @param array $expectedVars
+     *
+     * @throws Enlight_Exception
      */
     public function testQueryInfoMessageIsReturnedAsExpected(
         Xml21Response $response,
         array $params,
-        string $expectedInstance,
+        $expectedInstance,
         array $expectedVars
-    ): void {
+    ) {
         $request = new Enlight_Controller_Request_RequestHttp();
         $request->setParams($params);
         Shopware()->Front()->setRequest($request);

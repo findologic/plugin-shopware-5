@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\QueryInfoMessage;
 
 class CategoryInfoMessage extends QueryInfoMessage
@@ -9,7 +7,7 @@ class CategoryInfoMessage extends QueryInfoMessage
     /** @var string */
     protected $type = QueryInfoMessage::TYPE_CATEGORY;
 
-    public function __construct(string $filterName, string $filterValue)
+    public function __construct($filterName, $filterValue)
     {
         $this->filterName = $filterName;
         $this->filterValue = $filterValue;

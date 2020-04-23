@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser;
 
 class SmartDidYouMean
@@ -22,20 +20,25 @@ class SmartDidYouMean
     private $originalQuery;
 
     public function __construct(
-        ?string $originalQuery,
-        ?string $alternativeQuery,
-        ?string $didYouMeanQuery,
-        ?string $type,
-        ?string $controllerPath
+        $originalQuery = null,
+        $alternativeQuery = null,
+        $didYouMeanQuery = null,
+        $type = null,
+        $controllerPath = null
     ) {
         $this->type = $didYouMeanQuery !== null ? self::DID_YOU_MEAN : $type;
-        $this->alternativeQuery = htmlentities($alternativeQuery ?? '');
+        $this->alternativeQuery = htmlentities($alternativeQuery ?: '');
         $this->originalQuery = $this->type === self::DID_YOU_MEAN ? '' : htmlentities($originalQuery);
 
         $this->link = $this->createLink($controllerPath);
     }
 
-    private function createLink(?string $controllerPath): ?string
+    /**
+     * @param string|null $controllerPath
+     *
+     * @return string|null
+     */
+    private function createLink($controllerPath)
     {
         switch ($this->type) {
             case self::DID_YOU_MEAN:
@@ -55,27 +58,42 @@ class SmartDidYouMean
         }
     }
 
-    public function getType(): ?string
+    /**
+     * @return string|null
+     */
+    public function getType()
     {
         return $this->type;
     }
 
-    public function getLink(): ?string
+    /**
+     * @return string|null
+     */
+    public function getLink()
     {
         return $this->link;
     }
 
-    public function getAlternativeQuery(): string
+    /**
+     * @return string
+     */
+    public function getAlternativeQuery()
     {
         return $this->alternativeQuery;
     }
 
-    public function getOriginalQuery(): string
+    /**
+     * @return string
+     */
+    public function getOriginalQuery()
     {
         return $this->originalQuery;
     }
 
-    public function getVars(): array
+    /**
+     * @return array
+     */
+    public function getVars()
     {
         return [
             'type' => $this->type,
