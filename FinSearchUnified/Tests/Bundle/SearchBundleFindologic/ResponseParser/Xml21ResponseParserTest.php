@@ -139,7 +139,7 @@ class Xml21ResponseParserTest extends TestCase
 
     public function testResponseWhenPromotionExists()
     {
-        $response = Utility::getDemoResponse('demo.xml');
+        $response = Utility::getDemoResponse('demoResponseWithPromotion.xml');
         $responseParser = ResponseParser::getInstance($response);
         $promotion = $responseParser->getPromotion();
         $this->assertInstanceOf(Promotion::class, $promotion);

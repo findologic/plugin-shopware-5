@@ -4,6 +4,7 @@ namespace FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser;
 
 use FINDOLOGIC\Api\Responses\Response;
 use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\QueryInfoMessage\QueryInfoMessage;
 use InvalidArgumentException;
 
 abstract class ResponseParser
@@ -18,6 +19,9 @@ abstract class ResponseParser
         $this->response = $response;
     }
 
+    /**
+     * @return Xml21ResponseParser
+     */
     public static function getInstance(Response $response)
     {
         if ($response instanceof Xml21Response) {
@@ -28,7 +32,7 @@ abstract class ResponseParser
     }
 
     /**
-     * @return array
+     * @return string[]
      */
     abstract public function getProducts();
 
@@ -47,5 +51,10 @@ abstract class ResponseParser
      */
     abstract public function getPromotion();
 
+    /**
+     * @param SmartDidYouMean $smartDidYouMean
+     *
+     * @return QueryInfoMessage
+     */
     abstract public function getQueryInfoMessage(SmartDidYouMean $smartDidYouMean);
 }

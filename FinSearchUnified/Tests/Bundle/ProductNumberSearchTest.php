@@ -9,7 +9,6 @@ use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use Enlight_Plugin_Namespace_Loader as Plugins;
 use Enlight_View_Default as View;
 use Exception;
-use FINDOLOGIC\Api\Responses\Response;
 use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
@@ -20,7 +19,6 @@ use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Util\Xml;
 use ReflectionException;
 use ReflectionObject;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
@@ -129,8 +127,6 @@ class ProductNumberSearchTest extends TestCase
         }
 
         $response = Utility::getDemoResponse();
-        $xmlResponse = Utility::getDemoXML();
-
         $criteria->setFetchCount($isFetchCount);
 
         Shopware()->Session()->findologicDI = $isUseShopSearch;

@@ -13,6 +13,9 @@ use Shopware\Bundle\StoreFrontBundle\Service\ProductNumberServiceInterface;
 
 class Xml21ResponseParser extends ResponseParser
 {
+    /**
+     * @return string[]
+     */
     public function getProducts()
     {
         $foundProducts = [];
@@ -48,9 +51,9 @@ class Xml21ResponseParser extends ResponseParser
     }
 
     /**
-     * @param string $ordernumber
+     * @param $ordernumber
      *
-     * @return bool
+     * @return mixed
      */
     public function getDetailIdForOrdernumber($ordernumber)
     {
