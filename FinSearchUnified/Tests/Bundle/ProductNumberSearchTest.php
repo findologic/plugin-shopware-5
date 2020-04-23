@@ -10,6 +10,7 @@ use Enlight_Plugin_Namespace_Loader as Plugins;
 use Enlight_View_Default as View;
 use Exception;
 use FINDOLOGIC\Api\Responses\Response;
+use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilderFactory;
@@ -19,6 +20,7 @@ use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Util\Xml;
 use ReflectionException;
 use ReflectionObject;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
@@ -126,9 +128,8 @@ class ProductNumberSearchTest extends TestCase
             $this->markTestSkipped('Ignoring this test for Shopware 5.2.x');
         }
 
+        $response = Utility::getDemoResponse();
         $xmlResponse = Utility::getDemoXML();
-        unset($xmlResponse->promotion);
-        $response = $xmlResponse->asXML();
 
         $criteria->setFetchCount($isFetchCount);
 
@@ -140,9 +141,7 @@ class ProductNumberSearchTest extends TestCase
             ->setMethods(['execute'])
             ->getMockForAbstractClass();
 
-        $responseMock = $this->createMock(Response::class);
-        $responseMock->method('getRawResponse')->willReturn($response);
-        $mockedQuery->expects($this->exactly($invokationCount))->method('execute')->willReturn($responseMock);
+        $mockedQuery->expects($this->exactly($invokationCount))->method('execute')->willReturn($response);
 
         // Mock querybuilder factory method to check that custom implementation does not get called
         // as original implementation will be called in this case
@@ -184,6 +183,7 @@ class ProductNumberSearchTest extends TestCase
     public function testProductNumberSearchResultWithAllFilters(SimpleXMLElement $xmlResponse, array $expectedResults)
     {
         $xml = $xmlResponse->asXML();
+        $response = new Xml21Response($xml);
 
         $criteria = new Criteria();
         if (method_exists($criteria, 'setFetchCount')) {
@@ -198,9 +198,7 @@ class ProductNumberSearchTest extends TestCase
             ->setMethods(['execute'])
             ->getMockForAbstractClass();
 
-        $responseMock = $this->createMock(Response::class);
-        $responseMock->method('getRawResponse')->willReturn($xml);
-        $mockedQuery->expects($this->once())->method('execute')->willReturn($responseMock);
+        $mockedQuery->expects($this->once())->method('execute')->willReturn($response);
 
         // Mock querybuilder factory method to check that custom implementation does not get called
         // as original implementation will be called in this case
@@ -459,6 +457,8 @@ class ProductNumberSearchTest extends TestCase
         FacetResultInterface $expectedResult,
         ConditionInterface $condition = null
     ) {
+        $response = new Xml21Response($xmlResponse->asXML());
+
         $request = new RequestHttp();
         $request->setRequestUri('/findologic?q=1');
 
@@ -487,7 +487,6 @@ class ProductNumberSearchTest extends TestCase
 
         // Filters are present in the XML response
         $filters = $xmlResponse->filters->filter;
-        $response = $xmlResponse->asXML();
 
         $mockedCache = $this->createMock(Zend_Cache_Core::class);
 

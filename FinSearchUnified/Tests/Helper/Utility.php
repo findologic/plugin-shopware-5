@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Tests\Helper;
 
 use Exception;
+use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\ShopwareProcess;
 use Shopware\Components\Api\Manager;
 use Shopware\Models\Article\Article;
@@ -151,5 +152,12 @@ class Utility
         $response = file_get_contents(__DIR__ . '/../MockData/XMLResponse/' . $file);
 
         return new SimpleXMLElement($response);
+    }
+
+    public static function getDemoResponse($file = 'demoResponse.xml')
+    {
+        $response = file_get_contents(__DIR__ . '/../MockData/XMLResponse/' . $file);
+
+        return new Xml21Response($response);
     }
 }
