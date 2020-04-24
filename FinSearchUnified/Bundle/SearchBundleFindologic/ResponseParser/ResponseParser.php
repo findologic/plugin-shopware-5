@@ -20,7 +20,7 @@ abstract class ResponseParser
     }
 
     /**
-     * @return Xml21ResponseParser
+     * @return ResponseParser
      */
     public static function getInstance(Response $response)
     {

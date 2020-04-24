@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser;
 
+use Enlight_Components_Db_Adapter_Pdo_Mysql;
 use Exception;
 use FINDOLOGIC\Api\Responses\Xml21\Properties\LandingPage;
 use FINDOLOGIC\Api\Responses\Xml21\Properties\Promotion as ApiPromotion;
@@ -53,10 +54,11 @@ class Xml21ResponseParser extends ResponseParser
     /**
      * @param $ordernumber
      *
-     * @return mixed
+     * @return string|bool
      */
     public function getDetailIdForOrdernumber($ordernumber)
     {
+        /** @var Enlight_Components_Db_Adapter_Pdo_Mysql $db */
         $db = Shopware()->Container()->get('db');
         $checkForArticle = $db->fetchRow('SELECT id AS id FROM s_articles_details WHERE ordernumber=?', [$ordernumber]);
 
