@@ -19,11 +19,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_FindologicTest extends Enlight
         $shopkey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
         Utility::setConfig('ShopKey', $shopkey);
 
-        try {
-            $this->dispatch(sprintf('findologic?shopkey=%s', $shopkey));
-        } catch (Enlight_Controller_Exception $e) {
-            $this->markTestSkipped($e->getMessage());
-        }
+        $this->dispatch(sprintf('findologic?shopkey=%s', $shopkey));
 
         $this->assertSame(200, $this->Response()->getHttpResponseCode());
 
