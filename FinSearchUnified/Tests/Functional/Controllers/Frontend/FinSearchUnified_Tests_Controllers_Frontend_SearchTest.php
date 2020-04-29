@@ -1,6 +1,7 @@
 <?php
 
 use FINDOLOGIC\Api\Responses\Response;
+use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\Bundle\ProductNumberSearch;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilderFactory;
@@ -186,6 +187,11 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             $product->addAttribute('id', $i);
         }
 
+        $xmlResponse->servers->frontend = 'martell.frontend.findologic.com';
+        $xmlResponse->servers->backend = 'hydra.backend.findologic.com';
+
+        $response = new Xml21Response($xmlResponse->asXML());
+
         Shopware()->Session()->offsetSet('findologicDI', false);
 
         $criteria = new Criteria();
@@ -210,9 +216,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             ->setMethods(['execute'])
             ->getMockForAbstractClass();
 
-        $responseMock = $this->createMock(Response::class);
-        $responseMock->method('getRawResponse')->willReturn($xmlResponse->asXML());
-        $mockedQuery->expects($this->once())->method('execute')->willReturn($responseMock);
+        $mockedQuery->expects($this->once())->method('execute')->willReturn($response);
 
         // Mock querybuilder factory method to check that custom implementation does not get called
         // as original implementation will be called in this case

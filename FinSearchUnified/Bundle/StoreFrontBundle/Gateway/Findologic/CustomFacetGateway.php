@@ -56,7 +56,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         $rawResponse = $response->getRawResponse();
 
         if (!empty($rawResponse)) {
-            $xmlResponse = StaticHelper::getXmlFromResponse($rawResponse);
+            $xmlResponse = StaticHelper::getXmlFromRawResponse($rawResponse);
 
             return $this->hydrate($xmlResponse->filters->filter);
         }
@@ -84,7 +84,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         $rawResponse = $response->getRawResponse();
 
         if (!empty($rawResponse)) {
-            $xmlResponse = StaticHelper::getXmlFromResponse($rawResponse);
+            $xmlResponse = StaticHelper::getXmlFromRawResponse($rawResponse);
             $categoryFacets = [];
             $categoryFacets[$categoryId] = $this->hydrate($xmlResponse->filters->filter);
 

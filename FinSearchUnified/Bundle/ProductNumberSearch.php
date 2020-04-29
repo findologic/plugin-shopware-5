@@ -4,6 +4,7 @@ namespace FinSearchUnified\Bundle;
 
 use Enlight_Controller_Request_Request;
 use Exception;
+use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\CategoryFacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\ColorFacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\ImageFacetHandler;
@@ -11,6 +12,7 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\RangeFacetHandle
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\TextFacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\ResponseParser;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
@@ -92,9 +94,12 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         /** @var NewQueryBuilder $query */
         $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
-        $response = $query->execute()->getRawResponse();
 
-        if (empty($response)) {
+        /** @var Xml21Response $response */
+        $response = $query->execute();
+        $rawResponse = $response->getRawResponse();
+
+        if (!$response instanceof Xml21Response) {
             static::setFallbackFlag(1);
             static::setFallbackSearchFlag(1);
             static::redirectToSameUrl();
@@ -103,15 +108,20 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         }
         static::setFallbackFlag(0);
         static::setFallbackSearchFlag(0);
-        $xmlResponse = StaticHelper::getXmlFromResponse($response);
-        static::redirectOnLandingpage($xmlResponse);
-        StaticHelper::setPromotion($xmlResponse);
-        StaticHelper::setSmartDidYouMean($xmlResponse);
-        StaticHelper::setQueryInfoMessage($xmlResponse);
 
-        $totalResults = (int)$xmlResponse->results->count;
-        $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
+        $responseParser = ResponseParser::getInstance($response);
+        $smartDidYouMean = $responseParser->getSmartDidYouMean();
+
+        static::redirectOnLandingpage($responseParser->getLandingPageUri());
+        StaticHelper::setPromotion($responseParser->getPromotion());
+        StaticHelper::setSmartDidYouMean($smartDidYouMean);
+        StaticHelper::setQueryInfoMessage($responseParser->getQueryInfoMessage($smartDidYouMean));
+
+        $totalResults = $response->getResults()->getCount();
+        $foundProducts = $responseParser->getProducts();
         $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
+
+        $xmlResponse = StaticHelper::getXmlFromRawResponse($rawResponse);
         $facets = $this->createFacets($criteria, $context, $xmlResponse->filters->filter);
 
         $searchResult = new ProductNumberSearchResult($searchResult, $totalResults, $facets);
@@ -122,14 +132,12 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     /**
      * Checks if a landing page is present in the response and in that case, performs a redirect.
      *
-     * @param SimpleXMLElement $xmlResponse
+     * @param string|null $landingPageUri
      */
-    protected static function redirectOnLandingpage(SimpleXMLElement $xmlResponse)
+    protected static function redirectOnLandingpage($landingPageUri)
     {
-        $hasLandingpage = StaticHelper::checkIfRedirect($xmlResponse);
-
-        if ($hasLandingpage !== null) {
-            header('Location: ' . $hasLandingpage);
+        if ($landingPageUri !== null) {
+            header('Location: ' . $landingPageUri);
             exit();
         }
     }
@@ -189,7 +197,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         $request = Shopware()->Front()->Request();
         if (!$this->isAjaxRequest($request) && StaticHelper::isProductAndFilterLiveReloadingEnabled()) {
             $response = $this->getResponseWithoutFilters($criteria, $context);
-            $xmlResponse = StaticHelper::getXmlFromResponse($response);
+            $xmlResponse = StaticHelper::getXmlFromRawResponse($response);
 
             if (!$xmlResponse->filters->filter) {
                 return [];
