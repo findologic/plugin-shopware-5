@@ -10,7 +10,7 @@ use InvalidArgumentException;
 abstract class ResponseParser
 {
     /**
-     * @var Xml21Response
+     * @var Response
      */
     protected $response;
 
