@@ -83,6 +83,13 @@
                 <readOnly>true</readOnly>
             </options>
         </element>
+        <element type="button" scope="shop">
+            <name>StagingTestButton</name>
+            <label>Findologic Test</label>
+            <options>
+                <href>findologicStaging</href>
+            </options>
+        </element>
     </elements>
 
 </config>
