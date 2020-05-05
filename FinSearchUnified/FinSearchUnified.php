@@ -10,6 +10,8 @@ use Shopware\Components\Plugin\Context\DeactivateContext;
 use Shopware\Components\Plugin\Context\InstallContext;
 use Shopware\Components\Plugin\Context\UninstallContext;
 use Shopware\Components\Plugin\Context\UpdateContext;
+use Shopware\Components\Plugin\FormSynchronizer;
+use Shopware\Components\Plugin\XmlReader\XmlConfigReader;
 use Shopware\Models;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -56,6 +58,29 @@ class FinSearchUnified extends Plugin
     {
         $context->scheduleClearCache([InstallContext::CACHE_TAG_THEME]);
         parent::install($context);
+
+        $shopwareVersion = Shopware()->Config()->get('version');
+
+        if (version_compare($shopwareVersion, '5.2.17', '>=')) {
+            $file = $this->getPath() . '/Resources/config/config.xml';
+        } else {
+            // For Shopware <= 5.2.17 we load a different config file due to missing `button` element in configuration
+            $file = $this->getPath() . '/Resources/config/config_compat.xml';
+        }
+
+        if (class_exists(XmlConfigReader::class)) {
+            $xmlConfigReader = new XmlConfigReader();
+        } else {
+            $xmlConfigReader = new \Shopware\Components\Plugin\XmlConfigDefinitionReader();
+        }
+
+        $config = $xmlConfigReader->read($file);
+
+        /** @var InstallerService $pluginManager */
+        $pluginManager = Shopware()->Container()->get('shopware_plugininstaller.plugin_manager');
+        $plugin = $pluginManager->getPluginByName('FinSearchUnified');
+        $formSynchronizer = new FormSynchronizer(Shopware()->Models());
+        $formSynchronizer->synchronize($plugin, $config);
     }
 
     public function update(UpdateContext $context)
