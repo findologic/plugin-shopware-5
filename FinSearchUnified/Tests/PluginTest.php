@@ -98,15 +98,15 @@ class PluginTest extends TestCase
                 'expectedCount' => 1
             ],
             'Article does not exist in cross-sell category configured' => [
-                'crossSellingCategories' => [5],
+                'crossSellingCategories' => ['Deutsch>Genusswelten'],
                 'expectedCount' => 1
             ],
             'Article exists in one of the cross-sell categories configured' => [
-                'crossSellingCategories' => [8, 9],
+                'crossSellingCategories' => ['Deutsch>Genusswelten', 'Deutsch>Wohnwelten'],
                 'expectedCount' => 0
             ],
             'Article exists in all of cross-sell categories configured' => [
-                'crossSellingCategories' => [8, 9, 10],
+                'crossSellingCategories' => ['Deutsch>Genusswelten', 'Deutsch>Wohnwelten', 'Deutsch>Beispiele'],
                 'expectedCount' => 0
             ],
         ];

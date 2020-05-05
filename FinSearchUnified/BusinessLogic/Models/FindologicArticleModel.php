@@ -864,9 +864,19 @@ class FindologicArticleModel
         $crossSellingCategories = Shopware()->Config()->offsetGet('CrossSellingCategories');
         /** @var Category $category */
         foreach ($this->baseArticle->getCategories() as $category) {
-            if (in_array($category->getId(), $crossSellingCategories, true)) {
+            if (in_array($this->buildCategoryTree($category), $crossSellingCategories, true)) {
                 return true;
             }
         }
+        return false;
+    }
+
+    protected function buildCategoryTree(Category $category)
+    {
+        if ($category->getId() === $this->baseCategory->getId()) {
+            return $category->getName();
+        }
+
+        return $this->buildCategoryTree($category->getParent()) . '>' . $category->getName();
     }
 }

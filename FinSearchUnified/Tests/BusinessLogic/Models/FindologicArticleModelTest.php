@@ -154,9 +154,6 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testEmptySuppliersAreSkipped(array $articleConfiguration)
     {
-        $baseCategory = new Category();
-        $baseCategory->setId(100);
-
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
         $findologicArticle = $this->articleFactory->create(
@@ -164,7 +161,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
         $this->assertEquals(get_class($findologicArticle), FindologicArticleModel::class);
     }
@@ -293,17 +290,14 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testEmptyValue(array $articleConfiguration)
     {
-        $baseCategory = new Category();
-        $baseCategory->setId(100);
-
-        $article = $this->createTestProduct($articleConfiguration);
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
         $findologicArticle = $this->articleFactory->create(
-            $article,
+            $articleFromConfiguration,
             'ABCD0815',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -355,9 +349,6 @@ class FindologicArticleModelTest extends TestCase
 
         $expectedKeywords = ["I'm a simple string", "\xC2\xBD"];
 
-        $baseCategory = new Category();
-        $baseCategory->setId(5);
-
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
         $findologicArticle = $this->articleFactory->create(
@@ -365,7 +356,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -401,9 +392,6 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testArticleWithSEOUrl(array $articleConfiguration, $expectedUrl)
     {
-        $baseCategory = new Category();
-        $baseCategory->setId(5);
-
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
         $shop = Manager::getResource('Shop')->getRepository()->find(1);
@@ -419,7 +407,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -817,9 +805,6 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testEmptyValuesAreNotExported(array $articleConfiguration)
     {
-        $baseCategory = new Category();
-        $baseCategory->setId(5);
-
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
         $findologicArticle = $this->articleFactory->create(
@@ -827,7 +812,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -885,9 +870,6 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testEmptyPropertyValue(array $articleConfiguration)
     {
-        $baseCategory = new Category();
-        $baseCategory->setId(5);
-
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
         $findologicArticle = $this->articleFactory->create(
@@ -895,7 +877,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -954,9 +936,6 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testEmptyAttributeValues(array $articleConfiguration)
     {
-        $baseCategory = new Category();
-        $baseCategory->setId(5);
-
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
         $findologicArticle = $this->articleFactory->create(
@@ -964,7 +943,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -1044,9 +1023,6 @@ class FindologicArticleModelTest extends TestCase
         $shop = Manager::getResource('Shop')->getRepository()->find($locale);
         Shopware()->Snippets()->setShop($shop);
 
-        $baseCategory = new Category();
-        $baseCategory->setId(5);
-
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
         $findologicArticle = $this->articleFactory->create(
@@ -1054,7 +1030,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
