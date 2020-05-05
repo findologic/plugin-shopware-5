@@ -1,26 +1,33 @@
 <?php
 
+use FinSearchUnified\ShopwareProcess;
+
 class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
 {
     public function indexAction()
     {
-        // INIT THE BL SYSTEM
-
         $shopKey = $this->request->get('shopkey');
         $start = (int)$this->request->getParam('start', 0);
         $count = (int)$this->request->get('count');
         $language = $this->request->get('language');
 
-        /** @var \FinSearchUnified\ShopwareProcess $blController */
-        $blController = $this->container->get('fin_search_unified.shopware_process');
-        $blController->setShopKey($shopKey);
+        /** @var ShopwareProcess $shopwareProcess */
+        $shopwareProcess = $this->container->get('fin_search_unified.shopware_process');
+        $shopwareProcess->setShopKey($shopKey);
+
         if ($count !== null) {
-            $xmlDocument = $blController->getFindologicXml($language, $start, $count);
+            $xmlDocument = $shopwareProcess->getFindologicXml($language, $start, $count);
         } else {
-            $xmlDocument = $blController->getFindologicXml($language);
+            $xmlDocument = $shopwareProcess->getFindologicXml($language);
         }
 
-        $this->response->setHeader('Content-Type', 'application/xml; charset=utf-8', true);
+        $headerHandler = Shopware()->Container()->get('fin_search_unified.helper.header_handler');
+        $headers = $headerHandler->getHeaders();
+
+        foreach ($headers as $name => $value) {
+            $this->response->setHeader($name, $value, true);
+        }
+
         $this->response->setBody($xmlDocument);
         $this->container->get('front')->Plugins()->ViewRenderer()->setNoRender();
 

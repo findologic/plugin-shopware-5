@@ -163,6 +163,8 @@
 
         <service class="FinSearchUnified\Components\Environment" id="fin_search_unified.environment" />
 
+        <service class="FinSearchUnified\Helper\HeaderHandler" id="fin_search_unified.helper.header_handler"/>
+
         <!-- Re-declare non-existent shopware services in our xml for backward compatibility -->
         <service id="shopware.routing.matchers.rewrite_matcher"
             class="Shopware\Components\Routing\Matchers\RewriteMatcher">

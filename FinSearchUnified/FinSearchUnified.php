@@ -3,6 +3,7 @@
 namespace FinSearchUnified;
 
 use Exception;
+use FinSearchUnified\Bundle\ControllerBundle\DependencyInjection\Compiler\RegisterControllerCompilerPass;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Components\Plugin;
 use Shopware\Components\Plugin\Context\DeactivateContext;
@@ -34,6 +35,7 @@ class FinSearchUnified extends Plugin
             $loader->load($this->getPath() . '/Resources/shopware/searchBundleES.xml');
         }
 
+        $container->addCompilerPass(new RegisterControllerCompilerPass([$this]));
         parent::build($container);
     }
 
