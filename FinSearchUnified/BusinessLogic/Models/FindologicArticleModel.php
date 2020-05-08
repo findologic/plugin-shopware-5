@@ -320,7 +320,7 @@ class FindologicArticleModel
             $config = Shopware()->Config()->get('hideNoInStock');
             var_dump($config);
 
-            $outOfStock = $detail->getInStock() < 1 && $lastStock && $config;
+            $outOfStock = $this->baseVariant->getInStock() < 1 && $lastStock && $config;
             $useAsDefault = !count($priceArray);
 
             if (!$outOfStock || $useAsDefault) {
