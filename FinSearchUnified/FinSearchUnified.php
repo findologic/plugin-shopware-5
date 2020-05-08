@@ -65,7 +65,7 @@ class FinSearchUnified extends Plugin
         parent::install($context);
 
         // Manually load the config xml due to Shopware 5.2.0 compatibility
-        $config = $this->loadConfig($context);
+        $config = $this->loadConfig();
 
         /** @var InstallerService $pluginManager */
         $pluginManager = Shopware()->Container()->get('shopware_plugininstaller.plugin_manager');
@@ -120,18 +120,18 @@ class FinSearchUnified extends Plugin
     }
 
     /**
-     * @param InstallContext $context
-     *
      * @return array
      */
-    private function loadConfig(InstallContext $context)
+    private function loadConfig()
     {
         $template = $this->getPath() . self::CONFIG_TEMPLATE;
         $xml = new SimpleXMLElement($template, 0, true);
 
+        $shopwareVersion = Shopware()->Config()->get('version');
+
         // For Shopware >= 5.2.17 we manually generate the `button` element in configuration as it is not available
         // for older versions.
-        if ($context->assertMinimumVersion('5.2.17')) {
+        if (version_compare($shopwareVersion, '5.2.17', '>=')) {
             $buttonEl = $xml->elements->addChild('element');
             $buttonEl->addAttribute('type', 'button');
             $buttonEl->addAttribute('scope', 'shop');
