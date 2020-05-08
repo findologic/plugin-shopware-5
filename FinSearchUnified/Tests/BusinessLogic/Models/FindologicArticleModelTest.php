@@ -16,6 +16,7 @@ use Shopware\Models\Article\Article;
 use Shopware\Models\Article\Detail;
 use Shopware\Models\Attribute\Article as ArticleAttribute;
 use Shopware\Models\Category\Category;
+use Shopware_Components_Config as Config;
 
 class FindologicArticleModelTest extends TestCase
 {
@@ -1294,6 +1295,16 @@ class FindologicArticleModelTest extends TestCase
     public function testMainPriceNotConsideredWhenLastStock(array $articleConfiguration, $expected)
     {
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $mockConfig = $this->getMockBuilder(Config::class)
+            ->setMethods(['get'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig
+            ->method('get')
+            ->willReturn(true, true, true, true, true, true, true, true, true);
+
+        Shopware()->Container()->set('config', $mockConfig);
 
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,

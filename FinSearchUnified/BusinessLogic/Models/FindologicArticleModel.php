@@ -284,7 +284,17 @@ class FindologicArticleModel
             if (!($detail instanceof Detail)) {
                 continue;
             }
-            if ($detail->getInStock() < 1) {
+
+            if (method_exists($detail, 'getLastStock')) {
+                $lastStock = $detail->getLastStock();
+            } else {
+                $lastStock = $detail->getArticle()->getLastStock();
+            }
+
+            $config = Shopware()->Config()->get('hideNoInStock');
+            var_dump($config);
+
+            if ($detail->getInStock() < 1 && $lastStock && $config) {
                 continue;
             }
             if ($detail->getActive()) {
@@ -301,7 +311,19 @@ class FindologicArticleModel
 
         // main prices per customergroup
         foreach ($this->baseVariant->getPrices() as $price) {
-            if ($price->getCustomerGroup()) {
+            if (method_exists($detail, 'getLastStock')) {
+                $lastStock = $detail->getLastStock();
+            } else {
+                $lastStock = $detail->getArticle()->getLastStock();
+            }
+
+            $config = Shopware()->Config()->get('hideNoInStock');
+            var_dump($config);
+
+            $shouldBeExported = $detail->getInStock() < 1 && $lastStock && $config;
+            $useAsDefault = !count($priceArray);
+
+            if ($shouldBeExported || $useAsDefault) {
                 /** @var Group $customerGroup */
                 $customerGroup = $price->getCustomerGroup();
                 if ($customerGroup) {
