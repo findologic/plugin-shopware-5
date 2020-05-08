@@ -49,7 +49,7 @@
     }).create();//new ]]>
             </store>
             <options>
-                <valueField>id</valueField>
+                <valueField>name</valueField>
                 <displayField>name</displayField>
                 <isCustomStore>true</isCustomStore>
                 <multiSelect>true</multiSelect>
