@@ -291,10 +291,7 @@ class FindologicArticleModel
                 $lastStock = $detail->getArticle()->getLastStock();
             }
 
-            $config = Shopware()->Config()->get('hideNoInStock');
-            var_dump($config);
-
-            if ($detail->getInStock() < 1 && $lastStock && $config) {
+            if ($detail->getInStock() < 1 && $lastStock && Shopware()->Config()->get('hideNoInStock')) {
                 continue;
             }
             if ($detail->getActive()) {
@@ -317,10 +314,10 @@ class FindologicArticleModel
                 $lastStock = $this->baseVariant->getArticle()->getLastStock();
             }
 
-            $config = Shopware()->Config()->get('hideNoInStock');
-            var_dump($config);
-
-            $outOfStock = $this->baseVariant->getInStock() < 1 && $lastStock && $config;
+            $outOfStock =
+                $this->baseVariant->getInStock() < 1 &&
+                $lastStock &&
+                Shopware()->Config()->get('hideNoInStock');
             $useAsDefault = !count($priceArray);
 
             if (!$outOfStock || $useAsDefault) {

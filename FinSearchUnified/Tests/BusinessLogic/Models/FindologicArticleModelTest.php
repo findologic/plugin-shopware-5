@@ -1302,7 +1302,7 @@ class FindologicArticleModelTest extends TestCase
             ->getMock();
         $mockConfig
             ->method('get')
-            ->willReturn(true, true, true, true, true, true, true, true, true);
+            ->willReturn(true);
 
         Shopware()->Container()->set('config', $mockConfig);
 
