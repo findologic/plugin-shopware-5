@@ -11,14 +11,19 @@ use Shopware\Components\Plugin\Context\InstallContext;
 use Shopware\Components\Plugin\Context\UninstallContext;
 use Shopware\Components\Plugin\Context\UpdateContext;
 use Shopware\Components\Plugin\FormSynchronizer;
+use Shopware\Components\Plugin\XmlConfigDefinitionReader;
 use Shopware\Components\Plugin\XmlReader\XmlConfigReader;
 use Shopware\Models;
+use SimpleXMLElement;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 
 class FinSearchUnified extends Plugin
 {
+    const CONFIG_TEMPLATE = '/Resources/config/config_template.xml';
+    const CONFIG_FILE = '/Resources/config.xml';
+
     public function build(ContainerBuilder $container)
     {
         // Required for Shopware 5.2.x compatibility.
@@ -59,22 +64,8 @@ class FinSearchUnified extends Plugin
         $context->scheduleClearCache([InstallContext::CACHE_TAG_THEME]);
         parent::install($context);
 
-        $shopwareVersion = Shopware()->Config()->get('version');
-
-        if (version_compare($shopwareVersion, '5.2.17', '>=')) {
-            $file = $this->getPath() . '/Resources/config/config.xml';
-        } else {
-            // For Shopware <= 5.2.17 we load a different config file due to missing `button` element in configuration
-            $file = $this->getPath() . '/Resources/config/config_compat.xml';
-        }
-
-        if (class_exists(XmlConfigReader::class)) {
-            $xmlConfigReader = new XmlConfigReader();
-        } else {
-            $xmlConfigReader = new \Shopware\Components\Plugin\XmlConfigDefinitionReader();
-        }
-
-        $config = $xmlConfigReader->read($file);
+        // Manually load the config xml due to Shopware 5.2.0 compatibility
+        $config = $this->loadConfig($context);
 
         /** @var InstallerService $pluginManager */
         $pluginManager = Shopware()->Container()->get('shopware_plugininstaller.plugin_manager');
@@ -126,5 +117,40 @@ class FinSearchUnified extends Plugin
     private function camelCaseToUnderscore($string)
     {
         return strtolower(ltrim(preg_replace('/[A-Z]/', '_$0', $string), '_'));
+    }
+
+    /**
+     * @param InstallContext $context
+     *
+     * @return array
+     */
+    private function loadConfig(InstallContext $context)
+    {
+        $template = $this->getPath() . self::CONFIG_TEMPLATE;
+        $xml = new SimpleXMLElement($template, 0, true);
+
+        // For Shopware >= 5.2.17 we manually generate the `button` element in configuration as it is not available
+        // for older versions.
+        if ($context->assertMinimumVersion('5.2.17')) {
+            $buttonEl = $xml->elements->addChild('element');
+            $buttonEl->addAttribute('type', 'button');
+            $buttonEl->addAttribute('scope', 'shop');
+            $buttonEl->addChild('name', 'StagingTestButton');
+            $buttonEl->addChild('label', 'FINDOLOGIC Test');
+            $options = $buttonEl->addChild('options');
+            $options->addChild('href', 'findologicStaging');
+        }
+
+        // From Shopware 5.6 `XmlConfigDefinitionReader` is removed and `XmlConfigReader` is used instead
+        if (class_exists(XmlConfigReader::class)) {
+            $xmlConfigReader = new XmlConfigReader();
+        } else {
+            $xmlConfigReader = new XmlConfigDefinitionReader();
+        }
+
+        $file = $this->getPath() . self::CONFIG_FILE;
+        file_put_contents($file, $xml->asXML());
+
+        return $xmlConfigReader->read($file);
     }
 }

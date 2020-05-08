@@ -17,7 +17,7 @@ class Shopware_Controllers_Backend_FindologicStaging extends Shopware_Controller
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public function indexAction()
     {
@@ -37,7 +37,7 @@ class Shopware_Controllers_Backend_FindologicStaging extends Shopware_Controller
         $isActive = Shopware()->Config()->offsetGet('ActivateFindologic');
 
         if (!$isActive) {
-            throw new RuntimeException('Please ensure the plugin is active!');
+            throw new \RuntimeException('Please ensure the plugin is active!');
         }
     }
 
@@ -47,7 +47,7 @@ class Shopware_Controllers_Backend_FindologicStaging extends Shopware_Controller
     private function assertShopKeyIsValid($shopkey)
     {
         if (!preg_match('/^[A-F0-9]{32}$/', $shopkey)) {
-            throw new RuntimeException('Please ensure a valid ShopKey is provided!');
+            throw new \RuntimeException('Please ensure a valid ShopKey is provided!');
         }
     }
 
@@ -72,7 +72,7 @@ class Shopware_Controllers_Backend_FindologicStaging extends Shopware_Controller
             }
         }
         if (!$shop) {
-            throw new RuntimeException('Provided shopkey not assigned to any shop!');
+            throw new \RuntimeException('Provided shopkey not assigned to any shop!');
         }
 
         return $shop;
@@ -87,7 +87,7 @@ class Shopware_Controllers_Backend_FindologicStaging extends Shopware_Controller
         $configLoader = Shopware()->Container()->get('fin_search_unified.config_loader');
         try {
             $isStaging = $configLoader->isStagingShop();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $isStaging = false;
         }
 

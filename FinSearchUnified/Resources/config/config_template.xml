@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="../../../../../engine/Shopware/Components/Plugin/schema/config.xsd">
+        xsi:noNamespaceSchemaLocation="../../../../engine/Shopware/Components/Plugin/schema/config.xsd">
 
     <elements>
         <element type="text" required="true" scope="shop">
             <name>ShopKey</name>
             <label lang="de">Shopkey</label>
             <label lang="en">Shopkey</label>
-            <value></value>
+            <value />
             <description lang="de">FINDOLOGIC Shopkey</description>
             <description lang="en">FINDOLOGIC Shopkey</description>
         </element>
@@ -30,8 +30,7 @@
         <element type="combo">
             <name>CrossSellingCategories</name>
             <label lang="de">Cross-Selling Kategorien (Produkte in diesen Kategorien werden vom Export ausgeschlossen)</label>
-            <label lang="en">Cross-Selling categories (products in these categories are excluded from the
-                export)</label>
+            <label lang="en">Cross-Selling categories (products in these categories are excluded from the export)</label>
             <description lang="de">Sollten Sie mehrere Subkategorien in Ihrer Cross-Selling Kategorie haben, fügen sie jede Subkategorie ein.</description>
             <description lang="en">If you have multiple subcategories in your Cross-Selling category, make sure to add all subcategories.</description>
             <store><![CDATA[Ext.define('Findologic.Category.Form', {
@@ -76,7 +75,7 @@
             <name>IntegrationType</name>
             <label lang="de">Integration (schreibgeschützt)</label>
             <label lang="en">Integration (read-only)</label>
-            <value></value>
+            <value />
             <description lang="en">Currently used integration type. Either one of Direct Integration or API.</description>
             <description lang="de">Die aktuell verwendete Integrationsart. Entweder Direct Integration oder API.</description>
             <options>
