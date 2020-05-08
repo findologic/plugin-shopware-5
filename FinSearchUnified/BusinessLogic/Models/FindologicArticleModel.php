@@ -311,19 +311,19 @@ class FindologicArticleModel
 
         // main prices per customergroup
         foreach ($this->baseVariant->getPrices() as $price) {
-            if (method_exists($detail, 'getLastStock')) {
-                $lastStock = $detail->getLastStock();
+            if (method_exists($this->baseVariant, 'getLastStock')) {
+                $lastStock = $this->baseVariant->getLastStock();
             } else {
-                $lastStock = $detail->getArticle()->getLastStock();
+                $lastStock = $this->baseVariant->getArticle()->getLastStock();
             }
 
             $config = Shopware()->Config()->get('hideNoInStock');
             var_dump($config);
 
-            $shouldBeExported = $detail->getInStock() < 1 && $lastStock && $config;
+            $outOfStock = $detail->getInStock() < 1 && $lastStock && $config;
             $useAsDefault = !count($priceArray);
 
-            if ($shouldBeExported || $useAsDefault) {
+            if (!$outOfStock || $useAsDefault) {
                 /** @var Group $customerGroup */
                 $customerGroup = $price->getCustomerGroup();
                 if ($customerGroup) {
