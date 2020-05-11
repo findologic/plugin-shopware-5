@@ -1296,6 +1296,18 @@ class FindologicArticleModelTest extends TestCase
     {
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
+        // Set lastStock value for Shopware <= 5.3
+        if (!method_exists($articleFromConfiguration->getMainDetail(), 'getLastStock')) {
+            $article = (new Article())->setLastStock($articleConfiguration['mainDetail']['lastStock']);
+            $articleFromConfiguration->getMainDetail()->setArticle($article);
+
+            /** @var Detail $detail*/
+            foreach ($articleFromConfiguration->getDetails() as $index => $detail) {
+                $article = (new Article())->setLastStock($articleConfiguration['variants'][$index]['lastStock']);
+                $detail->setArticle($article);
+            }
+        }
+
         $mockConfig = $this->getMockBuilder(Config::class)
             ->setMethods(['get'])
             ->disableOriginalConstructor()
