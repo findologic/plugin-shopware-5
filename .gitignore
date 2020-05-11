@@ -1,3 +1,5 @@
 .idea
 vendor
+# We are ignoring the config.xml from committing to git as we are generating it dynamically based on
+# the shopware version
 FinSearchUnified/Resources/config.xml

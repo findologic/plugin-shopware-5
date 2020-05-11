@@ -64,19 +64,15 @@ class FinSearchUnified extends Plugin
         $context->scheduleClearCache([InstallContext::CACHE_TAG_THEME]);
         parent::install($context);
 
-        // Manually load the config xml due to Shopware 5.2.0 compatibility
-        $config = $this->loadConfig();
-
-        /** @var InstallerService $pluginManager */
-        $pluginManager = Shopware()->Container()->get('shopware_plugininstaller.plugin_manager');
-        $plugin = $pluginManager->getPluginByName('FinSearchUnified');
-        $formSynchronizer = new FormSynchronizer(Shopware()->Models());
-        $formSynchronizer->synchronize($plugin, $config);
+        $this->initializeConfiguration();
     }
 
     public function update(UpdateContext $context)
     {
         if (version_compare($context->getCurrentVersion(), $context->getUpdateVersion(), '<')) {
+            // Initialize configuration when user updates the plugin, as we have removed the default
+            // `config.xml` from the plugin structure due to dynamic creation of the config file
+            $this->initializeConfiguration();
             $context->scheduleClearCache([UpdateContext::CACHE_TAG_THEME]);
         }
         parent::update($context);
@@ -152,5 +148,17 @@ class FinSearchUnified extends Plugin
         file_put_contents($file, $xml->asXML());
 
         return $xmlConfigReader->read($file);
+    }
+
+    private function initializeConfiguration()
+    {
+        // Manually load the config xml due to Shopware 5.2.0 compatibility
+        $config = $this->loadConfig();
+
+        /** @var InstallerService $pluginManager */
+        $pluginManager = Shopware()->Container()->get('shopware_plugininstaller.plugin_manager');
+        $plugin = $pluginManager->getPluginByName('FinSearchUnified');
+        $formSynchronizer = new FormSynchronizer(Shopware()->Models());
+        $formSynchronizer->synchronize($plugin, $config);
     }
 }
