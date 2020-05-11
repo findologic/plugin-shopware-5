@@ -1132,11 +1132,9 @@ class FindologicArticleModelTest extends TestCase
      * @dataProvider variantPriceProvider*
      *
      * @param array $articleConfiguration
-     * @param float $expected
      *
      * @throws ReflectionException
      */
-
     public function testMainPriceNotConsideredWhenLastStock(array $articleConfiguration)
     {
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
