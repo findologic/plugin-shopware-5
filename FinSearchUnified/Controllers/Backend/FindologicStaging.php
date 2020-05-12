@@ -1,6 +1,7 @@
 <?php
 
 use FinSearchUnified\Components\ConfigLoader;
+use FinSearchUnified\Exceptions\StagingModeException;
 use Shopware\Components\CSRFWhitelistAware;
 use Shopware\Models\Config\Value;
 use Shopware\Models\Shop\Repository;
@@ -21,33 +22,40 @@ class Shopware_Controllers_Backend_FindologicStaging extends Shopware_Controller
      */
     public function indexAction()
     {
-        Shopware()->Plugins()->Controller()->ViewRenderer()->setNoRender(true);
-        $this->assertPluginIsActive();
-
-        $shopkey = Shopware()->Config()->offsetGet('ShopKey');
-        $this->assertShopKeyIsValid($shopkey);
-        $shop = $this->getCurrentShop($shopkey);
-        $isStaging = $this->isStaging();
-
-        $this->redirect($this->getRedirectUrl($isStaging, $shop));
+        try {
+            $this->Front()->Plugins()->ViewRenderer()->setNoRender(true);
+            $this->assertPluginIsActive();
+            $shopkey = Shopware()->Config()->offsetGet('ShopKey');
+            $this->assertShopKeyIsValid($shopkey);
+            $shop = $this->getCurrentShop($shopkey);
+            $isStaging = $this->isStaging();
+            $this->redirect($this->getRedirectUrl($isStaging, $shop));
+        } catch (StagingModeException $e) {
+            echo $e->getMessage();
+        }
     }
 
+    /**
+     * @throws StagingModeException
+     */
     private function assertPluginIsActive()
     {
         $isActive = Shopware()->Config()->offsetGet('ActivateFindologic');
 
         if (!$isActive) {
-            throw new \RuntimeException('Please ensure the plugin is active!');
+            throw new StagingModeException('Please ensure the plugin is active!');
         }
     }
 
     /**
      * @param string $shopkey
+     *
+     * @throws StagingModeException
      */
     private function assertShopKeyIsValid($shopkey)
     {
         if (!preg_match('/^[A-F0-9]{32}$/', $shopkey)) {
-            throw new \RuntimeException('Please ensure a valid ShopKey is provided!');
+            throw new StagingModeException('Please ensure a valid Shopkey is provided!');
         }
     }
 
@@ -55,6 +63,7 @@ class Shopware_Controllers_Backend_FindologicStaging extends Shopware_Controller
      * @param string $shopkey
      *
      * @return Shop
+     * @throws StagingModeException
      */
     private function getCurrentShop($shopkey)
     {
@@ -72,7 +81,7 @@ class Shopware_Controllers_Backend_FindologicStaging extends Shopware_Controller
             }
         }
         if (!$shop) {
-            throw new \RuntimeException('Provided shopkey not assigned to any shop!');
+            throw new StagingModeException('Provided shopkey not assigned to any shop!');
         }
 
         return $shop;

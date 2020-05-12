@@ -132,7 +132,7 @@ class FinSearchUnified extends Plugin
             $buttonEl->addAttribute('type', 'button');
             $buttonEl->addAttribute('scope', 'shop');
             $buttonEl->addChild('name', 'StagingTestButton');
-            $buttonEl->addChild('label', 'FINDOLOGIC Test');
+            $buttonEl->addChild('label', 'Findologic Test');
             $options = $buttonEl->addChild('options');
             $options->addChild('href', 'findologicStaging');
         }
