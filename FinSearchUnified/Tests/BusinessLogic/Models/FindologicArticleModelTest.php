@@ -283,7 +283,7 @@ class FindologicArticleModelTest extends TestCase
     }
 
     /**
-     * @dataProvider emptyAttributeValuesProvider*
+     * @dataProvider emptyAttributeValuesProvider
      *
      * @param array $articleConfiguration
      *
@@ -1046,6 +1046,9 @@ class FindologicArticleModelTest extends TestCase
         $this->assertSame($expectedValue, $values['highlight']);
     }
 
+    /**
+     * @return array
+     */
     public function variantPriceProvider()
     {
         $articleConfiguration = [
@@ -1129,7 +1132,7 @@ class FindologicArticleModelTest extends TestCase
     }
 
     /**
-     * @dataProvider variantPriceProvider*
+     * @dataProvider variantPriceProvider
      *
      * @param array $articleConfiguration
      *
