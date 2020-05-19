@@ -8,6 +8,7 @@ use FinSearchUnified\ShopwareProcess;
 use Shopware\Components\Api\Manager;
 use Shopware\Models\Article\Article;
 use SimpleXMLElement;
+use Zend_Cache_Exception;
 
 class Utility
 {
@@ -152,6 +153,21 @@ class Utility
         $response = file_get_contents(__DIR__ . '/../MockData/XMLResponse/' . $file);
 
         return new SimpleXMLElement($response);
+    }
+
+    /**
+     * Allows to set a Shopware config
+     *
+     * @param string $name
+     * @param mixed $value
+     *
+     * @throws Zend_Cache_Exception
+     */
+    public static function setConfig($name, $value)
+    {
+        Shopware()->Container()->get('config_writer')->save($name, $value);
+        Shopware()->Container()->get('cache')->clean();
+        Shopware()->Container()->get('config')->setShop(Shopware()->Shop());
     }
 
     public static function getDemoResponse($file = 'demoResponse.xml')

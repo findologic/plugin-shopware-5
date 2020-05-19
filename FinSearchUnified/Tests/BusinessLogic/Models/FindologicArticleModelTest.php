@@ -16,6 +16,7 @@ use Shopware\Models\Article\Article;
 use Shopware\Models\Article\Detail;
 use Shopware\Models\Attribute\Article as ArticleAttribute;
 use Shopware\Models\Category\Category;
+use Shopware_Components_Config as Config;
 
 class FindologicArticleModelTest extends TestCase
 {
@@ -154,9 +155,6 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testEmptySuppliersAreSkipped(array $articleConfiguration)
     {
-        $baseCategory = new Category();
-        $baseCategory->setId(100);
-
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
         $findologicArticle = $this->articleFactory->create(
@@ -164,7 +162,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
         $this->assertEquals(get_class($findologicArticle), FindologicArticleModel::class);
     }
@@ -285,7 +283,7 @@ class FindologicArticleModelTest extends TestCase
     }
 
     /**
-     * @dataProvider emptyAttributeValuesProvider*
+     * @dataProvider emptyAttributeValuesProvider
      *
      * @param array $articleConfiguration
      *
@@ -293,17 +291,14 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testEmptyValue(array $articleConfiguration)
     {
-        $baseCategory = new Category();
-        $baseCategory->setId(100);
-
-        $article = $this->createTestProduct($articleConfiguration);
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
         $findologicArticle = $this->articleFactory->create(
-            $article,
+            $articleFromConfiguration,
             'ABCD0815',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -355,9 +350,6 @@ class FindologicArticleModelTest extends TestCase
 
         $expectedKeywords = ["I'm a simple string", "\xC2\xBD"];
 
-        $baseCategory = new Category();
-        $baseCategory->setId(5);
-
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
         $findologicArticle = $this->articleFactory->create(
@@ -365,7 +357,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -401,9 +393,6 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testArticleWithSEOUrl(array $articleConfiguration, $expectedUrl)
     {
-        $baseCategory = new Category();
-        $baseCategory->setId(5);
-
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
         $shop = Manager::getResource('Shop')->getRepository()->find(1);
@@ -419,7 +408,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -817,9 +806,6 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testEmptyValuesAreNotExported(array $articleConfiguration)
     {
-        $baseCategory = new Category();
-        $baseCategory->setId(5);
-
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
         $findologicArticle = $this->articleFactory->create(
@@ -827,7 +813,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -885,9 +871,6 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testEmptyPropertyValue(array $articleConfiguration)
     {
-        $baseCategory = new Category();
-        $baseCategory->setId(5);
-
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
         $findologicArticle = $this->articleFactory->create(
@@ -895,7 +878,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -954,9 +937,6 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testEmptyAttributeValues(array $articleConfiguration)
     {
-        $baseCategory = new Category();
-        $baseCategory->setId(5);
-
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
         $findologicArticle = $this->articleFactory->create(
@@ -964,7 +944,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -1044,9 +1024,6 @@ class FindologicArticleModelTest extends TestCase
         $shop = Manager::getResource('Shop')->getRepository()->find($locale);
         Shopware()->Snippets()->setShop($shop);
 
-        $baseCategory = new Category();
-        $baseCategory->setId(5);
-
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
 
         $findologicArticle = $this->articleFactory->create(
@@ -1054,7 +1031,7 @@ class FindologicArticleModelTest extends TestCase
             'ABCDABCDABCDABCDABCDABCDABCDABCD',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -1067,5 +1044,199 @@ class FindologicArticleModelTest extends TestCase
 
         $this->assertArrayHasKey('highlight', $values);
         $this->assertSame($expectedValue, $values['highlight']);
+    }
+
+    /**
+     * @return array
+     */
+    public function variantPriceProvider()
+    {
+        $articleConfiguration = [
+            'name' => 'FindologicArticle 1',
+            'active' => true,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5],
+            ],
+            'images' => [
+                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC1',
+                'active' => true,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 130,
+                    ],
+                ]
+            ],
+            'configuratorSet' => [
+                'groups' => []
+            ],
+            'variants' => [
+                [
+                    'isMain' => false,
+                    'number' => 'FINDOLOGIC1.1',
+                    'active' => true,
+                    'inStock' => 0,
+                    'lastStock' => false,
+                    'prices' => [
+                        [
+                            'customerGroupKey' => 'EK',
+                            'price' => 110,
+                        ],
+                    ],
+                    'configuratorOptions' => []
+                ],
+                [
+                    'isMain' => false,
+                    'number' => 'FINDOLOGIC1.2',
+                    'active' => true,
+                    'inStock' => 5,
+                    'lastStock' => true,
+                    'prices' => [
+                        [
+                            'customerGroupKey' => 'EK',
+                            'price' => 120,
+                        ],
+                    ],
+                    'configuratorOptions' => []
+                ],
+                [
+                    'isMain' => false,
+                    'number' => 'FINDOLOGIC1.3',
+                    'active' => true,
+                    'inStock' => 0,
+                    'lastStock' => true,
+                    'prices' => [
+                        [
+                            'customerGroupKey' => 'EK',
+                            'price' => 100,
+                        ],
+                    ],
+                    'configuratorOptions' => []
+                ]
+            ],
+            'filterGroupId' => 1,
+        ];
+
+        return [
+            'Out of stock variants are ignored' => [
+                'articleConfiguration' => $articleConfiguration,
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider variantPriceProvider
+     *
+     * @param array $articleConfiguration
+     *
+     * @throws ReflectionException
+     */
+    public function testMainPriceNotConsideredWhenLastStock(array $articleConfiguration)
+    {
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        // Set lastStock value for Shopware <= 5.3
+        if (!method_exists($articleFromConfiguration->getMainDetail(), 'getLastStock')) {
+            /** @var Detail $detail*/
+            foreach ($articleFromConfiguration->getDetails() as $index => $detail) {
+                $article = (new Article())->setLastStock($articleConfiguration['variants'][$index]['lastStock']);
+                $detail->setArticle($article);
+            }
+        }
+
+        $mockConfig = $this->getMockBuilder(Config::class)
+            ->setMethods(['get'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig
+            ->method('get')
+            ->willReturn(true);
+
+        Shopware()->Container()->set('config', $mockConfig);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [Shopware()->Shop()->getCustomerGroup()],
+            [],
+            $articleFromConfiguration->getCategories()->first()
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+        $reflector = new ReflectionClass(Item::class);
+
+        $prices = $reflector->getProperty('price');
+        $prices->setAccessible(true);
+        $price = (float)array_pop($prices->getValue($xmlArticle)->getValues());
+
+        $this->assertEquals(110.00, $price);
+    }
+
+    public function articleProvider()
+    {
+        $articleConfiguration = [
+            'name' => 'FindologicArticle 1',
+            'active' => true,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5],
+            ],
+            'images' => [
+                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC1',
+                'active' => true,
+                'inStock' => 16,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+            'filterGroupId' => 1,
+        ];
+
+        return [
+            'Categories not in the base category are ignored' => [
+                'articleConfiguration' => $articleConfiguration,
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider articleProvider*
+     *
+     * @param array $articleConfiguration
+     *
+     * @throws Exception
+     */
+    public function testCrossSellingCategoryNotInBaseCategory(array $articleConfiguration)
+    {
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $baseCategory = new Category();
+        $baseCategory->setId(1337);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $this->assertNotNull($findologicArticle);
     }
 }

@@ -284,7 +284,14 @@ class FindologicArticleModel
             if (!($detail instanceof Detail)) {
                 continue;
             }
-            if ($detail->getInStock() < 1) {
+
+            if (method_exists($detail, 'getLastStock')) {
+                $lastStock = $detail->getLastStock();
+            } else {
+                $lastStock = $detail->getArticle()->getLastStock();
+            }
+
+            if ($detail->getInStock() < 1 && $lastStock && Shopware()->Config()->get('hideNoInStock')) {
                 continue;
             }
             if ($detail->getActive()) {
@@ -301,12 +308,9 @@ class FindologicArticleModel
 
         // main prices per customergroup
         foreach ($this->baseVariant->getPrices() as $price) {
-            if ($price->getCustomerGroup()) {
-                /** @var Group $customerGroup */
-                $customerGroup = $price->getCustomerGroup();
-                if ($customerGroup) {
-                    $priceArray[$customerGroup->getKey()][] = $price->getPrice();
-                }
+            /** @var Group $customerGroup */
+            if ($customerGroup = $price->getCustomerGroup()) {
+                $priceArray[$customerGroup->getKey()][] = $price->getPrice();
             }
         }
 
@@ -864,9 +868,23 @@ class FindologicArticleModel
         $crossSellingCategories = Shopware()->Config()->offsetGet('CrossSellingCategories');
         /** @var Category $category */
         foreach ($this->baseArticle->getCategories() as $category) {
-            if (in_array($category->getId(), $crossSellingCategories, true)) {
+            if (!$category->isChildOf($this->baseCategory)) {
+                continue;
+            }
+
+            if (in_array($this->buildCategoryTree($category), $crossSellingCategories, true)) {
                 return true;
             }
         }
+        return false;
+    }
+
+    protected function buildCategoryTree(Category $category)
+    {
+        if ($category->getId() === $this->baseCategory->getId()) {
+            return $category->getName();
+        }
+
+        return $this->buildCategoryTree($category->getParent()) . '>' . $category->getName();
     }
 }
