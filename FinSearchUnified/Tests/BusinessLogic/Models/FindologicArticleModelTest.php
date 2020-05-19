@@ -1178,4 +1178,65 @@ class FindologicArticleModelTest extends TestCase
 
         $this->assertEquals(110.00, $price);
     }
+
+    public function articleProvider()
+    {
+        $articleConfiguration = [
+            'name' => 'FindologicArticle 1',
+            'active' => true,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5],
+            ],
+            'images' => [
+                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC1',
+                'active' => true,
+                'inStock' => 16,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+            'filterGroupId' => 1,
+        ];
+
+        return [
+            'Categories not in the base category are ignored' => [
+                'articleConfiguration' => $articleConfiguration,
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider articleProvider*
+     *
+     * @param array $articleConfiguration
+     *
+     * @throws Exception
+     */
+    public function testCrossSellingCategoryNotInBaseCategory(array $articleConfiguration)
+    {
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $baseCategory = new Category();
+        $baseCategory->setId(1337);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $this->assertNotNull($findologicArticle);
+    }
 }
