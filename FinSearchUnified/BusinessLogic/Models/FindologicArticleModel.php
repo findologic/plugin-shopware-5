@@ -864,6 +864,10 @@ class FindologicArticleModel
         $crossSellingCategories = Shopware()->Config()->offsetGet('CrossSellingCategories');
         /** @var Category $category */
         foreach ($this->baseArticle->getCategories() as $category) {
+            if (!$category->isChildOf($this->baseCategory)) {
+                continue;
+            }
+
             if (in_array($this->buildCategoryTree($category), $crossSellingCategories, true)) {
                 return true;
             }
