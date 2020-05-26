@@ -264,13 +264,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     ) {
         $query = $this->createQueryBuilder();
         $query->addUserGroup($context->getCurrentCustomerGroup()->getKey());
-
-        if ($criteria->getOffset() === 0 && $criteria->getLimit() === 1) {
-            $limit = 0;
-        } else {
-            $limit = $criteria->getLimit();
-        }
-        $query->setMaxResults($limit);
+        $query->setMaxResults(0);
 
         $condition = null;
 
