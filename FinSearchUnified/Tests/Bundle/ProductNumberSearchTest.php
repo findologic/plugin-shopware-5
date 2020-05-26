@@ -148,7 +148,7 @@ class ProductNumberSearchTest extends TestCase
             ->method('createProductQuery')
             ->willReturn($mockedQuery);
         $mockQuerybuilderFactory->expects($this->any())
-            ->method('createProductQuery')
+            ->method('createSearchNavigationQueryWithoutAdditionalFilters')
             ->willReturn($mockedQuery);
 
         $originalService = $this->createMock(OriginalProductNumberSearch::class);
@@ -750,7 +750,7 @@ class ProductNumberSearchTest extends TestCase
             $mockedQuery->expects($this->once())->method('execute')->willReturn($response);
 
             $mockQuerybuilderFactory->expects($this->once())
-                ->method('createProductQuery')
+                ->method('createSearchNavigationQueryWithoutAdditionalFilters')
                 ->willReturn($mockedQuery);
 
             $cacheKey = sprintf('finsearch_%s', md5($request->getRequestUri()));
