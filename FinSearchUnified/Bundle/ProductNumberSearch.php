@@ -372,8 +372,8 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         if ($this->cache->load($cacheId) === false) {
             /** @var QueryBuilder $query */
-            $query =
-                $this->queryBuilderFactory->createSearchNavigationQueryWithoutAdditionalFilters($criteria, $context);
+            $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
+
             $response = $query->execute();
             $this->cache->save($response, $cacheId, ['FINDOLOGIC'], 60 * 60 * 24);
         } else {

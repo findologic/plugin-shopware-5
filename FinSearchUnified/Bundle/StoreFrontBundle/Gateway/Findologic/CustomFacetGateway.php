@@ -49,8 +49,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         $criteria->offset(0)->limit(1);
 
         /** @var QueryBuilder $query */
-        $query = $this->queryBuilderFactory->createSearchNavigationQueryWithoutAdditionalFilters($criteria, $context);
-
+        $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
         $response = $query->execute();
 
         if (!empty($response)) {
