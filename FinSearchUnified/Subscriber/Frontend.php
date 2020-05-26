@@ -207,7 +207,7 @@ class Frontend implements SubscriberInterface
             $view->addTemplateDir($this->pluginDirectory . '/Resources/views/');
             $view->extendsTemplate('frontend/fin_search_unified/header.tpl');
             $view->assign('userGroupHash', $hash);
-            $view->assign('hashedShopkey', strtoupper(md5($this->getShopKey())));
+            $view->assign('shopkey', strtoupper($this->getShopKey()));
             $view->assign('searchResultContainer', $searchResultContainer);
             $view->assign('navigationContainer', $navigationContainer);
         } catch (Exception $e) {
