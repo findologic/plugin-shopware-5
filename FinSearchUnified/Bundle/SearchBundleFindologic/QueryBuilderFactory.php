@@ -262,7 +262,16 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
         Criteria $criteria,
         ShopContextInterface $context
     ) {
-        $query = $this->createProductQuery($criteria, $context);
+        $query = $this->createQueryBuilder();
+        $query->addUserGroup($context->getCurrentCustomerGroup()->getKey());
+
+        if ($criteria->getOffset() === 0 && $criteria->getLimit() === 1) {
+            $limit = 0;
+        } else {
+            $limit = $criteria->getLimit();
+        }
+        $query->setMaxResults($limit);
+
         $condition = null;
 
         if ($query instanceof SearchQueryBuilder) {
