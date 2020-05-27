@@ -263,6 +263,9 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
         ShopContextInterface $context
     ) {
         $query = $this->createQueryBuilder();
+        $query->addUserGroup($context->getCurrentCustomerGroup()->getKey());
+        $query->setMaxResults(0);
+
         $condition = null;
 
         if ($query instanceof SearchQueryBuilder) {
