@@ -2,16 +2,17 @@
 
 namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic;
 
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
+use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\ResponseParser;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Filter;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\CustomFacetGatewayInterface;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
-use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
-use SimpleXMLElement;
 use Zend_Cache_Exception;
 
 class CustomFacetGateway implements CustomFacetGatewayInterface
@@ -50,15 +51,15 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         $criteria = new Criteria();
         $criteria->offset(0)->limit(1);
 
-        /** @var NewQueryBuilder $query */
+        /** @var QueryBuilder $query */
         $query = $this->queryBuilderFactory->createSearchNavigationQueryWithoutAdditionalFilters($criteria, $context);
+
+        /** @var Xml21Response $response */
         $response = $query->execute();
-        $rawResponse = $response->getRawResponse();
-
-        if (!empty($rawResponse)) {
-            $xmlResponse = StaticHelper::getXmlFromRawResponse($rawResponse);
-
-            return $this->hydrate($xmlResponse->filters->filter);
+        $responseParser = ResponseParser::getInstance($response);
+        $filters = $responseParser->getFilters();
+        if (count($filters) > 0) {
+            return $this->hydrate($filters);
         }
 
         return [];
@@ -80,13 +81,13 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         $criteria->addCondition(new CategoryCondition($categoryIds));
 
         $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
+        /** @var Xml21Response $response */
         $response = $query->execute();
-        $rawResponse = $response->getRawResponse();
-
-        if (!empty($rawResponse)) {
-            $xmlResponse = StaticHelper::getXmlFromRawResponse($rawResponse);
+        $responseParser = ResponseParser::getInstance($response);
+        $filters = $responseParser->getFilters();
+        if (count($filters) > 0) {
             $categoryFacets = [];
-            $categoryFacets[$categoryId] = $this->hydrate($xmlResponse->filters->filter);
+            $categoryFacets[$categoryId] = $this->hydrate($filters);
 
             return $categoryFacets;
         }
@@ -105,12 +106,12 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
     }
 
     /**
-     * @param SimpleXMLElement $filters
+     * @param Filter[] $filters
      *
      * @return CustomFacet[]
      * @throws Zend_Cache_Exception
      */
-    private function hydrate(SimpleXMLElement $filters)
+    private function hydrate(array $filters)
     {
         $facets = [];
         $hasCategoryFacet = false;

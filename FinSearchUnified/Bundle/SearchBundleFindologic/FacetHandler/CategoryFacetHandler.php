@@ -3,29 +3,31 @@
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler;
 
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Filter\BaseFilter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\CategoryFilter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Values\CategoryFilterValue;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\FacetInterface;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\TreeItem;
-use SimpleXMLElement;
 
 class CategoryFacetHandler implements PartialFacetHandlerInterface
 {
     /**
      * @param FacetInterface $facet
      * @param Criteria $criteria
-     * @param SimpleXMLElement $filter
+     * @param BaseFilter $filter
      *
      * @return TreeFacetResult
      */
-    public function generatePartialFacet(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filter)
+    public function generatePartialFacet(FacetInterface $facet, Criteria $criteria, BaseFilter $filter)
     {
         // Get active categories from criteria and parse it into structured array
         $actives = $this->getActives($facet, $criteria);
 
         // Put additional categories from filterItems into the active categories array
-        $categories = array_replace_recursive($this->parseCategories($filter->items->item, $actives), $actives);
+        $categories = array_replace_recursive($this->parseCategories($filter->getValues(), $actives), $actives);
 
         return new TreeFacetResult(
             $facet->getName(),
@@ -37,13 +39,13 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
     }
 
     /**
-     * @param SimpleXMLElement $filter
+     * @param BaseFilter $filter
      *
      * @return bool
      */
-    public function supportsFilter(SimpleXMLElement $filter)
+    public function supportsFilter(BaseFilter $filter)
     {
-        return (string)$filter->name === 'cat';
+        return $filter instanceof CategoryFilter;
     }
 
     /**
@@ -70,9 +72,7 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
         }
 
         // Parse active array into structured category tree array
-        $categories = $this->prepareCategoryTree($actives);
-
-        return $categories;
+        return $this->prepareCategoryTree($actives);
     }
 
     /**
@@ -102,24 +102,24 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
     /**
      * Parse the filter items and build an array structure
      *
-     * @param SimpleXMLElement|null $filterItems
+     * @param CategoryFilterValue[] $filterItems
      * @param array|null $actives
      *
      * @return array
      */
-    private function parseCategories(SimpleXMLElement $filterItems = null, array $actives = null)
+    private function parseCategories(array $filterItems = null, array $actives = null)
     {
         $categories = [];
 
         foreach ($filterItems as $filterItem) {
-            $name = (string)$filterItem->name;
-            $frequency = (int)$filterItem->frequency;
+            $name = $filterItem->getName();
+            $frequency = $filterItem->getFrequency();
 
             // If category is in actives array, then set active to true and recursively parse child categories
             $isActive = $this->keyExists($name, $actives);
             $categories[$name] = [
                 'active' => $isActive,
-                'children' => $filterItem->items->item ? $this->parseCategories($filterItem->items->item, $actives) : []
+                'children' => $filterItem->getValues() ? $this->parseCategories($filterItem->getValues(), $actives) : []
             ];
 
             // Do not set filter item frequency if "Product & Filter live reloading" is enabled in the Shopware Backend.

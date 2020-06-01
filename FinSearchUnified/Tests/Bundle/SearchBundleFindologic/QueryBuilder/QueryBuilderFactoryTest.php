@@ -5,9 +5,9 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\QueryBuilder;
 use Enlight_Controller_Request_RequestHttp;
 use Exception;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewNavigationQueryBuilder;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilderFactory;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewSearchQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NavigationQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilderFactory;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\SearchQueryBuilder;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
@@ -23,10 +23,10 @@ use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 
-class NewQueryBuilderFactoryTest extends TestCase
+class QueryBuilderFactoryTest extends TestCase
 {
     /**
-     * @var NewQueryBuilderFactory
+     * @var QueryBuilderFactory
      */
     private $factory;
 
@@ -49,7 +49,7 @@ class NewQueryBuilderFactoryTest extends TestCase
         Shopware()->Session()->offsetSet('isSearchPage', true);
         Shopware()->Config()->ShopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
 
-        $this->factory = new NewQueryBuilderFactory(
+        $this->factory = new QueryBuilderFactory(
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
             Shopware()->Config()
         );
@@ -358,8 +358,8 @@ class NewQueryBuilderFactoryTest extends TestCase
     public function isSearchPageDataProvider()
     {
         return [
-            'Search request' => [true, NewSearchQueryBuilder::class],
-            'Navigation request' => [false, NewNavigationQueryBuilder::class],
+            'Search request' => [true, SearchQueryBuilder::class],
+            'Navigation request' => [false, NavigationQueryBuilder::class],
         ];
     }
 

@@ -10,6 +10,7 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\QueryInfoMessa
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\QueryInfoMessage\QueryInfoMessage;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\QueryInfoMessage\SearchTermQueryInfoMessage;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\QueryInfoMessage\VendorInfoMessage;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Filter;
 use Shopware\Bundle\StoreFrontBundle\Service\ProductNumberServiceInterface;
 
 class Xml21ResponseParser extends ResponseParser
@@ -237,5 +238,24 @@ class Xml21ResponseParser extends ResponseParser
     private function isFilterSet(array $params, $name)
     {
         return isset($params[$name]) && !empty($params[$name]);
+    }
+
+    /**
+     * @return Filter[]
+     */
+    public function getFilters()
+    {
+        $apiFilters = array_merge($this->response->getMainFilters(), $this->response->getOtherFilters());
+
+        $filters = [];
+        foreach ($apiFilters as $apiFilter) {
+            $filter = Filter::getInstance($apiFilter);
+
+            if ($filter && count($filter->getValues()) >= 1) {
+                $filters[] = $filter;
+            }
+        }
+
+        return $filters;
     }
 }

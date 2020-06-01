@@ -2,7 +2,7 @@
 
 {block name="frontend_listing_filter_facet_multi_selection_input"}
     <span class="filter-panel--input filter-panel--{$inputType}" style="display: none">
-                                                            {$name = "__{$facet->getFieldName()|escape:'htmlall'}__{$option->getId()|escape:'htmlall'}"}
+        {$name = "__{$facet->getFieldName()|escape:'htmlall'}__{$option->getId()|escape:'htmlall'}"}
         {if $filterType == 'radio'}
             {$name = {$facet->getFieldName()|escape:'htmlall'} }
         {/if}
@@ -13,18 +13,19 @@
                value="{$option->getId()|escape:'htmlall'}" style="background-color: #fff !important; content: ''"
                {if $option->isActive()}checked="checked" {/if}/>
 
-                                                            <span class="input--state {$inputType}--state">&nbsp;</span>
-                                                        </span>
+        <span class="input--state {$inputType}--state">&nbsp;</span>
+    </span>
 {/block}
 
 {block name="frontend_listing_filter_facet_multi_selection_label"}
     <label class="filter-panel--label"
            for="__{$facet->getFieldName()|escape:'htmlall'}__{$option->getId()|escape:'htmlall'}">
 
-            {if $option->getColorcode()}
-                {$mediaFile = $option->getColorcode()}
-            {/if}
-            <div style="width:30px; height: 30px; margin: 2px; background: {$mediaFile};"></div>
-
+        {if $option->getColorcode()}
+            {$mediaFile = $option->getColorcode()}
+            <div title="{$option->getId()|escape:'htmlall'}" style="width:30px; height: 30px; margin: 2px; background: {$mediaFile};"></div>
+        {else}
+            <img style="width:30px; height: 30px; margin: 2px;" class="filter-panel--media-image" title="{$option->getId()|escape:'htmlall'}" src="/themes/Frontend/Responsive/frontend/_public/src/img/no-picture.jpg" alt="{$option->getId()|escape:'htmlall'}">
+        {/if}
     </label>
 {/block}

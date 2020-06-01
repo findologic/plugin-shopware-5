@@ -3,11 +3,11 @@
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler;
 
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
-use Shopware;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Filter\BaseFilter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\RangeSliderFilter;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\FacetInterface;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
-use SimpleXMLElement;
 
 class RangeFacetHandler implements PartialFacetHandlerInterface
 {
@@ -16,28 +16,29 @@ class RangeFacetHandler implements PartialFacetHandlerInterface
     /**
      * @param FacetInterface $facet
      * @param Criteria $criteria
-     * @param SimpleXMLElement $filter
+     * @param BaseFilter $filter
      *
      * @return RangeFacetResult|null
      */
-    public function generatePartialFacet(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filter)
+    public function generatePartialFacet(FacetInterface $facet, Criteria $criteria, BaseFilter $filter)
     {
-        $min = (float)$filter->attributes->totalRange->min;
-        $max = (float)$filter->attributes->totalRange->max;
+        /** @var RangeSliderFilter $filter */
+        $min = $filter->getMin();
+        $max = $filter->getMax();
 
         if ($min === $max) {
             return null;
         }
 
-        $activeMin = (float)$filter->attributes->selectedRange->min;
-        $activeMax = (float)$filter->attributes->selectedRange->max;
+        $activeMin = $filter->getActiveMin();
+        $activeMax = $filter->getActiveMax();
 
         $conditionField = $facet->getField();
         $conditionName = $facet->getName();
-        $minFieldName = 'min' . $conditionField;
-        $maxFieldName = 'max' . $conditionField;
+        $minFieldName = $filter->getMinKey();
+        $maxFieldName = $filter->getMaxKey();
 
-        if ((string)$filter->name === 'price') {
+        if ($filter->getId() === 'price') {
             $minFieldName = 'min';
             $maxFieldName = 'max';
             $conditionField = $conditionName = 'price';
@@ -61,28 +62,33 @@ class RangeFacetHandler implements PartialFacetHandlerInterface
     /**
      * Fetches the unit from the filter. May return the template path if Shopware version is >5.3.0.
      *
-     * @param SimpleXMLElement $filter
-     * @return string|null
+     * @param BaseFilter $filter
+     *
+     * @return string
      */
-    private function getUnit(SimpleXMLElement $filter)
+    private function getUnit(BaseFilter $filter)
     {
         $shopwareVersion = Shopware()->Config()->get('version');
+
+        if ($shopwareVersion === '___VERSION___') {
+            $shopwareVersion = '5.6.7';
+        }
 
         if (version_compare($shopwareVersion, '5.3', '<')) {
             // Shopware >5.3.0 does not support units. In Shopware 5.2.x this argument is the template path.
             return self::TEMPLATE_PATH;
         }
 
-        return !empty($filter->attributes->unit) ? (string)$filter->attributes->unit : null;
+        return $filter->getUnit();
     }
 
     /**
-     * @param SimpleXMLElement $filter
+     * @param BaseFilter $filter
      *
      * @return bool
      */
-    public function supportsFilter(SimpleXMLElement $filter)
+    public function supportsFilter(BaseFilter $filter)
     {
-        return ((string)$filter->type === 'range-slider');
+        return $filter instanceof RangeSliderFilter;
     }
 }

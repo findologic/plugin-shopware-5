@@ -2,10 +2,11 @@
 
 namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator;
 
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Filter\BaseFilter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\RangeSliderFilter;
 use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use FinSearchUnified\Components\ConfigLoader;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
-use SimpleXMLElement;
 use Zend_Cache_Exception;
 
 class CustomListingHydrator
@@ -18,22 +19,21 @@ class CustomListingHydrator
     }
 
     /**
-     * @param SimpleXMLElement $select
+     * @param BaseFilter $filter
      *
      * @return CustomFacet
      */
-    public function hydrateFacet(SimpleXMLElement $select)
+    public function hydrateFacet(BaseFilter $filter)
     {
-        $name = (string)$select->name;
-        $label = (string)$select->display;
-        $type = (string)$select->type;
-        $select = (string)$select->select;
+        $name = $filter->getId();
+        $label = $filter->getName();
+        $mode = $filter->getMode();
 
-        if ($type === 'range-slider') {
+        if ($filter instanceof RangeSliderFilter) {
             $mode = ProductAttributeFacet::MODE_RANGE_RESULT;
-        } elseif ($select === 'single') {
+        } elseif ($mode === 'single') {
             $mode = ProductAttributeFacet::MODE_RADIO_LIST_RESULT;
-        } elseif ($select === 'multiple' || $select === 'multiselect') {
+        } elseif ($mode === 'multiple' || $mode === 'multiselect') {
             $mode = ProductAttributeFacet::MODE_VALUE_LIST_RESULT;
         } else {
             $mode = ProductAttributeFacet::MODE_VALUE_LIST_RESULT;

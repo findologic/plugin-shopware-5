@@ -5,7 +5,7 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\ConditionHandler;
 use Enlight_Controller_Request_RequestHttp;
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\SimpleConditionHandler;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewSearchQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\SearchQueryBuilder;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\SimpleCondition;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
@@ -13,7 +13,7 @@ use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
 class SimpleConditionHandlerTest extends TestCase
 {
     /**
-     * @var NewSearchQueryBuilder
+     * @var SearchQueryBuilder
      */
     private $querybuilder;
 
@@ -36,7 +36,7 @@ class SimpleConditionHandlerTest extends TestCase
         Shopware()->Session()->offsetSet('isSearchPage', true);
         Shopware()->Config()->ShopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
 
-        $this->querybuilder = new NewSearchQueryBuilder(
+        $this->querybuilder = new SearchQueryBuilder(
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
             Shopware()->Config()
         );

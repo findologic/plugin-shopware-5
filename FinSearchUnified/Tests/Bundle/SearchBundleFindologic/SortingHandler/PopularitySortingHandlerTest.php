@@ -4,8 +4,8 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\SortingHandler;
 
 use Enlight_Controller_Request_RequestHttp;
 use Exception;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewSearchQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\SearchQueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\PopularitySortingHandler;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Sorting\PopularitySorting;
@@ -15,7 +15,7 @@ use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
 class PopularitySortingHandlerTest extends TestCase
 {
     /**
-     * @var NewQueryBuilder
+     * @var QueryBuilder
      */
     private $querybuilder;
 
@@ -38,7 +38,7 @@ class PopularitySortingHandlerTest extends TestCase
         Shopware()->Session()->offsetSet('isSearchPage', true);
         Shopware()->Config()->ShopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
 
-        $this->querybuilder = new NewSearchQueryBuilder(
+        $this->querybuilder = new SearchQueryBuilder(
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
             Shopware()->Config()
         );

@@ -2,7 +2,7 @@
 
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser;
 
-class SmartDidYouMean
+class SmartDidYouMean extends Struct
 {
     const DID_YOU_MEAN = 'did-you-mean';
     const IMPROVED = 'improved';
@@ -88,18 +88,5 @@ class SmartDidYouMean
     public function getOriginalQuery()
     {
         return $this->originalQuery;
-    }
-
-    /**
-     * @return array
-     */
-    public function getVars()
-    {
-        return [
-            'type' => $this->type,
-            'link' => $this->link,
-            'alternativeQuery' => $this->alternativeQuery,
-            'originalQuery' => $this->originalQuery,
-        ];
     }
 }

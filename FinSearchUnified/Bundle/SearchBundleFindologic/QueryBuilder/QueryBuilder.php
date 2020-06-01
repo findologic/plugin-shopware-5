@@ -14,7 +14,7 @@ use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware_Components_Config;
 
-abstract class NewQueryBuilder
+abstract class QueryBuilder
 {
     /**
      * @var SearchNavigationRequest

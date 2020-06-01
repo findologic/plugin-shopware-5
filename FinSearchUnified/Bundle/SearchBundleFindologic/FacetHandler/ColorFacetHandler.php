@@ -4,22 +4,24 @@ namespace FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler;
 
 use FinSearchUnified\Bundle\SearchBundle\FacetResult\ColorListItem;
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Filter\BaseFilter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\ColorPickerFilter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Values\ColorFilterValue;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\SearchBundle\FacetInterface;
 use Shopware\Bundle\SearchBundle\FacetResult\MediaListFacetResult;
-use SimpleXMLElement;
 
 class ColorFacetHandler implements PartialFacetHandlerInterface
 {
     /**
      * @param FacetInterface $facet
      * @param Criteria $criteria
-     * @param SimpleXMLElement $filter
+     * @param BaseFilter $filter
      *
      * @return MediaListFacetResult
      */
-    public function generatePartialFacet(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filter)
+    public function generatePartialFacet(FacetInterface $facet, Criteria $criteria, BaseFilter $filter)
     {
         $actives = [];
 
@@ -38,7 +40,7 @@ class ColorFacetHandler implements PartialFacetHandlerInterface
             $facet->getName(),
             $criteria->hasCondition($facet->getName()),
             $facet->getLabel(),
-            $this->getColorItems($filter->items->item, $actives),
+            $this->getColorItems($filter->getValues(), $actives),
             $facet->getFormFieldName(),
             [],
             'frontend/listing/filter/facet-color-list.tpl'
@@ -46,29 +48,29 @@ class ColorFacetHandler implements PartialFacetHandlerInterface
     }
 
     /**
-     * @param SimpleXMLElement $filter
+     * @param BaseFilter $filter
      *
      * @return bool
      */
-    public function supportsFilter(SimpleXMLElement $filter)
+    public function supportsFilter(BaseFilter $filter)
     {
-        return (string)$filter->type === 'color' && !isset($filter->items->item[0]->image);
+        return $filter instanceof ColorPickerFilter;
     }
 
     /**
-     * @param SimpleXMLElement $filterItems
+     * @param ColorFilterValue[] $filterItems
      * @param array $actives
      *
      * @return array
      */
-    private function getColorItems(SimpleXMLElement $filterItems, array $actives)
+    private function getColorItems(array $filterItems, array $actives)
     {
         $items = [];
 
         foreach ($filterItems as $filterItem) {
             $active = false;
-            $name = (string)$filterItem->name;
-            $color = (string)$filterItem->color;
+            $name = $filterItem->getName();
+            $color = $filterItem->getColorHexCode();
 
             $index = array_search($name, $actives);
 
