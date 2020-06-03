@@ -45,7 +45,7 @@ class ImageFacetHandlerTest extends TestCase
     public function testSupportsFilter($apiFilter, $doesSupport)
     {
         $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $filter = new $apiFilter($data);
+        $filter = new $apiFilter(new SimpleXMLElement($data));
         $facetHandler = new ImageFacetHandler(Shopware()->Container()->get('guzzle_http_client_factory'));
         $result = $facetHandler->supportsFilter($filter);
 

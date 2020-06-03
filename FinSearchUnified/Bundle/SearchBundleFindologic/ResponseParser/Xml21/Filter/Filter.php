@@ -106,7 +106,7 @@ abstract class Filter extends BaseFilter
         return $customFilter;
     }
 
-    private static function handleColorPickerFilter(ApiColorPickerFilter $filter, Client $client = null)
+    private static function handleColorPickerFilter(ApiColorPickerFilter $filter)
     {
         $customFilter = new ColorPickerFilter($filter->getName(), $filter->getDisplay());
 
@@ -124,7 +124,7 @@ abstract class Filter extends BaseFilter
         return $customFilter;
     }
 
-    private static function handleVendorImageFilter(ApiVendorImageFilter $filter, Client $client = null)
+    private static function handleVendorImageFilter(ApiVendorImageFilter $filter)
     {
         $customFilter = new VendorImageFilter($filter->getName(), $filter->getDisplay());
 

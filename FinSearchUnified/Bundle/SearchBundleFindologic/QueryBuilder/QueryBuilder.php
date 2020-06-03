@@ -92,7 +92,7 @@ abstract class QueryBuilder
      */
     public function addQuery($query)
     {
-        $this->searchNavigationRequest->setQuery($query);
+        $this->searchNavigationRequest->setQuery(urldecode($query));
     }
 
     /**
@@ -102,8 +102,8 @@ abstract class QueryBuilder
      */
     public function addRangeFilter($key, $min, $max)
     {
-        $this->searchNavigationRequest->addAttribute($key, $min, 'min');
-        $this->searchNavigationRequest->addAttribute($key, $max, 'max');
+        $this->searchNavigationRequest->addAttribute($key, urldecode($min), 'min');
+        $this->searchNavigationRequest->addAttribute($key, urldecode($max), 'max');
     }
 
     /**
@@ -163,7 +163,7 @@ abstract class QueryBuilder
      */
     public function addParameter($key, $value)
     {
-        $this->searchNavigationRequest->addAttribute($key, $value);
+        $this->searchNavigationRequest->addAttribute($key, urldecode($value));
     }
 
     /**

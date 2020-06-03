@@ -20,6 +20,7 @@ use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\SearchBundle\FacetResult\MediaListFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResultInterface;
+use SimpleXMLElement;
 
 class ColorFacetHandlerTest extends TestCase
 {
@@ -32,7 +33,7 @@ class ColorFacetHandlerTest extends TestCase
     public function testSupportsFilter($apiFilter, $doesSupport)
     {
         $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $filter = new $apiFilter($data);
+        $filter = new $apiFilter(new SimpleXMLElement($data));
         $facetHandler = new ColorFacetHandler();
         $result = $facetHandler->supportsFilter($filter);
 
