@@ -28,11 +28,8 @@ use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
-use Shopware\Plugin\Debug\Components\Utils;
 use Zend_Cache_Core;
 use Zend_Cache_Exception;
-
-use function var_export;
 
 class ProductNumberSearch implements ProductNumberSearchInterface
 {
@@ -202,14 +199,13 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         $request = Shopware()->Front()->Request();
         if (!$this->isAjaxRequest($request) && StaticHelper::isProductAndFilterLiveReloadingEnabled()) {
             $response = $this->getResponseWithoutFilters($criteria, $context);
-            if (StaticHelper::isEmpty($filters)) {
-                return [];
-            }
-
             // Show all filters for the initial requests for ajax reloading. This is required because Shopware
             // needs a general overview of all available filters before disabling other filters that may
             // not be available.
             $filters = ResponseParser::getInstance($response)->getFilters();
+            if (StaticHelper::isEmpty($filters)) {
+                return [];
+            }
         }
 
         /** @var ProductAttributeFacet $criteriaFacet */
@@ -217,8 +213,8 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             if (!($criteriaFacet instanceof ProductAttributeFacet)) {
                 continue;
             }
-            $field = $criteriaFacet->getField();
 
+            $field = $criteriaFacet->getField();
             $selectedFilter = $selectedFilterByResponse = $this->fetchSelectedFilterByResponse(
                 $filters,
                 $field
@@ -239,10 +235,12 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             if ($handler === null) {
                 continue;
             }
+
             $partialFacet = $handler->generatePartialFacet($criteriaFacet, $criteria, $selectedFilter);
             if ($partialFacet === null) {
                 continue;
             }
+
             $facets[] = $partialFacet;
         }
 
