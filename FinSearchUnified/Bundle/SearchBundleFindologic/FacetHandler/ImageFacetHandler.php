@@ -17,6 +17,8 @@ use Shopware\Bundle\SearchBundle\FacetResult\MediaListItem;
 use Shopware\Bundle\StoreFrontBundle\Struct\Media;
 use Shopware\Components\HttpClient\GuzzleFactory;
 
+use function array_search;
+
 class ImageFacetHandler implements PartialFacetHandlerInterface
 {
     /**
@@ -86,9 +88,11 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
         $listItems = [];
         $items = [];
         $requests = [];
+        $orderedArray = [];
 
         foreach ($filterItems as $filterItem) {
             $name = $filterItem->getName();
+            $orderedArray[] = $name;
             $index = array_search($name, $actives);
 
             if ($index === false) {
@@ -152,6 +156,15 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
         ];
 
         Pool::send($this->guzzleClient, $requests, $options);
+
+        // Re-sort the resulting `listItems` as the asynchronous operation on `filterItems` can sometimes mess the
+        // original sorting which comes from the Findologic backend
+        usort(
+            $listItems,
+            static function ($a, $b) use ($orderedArray) {
+                return array_search($a->getId(), $orderedArray, true) > array_search($b->getId(), $orderedArray, true);
+            }
+        );
 
         return $listItems;
     }

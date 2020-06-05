@@ -2,9 +2,16 @@
 
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\FacetHandler;
 
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\ColorPickerFilter as ApiColorPickerFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\LabelTextFilter as ApiLabelTextFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\RangeSliderFilter as ApiRangeSliderFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\SelectDropdownFilter as ApiSelectDropdownFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\VendorImageFilter as ApiVendorImageFilter;
 use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\RangeFacetHandler;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Filter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\RangeSliderFilter;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
@@ -30,79 +37,44 @@ class RangeFacetHandlerTest extends TestCase
         Shopware()->Container()->set('config', $mockConfig);
     }
 
-    /**
-     * @dataProvider filterProvider
-     *
-     * @param string $type
-     * @param bool $doesSupport
-     */
-    public function testSupportsFilter($type, $doesSupport)
+    protected function tearDown()
     {
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $filter = new SimpleXMLElement($data);
-
-        $filter->addChild('name', 'attr6');
-        $filter->addChild('type', $type);
-
-        $facetHandler = new RangeFacetHandler();
-        $result = $facetHandler->supportsFilter($filter);
-
-        $this->assertSame($doesSupport, $result);
+        parent::tearDown();
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->load('config');
     }
 
     public function filterProvider()
     {
         return [
-            'Filter with "select" type' => ['select', false],
-            'Filter with "label" type' => ['label', false],
-            'Filter with "color" type' => ['color', false],
-            'Filter with "image" type' => ['image', false],
-            'Filter with "range-slider" type' => ['range-slider', true],
+            'Filter with "select" type' => [ApiSelectDropdownFilter::class, false],
+            'Filter with "label" type' => [ApiLabelTextFilter::class, false],
+            'Filter with "image" type' => [ApiVendorImageFilter::class, false],
+            'Filter with "range-slider" type' => [ApiRangeSliderFilter::class, true],
+            'Filter with "color" type' => [ApiColorPickerFilter::class, false]
         ];
     }
 
     /**
-     * @dataProvider rangeFacetResultProvider
+     * @dataProvider filterProvider
      *
-     * @param array $filterData
-     * @param string $field
-     * @param string $label
-     * @param ConditionInterface|null $condition
-     * @param FacetResultInterface|null $facetResult
+     * @param string $apiFilter
+     * @param bool $doesSupport
      */
-    public function testGeneratesPartialFacetBasedOnFilterDataAndActiveConditions(
-        array $filterData,
-        $field,
-        $label,
-        ConditionInterface $condition = null,
-        FacetResultInterface $facetResult = null
-    ) {
-        $facet = new ProductAttributeFacet(
-            $field,
-            ProductAttributeFacet::MODE_RANGE_RESULT,
-            $field,
-            $label
-        );
-        $criteria = new Criteria();
-        if ($condition !== null) {
-            $criteria->addCondition($condition);
-        }
-
-        $filter = $this->generateFilter($filterData);
-
+    public function testSupportsFilter($apiFilter, $doesSupport)
+    {
+        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
+        $filter = new $apiFilter(new SimpleXMLElement($data));
         $facetHandler = new RangeFacetHandler();
-        $result = $facetHandler->generatePartialFacet($facet, $criteria, $filter);
+        $result = $facetHandler->supportsFilter(Filter::getInstance($filter));
 
-        $this->assertEquals($facetResult, $result);
+        $this->assertSame($doesSupport, $result);
     }
 
     public function rangeFacetResultProvider()
     {
-        $shopwareVersion = getenv('SHOPWARE_VERSION') ? getenv('SHOPWARE_VERSION') : '5.6.4';
+        $shopwareVersion = getenv('SHOPWARE_VERSION') ?: '5.6.4';
         $supportsUnit = version_compare($shopwareVersion, '5.3', '<');
-
-        // Shopware >5.3.0 does not support units.
-        $expectedUnit = $supportsUnit ? RangeFacetHandler::TEMPLATE_PATH : '€';
 
         return [
             'Total range boundaries are the same' => [
@@ -138,7 +110,7 @@ class RangeFacetHandlerTest extends TestCase
                             'min' => 4.20,
                             'max' => 69.00
                         ],
-                        'unit' => '€'
+                        'unit' => '£'
                     ]
                 ],
                 'price',
@@ -155,7 +127,7 @@ class RangeFacetHandlerTest extends TestCase
                     'min',
                     'max',
                     [],
-                    $expectedUnit
+                    $supportsUnit ? RangeFacetHandler::TEMPLATE_PATH : '£'
                 )
             ],
             'Price filter is selected' => [
@@ -226,33 +198,61 @@ class RangeFacetHandlerTest extends TestCase
     }
 
     /**
+     * @dataProvider rangeFacetResultProvider
+     *
+     * @param array $filterData
+     * @param string $field
+     * @param string $label
+     * @param ConditionInterface|null $condition
+     * @param FacetResultInterface|null $facetResult
+     */
+    public function testGeneratesPartialFacetBasedOnFilterDataAndActiveConditions(
+        array $filterData,
+        $field,
+        $label,
+        ConditionInterface $condition = null,
+        FacetResultInterface $facetResult = null
+    ) {
+        $facet = new ProductAttributeFacet(
+            $field,
+            ProductAttributeFacet::MODE_RANGE_RESULT,
+            $field,
+            $label
+        );
+        $criteria = new Criteria();
+        if ($condition !== null) {
+            $criteria->addCondition($condition);
+        }
+
+        $filter = $this->generateFilter($filterData);
+
+        $facetHandler = new RangeFacetHandler();
+        $result = $facetHandler->generatePartialFacet($facet, $criteria, $filter);
+
+        $this->assertEquals($facetResult, $result);
+    }
+
+    /**
      * @param array $filterData
      *
-     * @return SimpleXMLElement
+     * @return RangeSliderFilter
      */
     public function generateFilter(array $filterData)
     {
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $filter = new SimpleXMLElement($data);
-
-        // Loop through the data to generate filter xml
-        foreach ($filterData as $key => $value) {
-            if (is_array($value)) {
-                $attributes = $filter->addChild($key);
-                foreach ($value as $range => $itemData) {
-                    if (is_array($itemData)) {
-                        $range = $attributes->addChild($range);
-                        foreach ($itemData as $k => $v) {
-                            $range->addChild($k, $v);
-                        }
-                        continue;
-                    }
-
-                    $attributes->addChild($range, $itemData);
-                }
-            } else {
-                $filter->addChild($key, $value);
-            }
+        $filter = new RangeSliderFilter($filterData['name'], $filterData['display']);
+        $selectedRange = $filterData['attributes']['selectedRange'];
+        $totalRange = $filterData['attributes']['totalRange'];
+        $unit = $filterData['attributes']['unit'];
+        if ($selectedRange) {
+            $filter->setActiveMin($selectedRange['min']);
+            $filter->setActiveMax($selectedRange['max']);
+        }
+        if ($totalRange) {
+            $filter->setMin($totalRange['min']);
+            $filter->setMax($totalRange['max']);
+        }
+        if ($unit) {
+            $filter->setUnit($unit);
         }
 
         return $filter;

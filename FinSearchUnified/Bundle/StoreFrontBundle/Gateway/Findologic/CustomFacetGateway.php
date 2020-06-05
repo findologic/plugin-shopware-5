@@ -2,8 +2,10 @@
 
 namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic;
 
+use Exception;
 use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilderFactory;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\ResponseParser;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Filter;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\CustomFacetGatewayInterface;
@@ -23,7 +25,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
     protected $hydrator;
 
     /**
-     * @var QueryBuilderFactoryInterface
+     * @var QueryBuilderFactory
      */
     protected $queryBuilderFactory;
 
@@ -45,6 +47,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
      *
      * @return CustomFacet[]
      * @throws Zend_Cache_Exception
+     * @throws Exception
      */
     public function getList(array $ids, ShopContextInterface $context)
     {
@@ -57,12 +60,10 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         /** @var Xml21Response $response */
         $response = $query->execute();
         $responseParser = ResponseParser::getInstance($response);
-        $filters = $responseParser->getFilters();
-        if (count($filters) > 0) {
-            return $this->hydrate($filters);
-        }
 
-        return [];
+        $filters = $responseParser->getFilters();
+
+        return $this->hydrate($filters);
     }
 
     /**
@@ -71,6 +72,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
      *
      * @return array
      * @throws Zend_Cache_Exception
+     * @throws Exception
      */
     public function getFacetsOfCategories(array $categoryIds, ShopContextInterface $context)
     {
@@ -80,10 +82,13 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         $criteria->offset(0)->limit(1);
         $criteria->addCondition(new CategoryCondition($categoryIds));
 
+        /** @var QueryBuilder $query */
         $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
+
         /** @var Xml21Response $response */
         $response = $query->execute();
         $responseParser = ResponseParser::getInstance($response);
+
         $filters = $responseParser->getFilters();
         if (count($filters) > 0) {
             $categoryFacets = [];

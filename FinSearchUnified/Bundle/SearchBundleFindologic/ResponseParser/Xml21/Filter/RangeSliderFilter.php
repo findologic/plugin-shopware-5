@@ -13,8 +13,8 @@ class RangeSliderFilter extends Filter
     /** @var string */
     private $maxKey;
 
-    /** @var string */
-    private $unit = '€';
+    /** @var string|null */
+    private $unit;
 
     /** @var float */
     private $min;
@@ -35,8 +35,8 @@ class RangeSliderFilter extends Filter
             $this->minKey = 'min';
             $this->maxKey = 'max';
         } else {
-            $this->minKey = sprintf('min-%s', $id);
-            $this->maxKey = sprintf('max-%s', $id);
+            $this->minKey = sprintf('min%s', $id);
+            $this->maxKey = sprintf('max%s', $id);
         }
     }
 

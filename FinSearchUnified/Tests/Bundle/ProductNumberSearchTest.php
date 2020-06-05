@@ -403,7 +403,9 @@ class ProductNumberSearchTest extends TestCase
                     'Kategorie',
                     [
                         new TreeItem(
-                            'Buch', 'Buch (5)', false,
+                            'Buch',
+                            'Buch (5)',
+                            false,
                             [
                                 new TreeItem('Buch_Beste Bücher', 'Beste Bücher', false, [])
                             ]
@@ -422,7 +424,9 @@ class ProductNumberSearchTest extends TestCase
                     'Kategorie',
                     [
                         new TreeItem(
-                            'Buch', 'Buch (5)', false,
+                            'Buch',
+                            'Buch (5)',
+                            false,
                             [
                                 new TreeItem('Buch_Beste Bücher', 'Beste Bücher', false, [])
                             ]
@@ -472,19 +476,8 @@ class ProductNumberSearchTest extends TestCase
             $criteria->addFacet($facetResult->getFacet());
         }
 
-        $originalService = $this->createMock(OriginalProductNumberSearch::class);
-
-        // Filters are present in the XML response
         $filters = $responseParser->getFilters();
-
-        $mockedCache = $this->createMock(Zend_Cache_Core::class);
-
-        $productNumberSearch = new ProductNumberSearch(
-            $originalService,
-            Shopware()->Container()->get('fin_search_unified.query_builder_factory'),
-            $mockedCache
-        );
-
+        $productNumberSearch = Shopware()->Container()->get('fin_search_unified.product_number_search');
         $reflector = new ReflectionObject($productNumberSearch);
         $method = $reflector->getMethod('createFacets');
         $method->setAccessible(true);
@@ -499,9 +492,7 @@ class ProductNumberSearchTest extends TestCase
         );
 
         $this->assertNotEmpty($result);
-
         $facetResult = current($result);
-
         $this->assertEquals($expectedResult, $facetResult);
     }
 

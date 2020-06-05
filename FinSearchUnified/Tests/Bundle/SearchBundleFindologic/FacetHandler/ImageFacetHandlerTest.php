@@ -10,6 +10,10 @@ use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\VendorImageFilter as ApiVen
 use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\ImageFacetHandler;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Filter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Media as FilterMedia;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Values\ImageFilterValue;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\VendorImageFilter;
 use FinSearchUnified\Tests\TestCase;
 use GuzzleHttp\Client;
 use GuzzleHttp\Message\Response;
@@ -47,7 +51,7 @@ class ImageFacetHandlerTest extends TestCase
         $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
         $filter = new $apiFilter(new SimpleXMLElement($data));
         $facetHandler = new ImageFacetHandler(Shopware()->Container()->get('guzzle_http_client_factory'));
-        $result = $facetHandler->supportsFilter($filter);
+        $result = $facetHandler->supportsFilter(Filter::getInstance($filter));
 
         $this->assertSame($doesSupport, $result);
     }
@@ -189,24 +193,19 @@ class ImageFacetHandlerTest extends TestCase
     /**
      * @param array $filterData
      *
-     * @return SimpleXMLElement
+     * @return VendorImageFilter
      */
     public function generateFilter(array $filterData)
     {
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $filter = new SimpleXMLElement($data);
+        $filter = new VendorImageFilter('vendor', 'Brand');
 
-        $filter->addChild('name', 'vendor');
-        $filter->addChild('display', 'Manufacturer');
-        $filter->addChild('select', 'single');
-        $filter->addChild('type', 'image');
-
-        $items = $filter->addChild('items');
-        // Loop through the data to generate filter xml
         foreach ($filterData as $key => $value) {
-            $item = $items->addChild('item');
-            $item->addChild('name', $value['name']);
-            $item->addChild('image', $value['image']);
+            $filterValue = new ImageFilterValue($value['name'], $value['name']);
+            if ($value['image']) {
+                $media = new FilterMedia($value['image']);
+                $filterValue->setMedia($media);
+            }
+            $filter->addValue($filterValue);
         }
 
         return $filter;

@@ -35,7 +35,7 @@ class ColorFacetHandlerTest extends TestCase
         $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
         $filter = new $apiFilter(new SimpleXMLElement($data));
         $facetHandler = new ColorFacetHandler();
-        $result = $facetHandler->supportsFilter($filter);
+        $result = $facetHandler->supportsFilter(Filter::getInstance($filter));
 
         $this->assertSame($doesSupport, $result);
     }

@@ -15,12 +15,10 @@ use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\RangeSliderFilter as ApiRan
 use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\SelectDropdownFilter as ApiSelectDropdownFilter;
 use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\VendorImageFilter as ApiVendorImageFilter;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Filter\BaseFilter;
-use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\FilterValueImageHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Values\CategoryFilterValue;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Values\ColorFilterValue;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Values\FilterValue;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Values\ImageFilterValue;
-use GuzzleHttp\Client;
 use InvalidArgumentException;
 
 abstract class Filter extends BaseFilter
@@ -33,12 +31,11 @@ abstract class Filter extends BaseFilter
      * filter types.
      *
      * @param ApiFilter $filter
-     * @param Client|null $client Used to fetch images from vendor image or color filters. If not set a new client
      * instance will be created internally.
      *
      * @return Filter|null
      */
-    public static function getInstance(ApiFilter $filter, Client $client = null)
+    public static function getInstance(ApiFilter $filter)
     {
         switch (true) {
             case $filter instanceof ApiLabelTextFilter:
@@ -48,9 +45,9 @@ abstract class Filter extends BaseFilter
             case $filter instanceof ApiRangeSliderFilter:
                 return static::handleRangeSliderFilter($filter);
             case $filter instanceof ApiColorPickerFilter:
-                return static::handleColorPickerFilter($filter, $client);
+                return static::handleColorPickerFilter($filter);
             case $filter instanceof ApiVendorImageFilter:
-                return static::handleVendorImageFilter($filter, $client);
+                return static::handleVendorImageFilter($filter);
             case $filter instanceof ApiCategoryFilter:
                 return static::handleCategoryFilter($filter);
             default:
@@ -64,7 +61,12 @@ abstract class Filter extends BaseFilter
 
         /** @var DefaultItem $item */
         foreach ($filter->getItems() as $item) {
-            $customFilter->addValue(new FilterValue($item->getName(), $item->getName()));
+            $filterValue = new FilterValue($item->getName(), $item->getName());
+
+            if ($item->getFrequency()) {
+                $filterValue->setFrequency($item->getFrequency());
+            }
+            $customFilter->addValue($filterValue);
         }
 
         return $customFilter;
@@ -76,7 +78,12 @@ abstract class Filter extends BaseFilter
 
         /** @var DefaultItem $item */
         foreach ($filter->getItems() as $item) {
-            $customFilter->addValue(new FilterValue($item->getName(), $item->getName()));
+            $filterValue = new FilterValue($item->getName(), $item->getName());
+
+            if ($item->getFrequency()) {
+                $filterValue->setFrequency($item->getFrequency());
+            }
+            $customFilter->addValue($filterValue);
         }
 
         return $customFilter;
