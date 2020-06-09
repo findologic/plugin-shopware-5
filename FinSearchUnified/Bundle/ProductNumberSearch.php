@@ -4,6 +4,7 @@ namespace FinSearchUnified\Bundle;
 
 use Enlight_Controller_Request_Request;
 use Exception;
+use FINDOLOGIC\Api\Exceptions\ServiceNotAliveException;
 use FINDOLOGIC\Api\Responses\Response;
 use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\CategoryFacetHandler;
@@ -99,8 +100,12 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         /** @var QueryBuilder $query */
         $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
 
-        /** @var Xml21Response $response */
-        $response = $query->execute();
+        try {
+            /** @var Xml21Response $response */
+            $response = $query->execute();
+        } catch (ServiceNotAliveException $e) {
+            return $this->originalService->search($criteria, $context);
+        }
 
         if (!$response instanceof Xml21Response) {
             static::setFallbackFlag(1);
@@ -344,9 +349,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             return $filter;
         }
 
-        $filter = new LabelTextFilter($condition->getName(), $condition->getField());
-
-        return $filter;
+        return new LabelTextFilter($condition->getName(), $condition->getField());
     }
 
     /**
@@ -382,8 +385,12 @@ class ProductNumberSearch implements ProductNumberSearchInterface
                 $criteria,
                 $context
             );
-            $response = $query->execute();
-            $this->cache->save($response, $cacheId, ['FINDOLOGIC'], 60 * 60 * 24);
+            try {
+                /** @var Xml21Response $response */
+                $response = $query->execute();
+                $this->cache->save($response, $cacheId, ['FINDOLOGIC'], 60 * 60 * 24);
+            } catch (ServiceNotAliveException $ignored) {
+            }
         } else {
             $response = $this->cache->load($cacheId);
         }

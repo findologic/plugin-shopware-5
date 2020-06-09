@@ -131,7 +131,7 @@ class Xml21ResponseParserTest extends TestCase
 
     public function testResponseWhenPromotionDoesNotExist()
     {
-        $response = Utility::getDemoResponse('demoResponseWithNoPromotion.xml');
+        $response = Utility::getDemoResponse('demoResponseWithoutPromotion.xml');
         $responseParser = ResponseParser::getInstance($response);
         $promotion = $responseParser->getPromotion();
         $this->assertNull($promotion);

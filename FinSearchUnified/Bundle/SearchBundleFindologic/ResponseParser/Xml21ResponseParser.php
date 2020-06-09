@@ -251,7 +251,7 @@ class Xml21ResponseParser extends ResponseParser
         foreach ($apiFilters as $apiFilter) {
             $filter = Filter::getInstance($apiFilter);
 
-            if ($filter && count($filter->getValues()) >= 1) {
+            if ($filter && count($filter->getValues()) > 0) {
                 $filters[] = $filter;
             }
         }

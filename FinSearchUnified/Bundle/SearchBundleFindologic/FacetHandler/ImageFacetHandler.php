@@ -93,7 +93,7 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
         foreach ($filterItems as $filterItem) {
             $name = $filterItem->getName();
             $orderedArray[] = $name;
-            $index = array_search($name, $actives);
+            $index = $this->getItemIndex($name, $actives);
 
             if ($index === false) {
                 $active = false;
@@ -103,14 +103,14 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
             }
 
             if ($filterItem->getMedia() === null) {
-                $listItems[] = new MediaListItem(
+                $idx = $this->getItemIndex($name, $orderedArray);
+                $listItems[$idx] = new MediaListItem(
                     $name,
                     $name,
                     $active
                 );
             } else {
                 $url = $filterItem->getMedia()->getUrl();
-
                 $items[$url] = [
                     'name' => $name,
                     'active' => $active
@@ -129,25 +129,27 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
         }
 
         $options = [
-            'complete' => function (CompleteEvent $event) use ($items, &$listItems) {
+            'complete' => function (CompleteEvent $event) use ($items, $orderedArray, &$listItems) {
                 $url = $event->getRequest()->getUrl();
                 $data = $items[$url];
 
                 $media = new Media();
                 $media->setFile($url);
 
-                $listItems[] = new MediaListItem(
+                $idx = $this->getItemIndex($data['name'], $orderedArray);
+                $listItems[$idx] = new MediaListItem(
                     $data['name'],
                     $data['name'],
                     $data['active'],
                     $media
                 );
             },
-            'error' => function (ErrorEvent $event) use ($items, &$listItems) {
+            'error' => function (ErrorEvent $event) use ($items, $orderedArray, &$listItems) {
                 $url = $event->getRequest()->getUrl();
                 $data = $items[$url];
 
-                $listItems[] = new MediaListItem(
+                $idx = $this->getItemIndex($data['name'], $orderedArray);
+                $listItems[$idx] = new MediaListItem(
                     $data['name'],
                     $data['name'],
                     $data['active']
@@ -157,15 +159,17 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
 
         Pool::send($this->guzzleClient, $requests, $options);
 
-        // Re-sort the resulting `listItems` as the asynchronous operation on `filterItems` can sometimes mess the
-        // original sorting which comes from the Findologic backend
-        usort(
-            $listItems,
-            static function ($a, $b) use ($orderedArray) {
-                return array_search($a->getId(), $orderedArray, true) > array_search($b->getId(), $orderedArray, true);
-            }
-        );
-
         return $listItems;
+    }
+
+    /**
+     * @param string $name
+     * @param array $orderedArray
+     *
+     * @return false|int|string
+     */
+    private function getItemIndex($name, array $orderedArray)
+    {
+        return array_search($name, $orderedArray, false);
     }
 }

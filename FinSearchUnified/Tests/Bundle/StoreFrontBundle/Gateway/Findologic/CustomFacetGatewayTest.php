@@ -15,6 +15,7 @@ use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomL
 use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
+use InvalidArgumentException;
 use PHPUnit\Framework\MockObject\MockObject;
 use ReflectionException;
 use ReflectionObject;
@@ -32,11 +33,9 @@ class CustomFacetGatewayTest extends TestCase
         Shopware()->Container()->reset('config');
         Shopware()->Container()->load('config');
 
-        unset(
-            Shopware()->Session()->isSearchPage,
-            Shopware()->Session()->isCategoryPage,
-            Shopware()->Session()->findologicDI
-        );
+        Shopware()->Session()->offsetUnset('isSearchPage');
+        Shopware()->Session()->offsetUnset('isCategoryPage');
+        Shopware()->Session()->offsetUnset('findologicDI');
     }
 
     /**
@@ -44,7 +43,7 @@ class CustomFacetGatewayTest extends TestCase
      */
     public function testExceptionForUnsupportedResponse()
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Unsupported response format');
 
         /** @var ContextServiceInterface $contextService */
@@ -259,7 +258,7 @@ class CustomFacetGatewayTest extends TestCase
      */
     public function filterProviderForFacets()
     {
-        $otherFacet = $this->createFacet('color', 'radio', 'Color');
+        $colorFacet = $this->createFacet('color', 'radio', 'Color');
         $categoryFacet = $this->createFacet('cat', 'radio', 'Kategorie');
         $defaultCategoryFacet = $this->createFacet('cat', 'radio', 'Category');
         $vendorFacet = $this->createFacet('vendor', 'value_list', 'Hersteller');
@@ -278,7 +277,7 @@ class CustomFacetGatewayTest extends TestCase
             ],
             'Category and Vendor filter is not present' => [
                 'response' => Utility::getDemoResponse('demoResponseWithoutDefaultFilters.xml'),
-                'hydrateFacets' => [$otherFacet, $otherFacet],
+                'hydrateFacets' => [$colorFacet, $colorFacet],
                 'defaultCategoryFacet' => $defaultCategoryFacet,
                 'defaultVendorFacet' => $defaultVendorFacet,
                 'expectedFacets' => [

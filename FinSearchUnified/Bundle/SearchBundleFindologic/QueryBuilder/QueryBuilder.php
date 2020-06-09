@@ -8,6 +8,7 @@ use FINDOLOGIC\Api\Config;
 use FINDOLOGIC\Api\Definitions\OutputAdapter;
 use FINDOLOGIC\Api\Definitions\QueryParameter;
 use FINDOLOGIC\Api\Exceptions\InvalidParamException;
+use FINDOLOGIC\Api\Exceptions\ServiceNotAliveException;
 use FINDOLOGIC\Api\Requests\SearchNavigation\SearchNavigationRequest;
 use FINDOLOGIC\Api\Responses\Response;
 use FinSearchUnified\Helper\StaticHelper;
@@ -68,6 +69,7 @@ abstract class QueryBuilder
 
     /**
      * @return Response
+     * @throws ServiceNotAliveException
      */
     public function execute()
     {

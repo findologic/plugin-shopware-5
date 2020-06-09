@@ -16,8 +16,13 @@ class FilterValue extends Struct
     /** @var TranslatedName */
     private $translated;
 
+    /** @var int */
     protected $frequency = 0;
 
+    /**
+     * @param string $id
+     * @param string $name
+     */
     public function __construct($id, $name)
     {
         $this->id = $id;
@@ -25,16 +30,25 @@ class FilterValue extends Struct
         $this->translated = new TranslatedName($name);
     }
 
+    /**
+     * @return string
+     */
     public function getId()
     {
         return $this->id;
     }
 
+    /**
+     * @return string
+     */
     public function getName()
     {
         return $this->name;
     }
 
+    /**
+     * @return TranslatedName
+     */
     public function getTranslated()
     {
         return $this->translated;

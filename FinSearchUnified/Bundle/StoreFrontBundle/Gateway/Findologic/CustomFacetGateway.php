@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic;
 
 use Exception;
+use FINDOLOGIC\Api\Exceptions\ServiceNotAliveException;
 use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilderFactory;
@@ -11,6 +12,7 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\F
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\CustomFacetGatewayInterface;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
+use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
@@ -57,8 +59,12 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         /** @var QueryBuilder $query */
         $query = $this->queryBuilderFactory->createSearchNavigationQueryWithoutAdditionalFilters($criteria, $context);
 
-        /** @var Xml21Response $response */
-        $response = $query->execute();
+        try {
+            /** @var Xml21Response $response */
+            $response = $query->execute();
+        } catch (ServiceNotAliveException $e) {
+            return [];
+        }
         $responseParser = ResponseParser::getInstance($response);
 
         $filters = $responseParser->getFilters();
@@ -85,12 +91,16 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         /** @var QueryBuilder $query */
         $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
 
-        /** @var Xml21Response $response */
-        $response = $query->execute();
+        try {
+            /** @var Xml21Response $response */
+            $response = $query->execute();
+        } catch (ServiceNotAliveException $e) {
+            return [];
+        }
         $responseParser = ResponseParser::getInstance($response);
 
         $filters = $responseParser->getFilters();
-        if (count($filters) > 0) {
+        if (!StaticHelper::isEmpty($filters)) {
             $categoryFacets = [];
             $categoryFacets[$categoryId] = $this->hydrate($filters);
 

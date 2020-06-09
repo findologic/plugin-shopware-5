@@ -33,21 +33,33 @@ abstract class BaseFilter
         $this->values = $values;
     }
 
+    /**
+     * @return string|null
+     */
     public function getType()
     {
         return $this->type;
     }
 
+    /**
+     * @return string
+     */
     public function getId()
     {
         return $this->id;
     }
 
+    /**
+     * @return string
+     */
     public function getName()
     {
         return $this->name;
     }
 
+    /**
+     * @return FilterValue[]
+     */
     public function getValues()
     {
         return $this->values;

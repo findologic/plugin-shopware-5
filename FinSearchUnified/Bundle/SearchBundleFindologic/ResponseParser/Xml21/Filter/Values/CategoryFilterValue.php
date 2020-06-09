@@ -8,7 +8,7 @@ class CategoryFilterValue extends FilterValue
     private $selected = false;
 
     /** @var CategoryFilterValue[] */
-    private $values;
+    private $values = [];
 
     /**
      * @return bool

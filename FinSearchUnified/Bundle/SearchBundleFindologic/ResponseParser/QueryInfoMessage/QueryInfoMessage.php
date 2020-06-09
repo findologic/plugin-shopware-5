@@ -10,7 +10,7 @@ abstract class QueryInfoMessage
         TYPE_QUERY = 'query', // Search results for "<query>" (<count> hits)
         TYPE_CATEGORY = 'cat', // Search results for <cat-filter-name> <cat-name> (<count> hits)
         TYPE_VENDOR = 'vendor', // Search results for <vendor-filter-name> <vendor-name> (<count> hits)
-        TYPE_DEFAULT = 'default';
+        TYPE_DEFAULT = 'default'; // Search results (<count> hits)
 
     /** @var string */
     protected $filterName;
@@ -21,8 +21,8 @@ abstract class QueryInfoMessage
     /** @var string */
     protected $type = QueryInfoMessage::TYPE_DEFAULT;
 
-        /** @var string */
-    protected $query; // Search results (<count> hits)
+    /** @var string */
+    protected $query;
 
     /**
      * @param string $type

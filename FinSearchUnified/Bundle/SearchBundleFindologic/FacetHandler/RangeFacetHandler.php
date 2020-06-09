@@ -5,6 +5,7 @@ namespace FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Filter\BaseFilter;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\RangeSliderFilter;
+use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\FacetInterface;
 use Shopware\Bundle\SearchBundle\FacetResult\RangeFacetResult;
@@ -68,14 +69,8 @@ class RangeFacetHandler implements PartialFacetHandlerInterface
      */
     private function getUnit(BaseFilter $filter)
     {
-        $shopwareVersion = Shopware()->Config()->get('version');
-
-        if ($shopwareVersion === '___VERSION___') {
-            $shopwareVersion = '5.6.7';
-        }
-
-        if (version_compare($shopwareVersion, '5.3', '<')) {
-            // Shopware >5.3.0 does not support units. In Shopware 5.2.x this argument is the template path.
+        if (StaticHelper::isVersionLowerThan('5.3')) {
+            // Shopware < 5.3.0 does not support units. In Shopware 5.2.x this argument is the template path.
             return self::TEMPLATE_PATH;
         }
 

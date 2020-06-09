@@ -341,4 +341,20 @@ class StaticHelper
             ]
         );
     }
+
+    /**
+     * @param $version
+     *
+     * @return bool
+     */
+    public static function isVersionLowerThan($version)
+    {
+        $shopwareVersion = Shopware()->Config()->get('version');
+
+        if ($shopwareVersion === '___VERSION___') {
+            $shopwareVersion = '5.6.7';
+        }
+
+        return version_compare($shopwareVersion, $version, '<');
+    }
 }

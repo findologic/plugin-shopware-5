@@ -103,11 +103,11 @@ class CategoryFacetHandler implements PartialFacetHandlerInterface
      * Parse the filter items and build an array structure
      *
      * @param CategoryFilterValue[] $filterItems
-     * @param array|null $actives
+     * @param array $actives
      *
      * @return array
      */
-    private function parseCategories(array $filterItems = null, array $actives = null)
+    private function parseCategories(array $filterItems = [], array $actives = [])
     {
         $categories = [];
 
