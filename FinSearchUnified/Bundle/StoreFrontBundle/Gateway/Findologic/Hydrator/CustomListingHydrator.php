@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator;
 
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Filter\BaseFilter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\FilterMode;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\RangeSliderFilter;
 use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use FinSearchUnified\Components\ConfigLoader;
@@ -31,9 +32,9 @@ class CustomListingHydrator
 
         if ($filter instanceof RangeSliderFilter) {
             $mode = ProductAttributeFacet::MODE_RANGE_RESULT;
-        } elseif ($mode === 'single') {
+        } elseif ($mode === FilterMode::SINGLE) {
             $mode = ProductAttributeFacet::MODE_RADIO_LIST_RESULT;
-        } elseif ($mode === 'multiple' || $mode === 'multiselect') {
+        } elseif ($mode === FilterMode::MULTIPLE || $mode === FilterMode::MULTISELECT) {
             $mode = ProductAttributeFacet::MODE_VALUE_LIST_RESULT;
         } else {
             $mode = ProductAttributeFacet::MODE_VALUE_LIST_RESULT;
