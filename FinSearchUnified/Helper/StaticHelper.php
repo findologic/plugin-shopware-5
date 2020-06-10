@@ -351,6 +351,8 @@ class StaticHelper
     {
         $shopwareVersion = Shopware()->Config()->get('version');
 
+        // When in development mode, the shopware version can return `___VERSION___` so we use a more recent version
+        // for comparison instead
         if ($shopwareVersion === '___VERSION___') {
             $shopwareVersion = '5.6.7';
         }

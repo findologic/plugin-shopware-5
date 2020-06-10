@@ -390,6 +390,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
                 $response = $query->execute();
                 $this->cache->save($response, $cacheId, ['FINDOLOGIC'], 60 * 60 * 24);
             } catch (ServiceNotAliveException $ignored) {
+                return null;
             }
         } else {
             $response = $this->cache->load($cacheId);

@@ -2,8 +2,8 @@
 
 namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator;
 
+use FINDOLOGIC\Api\Definitions\FilterMode;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Filter\BaseFilter;
-use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\FilterMode;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\RangeSliderFilter;
 use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use FinSearchUnified\Components\ConfigLoader;

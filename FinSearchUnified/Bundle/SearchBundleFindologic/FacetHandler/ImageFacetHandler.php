@@ -88,11 +88,11 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
         $listItems = [];
         $items = [];
         $requests = [];
-        $orderedArray = [];
+        $orderedFilterItems = [];
 
         foreach ($filterItems as $filterItem) {
             $name = $filterItem->getName();
-            $orderedArray[] = $name;
+            $orderedFilterItems[] = $name;
             $index = $this->getItemIndex($name, $actives);
 
             if ($index === false) {
@@ -103,7 +103,7 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
             }
 
             if ($filterItem->getMedia() === null) {
-                $idx = $this->getItemIndex($name, $orderedArray);
+                $idx = $this->getItemIndex($name, $orderedFilterItems);
                 $listItems[$idx] = new MediaListItem(
                     $name,
                     $name,
@@ -129,14 +129,14 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
         }
 
         $options = [
-            'complete' => function (CompleteEvent $event) use ($items, $orderedArray, &$listItems) {
+            'complete' => function (CompleteEvent $event) use ($items, $orderedFilterItems, &$listItems) {
                 $url = $event->getRequest()->getUrl();
                 $data = $items[$url];
 
                 $media = new Media();
                 $media->setFile($url);
 
-                $idx = $this->getItemIndex($data['name'], $orderedArray);
+                $idx = $this->getItemIndex($data['name'], $orderedFilterItems);
                 $listItems[$idx] = new MediaListItem(
                     $data['name'],
                     $data['name'],
@@ -144,11 +144,11 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
                     $media
                 );
             },
-            'error' => function (ErrorEvent $event) use ($items, $orderedArray, &$listItems) {
+            'error' => function (ErrorEvent $event) use ($items, $orderedFilterItems, &$listItems) {
                 $url = $event->getRequest()->getUrl();
                 $data = $items[$url];
 
-                $idx = $this->getItemIndex($data['name'], $orderedArray);
+                $idx = $this->getItemIndex($data['name'], $orderedFilterItems);
                 $listItems[$idx] = new MediaListItem(
                     $data['name'],
                     $data['name'],

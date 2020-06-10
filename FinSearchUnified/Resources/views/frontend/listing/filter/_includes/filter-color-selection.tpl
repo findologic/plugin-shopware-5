@@ -23,9 +23,9 @@
 
         {if $option->getColorcode()}
             {$mediaFile = $option->getColorcode()}
-            <div style="width:30px; height: 30px; margin: 2px; border: 1px solid #dbd7e5; background: {$mediaFile};" title="{$option->getId()|escape:'htmlall'}"></div>
+            <div class="color--filter-item" style="background: {$mediaFile};" title="{$option->getId()|escape:'htmlall'}"></div>
         {else}
-            <img style="width:30px; height: 30px; border: 1px solid #dbd7e5; margin: 2px;" class="filter-panel--media-image" title="{$option->getId()|escape:'htmlall'}" src="/custom/plugins/FinSearchUnified/Resources/views/frontend/_public/src/img/no-picture.png" alt="{$option->getId()|escape:'htmlall'}">
+            <img class="filter-panel--media-image color--filter-item" title="{$option->getId()|escape:'htmlall'}" src="/custom/plugins/FinSearchUnified/Resources/views/frontend/_public/src/img/no-picture.png" alt="{$option->getId()|escape:'htmlall'}">
         {/if}
     </label>
 {/block}
