@@ -12,6 +12,7 @@ use Enlight_View_Default as View;
 use Exception;
 use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\Bundle\ProductNumberSearch;
+use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\RangeFacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilderFactory;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\ResponseParser;
@@ -313,6 +314,7 @@ class ProductNumberSearchTest extends TestCase
     public function facetWithPriceFilterProvider()
     {
         $xmlResponse = Utility::getDemoXML('demoResponseWithPriceFilter.xml');
+        $unit = StaticHelper::isVersionLowerThan('5.3') ? RangeFacetHandler::TEMPLATE_PATH : '€';
 
         return [
             'Price filters which are selected only contain the value that was selected' => [
@@ -328,7 +330,8 @@ class ProductNumberSearchTest extends TestCase
                     'min',
                     'max',
                     [],
-                    '€'
+                    $unit
+
                 ),
                 'condition' => new PriceCondition(4.2, 69.0)
 
@@ -346,7 +349,7 @@ class ProductNumberSearchTest extends TestCase
                     'min',
                     'max',
                     [],
-                    '€'
+                    $unit
                 ),
                 'condition' => null
             ]
