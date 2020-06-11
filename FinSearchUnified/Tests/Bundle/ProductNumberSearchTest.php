@@ -331,7 +331,6 @@ class ProductNumberSearchTest extends TestCase
                     'max',
                     [],
                     $unit
-
                 ),
                 'condition' => new PriceCondition(4.2, 69.0)
 

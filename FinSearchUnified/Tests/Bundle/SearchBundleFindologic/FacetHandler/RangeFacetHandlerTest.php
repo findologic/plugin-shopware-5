@@ -12,6 +12,7 @@ use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\RangeFacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Filter;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\RangeSliderFilter;
+use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
@@ -73,8 +74,7 @@ class RangeFacetHandlerTest extends TestCase
 
     public function rangeFacetResultProvider()
     {
-        $shopwareVersion = getenv('SHOPWARE_VERSION') ?: '5.6.4';
-        $supportsUnit = version_compare($shopwareVersion, '5.3', '<');
+        $supportsUnit = StaticHelper::isVersionLowerThan('5.3');
 
         return [
             'Total range boundaries are the same' => [
@@ -159,7 +159,9 @@ class RangeFacetHandlerTest extends TestCase
                     4.20,
                     69.00,
                     'min',
-                    'max'
+                    'max',
+                    [],
+                    $supportsUnit ? RangeFacetHandler::TEMPLATE_PATH : null
                 )
             ],
             'Range filter is active' => [
@@ -191,7 +193,9 @@ class RangeFacetHandlerTest extends TestCase
                     4.20,
                     6.09,
                     'minattr6',
-                    'maxattr6'
+                    'maxattr6',
+                    [],
+                    $supportsUnit ? RangeFacetHandler::TEMPLATE_PATH : null
                 )
             ]
         ];
