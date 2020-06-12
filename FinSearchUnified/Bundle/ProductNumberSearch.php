@@ -371,7 +371,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      * @param Criteria $criteria
      * @param ShopContextInterface $context
      *
-     * @return Response
+     * @return Response|null
      * @throws Zend_Cache_Exception
      */
     private function getResponseWithoutFilters(Criteria $criteria, ShopContextInterface $context)
