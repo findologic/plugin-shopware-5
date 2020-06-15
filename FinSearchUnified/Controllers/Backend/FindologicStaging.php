@@ -85,9 +85,9 @@ class Shopware_Controllers_Backend_FindologicStaging extends Shopware_Controller
     private function getShopByConfig(Value $config)
     {
         $shopId = $config->getShop()->getId();
-        $currentShop = Shopware()->Shop();
+        $currentShop = Shopware()->Container()->has('shop') ? Shopware()->Shop() : null;
 
-        if (Shopware()->Container()->has('shop') && $currentShop && $shopId === $currentShop->getId()) {
+        if ($currentShop && $shopId === $currentShop->getId()) {
             return $currentShop;
         }
 
