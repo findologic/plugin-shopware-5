@@ -4,6 +4,7 @@ use FinSearchUnified\Components\ConfigLoader;
 use FinSearchUnified\Exceptions\StagingModeException;
 use Shopware\Components\CSRFWhitelistAware;
 use Shopware\Models\Config\Value;
+use Shopware\Models\Shop\DetachedShop;
 use Shopware\Models\Shop\Repository;
 use Shopware\Models\Shop\Shop;
 
@@ -17,19 +18,14 @@ class Shopware_Controllers_Backend_FindologicStaging extends Shopware_Controller
         ];
     }
 
-    /**
-     * @throws \Exception
-     */
     public function indexAction()
     {
         try {
             $this->Front()->Plugins()->ViewRenderer()->setNoRender(true);
             $this->assertPluginIsActive();
-            $shopkey = Shopware()->Config()->offsetGet('ShopKey');
-            $this->assertShopKeyIsValid($shopkey);
-            $shop = $this->getCurrentShop($shopkey);
-            $isStaging = $this->isStaging();
-            $this->redirect($this->getRedirectUrl($isStaging, $shop));
+
+            $shop = $this->getCurrentShop();
+            $this->redirect($this->getRedirectUrl($shop));
         } catch (StagingModeException $e) {
             echo $e->getMessage();
         }
@@ -60,31 +56,44 @@ class Shopware_Controllers_Backend_FindologicStaging extends Shopware_Controller
     }
 
     /**
-     * @param string $shopkey
-     *
      * @return Shop
      * @throws StagingModeException
      */
-    private function getCurrentShop($shopkey)
+    private function getCurrentShop()
     {
-        $shop = null;
-        $configValue = Shopware()->Models()->getRepository(Value::class)->findOneBy(['value' => $shopkey]);
-        if ($configValue && $configValue->getShop()) {
-            $shopId = $configValue->getShop()->getId();
+        $shopkey = Shopware()->Front()->Request()->get('shopkey');
+        $this->assertShopKeyIsValid($shopkey);
 
-            if (Shopware()->Container()->has('shop') && $shopId === Shopware()->Shop()->getId()) {
-                $shop = Shopware()->Shop();
-            } else {
-                /** @var Repository $shopRepository */
-                $shopRepository = Shopware()->Models()->getRepository(Shop::class);
-                $shop = $shopRepository->getActiveById($shopId);
-            }
+        /** @var Value $configValue */
+        $configValue = Shopware()->Models()->getRepository(Value::class)->findOneBy(['value' => $shopkey]);
+        if (!$configValue || !$configValue->getShop()) {
+            throw new StagingModeException('Provided shopkey is not assigned to any shop!');
         }
+
+        $shop = $this->getShopByConfig($configValue);
         if (!$shop) {
-            throw new StagingModeException('Provided shopkey not assigned to any shop!');
+            throw new StagingModeException('Provided shopkey is not assigned to any shop!');
         }
 
         return $shop;
+    }
+
+    /**
+     * @param Value $config
+     * @return DetachedShop|null
+     */
+    private function getShopByConfig(Value $config)
+    {
+        $shopId = $config->getShop()->getId();
+        $currentShop = Shopware()->Container()->has('shop') ? Shopware()->Shop() : null;
+
+        if ($currentShop && $shopId === $currentShop->getId()) {
+            return $currentShop;
+        }
+
+        /** @var Repository $shopRepository */
+        $shopRepository = Shopware()->Models()->getRepository(Shop::class);
+        return $shopRepository->getActiveById($shopId);
     }
 
     /**
@@ -104,23 +113,24 @@ class Shopware_Controllers_Backend_FindologicStaging extends Shopware_Controller
     }
 
     /**
-     * @param bool $isStaging
      * @param Shop $shop
      *
      * @return string
      */
-    private function getRedirectUrl($isStaging, $shop)
+    private function getRedirectUrl(Shop $shop)
     {
-        $queryParam = '';
-        if ($isStaging) {
-            $queryParam = '?findologic=on';
+        $queryParams = '';
+        if ($this->isStaging()) {
+            $queryParams = '?findologic=on';
         }
+
+        $url = rtrim($shop->getHost(), '/') . $shop->getBaseUrl();
 
         return sprintf(
             '%s://%s%s',
             $shop->getSecure() ? 'https' : 'http',
-            rtrim($shop->getHost(), '/'),
-            $queryParam
+            $url,
+            $queryParams
         );
     }
 }
