@@ -10,6 +10,7 @@ use Enlight_Hook_HookArgs;
 use Enlight_Template_Manager;
 use Exception;
 use FinSearchUnified\Helper\StaticHelper;
+use Shopware\Bundle\StoreFrontBundle\Service\Core\ContextService;
 use Shopware\Components\Theme\LessDefinition;
 use Shopware_Controllers_Frontend_Search;
 
@@ -195,7 +196,13 @@ class Frontend implements SubscriberInterface
             return;
         }
 
-        $groupKey = Shopware()->Session()->get('sUserGroup', 'EK');
+        /** @var ContextService $context */
+        $context = Shopware()->Container()->get('shopware_storefront.context_service');
+        $groupKey = $context->getShopContext()->getCurrentCustomerGroup()->getKey();
+        if (!$groupKey) {
+            $groupKey = 'EK';
+        }
+
         $hash = StaticHelper::calculateUsergroupHash($this->getShopKey(), $groupKey);
 
         $searchResultContainer = Shopware()->Config()->get('SearchResultContainer');
