@@ -199,10 +199,6 @@ class Frontend implements SubscriberInterface
         /** @var ContextService $context */
         $context = Shopware()->Container()->get('shopware_storefront.context_service');
         $groupKey = $context->getShopContext()->getCurrentCustomerGroup()->getKey();
-        if (!$groupKey) {
-            $groupKey = 'EK';
-        }
-
         $hash = StaticHelper::calculateUsergroupHash($this->getShopKey(), $groupKey);
 
         $searchResultContainer = Shopware()->Config()->get('SearchResultContainer');
