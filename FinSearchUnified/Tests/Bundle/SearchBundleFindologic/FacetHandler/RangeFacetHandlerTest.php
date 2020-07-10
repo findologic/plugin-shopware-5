@@ -2,9 +2,17 @@
 
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\FacetHandler;
 
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\ColorPickerFilter as ApiColorPickerFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\LabelTextFilter as ApiLabelTextFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\RangeSliderFilter as ApiRangeSliderFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\SelectDropdownFilter as ApiSelectDropdownFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\VendorImageFilter as ApiVendorImageFilter;
 use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\RangeFacetHandler;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Filter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\RangeSliderFilter;
+use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
@@ -30,34 +38,166 @@ class RangeFacetHandlerTest extends TestCase
         Shopware()->Container()->set('config', $mockConfig);
     }
 
-    /**
-     * @dataProvider filterProvider
-     *
-     * @param string $type
-     * @param bool $doesSupport
-     */
-    public function testSupportsFilter($type, $doesSupport)
+    protected function tearDown()
     {
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $filter = new SimpleXMLElement($data);
-
-        $filter->addChild('name', 'attr6');
-        $filter->addChild('type', $type);
-
-        $facetHandler = new RangeFacetHandler();
-        $result = $facetHandler->supportsFilter($filter);
-
-        $this->assertSame($doesSupport, $result);
+        parent::tearDown();
+        Shopware()->Container()->reset('config');
+        Shopware()->Container()->load('config');
     }
 
     public function filterProvider()
     {
         return [
-            'Filter with "select" type' => ['select', false],
-            'Filter with "label" type' => ['label', false],
-            'Filter with "color" type' => ['color', false],
-            'Filter with "image" type' => ['image', false],
-            'Filter with "range-slider" type' => ['range-slider', true],
+            'Filter with "select" type' => [ApiSelectDropdownFilter::class, false],
+            'Filter with "label" type' => [ApiLabelTextFilter::class, false],
+            'Filter with "image" type' => [ApiVendorImageFilter::class, false],
+            'Filter with "range-slider" type' => [ApiRangeSliderFilter::class, true],
+            'Filter with "color" type' => [ApiColorPickerFilter::class, false]
+        ];
+    }
+
+    /**
+     * @dataProvider filterProvider
+     *
+     * @param string $apiFilter
+     * @param bool $doesSupport
+     */
+    public function testSupportsFilter($apiFilter, $doesSupport)
+    {
+        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
+        $filter = new $apiFilter(new SimpleXMLElement($data));
+        $facetHandler = new RangeFacetHandler();
+        $result = $facetHandler->supportsFilter(Filter::getInstance($filter));
+
+        $this->assertSame($doesSupport, $result);
+    }
+
+    public function rangeFacetResultProvider()
+    {
+        $supportsUnit = StaticHelper::isVersionLowerThan('5.3');
+
+        return [
+            'Total range boundaries are the same' => [
+                [
+                    'name' => 'attr6',
+                    'display' => 'Length',
+                    'select' => 'single',
+                    'type' => 'range-slider',
+                    'attributes' => [
+                        'totalRange' => [
+                            'min' => 4.20,
+                            'max' => 4.20
+                        ]
+                    ]
+                ],
+                'attr6',
+                'Length',
+                null,
+                null
+            ],
+            'Price filter is not selected' => [
+                [
+                    'name' => 'price',
+                    'display' => 'Preis',
+                    'select' => 'single',
+                    'type' => 'range-slider',
+                    'attributes' => [
+                        'totalRange' => [
+                            'min' => 4.20,
+                            'max' => 69.00
+                        ],
+                        'selectedRange' => [
+                            'min' => 4.20,
+                            'max' => 69.00
+                        ],
+                        'unit' => '£'
+                    ]
+                ],
+                'price',
+                'Preis',
+                null,
+                new RangeFacetResult(
+                    'price',
+                    false,
+                    'Preis',
+                    4.20,
+                    69.00,
+                    4.20,
+                    69.00,
+                    'min',
+                    'max',
+                    [],
+                    $supportsUnit ? RangeFacetHandler::TEMPLATE_PATH : '£'
+                )
+            ],
+            'Price filter is selected' => [
+                [
+                    'name' => 'price',
+                    'display' => 'Preis',
+                    'select' => 'single',
+                    'type' => 'range-slider',
+                    'attributes' => [
+                        'totalRange' => [
+                            'min' => 4.20,
+                            'max' => 69.00
+                        ],
+                        'selectedRange' => [
+                            'min' => 4.20,
+                            'max' => 69.00
+                        ]
+                    ]
+                ],
+                'price',
+                'Preis',
+                new PriceCondition(4.20, 69.00),
+                new RangeFacetResult(
+                    'price',
+                    true,
+                    'Preis',
+                    4.20,
+                    69.00,
+                    4.20,
+                    69.00,
+                    'min',
+                    'max',
+                    [],
+                    $supportsUnit ? RangeFacetHandler::TEMPLATE_PATH : null
+                )
+            ],
+            'Range filter is active' => [
+                [
+                    'name' => 'attr6',
+                    'display' => 'Length',
+                    'select' => 'single',
+                    'type' => 'range-slider',
+                    'attributes' => [
+                        'totalRange' => [
+                            'min' => 4.20,
+                            'max' => 69.00
+                        ],
+                        'selectedRange' => [
+                            'min' => 4.20,
+                            'max' => 6.09
+                        ]
+                    ]
+                ],
+                'attr6',
+                'Length',
+                new ProductAttributeCondition('attr6', Operator::EQ, ['min' => 4.20, 'max' => 6.09]),
+                new RangeFacetResult(
+                    'attr6',
+                    true,
+                    'Length',
+                    4.20,
+                    69.00,
+                    4.20,
+                    6.09,
+                    'minattr6',
+                    'maxattr6',
+                    [],
+                    $supportsUnit ? RangeFacetHandler::TEMPLATE_PATH : null
+                )
+            ]
         ];
     }
 
@@ -96,163 +236,27 @@ class RangeFacetHandlerTest extends TestCase
         $this->assertEquals($facetResult, $result);
     }
 
-    public function rangeFacetResultProvider()
-    {
-        $shopwareVersion = getenv('SHOPWARE_VERSION') ? getenv('SHOPWARE_VERSION') : '5.6.4';
-        $supportsUnit = version_compare($shopwareVersion, '5.3', '<');
-
-        // Shopware >5.3.0 does not support units.
-        $expectedUnit = $supportsUnit ? RangeFacetHandler::TEMPLATE_PATH : '€';
-
-        return [
-            'Total range boundaries are the same' => [
-                [
-                    'name' => 'attr6',
-                    'display' => 'Length',
-                    'select' => 'single',
-                    'type' => 'range-slider',
-                    'attributes' => [
-                        'totalRange' => [
-                            'min' => 4.20,
-                            'max' => 4.20
-                        ]
-                    ]
-                ],
-                'attr6',
-                'Length',
-                null,
-                null
-            ],
-            'Price filter is not selected' => [
-                [
-                    'name' => 'price',
-                    'display' => 'Preis',
-                    'select' => 'single',
-                    'type' => 'range-slider',
-                    'attributes' => [
-                        'totalRange' => [
-                            'min' => 4.20,
-                            'max' => 69.00
-                        ],
-                        'selectedRange' => [
-                            'min' => 4.20,
-                            'max' => 69.00
-                        ],
-                        'unit' => '€'
-                    ]
-                ],
-                'price',
-                'Preis',
-                null,
-                new RangeFacetResult(
-                    'price',
-                    false,
-                    'Preis',
-                    4.20,
-                    69.00,
-                    4.20,
-                    69.00,
-                    'min',
-                    'max',
-                    [],
-                    $expectedUnit
-                )
-            ],
-            'Price filter is selected' => [
-                [
-                    'name' => 'price',
-                    'display' => 'Preis',
-                    'select' => 'single',
-                    'type' => 'range-slider',
-                    'attributes' => [
-                        'totalRange' => [
-                            'min' => 4.20,
-                            'max' => 69.00
-                        ],
-                        'selectedRange' => [
-                            'min' => 4.20,
-                            'max' => 69.00
-                        ]
-                    ]
-                ],
-                'price',
-                'Preis',
-                new PriceCondition(4.20, 69.00),
-                new RangeFacetResult(
-                    'price',
-                    true,
-                    'Preis',
-                    4.20,
-                    69.00,
-                    4.20,
-                    69.00,
-                    'min',
-                    'max'
-                )
-            ],
-            'Range filter is active' => [
-                [
-                    'name' => 'attr6',
-                    'display' => 'Length',
-                    'select' => 'single',
-                    'type' => 'range-slider',
-                    'attributes' => [
-                        'totalRange' => [
-                            'min' => 4.20,
-                            'max' => 69.00
-                        ],
-                        'selectedRange' => [
-                            'min' => 4.20,
-                            'max' => 6.09
-                        ]
-                    ]
-                ],
-                'attr6',
-                'Length',
-                new ProductAttributeCondition('attr6', Operator::EQ, ['min' => 4.20, 'max' => 6.09]),
-                new RangeFacetResult(
-                    'attr6',
-                    true,
-                    'Length',
-                    4.20,
-                    69.00,
-                    4.20,
-                    6.09,
-                    'minattr6',
-                    'maxattr6'
-                )
-            ]
-        ];
-    }
-
     /**
      * @param array $filterData
      *
-     * @return SimpleXMLElement
+     * @return RangeSliderFilter
      */
     public function generateFilter(array $filterData)
     {
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $filter = new SimpleXMLElement($data);
-
-        // Loop through the data to generate filter xml
-        foreach ($filterData as $key => $value) {
-            if (is_array($value)) {
-                $attributes = $filter->addChild($key);
-                foreach ($value as $range => $itemData) {
-                    if (is_array($itemData)) {
-                        $range = $attributes->addChild($range);
-                        foreach ($itemData as $k => $v) {
-                            $range->addChild($k, $v);
-                        }
-                        continue;
-                    }
-
-                    $attributes->addChild($range, $itemData);
-                }
-            } else {
-                $filter->addChild($key, $value);
-            }
+        $filter = new RangeSliderFilter($filterData['name'], $filterData['display']);
+        $selectedRange = $filterData['attributes']['selectedRange'];
+        $totalRange = $filterData['attributes']['totalRange'];
+        $unit = $filterData['attributes']['unit'];
+        if ($selectedRange) {
+            $filter->setActiveMin($selectedRange['min']);
+            $filter->setActiveMax($selectedRange['max']);
+        }
+        if ($totalRange) {
+            $filter->setMin($totalRange['min']);
+            $filter->setMax($totalRange['max']);
+        }
+        if ($unit) {
+            $filter->setUnit($unit);
         }
 
         return $filter;

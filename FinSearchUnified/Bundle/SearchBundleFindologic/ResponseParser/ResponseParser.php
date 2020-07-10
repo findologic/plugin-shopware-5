@@ -5,6 +5,7 @@ namespace FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser;
 use FINDOLOGIC\Api\Responses\Response;
 use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\QueryInfoMessage\QueryInfoMessage;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Filter;
 use InvalidArgumentException;
 
 abstract class ResponseParser
@@ -57,4 +58,9 @@ abstract class ResponseParser
      * @return QueryInfoMessage
      */
     abstract public function getQueryInfoMessage(SmartDidYouMean $smartDidYouMean);
+
+    /**
+     * @return Filter[]
+     */
+    abstract public function getFilters();
 }

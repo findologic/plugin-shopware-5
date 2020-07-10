@@ -29,7 +29,7 @@ class Xml21ResponseParserTest extends TestCase
     {
         return [
             'No smart-did-you-mean tags present' => [
-                'demoResponse.xml',
+                'demoResponseWithoutQuery.xml',
                 null,
                 null
             ],
@@ -131,7 +131,7 @@ class Xml21ResponseParserTest extends TestCase
 
     public function testResponseWhenPromotionDoesNotExist()
     {
-        $response = Utility::getDemoResponse('demoResponse.xml');
+        $response = Utility::getDemoResponse('demoResponseWithoutPromotion.xml');
         $responseParser = ResponseParser::getInstance($response);
         $promotion = $responseParser->getPromotion();
         $this->assertNull($promotion);

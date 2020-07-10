@@ -4,7 +4,7 @@ namespace FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler;
 
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandlerInterface;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilder;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
@@ -27,14 +27,14 @@ class SearchTermConditionHandler implements ConditionHandlerInterface
      * Handles the passed condition object.
      *
      * @param ConditionInterface $condition
-     * @param NewQueryBuilder $query
+     * @param QueryBuilder $query
      * @param ShopContextInterface $context
      *
      * @throws Exception
      */
     public function generateCondition(
         ConditionInterface $condition,
-        NewQueryBuilder $query,
+        QueryBuilder $query,
         ShopContextInterface $context
     ) {
         /** @var SearchTermCondition $condition */

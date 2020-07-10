@@ -2,9 +2,17 @@
 
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\FacetHandler;
 
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\ColorPickerFilter as ApiColorPickerFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\LabelTextFilter as ApiLabelTextFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\RangeSliderFilter as ApiRangeSliderFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\SelectDropdownFilter as ApiSelectDropdownFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\VendorImageFilter as ApiVendorImageFilter;
 use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\TextFacetHandler;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Filter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\LabelTextFilter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Values\FilterValue;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -17,41 +25,36 @@ use SimpleXMLElement;
 
 class TextFacetHandlerTest extends TestCase
 {
+    public function filterProvider()
+    {
+        return [
+            'Filter with "select" type' => [ApiSelectDropdownFilter::class, true],
+            'Filter with "label" type' => [ApiLabelTextFilter::class, true],
+            'Filter with "image" type' => [ApiVendorImageFilter::class, false],
+            'Filter with "range-slider" type' => [ApiRangeSliderFilter::class, false],
+            'Filter with "color" type' => [ApiColorPickerFilter::class, false]
+        ];
+    }
+
     /**
      * @dataProvider filterProvider
      *
-     * @param string $name
-     * @param string $type
+     * @param string $apiFilter
      * @param bool $doesSupport
      */
-    public function testSupportsFilter($name, $type, $doesSupport)
+    public function testSupportsFilter($apiFilter, $doesSupport)
     {
         $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $filter = new SimpleXMLElement($data);
-
-        $filter->addChild('name', $name);
-        $filter->addChild('type', $type);
-
+        $filter = new $apiFilter(new SimpleXMLElement($data));
         $facetHandler = new TextFacetHandler();
-        $result = $facetHandler->supportsFilter($filter);
+        $result = $facetHandler->supportsFilter(Filter::getInstance($filter));
 
         $this->assertSame($doesSupport, $result);
     }
 
-    public function filterProvider()
-    {
-        return [
-            'Category filter with "select" type' => ['cat', 'select', false],
-            'Category filter with "label" type' => ['cat', 'label', false],
-            'Vendor filter with "select" type' => ['vendor', 'select', true],
-            'Vendor filter with "label" type' => ['vendor', 'label', true],
-        ];
-    }
-
     public function testFacetModeForBooleanResult()
     {
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $filter = new SimpleXMLElement($data);
+        $filter = new LabelTextFilter('free_shipping', 'Free Shipping');
 
         $facet = new ProductAttributeFacet(
             'field',
@@ -313,26 +316,18 @@ class TextFacetHandlerTest extends TestCase
     /**
      * @param array $filterData
      *
-     * @return SimpleXMLElement
+     * @return LabelTextFilter
      */
     public function generateFilter(array $filterData)
     {
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $filter = new SimpleXMLElement($data);
-
-        // Loop through the data to generate filter xml
-        foreach ($filterData as $key => $value) {
-            if (is_array($value)) {
-                $items = $filter->addChild('items');
-                foreach ($value as $itemData) {
-                    $item = $items->addChild('item');
-                    foreach ($itemData as $k => $v) {
-                        $item->addChild($k, $v);
-                    }
-                }
-            } else {
-                $filter->addChild($key, $value);
+        $filter = new LabelTextFilter($filterData['name'], $filterData['display']);
+        foreach ($filterData['items'] as $item) {
+            $filterValue = new FilterValue($item['name'], $item['name']);
+            if ($item['frequency']) {
+                $filterValue->setFrequency($item['frequency']);
             }
+
+            $filter->addValue($filterValue);
         }
 
         return $filter;

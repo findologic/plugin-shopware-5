@@ -16,6 +16,8 @@ use Shopware\Bundle\StoreFrontBundle;
 use SimpleXMLElement;
 use Zend_Cache_Exception;
 
+use function getenv;
+
 class StaticHelper
 {
     /**
@@ -340,5 +342,23 @@ class StaticHelper
                 'snippetType' => $queryInfoMessage->getType()
             ]
         );
+    }
+
+    /**
+     * @param $version
+     *
+     * @return bool
+     */
+    public static function isVersionLowerThan($version)
+    {
+        $shopwareVersion = getenv('SHOPWARE_VERSION') ?: '5.6.7';
+
+        // When in development mode, the shopware version can return `___VERSION___` so we use a more recent version
+        // for comparison instead
+        if ($shopwareVersion === '___VERSION___') {
+            $shopwareVersion = '5.6.7';
+        }
+
+        return version_compare($shopwareVersion, $version, '<');
     }
 }

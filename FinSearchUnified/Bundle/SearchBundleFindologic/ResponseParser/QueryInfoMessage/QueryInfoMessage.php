@@ -6,6 +6,12 @@ use InvalidArgumentException;
 
 abstract class QueryInfoMessage
 {
+    const
+        TYPE_QUERY = 'query', // Search results for "<query>" (<count> hits)
+        TYPE_CATEGORY = 'cat', // Search results for <cat-filter-name> <cat-name> (<count> hits)
+        TYPE_VENDOR = 'vendor', // Search results for <vendor-filter-name> <vendor-name> (<count> hits)
+        TYPE_DEFAULT = 'default'; // Search results (<count> hits)
+
     /** @var string */
     protected $filterName;
 
@@ -17,12 +23,6 @@ abstract class QueryInfoMessage
 
     /** @var string */
     protected $query;
-
-    const
-        TYPE_QUERY = 'query', // Search results for "<query>" (<count> hits)
-        TYPE_CATEGORY = 'cat', // Search results for <cat-filter-name> <cat-name> (<count> hits)
-        TYPE_VENDOR = 'vendor', // Search results for <vendor-filter-name> <vendor-name> (<count> hits)
-        TYPE_DEFAULT = 'default'; // Search results (<count> hits)
 
     /**
      * @param string $type

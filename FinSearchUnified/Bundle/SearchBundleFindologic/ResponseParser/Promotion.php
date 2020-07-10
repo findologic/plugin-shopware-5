@@ -2,7 +2,7 @@
 
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser;
 
-class Promotion
+class Promotion extends Struct
 {
     /** @var string */
     private $image;

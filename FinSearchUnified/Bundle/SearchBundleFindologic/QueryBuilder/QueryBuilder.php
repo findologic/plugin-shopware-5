@@ -8,13 +8,14 @@ use FINDOLOGIC\Api\Config;
 use FINDOLOGIC\Api\Definitions\OutputAdapter;
 use FINDOLOGIC\Api\Definitions\QueryParameter;
 use FINDOLOGIC\Api\Exceptions\InvalidParamException;
+use FINDOLOGIC\Api\Exceptions\ServiceNotAliveException;
 use FINDOLOGIC\Api\Requests\SearchNavigation\SearchNavigationRequest;
 use FINDOLOGIC\Api\Responses\Response;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware_Components_Config;
 
-abstract class NewQueryBuilder
+abstract class QueryBuilder
 {
     /**
      * @var SearchNavigationRequest
@@ -68,6 +69,7 @@ abstract class NewQueryBuilder
 
     /**
      * @return Response
+     * @throws ServiceNotAliveException
      */
     public function execute()
     {
@@ -92,7 +94,7 @@ abstract class NewQueryBuilder
      */
     public function addQuery($query)
     {
-        $this->searchNavigationRequest->setQuery($query);
+        $this->searchNavigationRequest->setQuery(urldecode($query));
     }
 
     /**
@@ -102,8 +104,8 @@ abstract class NewQueryBuilder
      */
     public function addRangeFilter($key, $min, $max)
     {
-        $this->searchNavigationRequest->addAttribute($key, $min, 'min');
-        $this->searchNavigationRequest->addAttribute($key, $max, 'max');
+        $this->searchNavigationRequest->addAttribute($key, urldecode($min), 'min');
+        $this->searchNavigationRequest->addAttribute($key, urldecode($max), 'max');
     }
 
     /**
@@ -163,7 +165,7 @@ abstract class NewQueryBuilder
      */
     public function addParameter($key, $value)
     {
-        $this->searchNavigationRequest->addAttribute($key, $value);
+        $this->searchNavigationRequest->addAttribute($key, urldecode($value));
     }
 
     /**

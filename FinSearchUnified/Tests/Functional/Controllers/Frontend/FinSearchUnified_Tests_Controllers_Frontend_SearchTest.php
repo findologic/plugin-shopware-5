@@ -3,8 +3,8 @@
 use FINDOLOGIC\Api\Responses\Response;
 use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\Bundle\ProductNumberSearch;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilder;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewQueryBuilderFactory;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilderFactory;
 use FinSearchUnified\Tests\Helper\Utility;
 use PHPUnit\Framework\MockObject\MockObject;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
@@ -195,7 +195,10 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         $response = new Xml21Response($xmlResponse->asXML());
 
+        Shopware()->Session()->offsetSet('isSearchPage', true);
+        Shopware()->Session()->offsetSet('isCategoryPage', false);
         Shopware()->Session()->offsetSet('findologicDI', false);
+
 
         $criteria = new Criteria();
 
@@ -215,7 +218,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         Shopware()->Container()->set('shopware_search.store_front_criteria_factory', $storeFrontCriteriaFactoryMock);
 
-        $mockedQuery = $this->getMockBuilder(NewQueryBuilder::class)
+        $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
             ->disableOriginalConstructor()
             ->setMethods(['execute'])
             ->getMockForAbstractClass();
@@ -224,7 +227,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         // Mock querybuilder factory method to check that custom implementation does not get called
         // as original implementation will be called in this case
-        $mockQuerybuilderFactory = $this->createMock(NewQueryBuilderFactory::class);
+        $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
         $mockQuerybuilderFactory->expects($this->once())
             ->method('createProductQuery')
             ->willReturn($mockedQuery);

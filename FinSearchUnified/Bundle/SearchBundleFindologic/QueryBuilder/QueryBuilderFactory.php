@@ -22,7 +22,7 @@ use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use Shopware_Components_Config;
 
-class NewQueryBuilderFactory implements QueryBuilderFactoryInterface
+class QueryBuilderFactory implements QueryBuilderFactoryInterface
 {
     /**
      * @var InstallerService
@@ -104,10 +104,10 @@ class NewQueryBuilderFactory implements QueryBuilderFactoryInterface
 
     /**
      * @param Criteria $criteria
-     * @param NewQueryBuilder $query
+     * @param QueryBuilder $query
      * @param ShopContextInterface $context
      */
-    private function addConditions(Criteria $criteria, NewQueryBuilder $query, ShopContextInterface $context)
+    private function addConditions(Criteria $criteria, QueryBuilder $query, ShopContextInterface $context)
     {
         foreach ($criteria->getConditions() as $condition) {
             $handler = $this->getConditionHandler($condition);
@@ -135,10 +135,10 @@ class NewQueryBuilderFactory implements QueryBuilderFactoryInterface
 
     /**
      * @param Criteria $criteria
-     * @param NewQueryBuilder $query
+     * @param QueryBuilder $query
      * @param ShopContextInterface $context
      */
-    private function addSorting(Criteria $criteria, NewQueryBuilder $query, ShopContextInterface $context)
+    private function addSorting(Criteria $criteria, QueryBuilder $query, ShopContextInterface $context)
     {
         foreach ($criteria->getSortings() as $sorting) {
             $handler = $this->getSortingHandler($sorting);
@@ -156,7 +156,7 @@ class NewQueryBuilderFactory implements QueryBuilderFactoryInterface
      * @param Criteria $criteria
      * @param ShopContextInterface $context
      *
-     * @return NewQueryBuilder
+     * @return QueryBuilder
      * @throws Exception
      */
     public function createQueryWithSorting(Criteria $criteria, ShopContextInterface $context)
@@ -174,7 +174,7 @@ class NewQueryBuilderFactory implements QueryBuilderFactoryInterface
      * @param Criteria $criteria
      * @param ShopContextInterface $context
      *
-     * @return NewQueryBuilder
+     * @return QueryBuilder
      * @throws Exception
      */
     public function createProductQuery(Criteria $criteria, ShopContextInterface $context)
@@ -201,7 +201,7 @@ class NewQueryBuilderFactory implements QueryBuilderFactoryInterface
      * @param Criteria $criteria
      * @param ShopContextInterface $context
      *
-     * @return NewQueryBuilder
+     * @return QueryBuilder
      * @throws Exception
      */
     public function createQuery(Criteria $criteria, ShopContextInterface $context)
@@ -214,19 +214,19 @@ class NewQueryBuilderFactory implements QueryBuilderFactoryInterface
     }
 
     /**
-     * @return NewQueryBuilder
+     * @return QueryBuilder
      */
     public function createQueryBuilder()
     {
         $isSearchPage = Shopware()->Session()->offsetGet('isSearchPage');
 
         if ($isSearchPage) {
-            $querybuilder = new NewSearchQueryBuilder(
+            $querybuilder = new SearchQueryBuilder(
                 $this->installerService,
                 $this->config
             );
         } else {
-            $querybuilder = new NewNavigationQueryBuilder(
+            $querybuilder = new NavigationQueryBuilder(
                 $this->installerService,
                 $this->config
             );
@@ -239,7 +239,7 @@ class NewQueryBuilderFactory implements QueryBuilderFactoryInterface
      * @param Criteria $criteria
      * @param ShopContextInterface $context
      *
-     * @return NewQueryBuilder
+     * @return QueryBuilder
      * @throws Exception
      */
     public function createSearchNavigationQueryWithoutAdditionalFilters(
@@ -249,10 +249,10 @@ class NewQueryBuilderFactory implements QueryBuilderFactoryInterface
         $query = $this->createQueryBuilder();
         $condition = null;
 
-        if ($query instanceof NewSearchQueryBuilder) {
+        if ($query instanceof SearchQueryBuilder) {
             $condition = $criteria->getCondition('search');
         }
-        if ($query instanceof NewNavigationQueryBuilder) {
+        if ($query instanceof NavigationQueryBuilder) {
             $condition = $criteria->getCondition('category');
         }
 

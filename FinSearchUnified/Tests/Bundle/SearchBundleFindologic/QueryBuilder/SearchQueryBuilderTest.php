@@ -6,8 +6,8 @@ use FINDOLOGIC\Api\Client;
 use FINDOLOGIC\Api\Requests\SearchNavigation\NavigationRequest;
 use FINDOLOGIC\Api\Requests\SearchNavigation\SearchRequest;
 use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewNavigationQueryBuilder;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NewSearchQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NavigationQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\SearchQueryBuilder;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
@@ -15,7 +15,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware_Components_Config;
 
-class NewSearchQueryBuilderTest extends TestCase
+class SearchQueryBuilderTest extends TestCase
 {
     /**
      * @var InstallerService
@@ -55,7 +55,7 @@ class NewSearchQueryBuilderTest extends TestCase
         $apiClientMock->expects($this->once())->method('send')->willReturn(
             new Xml21Response(Utility::getDemoXML()->asXML())
         );
-        $queryBuilder = new NewSearchQueryBuilder(
+        $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
             $this->config,
             $apiClientMock,
@@ -69,7 +69,7 @@ class NewSearchQueryBuilderTest extends TestCase
     public function testQueryParameter()
     {
         $searchNavigationRequest = new SearchRequest();
-        $queryBuilder = new NewSearchQueryBuilder(
+        $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
             $this->config,
             null,
@@ -86,7 +86,7 @@ class NewSearchQueryBuilderTest extends TestCase
     public function testRangeFilterParameter()
     {
         $searchNavigationRequest = new SearchRequest();
-        $queryBuilder = new NewSearchQueryBuilder(
+        $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
             $this->config,
             null,
@@ -98,14 +98,14 @@ class NewSearchQueryBuilderTest extends TestCase
         $params = $searchNavigationRequest->getParams();
         $this->assertArrayHasKey('attrib', $params);
         $this->assertArrayHasKey('price', $params['attrib']);
-        $this->assertSame(0.44, $params['attrib']['price']['min']);
-        $this->assertSame(12.00, $params['attrib']['price']['max']);
+        $this->assertEquals(0.44, $params['attrib']['price']['min']);
+        $this->assertEquals(12.00, $params['attrib']['price']['max']);
     }
 
     public function testFilterParameter()
     {
         $searchNavigationRequest = new SearchRequest();
-        $queryBuilder = new NewSearchQueryBuilder(
+        $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
             $this->config,
             null,
@@ -124,7 +124,7 @@ class NewSearchQueryBuilderTest extends TestCase
     public function testCategoriesParameterForSearch()
     {
         $searchNavigationRequest = new SearchRequest();
-        $queryBuilder = new NewSearchQueryBuilder(
+        $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
             $this->config,
             null,
@@ -142,7 +142,7 @@ class NewSearchQueryBuilderTest extends TestCase
     public function testCategoriesParameterForNavigation()
     {
         $searchNavigationRequest = new NavigationRequest();
-        $queryBuilder = new NewNavigationQueryBuilder(
+        $queryBuilder = new NavigationQueryBuilder(
             $this->installerService,
             $this->config,
             null,
@@ -161,7 +161,7 @@ class NewSearchQueryBuilderTest extends TestCase
     public function testOrderParameter()
     {
         $searchNavigationRequest = new SearchRequest();
-        $queryBuilder = new NewSearchQueryBuilder(
+        $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
             $this->config,
             null,
@@ -178,7 +178,7 @@ class NewSearchQueryBuilderTest extends TestCase
     public function testFirstResultParameter()
     {
         $searchNavigationRequest = new SearchRequest();
-        $queryBuilder = new NewSearchQueryBuilder(
+        $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
             $this->config,
             null,
@@ -195,7 +195,7 @@ class NewSearchQueryBuilderTest extends TestCase
     public function testMaxResultParameter()
     {
         $searchNavigationRequest = new SearchRequest();
-        $queryBuilder = new NewSearchQueryBuilder(
+        $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
             $this->config,
             null,
@@ -212,7 +212,7 @@ class NewSearchQueryBuilderTest extends TestCase
     public function testAddParameter()
     {
         $searchNavigationRequest = new SearchRequest();
-        $queryBuilder = new NewSearchQueryBuilder(
+        $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
             $this->config,
             null,
@@ -232,7 +232,7 @@ class NewSearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         $searchNavigationRequest->addAttribute('findologic', 'is awesome');
 
-        $queryBuilder = new NewSearchQueryBuilder(
+        $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
             $this->config,
             null,
@@ -261,7 +261,7 @@ class NewSearchQueryBuilderTest extends TestCase
     public function testUserGroupParameterHashedCorrectly($userGroup)
     {
         $searchNavigationRequest = new SearchRequest();
-        $queryBuilder = new NewSearchQueryBuilder(
+        $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
             $this->config,
             null,
@@ -311,7 +311,7 @@ class NewSearchQueryBuilderTest extends TestCase
     public function testAddFlagParameter($flagValue, $expectedValue)
     {
         $searchNavigationRequest = new SearchRequest();
-        $queryBuilder = new NewSearchQueryBuilder(
+        $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
             $this->config,
             null,

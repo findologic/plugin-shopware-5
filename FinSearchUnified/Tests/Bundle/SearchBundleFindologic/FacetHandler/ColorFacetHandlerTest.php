@@ -2,10 +2,18 @@
 
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\FacetHandler;
 
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\ColorPickerFilter as ApiColorPickerFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\LabelTextFilter as ApiLabelTextFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\RangeSliderFilter as ApiRangeSliderFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\SelectDropdownFilter as ApiSelectDropdownFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\VendorImageFilter as ApiVendorImageFilter;
 use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundle\FacetResult\ColorListItem;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\ColorFacetHandler;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\ColorPickerFilter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Filter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Values\ColorFilterValue;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -19,23 +27,15 @@ class ColorFacetHandlerTest extends TestCase
     /**
      * @dataProvider filterProvider
      *
-     * @param string $type
+     * @param string $apiFilter
      * @param bool $doesSupport
-     * @param bool $hasImageTag
      */
-    public function testSupportsFilter($type, $doesSupport, $hasImageTag = false)
+    public function testSupportsFilter($apiFilter, $doesSupport)
     {
         $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $filter = new SimpleXMLElement($data);
-
-        $filter->addChild('name', 'attr6');
-        $filter->addChild('type', $type);
-
-        if ($hasImageTag) {
-            $filter->addChild('items')->addChild('item')->addChild('image');
-        }
+        $filter = new $apiFilter(new SimpleXMLElement($data));
         $facetHandler = new ColorFacetHandler();
-        $result = $facetHandler->supportsFilter($filter);
+        $result = $facetHandler->supportsFilter(Filter::getInstance($filter));
 
         $this->assertSame($doesSupport, $result);
     }
@@ -43,24 +43,23 @@ class ColorFacetHandlerTest extends TestCase
     public function filterProvider()
     {
         return [
-            'Filter with "select" type' => ['select', false],
-            'Filter with "label" type' => ['label', false],
-            'Filter with "image" type' => ['image', false],
-            'Filter with "range-slider" type' => ['range-slider', false],
-            'Filter with "color" type without image tag' => ['color', true, false],
-            'Filter with "color" type with image tag' => ['color', false, true],
+            'Filter with "select" type' => [ApiSelectDropdownFilter::class, false],
+            'Filter with "label" type' => [ApiLabelTextFilter::class, false],
+            'Filter with "image" type' => [ApiVendorImageFilter::class, false],
+            'Filter with "range-slider" type' => [ApiRangeSliderFilter::class, false],
+            'Filter with "color" type' => [ApiColorPickerFilter::class, true]
         ];
     }
 
     /**
      * @dataProvider facetResultProvider
      *
-     * @param array $filterData
+     * @param Filter $filter
      * @param ConditionInterface|null $condition
      * @param FacetResultInterface|null $facetResult
      */
     public function testGeneratesPartialFacetBasedOnFilterDataAndActiveConditions(
-        array $filterData,
+        Filter $filter,
         ConditionInterface $condition = null,
         FacetResultInterface $facetResult = null
     ) {
@@ -75,8 +74,6 @@ class ColorFacetHandlerTest extends TestCase
             $criteria->addCondition($condition);
         }
 
-        $filter = $this->generateFilter($filterData);
-
         $facetHandler = new ColorFacetHandler();
         $result = $facetHandler->generatePartialFacet($facet, $criteria, $filter);
 
@@ -87,22 +84,12 @@ class ColorFacetHandlerTest extends TestCase
     {
         return [
             'Color filter without condition' => [
-                'Filter data' => [
-                    'name' => 'color',
-                    'display' => 'Farbe',
-                    'select' => 'multiselect',
-                    'type' => 'color',
-                    'items' => [
-                        [
-                            'name' => 'Red',
-                            'color' => '#ff0000'
-                        ],
-                        [
-                            'name' => 'Green',
-                            'color' => '#00ff00'
-                        ]
-                    ]
-                ],
+                'Filter data' => (new ColorPickerFilter(
+                    'color',
+                    'Farbe'
+                ))
+                    ->addValue((new ColorFilterValue('Red', 'Red'))->setColorHexCode('#ff0000'))
+                    ->addValue((new ColorFilterValue('Green', 'Green'))->setColorHexCode('#00ff00')),
                 'Condition' => null,
                 'Facet Result' => new MediaListFacetResult(
                     'product_attribute_color',
@@ -118,22 +105,12 @@ class ColorFacetHandlerTest extends TestCase
                 )
             ],
             'Color filter without color element' => [
-                'Filter data' => [
-                    'name' => 'color',
-                    'display' => 'Farbe',
-                    'select' => 'multiselect',
-                    'type' => 'color',
-                    'items' => [
-                        [
-                            'name' => 'Red',
-                            'color' => '#ff0000'
-                        ],
-                        [
-                            'name' => 'Green',
-                            'color' => null
-                        ]
-                    ]
-                ],
+                'Filter data' => (new ColorPickerFilter(
+                    'color',
+                    'Farbe'
+                ))
+                    ->addValue((new ColorFilterValue('Red', 'Red'))->setColorHexCode('#ff0000'))
+                    ->addValue((new ColorFilterValue('Green', 'Green'))),
                 'Condition' => null,
                 'Facet Result' => new MediaListFacetResult(
                     'product_attribute_color',
@@ -149,22 +126,12 @@ class ColorFacetHandlerTest extends TestCase
                 )
             ],
             'Color filter with condition' => [
-                'Filter data' => [
-                    'name' => 'color',
-                    'display' => 'Farbe',
-                    'select' => 'multiselect',
-                    'type' => 'color',
-                    'items' => [
-                        [
-                            'name' => 'Red',
-                            'color' => '#ff0000'
-                        ],
-                        [
-                            'name' => 'Green',
-                            'color' => '#00ff00'
-                        ]
-                    ]
-                ],
+                'Filter data' => (new ColorPickerFilter(
+                    'color',
+                    'Farbe'
+                ))
+                    ->addValue((new ColorFilterValue('Red', 'Red'))->setColorHexCode('#ff0000'))
+                    ->addValue((new ColorFilterValue('Green', 'Green'))->setColorHexCode('#00ff00')),
                 'Condition' => new ProductAttributeCondition(
                     'color',
                     Operator::EQ,
@@ -184,22 +151,12 @@ class ColorFacetHandlerTest extends TestCase
                 )
             ],
             'Color filter with empty color condition' => [
-                'Filter data' => [
-                    'name' => 'color',
-                    'display' => 'Farbe',
-                    'select' => 'multiselect',
-                    'type' => 'color',
-                    'items' => [
-                        [
-                            'name' => 'Red',
-                            'color' => '#ff0000'
-                        ],
-                        [
-                            'name' => 'Green',
-                            'color' => '#00ff00'
-                        ]
-                    ]
-                ],
+                'Filter data' => (new ColorPickerFilter(
+                    'color',
+                    'Farbe'
+                ))
+                    ->addValue((new ColorFilterValue('Red', 'Red'))->setColorHexCode('#ff0000'))
+                    ->addValue((new ColorFilterValue('Green', 'Green'))->setColorHexCode('#00ff00')),
                 'Condition' => new ProductAttributeCondition(
                     'color',
                     Operator::EQ,
@@ -220,33 +177,5 @@ class ColorFacetHandlerTest extends TestCase
                 )
             ]
         ];
-    }
-
-    /**
-     * @param array $filterData
-     *
-     * @return SimpleXMLElement
-     */
-    public function generateFilter(array $filterData)
-    {
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $filter = new SimpleXMLElement($data);
-
-        // Loop through the data to generate filter xml
-        foreach ($filterData as $key => $value) {
-            if (is_array($value)) {
-                $items = $filter->addChild('items');
-                foreach ($value as $itemData) {
-                    $item = $items->addChild('item');
-                    foreach ($itemData as $k => $v) {
-                        $item->addChild($k, $v);
-                    }
-                }
-            } else {
-                $filter->addChild($key, $value);
-            }
-        }
-
-        return $filter;
     }
 }
