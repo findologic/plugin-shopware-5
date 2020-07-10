@@ -134,7 +134,14 @@ class FinSearchUnified extends Plugin
             $buttonEl->addChild('name', 'StagingTestButton');
             $buttonEl->addChild('label', 'Findologic Test');
             $options = $buttonEl->addChild('options');
-            $options->addChild('href', 'findologicStaging');
+
+            $onClick = <<<EOL
+function (button) {
+    var shopkey = button.getBubbleParent().getEl().dom.querySelector('input').value;
+    window.open(window.location.href.replace(/\/+$/,'') + '/findologicStaging?shopkey=' + shopkey, '_blank');
+}
+EOL;
+            $options->addChild('handler', $onClick);
         }
 
         // From Shopware 5.6 `XmlConfigDefinitionReader` is removed and `XmlConfigReader` is used instead
