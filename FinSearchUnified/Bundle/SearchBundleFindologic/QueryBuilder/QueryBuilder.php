@@ -203,7 +203,7 @@ abstract class QueryBuilder
 
         $this->searchNavigationRequest->setShopkey($this->shopKey);
         $this->searchNavigationRequest->setUserIp($this->getClientIp());
-        $this->searchNavigationRequest->setRevision($plugin->getVersion());
+        $this->searchNavigationRequest->setRevision(rtrim($plugin->getVersion(), '-rc.1'));
         $this->searchNavigationRequest->setOutputAdapter(OutputAdapter::XML_21);
     }
 
