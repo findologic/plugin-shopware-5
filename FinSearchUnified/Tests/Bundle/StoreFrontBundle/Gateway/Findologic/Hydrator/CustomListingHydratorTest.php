@@ -145,6 +145,20 @@ class CustomListingHydratorTest extends TestCase
                 'special_characters',
                 'Sonderzeichen',
                 ProductAttributeFacet::MODE_RADIO_LIST_RESULT
+            ],
+            'Filter with multi-byte characters' => [
+                'filterArray' => [
+                    'type' => 'select',
+                    'name' => 'TEPPICHE - Maße',
+                    'display' => 'Multibyte - TEPPICHE - Maße',
+                    'select' => 'single'
+                ],
+                'expectedName' => 'TEPPICHE - Maße',
+                'expectedUniqueKey' => 'TEPPICHE - Maße',
+                'expectedAttributeName' => 'product_attribute_TEPPICHE - Maße',
+                'expectedAttributeFormFieldName' => 'TEPPICHE_-_Maße',
+                'expectedAttributeLabel' => 'Multibyte - TEPPICHE - Maße',
+                'expectedAttributeMode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT
             ]
         ];
     }

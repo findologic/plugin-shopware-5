@@ -54,6 +54,7 @@ class FindologicFacetCriteriaRequestHandler implements CriteriaRequestHandlerInt
                 continue;
             }
             $facet = $customFacet->getFacet();
+
             $criteria->addFacet($facet);
             if ($facet instanceof ProductAttributeFacet) {
                 $this->handleProductAttributeFacet($request, $criteria, $facet);

@@ -21,7 +21,8 @@
   },
   "require": {
     "php": ">=5.6.4",
-    "findologic/libflexport": "~1.2"
+    "findologic/libflexport": "~1.2",
+    "ext-mbstring": "*"
   },
   "require-dev": {
     "squizlabs/php_codesniffer": "3.3.2"
