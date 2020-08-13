@@ -149,15 +149,15 @@ class CustomListingHydratorTest extends TestCase
             'Filter with multi-byte characters' => [
                 'filterArray' => [
                     'type' => 'select',
-                    'name' => 'TEPPICHE - Maße',
-                    'display' => 'Multibyte - TEPPICHE - Maße',
+                    'name' => 'TISCHWÄSCHE - Ausführung',
+                    'display' => 'Multibyte - TISCHWÄSCHE - Ausführung',
                     'select' => 'single'
                 ],
-                'expectedName' => 'TEPPICHE - Maße',
-                'expectedUniqueKey' => 'TEPPICHE - Maße',
-                'expectedAttributeName' => 'product_attribute_TEPPICHE - Maße',
-                'expectedAttributeFormFieldName' => 'TEPPICHE_-_Maße',
-                'expectedAttributeLabel' => 'Multibyte - TEPPICHE - Maße',
+                'expectedName' => 'TISCHWÄSCHE - Ausführung',
+                'expectedUniqueKey' => 'TISCHWÄSCHE - Ausführung',
+                'expectedAttributeName' => 'product_attribute_TISCHWÄSCHE - Ausführung',
+                'expectedAttributeFormFieldName' => 'TISCHW_SCHE_-_Ausführung',
+                'expectedAttributeLabel' => 'Multibyte - TISCHWÄSCHE - Ausführung',
                 'expectedAttributeMode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT
             ]
         ];
