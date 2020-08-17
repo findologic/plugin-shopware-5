@@ -55,6 +55,8 @@ See the official Shopware [documentation](https://developers.shopware.com/develo
 # Deployment & Release
 Before starting the deployment make sure that a release is already created.
 
+1. Merge everything into the `develop` branch and update the version in `FinSearchUnified/plugin.xml`.
+1. Add another `<changelog>` tag, containing all changes made in this release.
 1. Run `git fetch` and ensure that the release tag is available locally. Make sure
  that the file `./FinSearchUnified/plugin.xml` contains the correct version constraint.
 1. Run `./archive.sh` which will automatically create a plugin zip.
