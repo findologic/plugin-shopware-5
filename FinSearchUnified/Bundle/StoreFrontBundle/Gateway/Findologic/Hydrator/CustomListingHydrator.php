@@ -54,14 +54,14 @@ class CustomListingHydrator
      */
     public function getFormFieldName($name)
     {
-        $escapedName = preg_replace(
-            '/[^\xC3\x96|\xC3\x9C|\xC3\x9F|\xC3\xA4|\xC3\xB6|\xC3\xBC|\x00-\x7F]|[\.\s\x5B]/',
+        $escapedName = mb_ereg_replace(
+            '[^\xC3\x96|\xC3\x9C|\xC3\x9F|\xC3\xA4|\xC3\xB6|\xC3\xBC|\x00-\x7F]|[\.\s\x5B]',
             '_',
             $name
         );
 
         // Reduces successive occurrences of an underscore to a single character.
-        $escapedName = preg_replace('/_{2,}/', '_', $escapedName);
+        $escapedName = mb_ereg_replace('_{2,}', '_', $escapedName);
 
         // Fall back to the original name if it couldn't be escaped.
         return $escapedName ?: $name;

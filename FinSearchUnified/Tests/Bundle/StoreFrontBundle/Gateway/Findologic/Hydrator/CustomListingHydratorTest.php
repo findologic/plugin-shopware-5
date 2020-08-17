@@ -35,116 +35,130 @@ class CustomListingHydratorTest extends TestCase
     {
         return [
             'Price filter' => [
-                [
+                'filterArray' => [
                     'type' => 'range-slider',
                     'name' => 'price',
                     'display' => 'Preis',
                     'select' => 'single'
                 ],
-                'price',
-                'price',
-                'product_attribute_price',
-                'price',
-                'Preis',
-                ProductAttributeFacet::MODE_RANGE_RESULT
+                'expectedName' => 'price',
+                'expectedUniqueKey' => 'price',
+                'expectedAttributeName' => 'product_attribute_price',
+                'expectedAttributeFormFieldName' => 'price',
+                'expectedAttributeLabel' => 'Preis',
+                'expectedAttributeMode' => ProductAttributeFacet::MODE_RANGE_RESULT
             ],
             'Color filter' => [
-                [
+                'filterArray' => [
                     'type' => 'color',
                     'name' => 'color',
                     'display' => 'Farbe',
                     'select' => 'multiselect'
                 ],
-                'color',
-                'color',
-                'product_attribute_color',
-                'color',
-                'Farbe',
-                ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                'expectedName' => 'color',
+                'expectedUniqueKey' => 'color',
+                'expectedAttributeName' => 'product_attribute_color',
+                'expectedAttributeFormFieldName' => 'color',
+                'expectedAttributeLabel' => 'Farbe',
+                'expectedAttributeMode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT
             ],
             'Image filter' => [
-                [
+                'filterArray' => [
                     'type' => 'image',
                     'name' => 'vendor',
                     'display' => 'Marken',
                     'select' => 'multiple'
                 ],
-                'vendor',
-                'vendor',
-                'product_attribute_vendor',
-                'vendor',
-                'Marken',
-                ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                'expectedName' => 'vendor',
+                'expectedUniqueKey' => 'vendor',
+                'expectedAttributeName' => 'product_attribute_vendor',
+                'expectedAttributeFormFieldName' => 'vendor',
+                'expectedAttributeLabel' => 'Marken',
+                'expectedAttributeMode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT
             ],
             'Text filter supporting multiple values' => [
-                [
+                'filterArray' => [
                     'type' => 'label',
                     'name' => 'ingredients',
                     'display' => 'Zutaten',
                     'select' => 'multiple'
                 ],
-                'ingredients',
-                'ingredients',
-                'product_attribute_ingredients',
-                'ingredients',
-                'Zutaten',
-                ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                'expectedName' => 'ingredients',
+                'expectedUniqueKey' => 'ingredients',
+                'expectedAttributeName' => 'product_attribute_ingredients',
+                'expectedAttributeFormFieldName' => 'ingredients',
+                'expectedAttributeLabel' => 'Zutaten',
+                'expectedAttributeMode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT
             ],
             'Text filter supporting only one value' => [
-                [
+                'filterArray' => [
                     'type' => 'label',
                     'name' => 'ingredients',
                     'display' => 'Zutaten',
                     'select' => 'single'
                 ],
-                'ingredients',
-                'ingredients',
-                'product_attribute_ingredients',
-                'ingredients',
-                'Zutaten',
-                ProductAttributeFacet::MODE_RADIO_LIST_RESULT
+                'expectedName' => 'ingredients',
+                'expectedUniqueKey' => 'ingredients',
+                'expectedAttributeName' => 'product_attribute_ingredients',
+                'expectedAttributeFormFieldName' => 'ingredients',
+                'expectedAttributeLabel' => 'Zutaten',
+                'expectedAttributeMode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT
             ],
             'Dropdown filter for category' => [
-                [
+                'filterArray' => [
                     'type' => 'select',
                     'name' => 'cat',
                     'display' => 'Kategorie',
                     'select' => 'single'
                 ],
-                'cat',
-                'cat',
-                'product_attribute_cat',
-                'cat',
-                'Kategorie',
-                ProductAttributeFacet::MODE_RADIO_LIST_RESULT
+                'expectedName' => 'cat',
+                'expectedUniqueKey' => 'cat',
+                'expectedAttributeName' => 'product_attribute_cat',
+                'expectedAttributeFormFieldName' => 'cat',
+                'expectedAttributeLabel' => 'Kategorie',
+                'expectedAttributeMode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT
             ],
             'Filter with a single special character' => [
-                [
+                'filterArray' => [
                     'type' => 'select',
                     'name' => 'zoom factor',
                     'display' => 'Zoom Faktor',
                     'select' => 'single'
                 ],
-                'zoom factor',
-                'zoom factor',
-                'product_attribute_zoom factor',
-                'zoom_factor',
-                'Zoom Faktor',
-                ProductAttributeFacet::MODE_RADIO_LIST_RESULT
+                'expectedName' => 'zoom factor',
+                'expectedUniqueKey' => 'zoom factor',
+                'expectedAttributeName' => 'product_attribute_zoom factor',
+                'expectedAttributeFormFieldName' => 'zoom_factor',
+                'expectedAttributeLabel' => 'Zoom Faktor',
+                'expectedAttributeMode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT
             ],
             'Filter with multiple special characters' => [
-                [
+                'filterArray' => [
                     'type' => 'select',
                     'name' => 'special .characters',
                     'display' => 'Sonderzeichen',
                     'select' => 'single'
                 ],
-                'special .characters',
-                'special .characters',
-                'product_attribute_special .characters',
-                'special_characters',
-                'Sonderzeichen',
-                ProductAttributeFacet::MODE_RADIO_LIST_RESULT
+                'expectedName' => 'special .characters',
+                'expectedUniqueKey' => 'special .characters',
+                'expectedAttributeName' => 'product_attribute_special .characters',
+                'expectedAttributeFormFieldName' => 'special_characters',
+                'expectedAttributeLabel' => 'Sonderzeichen',
+                'expectedAttributeMode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT
+            ],
+            'Filter with multi-byte characters' => [
+                'filterArray' => [
+                    'type' => 'select',
+                    'name' => 'TISCHWÄSCHE - Ausführung',
+                    'display' => 'Multibyte - TISCHWÄSCHE - Ausführung',
+                    'select' => 'single'
+                ],
+                'expectedName' => 'TISCHWÄSCHE - Ausführung',
+                'expectedUniqueKey' => 'TISCHWÄSCHE - Ausführung',
+                'expectedAttributeName' => 'product_attribute_TISCHWÄSCHE - Ausführung',
+                'expectedAttributeFormFieldName' => 'TISCHW_SCHE_-_Ausführung',
+                'expectedAttributeLabel' => 'Multibyte - TISCHWÄSCHE - Ausführung',
+                'expectedAttributeMode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT
             ]
         ];
     }
