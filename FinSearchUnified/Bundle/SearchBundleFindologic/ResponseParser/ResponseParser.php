@@ -6,6 +6,7 @@ use FINDOLOGIC\Api\Responses\Response;
 use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\QueryInfoMessage\QueryInfoMessage;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Filter;
+use FinSearchUnified\Components\ConfigLoader;
 use InvalidArgumentException;
 
 abstract class ResponseParser
@@ -15,9 +16,15 @@ abstract class ResponseParser
      */
     protected $response;
 
+    /**
+     * @var ConfigLoader
+     */
+    protected $configLoader;
+
     public function __construct(Response $response)
     {
         $this->response = $response;
+        $this->configLoader = Shopware()->Container()->get('fin_search_unified.config_loader');
     }
 
     /**

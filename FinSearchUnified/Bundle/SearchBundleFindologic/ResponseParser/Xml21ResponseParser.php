@@ -176,11 +176,14 @@ class Xml21ResponseParser extends ResponseParser
         $categories = explode('_', $params['cat']);
         $category = end($categories);
 
+        $filterName = isset($filters['cat']) ?
+            $filters['cat']->getDisplay() : $this->configLoader->getSmartSuggestBlocks()['cat'];
+
         /** @var CategoryInfoMessage $categoryInfoMessage */
         $categoryInfoMessage = QueryInfoMessage::buildInstance(
             QueryInfoMessage::TYPE_CATEGORY,
             null,
-            $filters['cat']->getDisplay(),
+            $filterName,
             $category
         );
 
@@ -196,11 +199,14 @@ class Xml21ResponseParser extends ResponseParser
     {
         $filters = array_merge($this->response->getMainFilters(), $this->response->getOtherFilters());
 
+        $filterName = isset($filters['vendor']) ?
+            $filters['vendor']->getDisplay() : $this->configLoader->getSmartSuggestBlocks()['vendor'];
+
         /** @var VendorInfoMessage $vendorInfoMessage */
         $vendorInfoMessage = QueryInfoMessage::buildInstance(
             QueryInfoMessage::TYPE_VENDOR,
             null,
-            $filters['vendor']->getDisplay(),
+            $filterName,
             $params['vendor']
         );
 
