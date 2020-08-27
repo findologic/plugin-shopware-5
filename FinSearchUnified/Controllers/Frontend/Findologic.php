@@ -1,5 +1,6 @@
 <?php
 
+use FinSearchUnified\Constants;
 use FinSearchUnified\ShopwareProcess;
 
 class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
@@ -18,21 +19,28 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $shopwareProcess->setUpExportService();
 
         if ($productId) {
-            $xmlDocument = $shopwareProcess->getProductById($productId);
+            $document = $shopwareProcess->getProductById($productId);
         } elseif ($count !== null) {
-            $xmlDocument = $shopwareProcess->getFindologicXml($language, $start, $count);
+            $document = $shopwareProcess->getFindologicXml($language, $start, $count);
         } else {
-            $xmlDocument = $shopwareProcess->getFindologicXml($language);
+            $document = $shopwareProcess->getFindologicXml($language);
         }
 
         $headerHandler = Shopware()->Container()->get('fin_search_unified.helper.header_handler');
-        $headers = $headerHandler->getHeaders();
 
+        $exportErrors = $shopwareProcess->exportService->getErrors();
+        if (count($exportErrors)) {
+            $headerHandler->setContentType(Constants::CONTENT_TYPE_JSON);
+        } else {
+            $headerHandler->setContentType(Constants::CONTENT_TYPE_XML);
+        }
+
+        $headers = $headerHandler->getHeaders();
         foreach ($headers as $name => $value) {
             $this->response->setHeader($name, $value, true);
         }
 
-        $this->response->setBody($xmlDocument);
+        $this->response->setBody($document);
         $this->container->get('front')->Plugins()->ViewRenderer()->setNoRender();
 
         return $this->response;

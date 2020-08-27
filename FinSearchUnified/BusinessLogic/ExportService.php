@@ -43,9 +43,9 @@ class ExportService
     protected $allUserGroups;
 
     /**
-     * @var array
+     * @var array[]
      */
-    public $errors = [];
+    protected $errors = [];
 
     public function __construct($shopkey, Category $baseCategory)
     {
@@ -94,7 +94,7 @@ class ExportService
         $shopwareArticles = $articlesQuery->getQuery()->execute();
 
         if (count($shopwareArticles) === 0) {
-            $this->errors[] = 'No article found with given ID';
+            $this->errors['general'][] = 'No article found with given ID';
             return null;
         }
 
@@ -129,6 +129,10 @@ class ExportService
      */
     public function getFindologicArticle($shopwareArticle, $logErrors)
     {
+        $articleId = $shopwareArticle->getId();
+        $inactiveCatCount = 0;
+        $totalCatCount = 0;
+
         /** @var Category $category */
         foreach ($shopwareArticle->getCategories() as $category) {
             if (!$category->isChildOf($this->baseCategory)) {
@@ -144,13 +148,14 @@ class ExportService
 
         if (!$shopwareArticle->getActive()) {
             if ($logErrors) {
-                $this->errors[] = 'Product is not active';
+                $this->errors[$articleId][] = 'Product is not active';
             }
             return null;
         }
+
         if ($totalCatCount === $inactiveCatCount) {
             if ($logErrors) {
-                $this->errors[] = sprintf('All %d categories are inactive', $totalCatCount);
+                $this->errors[$articleId][] = sprintf('All %d categories are inactive', $totalCatCount);
             }
             return null;
         }
@@ -158,13 +163,13 @@ class ExportService
         try {
             if ($shopwareArticle->getMainDetail() === null || !$shopwareArticle->getMainDetail()->getActive()) {
                 if ($logErrors) {
-                    $this->errors[] = 'Main Detail is not active or not available';
+                    $this->errors[$articleId][] = 'Main Detail is not active or not available';
                 }
                 return null;
             }
         } catch (EntityNotFoundException $exception) {
             if ($logErrors) {
-                $this->errors[] = sprintf('EntityNotFoundException: %s', $exception->getMessage());
+                $this->errors[$articleId][] = sprintf('EntityNotFoundException: %s', $exception->getMessage());
             }
             return null;
         }
@@ -181,7 +186,7 @@ class ExportService
             if ($findologicArticle->shouldBeExported) {
                 return $findologicArticle->getXmlRepresentation();
             } elseif ($logErrors) {
-                $this->errors[] = 'shouldBeExported is false';
+                $this->errors[$articleId][] = 'shouldBeExported is false';
             }
         } catch (EmptyValueNotAllowedException $e) {
             Shopware()->Container()->get('pluginlogger')->info(
@@ -195,5 +200,9 @@ class ExportService
         }
 
         return null;
+    }
+
+    public function getErrors() {
+        return $this->errors;
     }
 }

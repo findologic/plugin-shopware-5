@@ -57,7 +57,7 @@ class ShopwareProcess
     /**
      * @var ExportService
      */
-    protected $exportService;
+    public $exportService;
 
     public function __construct(
         Zend_Cache_Core $cache,
@@ -151,7 +151,12 @@ class ShopwareProcess
         $xmlArray->count = count($findologicArticles);
         $xmlArray->items = $findologicArticles;
 
-        return $exporter->serializeItems($xmlArray->items, 0, $xmlArray->count, $xmlArray->total);
+        $exportErrors = $this->exportService->getErrors();
+        if (count($exportErrors)) {
+            return json_encode($exportErrors);
+        } else {
+            return $exporter->serializeItems($xmlArray->items, 0, $xmlArray->count, $xmlArray->total);
+        }
     }
 
     /**
