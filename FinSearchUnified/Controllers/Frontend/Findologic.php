@@ -21,9 +21,9 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         if ($productId) {
             $document = $shopwareProcess->getProductById($productId);
         } elseif ($count !== null) {
-            $document = $shopwareProcess->getFindologicXml($language, $start, $count);
+            $document = $shopwareProcess->getFindologicXml($start, $count);
         } else {
-            $document = $shopwareProcess->getFindologicXml($language);
+            $document = $shopwareProcess->getFindologicXml();
         }
 
         $headerHandler = Shopware()->Container()->get('fin_search_unified.helper.header_handler');

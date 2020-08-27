@@ -72,14 +72,13 @@ class ShopwareProcess
     }
 
     /**
-     * @param string $lang
      * @param int $start
      * @param int $length
      * @param bool $save
      *
      * @return null|string
      */
-    public function getFindologicXml($lang = "de_DE", $start = 0, $length = 0, $save = false)
+    public function getFindologicXml($start = 0, $length = 0, $save = false)
     {
         $xmlDocument = null;
         $exporter = Exporter::create(Exporter::TYPE_XML);
@@ -96,7 +95,7 @@ class ShopwareProcess
                 $this->cache->touch($id, $extraLifetime);
             }
 
-            $xmlArray = $this->getAllProductsAsXmlArray($lang, $start, $length);
+            $xmlArray = $this->getAllProductsAsXmlArray($start, $length);
         } catch (Exception $e) {
             die($e->getMessage());
         }
@@ -111,14 +110,13 @@ class ShopwareProcess
     }
 
     /**
-     * @param string $selectedLanguage
      * @param int $start
      * @param int $count
      *
      * @return XmlInformation
      * @throws Exception
      */
-    public function getAllProductsAsXmlArray($selectedLanguage = 'de_DE', $start = 0, $count = 0)
+    public function getAllProductsAsXmlArray($start = 0, $count = 0)
     {
         $response = new XmlInformation();
         $response->total = $this->exportService->fetchTotalProductCount();
