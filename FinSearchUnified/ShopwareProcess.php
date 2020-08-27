@@ -205,6 +205,7 @@ class ShopwareProcess
         $articlesQuery = $this->articleRepository->createQueryBuilder('articles')
             ->select('articles')
             ->where('articles.id = :productId')
+            ->orWhere('articles.supplier = :productId')
             ->setParameter('productId', $productId);
         $shopwareArticles = $articlesQuery->getQuery()->execute();
 
