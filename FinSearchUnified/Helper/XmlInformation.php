@@ -1,6 +1,6 @@
 <?php
 
-namespace FinSearchUnified;
+namespace FinSearchUnified\Helper;
 
 
 class XmlInformation

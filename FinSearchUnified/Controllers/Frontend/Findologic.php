@@ -15,7 +15,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         /** @var ShopwareProcess $shopwareProcess */
         $shopwareProcess = $this->container->get('fin_search_unified.shopware_process');
         $shopwareProcess->setShopKey($shopKey);
-        $shopwareProcess->setShopValues();
+        $shopwareProcess->setUpExportService();
 
         if ($productId) {
             $xmlDocument = $shopwareProcess->getProductById($productId);

@@ -7,19 +7,16 @@ use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\ORM\PersistentCollection;
 use Enlight_Exception;
 use Exception;
-use FINDOLOGIC\Export\Data\Item;
 use FINDOLOGIC\Export\Exporter;
-use FINDOLOGIC\Export\Helpers\EmptyValueNotAllowedException;
-use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
+use FinSearchUnified\BusinessLogic\ExportService;
+use FinSearchUnified\Helper\XmlInformation;
 use RuntimeException;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Components\ProductStream\RepositoryInterface;
-use Shopware\Models\Article\Article;
 use Shopware\Models\Category\Category;
 use Shopware\Models\Config\Value;
-use Shopware\Models\Customer\Customer;
 use Shopware\Models\Shop\Repository;
 use Shopware\Models\Shop\Shop;
 use Zend_Cache_Core;
@@ -43,16 +40,6 @@ class ShopwareProcess
     protected $contextService;
 
     /**
-     * @var \Shopware\Models\Customer\Repository
-     */
-    protected $customerRepository;
-
-    /**
-     * @var \Shopware\Models\Article\Repository
-     */
-    protected $articleRepository;
-
-    /**
      * @var Zend_Cache_Core
      */
     protected $cache;
@@ -68,24 +55,9 @@ class ShopwareProcess
     protected $searchService;
 
     /**
-     * @var string[]
+     * @var ExportService
      */
-    protected $errors = [];
-
-    /**
-     * @var Category
-     */
-    protected $baseCategory;
-
-    /**
-     * @var FindologicArticleFactory
-     */
-    protected $findologicArticleFactory;
-
-    /**
-     * @var array
-     */
-    protected $allUserGroups;
+    protected $exportService;
 
     public function __construct(
         Zend_Cache_Core $cache,
@@ -97,60 +69,6 @@ class ShopwareProcess
         $this->productStreamRepository = $repository;
         $this->contextService = $contextService;
         $this->searchService = $productNumberSearch;
-        $this->customerRepository = Shopware()->Container()->get('models')->getRepository(Customer::class);
-        $this->articleRepository = Shopware()->Container()->get('models')->getRepository(Article::class);
-        $this->findologicArticleFactory = Shopware()->Container()->get('fin_search_unified.article_model_factory');
-    }
-
-    /**
-     * @param string $selectedLanguage
-     * @param int $start
-     * @param int $count
-     *
-     * @return XmlInformation
-     * @throws Exception
-     */
-    public function getAllProductsAsXmlArray($selectedLanguage = 'de_DE', $start = 0, $count = 0)
-    {
-        $response = new XmlInformation();
-
-        $articlesQuery = $this->articleRepository->createQueryBuilder('articles')
-            ->select('articles')
-            ->where('articles.active = :active')
-            ->orderBy('articles.id')
-            ->setParameter('active', true);
-
-        if ($count > 0) {
-            $articlesQuery->setMaxResults($count)->setFirstResult($start);
-        }
-
-        $countQuery = $this->articleRepository->createQueryBuilder('articles')
-            ->select('count(articles.id)')
-            ->where('articles.active = :active')
-            ->orderBy('articles.id')
-            ->setParameter('active', true);
-
-        $response->total = $countQuery->getQuery()->getScalarResult()[0][1];
-
-        /** @var array $allArticles */
-        $allArticles = $articlesQuery->getQuery()->execute();
-
-        // Own Model for XML extraction
-        $findologicArticles = [];
-
-        /** @var Article $article */
-        foreach ($allArticles as $article) {
-            $findologicArticle = $this->getFindologicArticle($article);
-
-            if ($findologicArticle) {
-                $findologicArticles[] = $findologicArticle;
-            }
-        }
-
-        $response->items = $findologicArticles;
-        $response->count = count($findologicArticles);
-
-        return $response;
     }
 
     /**
@@ -193,131 +111,47 @@ class ShopwareProcess
     }
 
     /**
+     * @param string $selectedLanguage
+     * @param int $start
+     * @param int $count
+     *
+     * @return XmlInformation
+     * @throws Exception
+     */
+    public function getAllProductsAsXmlArray($selectedLanguage = 'de_DE', $start = 0, $count = 0)
+    {
+        $response = new XmlInformation();
+        $response->total = $this->exportService->fetchTotalProductCount();
+
+        /** @var array $allArticles */
+        $allArticles = $this->exportService->fetchAllProducts($start, $count);
+        $findologicArticles = $this->exportService->generateFindologicProducts($allArticles);
+
+        $response->items = $findologicArticles;
+        $response->count = count($findologicArticles);
+
+        return $response;
+    }
+
+    /**
      * @param int $productId
      *
      * @return null|string
      */
     public function getProductById($productId)
     {
+        $xmlArray = new XmlInformation();
         $xmlDocument = null;
         $exporter = Exporter::create(Exporter::TYPE_XML);
 
-        $articlesQuery = $this->articleRepository->createQueryBuilder('articles')
-            ->select('articles')
-            ->where('articles.id = :productId')
-            ->orWhere('articles.supplier = :productId')
-            ->setParameter('productId', $productId);
-        $shopwareArticles = $articlesQuery->getQuery()->execute();
+        $shopwareArticles = $this->exportService->fetchProductById($productId);
+        $findologicArticles = $this->exportService->generateFindologicProducts($shopwareArticles, true);
 
-        if (count($shopwareArticles) === 0) {
-            $this->errors[] = 'No article found with given ID';
-            return null;
-        }
-
-        // Own Model for XML extraction
-        $findologicArticles = [];
-
-        try {
-            /** @var Article $article */
-            foreach ($shopwareArticles as $article) {
-                $findologicArticle = $this->getFindologicArticle($article, true);
-
-                if ($findologicArticle) {
-                    $findologicArticles[] = $findologicArticle;
-                }
-            }
-        } catch (Exception $e) {
-            die($e->getMessage());
-        }
-
-        $xmlArray = new XmlInformation();
         $xmlArray->total = count($findologicArticles);
         $xmlArray->count = count($findologicArticles);
         $xmlArray->items = $findologicArticles;
 
         return $exporter->serializeItems($xmlArray->items, 0, $xmlArray->count, $xmlArray->total);
-    }
-
-    /**
-     * @param Article $shopwareArticle
-     * @param bool $logErrors
-     * @return null|Item
-     * @throws Exception
-     */
-    public function getFindologicArticle($shopwareArticle, $logErrors = false)
-    {
-        $inactiveCatCount = 0;
-        $totalCatCount = 0;
-
-        /** @var Category $category */
-        foreach ($shopwareArticle->getCategories() as $category) {
-            if (!$category->isChildOf($this->baseCategory)) {
-                if ($logErrors) {
-                    $this->errors[] = sprintf('Not a child of the baseCategory %s', $this->baseCategory->getName());
-                }
-                return null;
-            }
-
-            if (!$category->getActive()) {
-                $inactiveCatCount++;
-            }
-
-            $totalCatCount++;
-        }
-
-        if (!$shopwareArticle->getActive()) {
-            if ($logErrors) {
-                $this->errors[] = 'Product is not active';
-            }
-            return null;
-        }
-        if ($totalCatCount === $inactiveCatCount) {
-            if ($logErrors) {
-                $this->errors[] = sprintf('All %d categories are inactive', $totalCatCount);
-            }
-            return null;
-        }
-
-        try {
-            if ($shopwareArticle->getMainDetail() === null || !$shopwareArticle->getMainDetail()->getActive()) {
-                if ($logErrors) {
-                    $this->errors[] = 'Main Detail is not active or not available';
-                }
-                return null;
-            }
-        } catch (EntityNotFoundException $exception) {
-            if ($logErrors) {
-                $this->errors[] = sprintf('EntityNotFoundException: %s', $exception->getMessage());
-            }
-            return null;
-        }
-
-        try {
-            $findologicArticle = $this->findologicArticleFactory->create(
-                $shopwareArticle,
-                $this->shopKey,
-                $this->allUserGroups,
-                [],
-                $this->baseCategory
-            );
-
-            if ($findologicArticle->shouldBeExported) {
-                return $findologicArticle->getXmlRepresentation();
-            } elseif ($logErrors) {
-                $this->errors[] = 'shouldBeExported is false';
-            }
-        } catch (EmptyValueNotAllowedException $e) {
-            Shopware()->Container()->get('pluginlogger')->info(
-                sprintf(
-                    'Product with number "%s" could not be exported. ' .
-                    'It appears to have empty values assigned to it. ' .
-                    'If you see this message in your logs, please report this as a bug',
-                    $shopwareArticle->getMainDetail()->getNumber()
-                )
-            );
-        }
-
-        return null;
     }
 
     /**
@@ -352,10 +186,9 @@ class ShopwareProcess
         }
     }
 
-    public function setShopValues()
+    public function setUpExportService()
     {
-        $this->allUserGroups = $this->customerRepository->getCustomerGroupsQuery()->getResult();
-        $this->baseCategory = $this->shop->getCategory();
+        $this->exportService = new ExportService($this->shopKey, $this->shop->getCategory());
     }
 
     /**
