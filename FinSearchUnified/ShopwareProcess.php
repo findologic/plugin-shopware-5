@@ -140,8 +140,7 @@ class ShopwareProcess
 
         /** @var Article $article */
         foreach ($allArticles as $article) {
-            $findologicArticle =
-                $this->getFindologicArticle($article);
+            $findologicArticle = $this->getFindologicArticle($article);
 
             if ($findologicArticle) {
                 $findologicArticles[] = $findologicArticle;
@@ -214,11 +213,25 @@ class ShopwareProcess
             return null;
         }
 
-        $findologicArticles = [$this->getFindologicArticle($shopwareArticles[0])];
+        // Own Model for XML extraction
+        $findologicArticles = [];
+
+        try {
+            /** @var Article $article */
+            foreach ($shopwareArticles as $article) {
+                $findologicArticle = $this->getFindologicArticle($article, true);
+
+                if ($findologicArticle) {
+                    $findologicArticles[] = $findologicArticle;
+                }
+            }
+        } catch (Exception $e) {
+            die($e->getMessage());
+        }
 
         $xmlArray = new XmlInformation();
-        $xmlArray->total = 1;
-        $xmlArray->count = 1;
+        $xmlArray->total = count($findologicArticles);
+        $xmlArray->count = count($findologicArticles);
         $xmlArray->items = $findologicArticles;
 
         return $exporter->serializeItems($xmlArray->items, 0, $xmlArray->count, $xmlArray->total);
@@ -226,21 +239,19 @@ class ShopwareProcess
 
     /**
      * @param Article $shopwareArticle
-     * @param bool $logging
+     * @param bool $logErrors
      * @return null|Item
      * @throws Exception
      */
-    public function getFindologicArticle(
-        $shopwareArticle,
-        $logging = false
-    ) {
+    public function getFindologicArticle($shopwareArticle, $logErrors = false)
+    {
         $inactiveCatCount = 0;
         $totalCatCount = 0;
 
         /** @var Category $category */
         foreach ($shopwareArticle->getCategories() as $category) {
             if (!$category->isChildOf($this->baseCategory)) {
-                if ($logging) {
+                if ($logErrors) {
                     $this->errors[] = sprintf('Not a child of the baseCategory %s', $this->baseCategory->getName());
                 }
                 return null;
@@ -254,13 +265,13 @@ class ShopwareProcess
         }
 
         if (!$shopwareArticle->getActive()) {
-            if ($logging) {
+            if ($logErrors) {
                 $this->errors[] = 'Product is not active';
             }
             return null;
         }
         if ($totalCatCount === $inactiveCatCount) {
-            if ($logging) {
+            if ($logErrors) {
                 $this->errors[] = sprintf('All %d categories are inactive', $totalCatCount);
             }
             return null;
@@ -268,13 +279,13 @@ class ShopwareProcess
 
         try {
             if ($shopwareArticle->getMainDetail() === null || !$shopwareArticle->getMainDetail()->getActive()) {
-                if ($logging) {
+                if ($logErrors) {
                     $this->errors[] = 'Main Detail is not active or not available';
                 }
                 return null;
             }
         } catch (EntityNotFoundException $exception) {
-            if ($logging) {
+            if ($logErrors) {
                 $this->errors[] = sprintf('EntityNotFoundException: %s', $exception->getMessage());
             }
             return null;
@@ -291,7 +302,7 @@ class ShopwareProcess
 
             if ($findologicArticle->shouldBeExported) {
                 return $findologicArticle->getXmlRepresentation();
-            } elseif ($logging) {
+            } elseif ($logErrors) {
                 $this->errors[] = 'shouldBeExported is false';
             }
         } catch (EmptyValueNotAllowedException $e) {

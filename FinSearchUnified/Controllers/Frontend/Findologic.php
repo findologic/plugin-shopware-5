@@ -9,7 +9,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $shopKey = $this->request->get('shopkey');
         $start = (int)$this->request->getParam('start', 0);
         $count = (int)$this->request->get('count');
-        $productId = (int)$this->request->get('productId');
+        $productId = $this->request->get('productId');
         $language = $this->request->get('language');
 
         /** @var ShopwareProcess $shopwareProcess */
