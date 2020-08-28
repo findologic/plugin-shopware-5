@@ -191,6 +191,19 @@
                     </item>
                 </items>
             </filter>
+            <filter>
+                <name>TISCHWÄSCHE - Ausführung</name>
+                <display>Multibyte - TISCHWÄSCHE - Ausführung</display>
+                <select>single</select>
+                <type>select</type>
+                <items>
+                    <item>
+                        <name>Wäsche</name>
+                        <weight>0.038716815412045</weight>
+                        <frequency>35</frequency>
+                    </item>
+                </items>
+            </filter>
         </other>
     </filters>
 </searchResult>
