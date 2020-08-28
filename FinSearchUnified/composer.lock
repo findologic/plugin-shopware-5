@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f8598f481d10da13a903f390f36d7380",
+    "content-hash": "0d761e8a87a38e61df5a6e3fe0133536",
     "packages": [
         {
             "name": "findologic/findologic-api",
-            "version": "dev-SW-417-add-filter-mode-definition",
+            "version": "v1.5.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/findologic/findologic-api.git",
-                "reference": "c22259f9c6ff5be981e0dda092fb6a3ba50c778f"
+                "reference": "8e8c4ee36f2a3d4780be4b8a7601f63216ccfa5e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/findologic/findologic-api/zipball/c22259f9c6ff5be981e0dda092fb6a3ba50c778f",
-                "reference": "c22259f9c6ff5be981e0dda092fb6a3ba50c778f",
+                "url": "https://api.github.com/repos/findologic/findologic-api/zipball/8e8c4ee36f2a3d4780be4b8a7601f63216ccfa5e",
+                "reference": "8e8c4ee36f2a3d4780be4b8a7601f63216ccfa5e",
                 "shasum": ""
             },
             "require": {
@@ -59,10 +59,15 @@
                     "name": "Markus Machatschek",
                     "email": "m.machatschek@findologic.com",
                     "role": "Developer"
+                },
+                {
+                    "name": "Huzaifa Mustafa",
+                    "email": "24492269+zaifastafa@users.noreply.github.com",
+                    "role": "developer"
                 }
             ],
             "description": "Library for FINDOLOGIC API requests",
-            "time": "2020-06-10T08:41:11+00:00"
+            "time": "2020-08-25T09:30:27+00:00"
         },
         {
             "name": "findologic/guzzle",
@@ -749,13 +754,12 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "findologic/findologic-api": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=5.6.4"
+        "php": ">=5.6.4",
+        "ext-mbstring": "*"
     },
     "platform-dev": [],
     "plugin-api-version": "1.1.0"

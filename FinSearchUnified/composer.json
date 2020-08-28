@@ -22,7 +22,7 @@
   "require": {
     "php": ">=5.6.4",
     "findologic/libflexport": "~1.2",
-    "findologic/findologic-api": "dev-SW-417-add-filter-mode-definition",
+    "findologic/findologic-api": "^1.5",
     "ext-mbstring": "*"
   },
   "require-dev": {
