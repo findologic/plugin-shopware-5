@@ -538,7 +538,9 @@ class FindologicArticleModel
                 }
 
                 if (!StaticHelper::isEmpty($tempPath)) {
-                    $catUrlArray[] = $this->seoRouter->sCleanupPath($tempPath);
+                    $categoryPath = $this->seoRouter->sCleanupPath($tempPath);
+                    $catUrlArray[] = $categoryPath;
+                    $catUrlArray[] = Shopware()->Shop()->getBaseUrl() . $categoryPath;
                 }
 
                 array_pop($catPath);

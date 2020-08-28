@@ -86,6 +86,14 @@ class CustomListingHydratorTest extends TestCase
                         'formFieldName' => 'special_characters',
                         'label' => 'Sonderzeichen',
                         'mode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                    ],
+                    [
+                        'name' => 'TISCHWÄSCHE - Ausführung',
+                        'uniqueKey' => 'TISCHWÄSCHE - Ausführung',
+                        'attributeName' => 'product_attribute_TISCHWÄSCHE - Ausführung',
+                        'formFieldName' => 'TISCHW_SCHE_-_Ausführung',
+                        'label' => 'Multibyte - TISCHWÄSCHE - Ausführung',
+                        'mode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT
                     ]
                 ]
             ]
