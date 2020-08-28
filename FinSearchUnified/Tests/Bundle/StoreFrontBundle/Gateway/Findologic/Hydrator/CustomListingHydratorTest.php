@@ -46,7 +46,6 @@ class CustomListingHydratorTest extends TestCase
                         'label' => 'Kategorie',
                         'mode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT
                     ],
-
                     [
                         'name' => 'vendor',
                         'uniqueKey' => 'vendor',
@@ -93,7 +92,7 @@ class CustomListingHydratorTest extends TestCase
                         'attributeName' => 'product_attribute_TISCHWÄSCHE - Ausführung',
                         'formFieldName' => 'TISCHW_SCHE_-_Ausführung',
                         'label' => 'Multibyte - TISCHWÄSCHE - Ausführung',
-                        'mode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT
+                        'mode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT
                     ]
                 ]
             ]
@@ -158,7 +157,7 @@ class CustomListingHydratorTest extends TestCase
             $this->assertSame(
                 $expectedFields[$key]['mode'],
                 $productAttributeFacet->getMode(),
-                sprintf("Expected product attribute facet's mode to be %s", $expectedFields[$key]['mode'])
+                sprintf("Expected product attribute %s facet's mode to be %s", $key, $expectedFields[$key]['mode'])
             );
         }
     }
