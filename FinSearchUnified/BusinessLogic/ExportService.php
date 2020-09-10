@@ -158,6 +158,7 @@ class ExportService
     /**
      * @param Article $shopwareArticle
      * @param bool $logErrors
+     *
      * @return null|Item
      * @throws Exception
      */
