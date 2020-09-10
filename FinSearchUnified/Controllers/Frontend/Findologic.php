@@ -11,7 +11,6 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $start = (int)$this->request->getParam('start', 0);
         $count = (int)$this->request->get('count');
         $productId = $this->request->get('productId');
-        $language = $this->request->get('language');
 
         /** @var ShopwareProcess $shopwareProcess */
         $shopwareProcess = $this->container->get('fin_search_unified.shopware_process');
@@ -19,7 +18,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $shopwareProcess->setUpExportService();
 
         if ($productId) {
-            $document = $shopwareProcess->getProductById($productId);
+            $document = $shopwareProcess->getProductsById($productId);
         } elseif ($count !== null) {
             $document = $shopwareProcess->getFindologicXml($start, $count);
         } else {

@@ -57,6 +57,9 @@ class ExportService
         $this->allUserGroups = $this->customerRepository->getCustomerGroupsQuery()->getResult();
     }
 
+    /**
+     * @return int
+     */
     public function fetchTotalProductCount()
     {
         $countQuery = $this->articleRepository->createQueryBuilder('articles')
@@ -65,9 +68,15 @@ class ExportService
             ->orderBy('articles.id')
             ->setParameter('active', true);
 
-        return $countQuery->getQuery()->getScalarResult()[0][1];
+        return intval($countQuery->getQuery()->getScalarResult()[0][1]);
     }
 
+    /**
+     * @param int $start
+     * @param int $count
+     *
+     * @return Article[]
+     */
     public function fetchAllProducts($start, $count)
     {
         $articlesQuery = $this->articleRepository->createQueryBuilder('articles')
@@ -83,7 +92,12 @@ class ExportService
         return $articlesQuery->getQuery()->execute();
     }
 
-    public function fetchProductById($productId)
+    /**
+     * @param string $productId
+     *
+     * @return Article[]
+     */
+    public function fetchProductsById($productId)
     {
          $articlesQuery = $this->articleRepository->createQueryBuilder('articles')
             ->select('articles')
@@ -101,6 +115,12 @@ class ExportService
         return $shopwareArticles;
     }
 
+    /**
+     * @param array $shopwareArticles
+     * @param false $logErrors
+     *
+     * @return Item[]
+     */
     public function generateFindologicProducts($shopwareArticles, $logErrors = false)
     {
         $findologicArticles = [];
@@ -189,6 +209,8 @@ class ExportService
                 $this->errors[$articleId][] = 'shouldBeExported is false';
             }
         } catch (EmptyValueNotAllowedException $e) {
+            $this->errors[$articleId][] = 'EmptyValueNotAllowedException';
+
             Shopware()->Container()->get('pluginlogger')->info(
                 sprintf(
                     'Product with number "%s" could not be exported. ' .
@@ -202,7 +224,11 @@ class ExportService
         return null;
     }
 
-    public function getErrors() {
+    /**
+     * @return array[]
+     */
+    public function getErrors()
+    {
         return $this->errors;
     }
 }

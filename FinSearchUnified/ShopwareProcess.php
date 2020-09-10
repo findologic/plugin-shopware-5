@@ -132,17 +132,17 @@ class ShopwareProcess
     }
 
     /**
-     * @param int $productId
+     * @param string $productId
      *
-     * @return null|string
+     * @return string
      */
-    public function getProductById($productId)
+    public function getProductsById($productId)
     {
         $xmlArray = new XmlInformation();
         $xmlDocument = null;
         $exporter = Exporter::create(Exporter::TYPE_XML);
 
-        $shopwareArticles = $this->exportService->fetchProductById($productId);
+        $shopwareArticles = $this->exportService->fetchProductsById($productId);
         $findologicArticles = $this->exportService->generateFindologicProducts($shopwareArticles, true);
 
         $xmlArray->total = count($findologicArticles);
