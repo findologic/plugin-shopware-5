@@ -9,7 +9,7 @@ use Enlight_Exception;
 use Exception;
 use FINDOLOGIC\Export\Exporter;
 use FinSearchUnified\BusinessLogic\ExportService;
-use FinSearchUnified\Helper\XmlInformation;
+use FinSearchUnified\BusinessLogic\XmlInformation;
 use RuntimeException;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
@@ -32,7 +32,7 @@ class ShopwareProcess
     /**
      * @var string
      */
-    public $shopKey;
+    public $shopkey;
 
     /**
      * @var ContextServiceInterface
@@ -57,7 +57,7 @@ class ShopwareProcess
     /**
      * @var ExportService
      */
-    public $exportService;
+    protected $exportService;
 
     public function __construct(
         Zend_Cache_Core $cache,
@@ -84,7 +84,7 @@ class ShopwareProcess
         $exporter = Exporter::create(Exporter::TYPE_XML);
 
         try {
-            $id = sprintf('%s_%s', Constants::CACHE_ID_PRODUCT_STREAMS, $this->shopKey);
+            $id = sprintf('%s_%s', Constants::CACHE_ID_PRODUCT_STREAMS, $this->shopkey);
             $lastModified = $this->cache->test($id);
 
             // Make a type safe check since \Zend_Cache_Core::test might actually return zero.
@@ -158,15 +158,15 @@ class ShopwareProcess
     }
 
     /**
-     * @param string $shopKey
+     * @param string $shopkey
      *
      * @throws Exception
      */
-    public function setShopKey($shopKey)
+    public function setShopKey($shopkey)
     {
-        $this->shopKey = $shopKey;
+        $this->shopkey = $shopkey;
         $this->shop = null;
-        $configValue = Shopware()->Models()->getRepository(Value::class)->findOneBy(['value' => $shopKey]);
+        $configValue = Shopware()->Models()->getRepository(Value::class)->findOneBy(['value' => $shopkey]);
 
         if ($configValue && $configValue->getShop()) {
             $shopId = $configValue->getShop()->getId();
@@ -191,7 +191,7 @@ class ShopwareProcess
 
     public function setUpExportService()
     {
-        $this->exportService = new ExportService($this->shopKey, $this->shop->getCategory());
+        $this->exportService = new ExportService($this->shopkey, $this->shop->getCategory());
     }
 
     /**
@@ -200,7 +200,7 @@ class ShopwareProcess
      */
     protected function warmUpCache()
     {
-        $id = sprintf('%s_%s', Constants::CACHE_ID_PRODUCT_STREAMS, $this->shopKey);
+        $id = sprintf('%s_%s', Constants::CACHE_ID_PRODUCT_STREAMS, $this->shopkey);
 
         $this->cache->save(
             $this->parseProductStreams($this->shop->getCategory()->getChildren()),
@@ -256,5 +256,13 @@ class ShopwareProcess
         }
 
         return $articles;
+    }
+
+    /**
+     * @return ExportService
+     */
+    public function getExportService()
+    {
+        return $this->exportService;
     }
 }

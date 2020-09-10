@@ -7,28 +7,26 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
 {
     public function indexAction()
     {
-        $shopKey = $this->request->get('shopkey');
+        $shopkey = $this->request->get('shopkey');
         $start = (int)$this->request->getParam('start', 0);
-        $count = (int)$this->request->get('count');
+        $count = (int)$this->request->get('count', 20);
         $productId = $this->request->get('productId');
 
         /** @var ShopwareProcess $shopwareProcess */
         $shopwareProcess = $this->container->get('fin_search_unified.shopware_process');
-        $shopwareProcess->setShopKey($shopKey);
+        $shopwareProcess->setShopKey($shopkey);
         $shopwareProcess->setUpExportService();
 
         if ($productId) {
             $document = $shopwareProcess->getProductsById($productId);
-        } elseif ($count !== null) {
-            $document = $shopwareProcess->getFindologicXml($start, $count);
         } else {
-            $document = $shopwareProcess->getFindologicXml();
+            $document = $shopwareProcess->getFindologicXml($start, $count);
         }
 
         $headerHandler = Shopware()->Container()->get('fin_search_unified.helper.header_handler');
 
-        $exportErrors = $shopwareProcess->exportService->getErrors();
-        if (count($exportErrors)) {
+        $exportErrors = $shopwareProcess->getExportService()->getErrors();
+        if (count($exportErrors) > 0) {
             $headerHandler->setContentType(Constants::CONTENT_TYPE_JSON);
         } else {
             $headerHandler->setContentType(Constants::CONTENT_TYPE_XML);

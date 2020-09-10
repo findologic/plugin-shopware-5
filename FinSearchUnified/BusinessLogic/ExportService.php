@@ -7,18 +7,21 @@ use Exception;
 use FINDOLOGIC\Export\Data\Item;
 use FINDOLOGIC\Export\Helpers\EmptyValueNotAllowedException;
 use Shopware\Models\Article\Article;
+use Shopware\Models\Article\Repository as ArticleRepository;
 use Shopware\Models\Category\Category;
 use Shopware\Models\Customer\Customer;
+use Shopware\Models\Customer\Group;
+use Shopware\Models\Customer\Repository as CustomerRepository;
 
 class ExportService
 {
     /**
-     * @var \Shopware\Models\Customer\Repository
+     * @var CustomerRepository
      */
     protected $customerRepository;
 
     /**
-     * @var \Shopware\Models\Article\Repository
+     * @var ArticleRepository
      */
     protected $articleRepository;
 
@@ -30,7 +33,7 @@ class ExportService
     /**
      * @var string
      */
-    public $shopKey;
+    public $shopkey;
 
     /**
      * @var Category
@@ -38,12 +41,12 @@ class ExportService
     protected $baseCategory;
 
     /**
-     * @var array
+     * @var Group[]
      */
     protected $allUserGroups;
 
     /**
-     * @var array[]
+     * @var string[][]
      */
     protected $errors = [];
 
@@ -52,7 +55,7 @@ class ExportService
         $this->customerRepository = Shopware()->Container()->get('models')->getRepository(Customer::class);
         $this->articleRepository = Shopware()->Container()->get('models')->getRepository(Article::class);
         $this->findologicArticleFactory = Shopware()->Container()->get('fin_search_unified.article_model_factory');
-        $this->shopKey = $shopkey;
+        $this->shopkey = $shopkey;
         $this->baseCategory = $baseCategory;
         $this->allUserGroups = $this->customerRepository->getCustomerGroupsQuery()->getResult();
     }
@@ -125,17 +128,25 @@ class ExportService
     {
         $findologicArticles = [];
 
-        try {
-            /** @var Article $article */
-            foreach ($shopwareArticles as $article) {
+        /** @var Article $article */
+        foreach ($shopwareArticles as $article) {
+            try {
                 $findologicArticle = self::getFindologicArticle($article, $logErrors);
 
                 if ($findologicArticle) {
                     $findologicArticles[] = $findologicArticle;
                 }
+            } catch (Exception $e) {
+                Shopware()->Container()->get('pluginlogger')->info(
+                    sprintf(
+                        'Error while exporting the product with number "%s"' .
+                        'If you see this message in your logs, please report this as a bug' .
+                        'Error message: %s',
+                        $article->getMainDetail()->getNumber(),
+                        $e->getMessage()
+                    )
+                );
             }
-        } catch (Exception $e) {
-            die($e->getMessage());
         }
 
         return $findologicArticles;
@@ -175,7 +186,7 @@ class ExportService
 
         if ($totalCatCount === $inactiveCatCount) {
             if ($logErrors) {
-                $this->errors[$articleId][] = sprintf('All %d categories are inactive', $totalCatCount);
+                $this->errors[$articleId][] = sprintf('All configured categories are inactive');
             }
             return null;
         }
@@ -197,7 +208,7 @@ class ExportService
         try {
             $findologicArticle = $this->findologicArticleFactory->create(
                 $shopwareArticle,
-                $this->shopKey,
+                $this->shopkey,
                 $this->allUserGroups,
                 [],
                 $this->baseCategory
