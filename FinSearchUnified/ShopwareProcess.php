@@ -151,7 +151,7 @@ class ShopwareProcess
 
         $exportErrors = $this->exportService->getErrors();
         if (count($exportErrors)) {
-            return json_encode($exportErrors);
+            return json_encode(['errors' => $exportErrors]);
         } else {
             return $exporter->serializeItems($xmlArray->items, 0, $xmlArray->count, $xmlArray->total);
         }
