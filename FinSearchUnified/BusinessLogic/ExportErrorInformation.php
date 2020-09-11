@@ -2,17 +2,17 @@
 
 namespace FinSearchUnified\BusinessLogic;
 
-class ExportErrorInformation
+class ExportErrorInformation implements \JsonSerializable
 {
     /**
      * @var string
      */
-    public $id;
+    protected $id;
 
     /**
      * @var string[]
      */
-    public $errors = [];
+    protected $errors = [];
 
     /**
      * @param string $id
@@ -20,5 +20,26 @@ class ExportErrorInformation
     public function __construct($id)
     {
         $this->id = $id;
+    }
+
+    /**
+     * @param string $errorMessage
+     */
+    public function addError($errorMessage)
+    {
+        $this->errors[] = $errorMessage;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getErrors()
+    {
+        return $this->errors;
+    }
+
+    public function jsonSerialize()
+    {
+        return get_object_vars($this);
     }
 }

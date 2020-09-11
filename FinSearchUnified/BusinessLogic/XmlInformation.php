@@ -2,21 +2,70 @@
 
 namespace FinSearchUnified\BusinessLogic;
 
+use FINDOLOGIC\Export\Data\Item;
 
 class XmlInformation
 {
     /**
      * @var int
      */
-    public $count;
+    protected $count;
 
     /**
      * @var int
      */
-    public $total;
+    protected $total;
 
     /**
-     * @var array
+     * @var Item[]
      */
-    public $items;
+    protected $items;
+
+    /**
+     * @return int
+     */
+    public function getCount()
+    {
+        return $this->count;
+    }
+
+    /**
+     * @param int $count
+     */
+    public function setCount($count)
+    {
+        $this->count = $count;
+    }
+
+    /**
+     * @return int
+     */
+    public function getTotal()
+    {
+        return $this->total;
+    }
+
+    /**
+     * @param int $total
+     */
+    public function setTotal($total)
+    {
+        $this->total = $total;
+    }
+
+    /**
+     * @return Item[]
+     */
+    public function getItems()
+    {
+        return $this->items;
+    }
+
+    /**
+     * @param Item[] $items
+     */
+    public function setItems($items)
+    {
+        $this->items = $items;
+    }
 }

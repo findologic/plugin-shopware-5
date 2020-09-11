@@ -103,7 +103,7 @@ class ShopwareProcess
         if ($save) {
             $exporter->serializeItemsToFile(__DIR__ . '', $xmlArray->items, $start, $xmlArray->count, $xmlArray->total);
         } else {
-            $xmlDocument = $exporter->serializeItems($xmlArray->items, $start, $xmlArray->count, $xmlArray->total);
+            $xmlDocument = $exporter->serializeItems($xmlArray->getItems(), $start, $xmlArray->getCount(), $xmlArray->getTotal());
         }
 
         return $xmlDocument;
@@ -119,14 +119,14 @@ class ShopwareProcess
     public function getAllProductsAsXmlArray($start = 0, $count = 0)
     {
         $response = new XmlInformation();
-        $response->total = $this->exportService->fetchTotalProductCount();
+        $response->setTotal($this->exportService->fetchTotalProductCount());
 
         /** @var array $allArticles */
         $allArticles = $this->exportService->fetchAllProducts($start, $count);
         $findologicArticles = $this->exportService->generateFindologicProducts($allArticles);
 
-        $response->items = $findologicArticles;
-        $response->count = count($findologicArticles);
+        $response->setItems($findologicArticles);
+        $response->setCount(count($findologicArticles));
 
         return $response;
     }
@@ -145,15 +145,15 @@ class ShopwareProcess
         $shopwareArticles = $this->exportService->fetchProductsById($productId);
         $findologicArticles = $this->exportService->generateFindologicProducts($shopwareArticles, true);
 
-        $xmlArray->total = count($findologicArticles);
-        $xmlArray->count = count($findologicArticles);
-        $xmlArray->items = $findologicArticles;
+        $xmlArray->setTotal(count($findologicArticles));
+        $xmlArray->setCount(count($findologicArticles));
+        $xmlArray->setItems($findologicArticles);
 
         $exportErrors = $this->exportService->getErrors();
-        if (count($exportErrors)) {
+        if ($this->exportService->hasErrors()) {
             return json_encode(['errors' => $exportErrors]);
         } else {
-            return $exporter->serializeItems($xmlArray->items, 0, $xmlArray->count, $xmlArray->total);
+            return $exporter->serializeItems($xmlArray->getItems(), 0, $xmlArray->getCount(), $xmlArray->getTotal());
         }
     }
 

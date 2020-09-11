@@ -15,6 +15,9 @@ use Shopware\Models\Customer\Repository as CustomerRepository;
 
 class ExportService
 {
+    const GENERAL_ERRORS_KEY = 'general';
+    const PRODUCTS_ERRORS_KEY = 'products';
+
     /**
      * @var CustomerRepository
      */
@@ -58,6 +61,9 @@ class ExportService
         $this->shopkey = $shopkey;
         $this->baseCategory = $baseCategory;
         $this->allUserGroups = $this->customerRepository->getCustomerGroupsQuery()->getResult();
+
+        $this->errors[self::GENERAL_ERRORS_KEY] = [];
+        $this->errors[self::PRODUCTS_ERRORS_KEY] = [];
     }
 
     /**
@@ -111,10 +117,7 @@ class ExportService
         $shopwareArticles = $articlesQuery->getQuery()->execute();
 
         if (count($shopwareArticles) === 0) {
-            $errorInformation = new ExportErrorInformation($productId);
-            $errorInformation->errors[] = 'No article found with given ID';
-
-            $this->errors['general'][] = $errorInformation;
+            $this->errors[self::GENERAL_ERRORS_KEY][] = sprintf('No article found with ID %s', $productId);
             return null;
         }
 
@@ -183,7 +186,7 @@ class ExportService
 
         if (!$shopwareArticle->getActive()) {
             if ($logErrors) {
-                $errorInformation->errors[] = 'Product is not active';
+                $errorInformation->addError('Product is not active.');
             } else {
                 return null;
             }
@@ -191,7 +194,7 @@ class ExportService
 
         if ($totalCatCount === $inactiveCatCount) {
             if ($logErrors) {
-                $errorInformation->errors[] = sprintf('All configured categories are inactive');
+                $errorInformation->addError(sprintf('All configured categories are inactive.'));
             } else {
                 return null;
             }
@@ -200,14 +203,14 @@ class ExportService
         try {
             if ($shopwareArticle->getMainDetail() === null || !$shopwareArticle->getMainDetail()->getActive()) {
                 if ($logErrors) {
-                    $errorInformation->errors[] = 'Main Detail is not active or not available';
+                    $errorInformation->addError('Main Detail is not active or not available.');
                 } else {
                     return null;
                 }
             }
         } catch (EntityNotFoundException $exception) {
             if ($logErrors) {
-                $errorInformation->errors[] = sprintf('EntityNotFoundException: %s', $exception->getMessage());
+                $errorInformation->addError(sprintf('EntityNotFoundException: %s', $exception->getMessage()));
             } else {
                 return null;
             }
@@ -222,13 +225,13 @@ class ExportService
                 $this->baseCategory
             );
 
-            if ($findologicArticle->shouldBeExported && count($errorInformation->errors) === 0) {
+            if ($findologicArticle->shouldBeExported && count($errorInformation->getErrors()) === 0) {
                 return $findologicArticle->getXmlRepresentation();
             } elseif ($logErrors) {
-                $errorInformation->errors[] = 'shouldBeExported is false';
+                $errorInformation->addError('shouldBeExported is false.');
             }
         } catch (EmptyValueNotAllowedException $e) {
-            $errorInformation->errors[] = 'EmptyValueNotAllowedException';
+            $errorInformation->addError('EmptyValueNotAllowedException');
 
             Shopware()->Container()->get('pluginlogger')->info(
                 sprintf(
@@ -240,7 +243,7 @@ class ExportService
             );
         }
 
-        $this->errors['products'][] = $errorInformation;
+        $this->errors[self::PRODUCTS_ERRORS_KEY][] = $errorInformation;
         return null;
     }
 
@@ -250,5 +253,13 @@ class ExportService
     public function getErrors()
     {
         return $this->errors;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasErrors()
+    {
+        return count($this->errors[self::GENERAL_ERRORS_KEY]) || count($this->errors[self::PRODUCTS_ERRORS_KEY]);
     }
 }

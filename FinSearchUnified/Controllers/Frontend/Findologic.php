@@ -25,8 +25,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
 
         $headerHandler = Shopware()->Container()->get('fin_search_unified.helper.header_handler');
 
-        $exportErrors = $shopwareProcess->getExportService()->getErrors();
-        if (count($exportErrors) > 0) {
+        if ($shopwareProcess->getExportService()->hasErrors()) {
             $headerHandler->setContentType(Constants::CONTENT_TYPE_JSON);
         } else {
             $headerHandler->setContentType(Constants::CONTENT_TYPE_XML);
