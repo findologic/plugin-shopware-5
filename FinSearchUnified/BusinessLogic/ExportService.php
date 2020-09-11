@@ -15,9 +15,6 @@ use Shopware\Models\Customer\Repository as CustomerRepository;
 
 class ExportService
 {
-    const GENERAL_ERRORS_KEY = 'general';
-    const PRODUCTS_ERRORS_KEY = 'products';
-
     /**
      * @var CustomerRepository
      */
@@ -36,7 +33,7 @@ class ExportService
     /**
      * @var string
      */
-    public $shopkey;
+    protected $shopkey;
 
     /**
      * @var Category
@@ -49,9 +46,14 @@ class ExportService
     protected $allUserGroups;
 
     /**
-     * @var ExportErrorInformation[][]
+     * @var string[]
      */
-    protected $errors = [];
+    protected $generalErrors = [];
+
+    /**
+     * @var ExportErrorInformation[]
+     */
+    protected $productErrors = [];
 
     public function __construct($shopkey, Category $baseCategory)
     {
@@ -61,9 +63,6 @@ class ExportService
         $this->shopkey = $shopkey;
         $this->baseCategory = $baseCategory;
         $this->allUserGroups = $this->customerRepository->getCustomerGroupsQuery()->getResult();
-
-        $this->errors[self::GENERAL_ERRORS_KEY] = [];
-        $this->errors[self::PRODUCTS_ERRORS_KEY] = [];
     }
 
     /**
@@ -77,7 +76,7 @@ class ExportService
             ->orderBy('articles.id')
             ->setParameter('active', true);
 
-        return intval($countQuery->getQuery()->getScalarResult()[0][1]);
+        return (int)$countQuery->getQuery()->getScalarResult()[0][1];
     }
 
     /**
@@ -117,7 +116,7 @@ class ExportService
         $shopwareArticles = $articlesQuery->getQuery()->execute();
 
         if (count($shopwareArticles) === 0) {
-            $this->errors[self::GENERAL_ERRORS_KEY][] = sprintf('No article found with ID %s', $productId);
+            $this->generalErrors = sprintf('No article found with ID %s', $productId);
             return null;
         }
 
@@ -126,18 +125,17 @@ class ExportService
 
     /**
      * @param array $shopwareArticles
-     * @param false $logErrors
      *
      * @return Item[]
      */
-    public function generateFindologicProducts($shopwareArticles, $logErrors = false)
+    public function generateFindologicProducts($shopwareArticles)
     {
         $findologicArticles = [];
 
         /** @var Article $article */
         foreach ($shopwareArticles as $article) {
             try {
-                $findologicArticle = self::getFindologicArticle($article, $logErrors);
+                $findologicArticle = $this->getFindologicArticle($article);
 
                 if ($findologicArticle) {
                     $findologicArticles[] = $findologicArticle;
@@ -160,14 +158,14 @@ class ExportService
 
     /**
      * @param Article $shopwareArticle
-     * @param bool $logErrors
      *
      * @return null|Item
      * @throws Exception
      */
-    public function getFindologicArticle($shopwareArticle, $logErrors)
+    public function getFindologicArticle($shopwareArticle)
     {
         $errorInformation = new ExportErrorInformation($shopwareArticle->getId());
+        $findologicArticle = null;
         $inactiveCatCount = 0;
         $totalCatCount = 0;
 
@@ -185,35 +183,19 @@ class ExportService
         }
 
         if (!$shopwareArticle->getActive()) {
-            if ($logErrors) {
-                $errorInformation->addError('Product is not active.');
-            } else {
-                return null;
-            }
+            $errorInformation->addError('Product is not active.');
         }
 
         if ($totalCatCount === $inactiveCatCount) {
-            if ($logErrors) {
-                $errorInformation->addError(sprintf('All configured categories are inactive.'));
-            } else {
-                return null;
-            }
+            $errorInformation->addError(sprintf('All configured categories are inactive.'));
         }
 
         try {
             if ($shopwareArticle->getMainDetail() === null || !$shopwareArticle->getMainDetail()->getActive()) {
-                if ($logErrors) {
-                    $errorInformation->addError('Main Detail is not active or not available.');
-                } else {
-                    return null;
-                }
+                $errorInformation->addError('Main Detail is not active or not available.');
             }
         } catch (EntityNotFoundException $exception) {
-            if ($logErrors) {
-                $errorInformation->addError(sprintf('EntityNotFoundException: %s', $exception->getMessage()));
-            } else {
-                return null;
-            }
+            $errorInformation->addError(sprintf('EntityNotFoundException: %s', $exception->getMessage()));
         }
 
         try {
@@ -225,9 +207,7 @@ class ExportService
                 $this->baseCategory
             );
 
-            if ($findologicArticle->shouldBeExported && count($errorInformation->getErrors()) === 0) {
-                return $findologicArticle->getXmlRepresentation();
-            } elseif ($logErrors) {
+            if (!$findologicArticle->shouldBeExported) {
                 $errorInformation->addError('shouldBeExported is false.');
             }
         } catch (EmptyValueNotAllowedException $e) {
@@ -243,16 +223,28 @@ class ExportService
             );
         }
 
-        $this->errors[self::PRODUCTS_ERRORS_KEY][] = $errorInformation;
-        return null;
+        if (count($errorInformation->getErrors())) {
+            $this->productErrors[] = $errorInformation;
+            return null;
+        }
+
+        return $findologicArticle->getXmlRepresentation();
     }
 
     /**
-     * @return array[]
+     * @return string[]
      */
-    public function getErrors()
+    public function getGeneralErrors()
     {
-        return $this->errors;
+        return $this->generalErrors;
+    }
+
+    /**
+     * @return ExportErrorInformation[]
+     */
+    public function getProductErrors()
+    {
+        return $this->productErrors;
     }
 
     /**
@@ -260,6 +252,6 @@ class ExportService
      */
     public function hasErrors()
     {
-        return count($this->errors[self::GENERAL_ERRORS_KEY]) || count($this->errors[self::PRODUCTS_ERRORS_KEY]);
+        return count($this->generalErrors) || count($this->productErrors);
     }
 }

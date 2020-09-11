@@ -5,11 +5,14 @@ use FinSearchUnified\ShopwareProcess;
 
 class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
 {
+    const DEFAULT_START = 0;
+    const DEFAULT_COUNT = 20;
+
     public function indexAction()
     {
         $shopkey = $this->request->get('shopkey');
-        $start = (int)$this->request->getParam('start', 0);
-        $count = (int)$this->request->get('count', 20);
+        $start = (int)$this->request->getParam('start', self::DEFAULT_START);
+        $count = (int)$this->request->get('count', self::DEFAULT_COUNT);
         $productId = $this->request->get('productId');
 
         /** @var ShopwareProcess $shopwareProcess */
@@ -17,18 +20,17 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         $shopwareProcess->setShopKey($shopkey);
         $shopwareProcess->setUpExportService();
 
+        $headerHandler = Shopware()->Container()->get('fin_search_unified.helper.header_handler');
+        $headerHandler->setContentType(Constants::CONTENT_TYPE_XML);
+
         if ($productId) {
             $document = $shopwareProcess->getProductsById($productId);
+
+            if ($shopwareProcess->getExportService()->hasErrors()) {
+                $headerHandler->setContentType(Constants::CONTENT_TYPE_JSON);
+            }
         } else {
             $document = $shopwareProcess->getFindologicXml($start, $count);
-        }
-
-        $headerHandler = Shopware()->Container()->get('fin_search_unified.helper.header_handler');
-
-        if ($shopwareProcess->getExportService()->hasErrors()) {
-            $headerHandler->setContentType(Constants::CONTENT_TYPE_JSON);
-        } else {
-            $headerHandler->setContentType(Constants::CONTENT_TYPE_XML);
         }
 
         $headers = $headerHandler->getHeaders();

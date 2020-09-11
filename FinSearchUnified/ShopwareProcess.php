@@ -27,12 +27,12 @@ class ShopwareProcess
     /**
      * @var Shop
      */
-    public $shop;
+    protected $shop;
 
     /**
      * @var string
      */
-    public $shopkey;
+    protected $shopkey;
 
     /**
      * @var ContextServiceInterface
@@ -73,12 +73,12 @@ class ShopwareProcess
 
     /**
      * @param int $start
-     * @param int $length
+     * @param int $count
      * @param bool $save
      *
      * @return null|string
      */
-    public function getFindologicXml($start = 0, $length = 0, $save = false)
+    public function getFindologicXml($start, $count, $save = false)
     {
         $xmlDocument = null;
         $exporter = Exporter::create(Exporter::TYPE_XML);
@@ -95,7 +95,7 @@ class ShopwareProcess
                 $this->cache->touch($id, $extraLifetime);
             }
 
-            $xmlArray = $this->getAllProductsAsXmlArray($start, $length);
+            $xmlArray = $this->getAllProductsAsXmlArray($start, $count);
         } catch (Exception $e) {
             die($e->getMessage());
         }
@@ -103,7 +103,12 @@ class ShopwareProcess
         if ($save) {
             $exporter->serializeItemsToFile(__DIR__ . '', $xmlArray->items, $start, $xmlArray->count, $xmlArray->total);
         } else {
-            $xmlDocument = $exporter->serializeItems($xmlArray->getItems(), $start, $xmlArray->getCount(), $xmlArray->getTotal());
+            $xmlDocument = $exporter->serializeItems(
+                $xmlArray->getItems(),
+                $start,
+                $xmlArray->getCount(),
+                $xmlArray->getTotal()
+            );
         }
 
         return $xmlDocument;
@@ -116,7 +121,7 @@ class ShopwareProcess
      * @return XmlInformation
      * @throws Exception
      */
-    public function getAllProductsAsXmlArray($start = 0, $count = 0)
+    public function getAllProductsAsXmlArray($start, $count)
     {
         $response = new XmlInformation();
         $response->setTotal($this->exportService->fetchTotalProductCount());
@@ -143,15 +148,19 @@ class ShopwareProcess
         $exporter = Exporter::create(Exporter::TYPE_XML);
 
         $shopwareArticles = $this->exportService->fetchProductsById($productId);
-        $findologicArticles = $this->exportService->generateFindologicProducts($shopwareArticles, true);
+        $findologicArticles = $this->exportService->generateFindologicProducts($shopwareArticles);
 
         $xmlArray->setTotal(count($findologicArticles));
         $xmlArray->setCount(count($findologicArticles));
         $xmlArray->setItems($findologicArticles);
 
-        $exportErrors = $this->exportService->getErrors();
         if ($this->exportService->hasErrors()) {
-            return json_encode(['errors' => $exportErrors]);
+            return json_encode([
+                'errors' => [
+                    'general' => $this->exportService->getGeneralErrors(),
+                    'products' => $this->exportService->getProductErrors()
+                ]
+            ]);
         } else {
             return $exporter->serializeItems($xmlArray->getItems(), 0, $xmlArray->getCount(), $xmlArray->getTotal());
         }
