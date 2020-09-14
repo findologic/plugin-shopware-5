@@ -133,6 +133,36 @@ class PluginTest extends TestCase
                         ]
                     ]
                 ])
+            ],
+            'One Article without and 2 articles with error' => [
+                'productId' => 1,
+                'response' => json_encode([
+                    'errors' => [
+                        'general' => [],
+                        'products' => [
+                            [
+                                'id' => 1,
+                                'errors' => []
+                            ],
+                            [
+                                'id' => 4,
+                                'errors' => [
+                                    'Product is not active.',
+                                    'Main Detail is not active or not available.',
+                                    'shouldBeExported is false.'
+                                ]
+                            ],
+                            [
+                                'id' => 5,
+                                'errors' => [
+                                    'Product is not active.',
+                                    'All configured categories are inactive.',
+                                    'shouldBeExported is false.'
+                                ]
+                            ]
+                        ]
+                    ]
+                ])
             ]
         ];
     }
@@ -205,11 +235,11 @@ class PluginTest extends TestCase
             'tax' => 19,
             'supplier' => 'Findologic',
             'categories' => [
-                ['id' => 5],
+                ['id' => 5]
             ],
             'images' => [
                 ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
-                ['link' => 'https://via.placeholder.com/100/09f/000.png'],
+                ['link' => 'https://via.placeholder.com/100/09f/000.png']
             ],
             'mainDetail' => [
                 'number' => 'FINDOLOGIC' . $number,
@@ -219,9 +249,9 @@ class PluginTest extends TestCase
                     [
                         'customerGroupKey' => 'EK',
                         'price' => 99.34,
-                    ],
+                    ]
                 ]
-            ],
+            ]
         ];
 
         if (!empty($categories)) {
@@ -257,7 +287,7 @@ class PluginTest extends TestCase
                 ],
                 'images' => [
                     ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
-                    ['link' => 'https://via.placeholder.com/100/09f/000.png'],
+                    ['link' => 'https://via.placeholder.com/100/09f/000.png']
                 ],
                 'mainDetail' => [
                     'number' => 'FINDOLOGIC1',
@@ -266,10 +296,10 @@ class PluginTest extends TestCase
                     'prices' => [
                         [
                             'customerGroupKey' => 'EK',
-                            'price' => 99.34,
-                        ],
+                            'price' => 99.34
+                        ]
                     ]
-                ],
+                ]
             ],
             [
                 'id' => 2,
@@ -282,7 +312,7 @@ class PluginTest extends TestCase
                 ],
                 'images' => [
                     ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
-                    ['link' => 'https://via.placeholder.com/100/09f/000.png'],
+                    ['link' => 'https://via.placeholder.com/100/09f/000.png']
                 ],
                 'mainDetail' => [
                     'number' => 'FINDOLOGIC2',
@@ -291,10 +321,10 @@ class PluginTest extends TestCase
                     'prices' => [
                         [
                             'customerGroupKey' => 'EK',
-                            'price' => 99.34,
-                        ],
+                            'price' => 99.34
+                        ]
                     ]
-                ],
+                ]
             ],
             [
                 'id' => 3,
@@ -307,7 +337,7 @@ class PluginTest extends TestCase
                 ],
                 'images' => [
                     ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
-                    ['link' => 'https://via.placeholder.com/100/09f/000.png'],
+                    ['link' => 'https://via.placeholder.com/100/09f/000.png']
                 ],
                 'mainDetail' => [
                     'number' => 'FINDOLOGIC3',
@@ -316,10 +346,10 @@ class PluginTest extends TestCase
                     'prices' => [
                         [
                             'customerGroupKey' => 'EK',
-                            'price' => 99.34,
-                        ],
+                            'price' => 99.34
+                        ]
                     ]
-                ],
+                ]
             ],
             [
                 'id' => 4,
@@ -332,7 +362,7 @@ class PluginTest extends TestCase
                 ],
                 'images' => [
                     ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
-                    ['link' => 'https://via.placeholder.com/100/09f/000.png'],
+                    ['link' => 'https://via.placeholder.com/100/09f/000.png']
                 ],
                 'mainDetail' => [
                     'number' => 'FINDOLOGIC4',
@@ -341,8 +371,33 @@ class PluginTest extends TestCase
                     'prices' => [
                         [
                             'customerGroupKey' => 'EK',
-                            'price' => 99.34,
-                        ],
+                            'price' => 99.34
+                        ]
+                    ]
+                ]
+            ],
+            [
+                'id' => 5,
+                'name' => 'FindologicArticle5',
+                'active' => false,
+                'tax' => 19,
+                'supplier' => 'FindologicVendor1',
+                'categories' => [
+                    ['id' => 75]
+                ],
+                'images' => [
+                    ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
+                    ['link' => 'https://via.placeholder.com/100/09f/000.png']
+                ],
+                'mainDetail' => [
+                    'number' => 'FINDOLOGIC5',
+                    'active' => true,
+                    'inStock' => 16,
+                    'prices' => [
+                        [
+                            'customerGroupKey' => 'EK',
+                            'price' => 99.34
+                        ]
                     ]
                 ],
             ]
