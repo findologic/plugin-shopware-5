@@ -108,7 +108,7 @@ class PluginTest extends TestCase
                     ]
                 ])
             ],
-            'Article found by ID match' => [
+            '1 Article found by ID match' => [
                 'productId' => 3,
                 'response' => 1
             ],
@@ -116,7 +116,7 @@ class PluginTest extends TestCase
                 'productId' => 2,
                 'response' => 2
             ],
-            'Article with error by ID match' => [
+            '1 Article with error by ID match' => [
                 'productId' => 4,
                 'response' => json_encode([
                     'errors' => [
@@ -134,7 +134,7 @@ class PluginTest extends TestCase
                     ]
                 ])
             ],
-            'One Article without and 2 articles with error' => [
+            '1 Article without and 2 articles with error' => [
                 'productId' => 1,
                 'response' => json_encode([
                     'errors' => [
