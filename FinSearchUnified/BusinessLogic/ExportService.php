@@ -107,7 +107,7 @@ class ExportService
      */
     public function fetchProductsById($productId)
     {
-         $articlesQuery = $this->articleRepository->createQueryBuilder('articles')
+        $articlesQuery = $this->articleRepository->createQueryBuilder('articles')
             ->select('articles')
             ->where('articles.id = :productId')
             ->orWhere('articles.supplier = :productId')
@@ -223,8 +223,9 @@ class ExportService
             );
         }
 
+        $this->productErrors[] = $errorInformation;
+
         if (count($errorInformation->getErrors())) {
-            $this->productErrors[] = $errorInformation;
             return null;
         }
 

@@ -101,7 +101,13 @@ class ShopwareProcess
         }
 
         if ($save) {
-            $exporter->serializeItemsToFile(__DIR__ . '', $xmlArray->items, $start, $xmlArray->count, $xmlArray->total);
+            $exporter->serializeItemsToFile(
+                __DIR__ . '',
+                $xmlArray->getItems(),
+                $start,
+                $xmlArray->getCount(),
+                $xmlArray->getTotal()
+            );
         } else {
             $xmlDocument = $exporter->serializeItems(
                 $xmlArray->getItems(),
@@ -144,7 +150,6 @@ class ShopwareProcess
     public function getProductsById($productId)
     {
         $xmlArray = new XmlInformation();
-        $xmlDocument = null;
         $exporter = Exporter::create(Exporter::TYPE_XML);
 
         $shopwareArticles = $this->exportService->fetchProductsById($productId);
