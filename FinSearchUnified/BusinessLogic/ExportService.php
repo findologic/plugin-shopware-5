@@ -55,6 +55,11 @@ class ExportService
      */
     protected $productErrors = [];
 
+    /**
+     * @var int $errorCount
+     */
+    protected $errorCount = 0;
+
     public function __construct($shopkey, Category $baseCategory)
     {
         $this->customerRepository = Shopware()->Container()->get('models')->getRepository(Customer::class);
@@ -116,7 +121,8 @@ class ExportService
         $shopwareArticles = $articlesQuery->getQuery()->execute();
 
         if (count($shopwareArticles) === 0) {
-            $this->generalErrors = sprintf('No article found with ID %s', $productId);
+            $this->generalErrors[] = sprintf('No article found with ID %s', $productId);
+            $this->errorCount = $this->errorCount + 1;
             return null;
         }
 
@@ -226,6 +232,7 @@ class ExportService
         $this->productErrors[] = $errorInformation;
 
         if (count($errorInformation->getErrors())) {
+            $this->errorCount = $this->errorCount + 1;
             return null;
         }
 
@@ -251,8 +258,8 @@ class ExportService
     /**
      * @return bool
      */
-    public function hasErrors()
+    public function getErrorCount()
     {
-        return count($this->generalErrors) || count($this->productErrors);
+        return $this->errorCount;
     }
 }

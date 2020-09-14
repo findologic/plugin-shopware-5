@@ -26,7 +26,7 @@ class Shopware_Controllers_Frontend_Findologic extends Enlight_Controller_Action
         if ($productId) {
             $document = $shopwareProcess->getProductsById($productId);
 
-            if ($shopwareProcess->getExportService()->hasErrors()) {
+            if ($shopwareProcess->getExportService()->getErrorCount() > 0) {
                 $headerHandler->setContentType(Constants::CONTENT_TYPE_JSON);
             }
         } else {

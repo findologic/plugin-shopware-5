@@ -159,7 +159,7 @@ class ShopwareProcess
         $xmlArray->setCount(count($findologicArticles));
         $xmlArray->setItems($findologicArticles);
 
-        if ($this->exportService->hasErrors()) {
+        if ($this->exportService->getErrorCount() > 0) {
             return json_encode([
                 'errors' => [
                     'general' => $this->exportService->getGeneralErrors(),

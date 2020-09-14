@@ -103,7 +103,7 @@ class PluginTest extends TestCase
                 'productId' => 20,
                 'response' => json_encode([
                     'errors' => [
-                        'general' => 'No article found with ID 20',
+                        'general' => ['No article found with ID 20'],
                         'products' => []
                     ]
                 ])
@@ -326,7 +326,7 @@ class PluginTest extends TestCase
                 'name' => 'FindologicArticle4',
                 'active' => false,
                 'tax' => 19,
-                'supplier' => 'FindologicVendor2',
+                'supplier' => 'FindologicVendor1',
                 'categories' => [
                     ['id' => 5]
                 ],
@@ -401,8 +401,8 @@ class PluginTest extends TestCase
     }
 
     /**
-     * Method to run the actual export functionality and parse the xml to return the
-     * number of articles returned
+     * Method to run the actual export functionality with a productId and parse the xml or json to return the
+     * number of articles or the error JSON string
      *
      * @param int $productId
      *
@@ -417,7 +417,7 @@ class PluginTest extends TestCase
             $shopwareProcess->setUpExportService();
             $document = $shopwareProcess->getProductsById($productId);
 
-            if ($shopwareProcess->getExportService()->hasErrors()) {
+            if ($shopwareProcess->getExportService()->getErrorCount() > 0) {
                 return json_encode([
                     'errors' => [
                         'general' => $shopwareProcess->getExportService()->getGeneralErrors(),
