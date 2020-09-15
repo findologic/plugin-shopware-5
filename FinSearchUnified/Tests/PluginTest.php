@@ -92,8 +92,6 @@ class PluginTest extends TestCase
     }
 
     /**
-     * Data provider for the export test cases with corresponding assertion message
-     *
      * @return array
      */
     public function articleProviderWithId()
@@ -101,7 +99,7 @@ class PluginTest extends TestCase
         return [
             'No article for ID' => [
                 'productId' => 20,
-                'response' => json_encode([
+                'errorMessageOrProductCount' => json_encode([
                     'errors' => [
                         'general' => ['No article found with ID 20'],
                         'products' => []
@@ -110,15 +108,15 @@ class PluginTest extends TestCase
             ],
             '1 Article found by ID match' => [
                 'productId' => 3,
-                'response' => 1
+                'errorMessageOrProductCount' => 1
             ],
             '2 Article found by ID and supplier match' => [
                 'productId' => 2,
-                'response' => 2
+                'errorMessageOrProductCount' => 2
             ],
             '1 Article with error by ID match' => [
                 'productId' => 4,
-                'response' => json_encode([
+                'errorMessageOrProductCount' => json_encode([
                     'errors' => [
                         'general' => [],
                         'products' => [
@@ -136,7 +134,7 @@ class PluginTest extends TestCase
             ],
             '1 Article without and 2 articles with error' => [
                 'productId' => 1,
-                'response' => json_encode([
+                'errorMessageOrProductCount' => json_encode([
                     'errors' => [
                         'general' => [],
                         'products' => [
@@ -171,15 +169,14 @@ class PluginTest extends TestCase
      * @dataProvider articleProviderWithId
      *
      * @param int $productId
-     * @param int $expectedCount
-     * @param string $errorMessage
+     * @param int|string $errorMessageOrProductCount
      */
-    public function testProductIdExport($productId, $expectedCount)
+    public function testProductIdExport($productId, $errorMessageOrProductCount)
     {
         $this->createTestProductsWithIdAndVendor();
 
         $actual = $this->runExportAndReturnCountOrErrors($productId);
-        $this->assertEquals($expectedCount, $actual);
+        $this->assertEquals($errorMessageOrProductCount, $actual);
     }
 
     public function crossSellingCategoryProvider()

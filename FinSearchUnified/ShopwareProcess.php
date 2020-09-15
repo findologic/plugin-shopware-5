@@ -102,7 +102,7 @@ class ShopwareProcess
 
         if ($save) {
             $exporter->serializeItemsToFile(
-                __DIR__ . '',
+                __DIR__,
                 $xmlArray->getItems(),
                 $start,
                 $xmlArray->getCount(),
@@ -132,7 +132,6 @@ class ShopwareProcess
         $response = new XmlInformation();
         $response->setTotal($this->exportService->fetchTotalProductCount());
 
-        /** @var array $allArticles */
         $allArticles = $this->exportService->fetchAllProducts($start, $count);
         $findologicArticles = $this->exportService->generateFindologicProducts($allArticles);
 

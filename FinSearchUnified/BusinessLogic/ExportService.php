@@ -123,7 +123,7 @@ class ExportService
         if (count($shopwareArticles) === 0) {
             $this->generalErrors[] = sprintf('No article found with ID %s', $productId);
             $this->errorCount = $this->errorCount + 1;
-            return null;
+            return [];
         }
 
         return $shopwareArticles;

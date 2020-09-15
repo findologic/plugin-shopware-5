@@ -2,7 +2,9 @@
 
 namespace FinSearchUnified\BusinessLogic;
 
-class ExportErrorInformation implements \JsonSerializable
+use JsonSerializable;
+
+class ExportErrorInformation implements JsonSerializable
 {
     /**
      * @var string
