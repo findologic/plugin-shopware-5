@@ -112,13 +112,18 @@ class ExportService
      */
     public function fetchProductsById($productId)
     {
-        $articlesQuery = $this->articleRepository->createQueryBuilder('articles')
-            ->select('articles')
-            ->where('articles.id = :productId')
-            ->orWhere('articles.supplier = :productId')
+        $builder = Shopware()->Container()->get('models')->createQueryBuilder();
+        $builder->select(['product', 'mainDetail'])
+            ->from(Article::class, 'product')
+            ->innerJoin('product.mainDetail', 'mainDetail')
+            ->where('product.id = :productId')
+            ->orWhere('product.supplier = :productId')
+            ->orWhere('mainDetail.number = :productId')
+            ->orWhere('mainDetail.ean = :productId')
+            ->orWhere('mainDetail.supplierNumber = :productId')
             ->setParameter('productId', $productId);
 
-        $shopwareArticles = $articlesQuery->getQuery()->execute();
+        $shopwareArticles = $builder->getQuery()->getResult();
 
         if (count($shopwareArticles) === 0) {
             $this->generalErrors[] = sprintf('No article found with ID %s', $productId);

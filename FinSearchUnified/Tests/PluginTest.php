@@ -98,7 +98,7 @@ class PluginTest extends TestCase
     {
         return [
             'No article for ID' => [
-                'productId' => 20,
+                'productId' => '20',
                 'errorMessageOrProductCount' => json_encode([
                     'errors' => [
                         'general' => ['No article found with ID 20'],
@@ -107,15 +107,15 @@ class PluginTest extends TestCase
                 ])
             ],
             '1 Article found by ID match' => [
-                'productId' => 3,
+                'productId' => '3',
                 'errorMessageOrProductCount' => 1
             ],
-            '2 Article found by ID and supplier match' => [
-                'productId' => 2,
-                'errorMessageOrProductCount' => 2
+            '5 Articles found by all possible matches' => [
+                'productId' => '2',
+                'errorMessageOrProductCount' => 5
             ],
             '1 Article with error by ID match' => [
-                'productId' => 4,
+                'productId' => '4',
                 'errorMessageOrProductCount' => json_encode([
                     'errors' => [
                         'general' => [],
@@ -132,8 +132,8 @@ class PluginTest extends TestCase
                     ]
                 ])
             ],
-            '1 Article without and 2 articles with error' => [
-                'productId' => 1,
+            '3 Article without and 3 articles with error' => [
+                'productId' => '1',
                 'errorMessageOrProductCount' => json_encode([
                     'errors' => [
                         'general' => [],
@@ -157,6 +157,21 @@ class PluginTest extends TestCase
                                     'All configured categories are inactive.',
                                     'shouldBeExported is false.'
                                 ]
+                            ],
+                            [
+                                'id' => 6,
+                                'errors' => []
+                            ],
+                            [
+                                'id' => 7,
+                                'errors' => []
+                            ],
+                            [
+                                'id' => 8,
+                                'errors' => [
+                                    'Main Detail is not active or not available.',
+                                    'shouldBeExported is false.'
+                                ]
                             ]
                         ]
                     ]
@@ -168,7 +183,7 @@ class PluginTest extends TestCase
     /**
      * @dataProvider articleProviderWithId
      *
-     * @param int $productId
+     * @param string $productId
      * @param int|string $errorMessageOrProductCount
      */
     public function testProductIdExport($productId, $errorMessageOrProductCount)
@@ -290,6 +305,7 @@ class PluginTest extends TestCase
                     'number' => 'FINDOLOGIC1',
                     'active' => true,
                     'inStock' => 16,
+                    'ean' => '2',
                     'prices' => [
                         [
                             'customerGroupKey' => 'EK',
@@ -396,7 +412,86 @@ class PluginTest extends TestCase
                             'price' => 99.34
                         ]
                     ]
+                ]
+            ],
+            [
+                'id' => 6,
+                'name' => 'FindologicArticle6',
+                'active' => true,
+                'tax' => 19,
+                'supplier' => 'FindologicVendor1',
+                'categories' => [
+                    ['id' => 5]
                 ],
+                'images' => [
+                    ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
+                    ['link' => 'https://via.placeholder.com/100/09f/000.png']
+                ],
+                'mainDetail' => [
+                    'number' => 'FINDOLOGIC6',
+                    'active' => true,
+                    'inStock' => 16,
+                    'supplierNumber' => '2',
+                    'ean' => '1',
+                    'prices' => [
+                        [
+                            'customerGroupKey' => 'EK',
+                            'price' => 99.34
+                        ]
+                    ]
+                ]
+            ],
+            [
+                'id' => 7,
+                'name' => 'FindologicArticle7',
+                'active' => true,
+                'tax' => 19,
+                'supplier' => 'FindologicVendor1',
+                'categories' => [
+                    ['id' => 5]
+                ],
+                'images' => [
+                    ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
+                    ['link' => 'https://via.placeholder.com/100/09f/000.png']
+                ],
+                'mainDetail' => [
+                    'number' => '2',
+                    'active' => true,
+                    'inStock' => 16,
+                    'supplierNumber' => 1,
+                    'prices' => [
+                        [
+                            'customerGroupKey' => 'EK',
+                            'price' => 99.34
+                        ]
+                    ]
+                ]
+            ],
+            [
+                'id' => 8,
+                'name' => 'FindologicArticle8',
+                'active' => true,
+                'tax' => 19,
+                'supplier' => 'FindologicVendor1',
+                'categories' => [
+                    ['id' => 5]
+                ],
+                'images' => [
+                    ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
+                    ['link' => 'https://via.placeholder.com/100/09f/000.png']
+                ],
+                'mainDetail' => [
+                    'number' => 'FINDOLOGIC8',
+                    'active' => false,
+                    'inStock' => 16,
+                    'ean' => '1',
+                    'prices' => [
+                        [
+                            'customerGroupKey' => 'EK',
+                            'price' => 99.34
+                        ]
+                    ]
+                ]
             ]
         ];
 
