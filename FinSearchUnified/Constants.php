@@ -16,6 +16,9 @@ class Constants
      */
     const CACHE_LIFETIME_PRODUCT_STREAMS = 660;
 
+    const CONTENT_TYPE_XML = 'text/xml';
+    const CONTENT_TYPE_JSON = 'application/json';
+
     const INTEGRATION_TYPE_DI = 'Direct Integration';
     const INTEGRATION_TYPE_API = 'API';
     const SDYM_PARAM_FORCE_QUERY = 'forceOriginalQuery';

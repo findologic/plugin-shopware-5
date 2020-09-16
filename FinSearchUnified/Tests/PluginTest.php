@@ -85,6 +85,109 @@ class PluginTest extends TestCase
         $this->assertEquals($expectedCount, $actual, sprintf($errorMessage, $actual));
     }
 
+    /**
+     * @return array
+     */
+    public function articleProviderWithId()
+    {
+        return [
+            'No article for ID' => [
+                'productId' => '20',
+                'errorMessageOrProductCount' => json_encode([
+                    'errors' => [
+                        'general' => ['No article found with ID 20'],
+                        'products' => []
+                    ]
+                ])
+            ],
+            '1 Article found by ID match' => [
+                'productId' => '3',
+                'errorMessageOrProductCount' => 1
+            ],
+            '5 Articles found by all possible matches' => [
+                'productId' => '2',
+                'errorMessageOrProductCount' => 5
+            ],
+            '1 Article with error by ID match' => [
+                'productId' => '4',
+                'errorMessageOrProductCount' => json_encode([
+                    'errors' => [
+                        'general' => [],
+                        'products' => [
+                            [
+                                'id' => 4,
+                                'errors' => [
+                                    'Product is not active.',
+                                    'Main Detail is not active or not available.',
+                                    'shouldBeExported is false.'
+                                ]
+                            ]
+                        ]
+                    ]
+                ])
+            ],
+            '3 Article without and 3 articles with error' => [
+                'productId' => '1',
+                'errorMessageOrProductCount' => json_encode([
+                    'errors' => [
+                        'general' => [],
+                        'products' => [
+                            [
+                                'id' => 1,
+                                'errors' => []
+                            ],
+                            [
+                                'id' => 4,
+                                'errors' => [
+                                    'Product is not active.',
+                                    'Main Detail is not active or not available.',
+                                    'shouldBeExported is false.'
+                                ]
+                            ],
+                            [
+                                'id' => 5,
+                                'errors' => [
+                                    'Product is not active.',
+                                    'All configured categories are inactive.',
+                                    'shouldBeExported is false.'
+                                ]
+                            ],
+                            [
+                                'id' => 6,
+                                'errors' => []
+                            ],
+                            [
+                                'id' => 7,
+                                'errors' => []
+                            ],
+                            [
+                                'id' => 8,
+                                'errors' => [
+                                    'Main Detail is not active or not available.',
+                                    'shouldBeExported is false.'
+                                ]
+                            ]
+                        ]
+                    ]
+                ])
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider articleProviderWithId
+     *
+     * @param string $productId
+     * @param int|string $errorMessageOrProductCount
+     */
+    public function testProductIdExport($productId, $errorMessageOrProductCount)
+    {
+        Utility::createTestProductsWithIdAndVendor();
+
+        $actual = Utility::runExportAndReturnCountOrErrors($productId);
+        $this->assertEquals($errorMessageOrProductCount, $actual);
+    }
+
     public function crossSellingCategoryProvider()
     {
         return [

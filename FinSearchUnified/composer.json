@@ -23,7 +23,8 @@
     "php": ">=5.6.4",
     "findologic/libflexport": "~1.2",
     "findologic/findologic-api": "^1.5",
-    "ext-mbstring": "*"
+    "ext-mbstring": "*",
+    "ext-json": "*"
   },
   "require-dev": {
     "squizlabs/php_codesniffer": "3.3.2"
