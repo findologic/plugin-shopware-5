@@ -2,8 +2,12 @@
 
 namespace FinSearchUnified\Helper;
 
+use Enlight_Controller_Plugins_ViewRenderer_Bootstrap;
 use Enlight_View_Default;
 use Exception;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Promotion;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\QueryInfoMessage\QueryInfoMessage;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\SmartDidYouMean;
 use FinSearchUnified\Components\ConfigLoader;
 use FinSearchUnified\Components\Environment;
 use FinSearchUnified\Constants;
@@ -11,6 +15,8 @@ use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Bundle\StoreFrontBundle;
 use SimpleXMLElement;
 use Zend_Cache_Exception;
+
+use function getenv;
 
 class StaticHelper
 {
@@ -38,89 +44,13 @@ class StaticHelper
     }
 
     /**
-     * @param SimpleXMLElement $xmlResponse
-     *
-     * @return null|string
-     */
-    public static function checkIfRedirect(SimpleXMLElement $xmlResponse)
-    {
-        /** @var SimpleXMLElement $landingpage */
-        $landingpage = $xmlResponse->landingPage;
-        if (isset($landingpage) && $landingpage !== null && count($landingpage->attributes()) > 0) {
-            /** @var string $redirect */
-            $redirect = (string)$landingpage->attributes()->link;
-
-            return $redirect;
-        }
-
-        return null;
-    }
-
-    /**
      * @param string $responseText
      *
      * @return SimpleXMLElement
      */
-    public static function getXmlFromResponse($responseText)
+    public static function getXmlFromRawResponse($responseText)
     {
         return new SimpleXMLElement($responseText);
-    }
-
-    /**
-     * @param SimpleXMLElement $xmlResponse
-     *
-     * @return array
-     */
-    public static function getProductsFromXml(SimpleXMLElement $xmlResponse)
-    {
-        $foundProducts = [];
-
-        try {
-            $container = Shopware()->Container();
-            /** @var StoreFrontBundle\Service\ProductNumberServiceInterface $productService */
-            $productService = $container->get('shopware_storefront.product_number_service');
-            /* READ PRODUCT IDS */
-            foreach ($xmlResponse->products->product as $product) {
-                try {
-                    $articleId = (string)$product->attributes()['id'];
-
-                    $productCheck = $productService->getMainProductNumberById($articleId);
-
-                    if ($articleId === '' || $articleId === null) {
-                        continue;
-                    }
-                    /** @var array $baseArticle */
-                    $baseArticle = [];
-                    $baseArticle['orderNumber'] = $productCheck;
-                    $baseArticle['detailId'] = static::getDetailIdForOrdernumber($productCheck);
-                    $foundProducts[$articleId] = $baseArticle;
-                } catch (Exception $ex) {
-                    // No Mapping for Search Results
-                    continue;
-                }
-            }
-        } catch (Exception $ex) {
-            // Logging Function
-        }
-
-        return $foundProducts;
-    }
-
-    /**
-     * @param string $ordernumber
-     *
-     * @return bool
-     */
-    public static function getDetailIdForOrdernumber($ordernumber)
-    {
-        $db = Shopware()->Container()->get('db');
-        $checkForArticle = $db->fetchRow('SELECT id AS id FROM s_articles_details WHERE ordernumber=?', [$ordernumber]);
-
-        if (isset($checkForArticle['id'])) {
-            return $checkForArticle['id'];
-        }
-
-        return false;
     }
 
     /**
@@ -337,21 +267,19 @@ class StaticHelper
     }
 
     /**
-     * @param SimpleXMLElement $xmlResponse
+     * @param Promotion|null $promotion
      */
-    public static function setPromotion(SimpleXMLElement $xmlResponse)
+    public static function setPromotion(Promotion $promotion = null)
     {
-        /** @var SimpleXMLElement $promotion */
-        $promotion = $xmlResponse->promotion;
-
-        if (isset($promotion) && count($promotion->attributes()) > 0) {
-            /** @var Enlight_View_Default $view */
-            $view = Shopware()->Container()->get('front')->Plugins()->get('ViewRenderer')->Action()->View();
+        if ($promotion !== null) {
+            /** @var Enlight_Controller_Plugins_ViewRenderer_Bootstrap $viewRenderer */
+            $viewRenderer = Shopware()->Container()->get('front')->Plugins()->get('ViewRenderer');
+            $view = $viewRenderer->Action()->View();
             $view->assign(
                 [
                     'finPromotion' => [
-                        'image' => $promotion->attributes()->image,
-                        'link' => $promotion->attributes()->link
+                        'image' => $promotion->getImage(),
+                        'link' => $promotion->getLink()
                     ]
                 ]
             );
@@ -359,30 +287,23 @@ class StaticHelper
     }
 
     /**
-     * @param SimpleXMLElement $xmlResponse
+     * @param SmartDidYouMean $smartDidYouMean
      */
-    public static function setSmartDidYouMean(SimpleXMLElement $xmlResponse)
+    public static function setSmartDidYouMean(SmartDidYouMean $smartDidYouMean)
     {
-        $query = $xmlResponse->query;
-        $originalQuery = (string)$query->originalQuery;
-        $didYouMeanQuery = (string)$query->didYouMeanQuery;
-        $queryString = $query->queryString;
-        $queryStringType = $queryString->attributes() !== null ? (string)$queryString->attributes()->type : null;
-
-        if ((!empty($originalQuery) || !empty($didYouMeanQuery)) && $queryStringType !== 'forced') {
-            /** @var Enlight_View_Default $view */
-            $view = Shopware()->Front()->Plugins()->get('ViewRenderer')->Action()->View();
-            $type = !empty($didYouMeanQuery) ? 'did-you-mean' : $queryStringType;
-            $view->assign(
-                [
-                    'finSmartDidYouMean' => [
-                        'type' => $type,
-                        'alternative_query' => $type === 'did-you-mean' ? $didYouMeanQuery : $queryString,
-                        'original_query' => $type === 'did-you-mean' ? '' : $originalQuery
-                    ]
+        /** @var Enlight_Controller_Plugins_ViewRenderer_Bootstrap $viewRenderer */
+        $viewRenderer = Shopware()->Container()->get('front')->Plugins()->get('ViewRenderer');
+        $view = $viewRenderer->Action()->View();
+        $view->assign(
+            [
+                'finSmartDidYouMean' => [
+                    'type' => $smartDidYouMean->getType(),
+                    'alternative_query' => $smartDidYouMean->getAlternativeQuery(),
+                    'original_query' => $smartDidYouMean->getOriginalQuery(),
+                    'link' => $smartDidYouMean->getLink()
                 ]
-            );
-        }
+            ]
+        );
     }
 
     /**
@@ -404,25 +325,40 @@ class StaticHelper
     }
 
     /**
-     * @param SimpleXMLElement $xmlResponse
+     * @param QueryInfoMessage $queryInfoMessage
      */
-    public static function setQueryInfoMessage(SimpleXMLElement $xmlResponse)
+    public static function setQueryInfoMessage(QueryInfoMessage $queryInfoMessage)
     {
         /** @var Enlight_View_Default $view */
         $view = Shopware()->Container()->get('front')->Plugins()->get('ViewRenderer')->Action()->View();
 
-        $queryInfoMessageParser = new QueryInfoMessageParser($xmlResponse, $view);
-
         $view->assign(
             [
                 'finQueryInfoMessage' => [
-                    'filter_name' => $queryInfoMessageParser->getFilterName(),
-                    'query' => $queryInfoMessageParser->getSmartQuery(),
-                    'cat' => $queryInfoMessageParser->getCategory(),
-                    'vendor' => $queryInfoMessageParser->getVendor()
+                    'filter_name' => $queryInfoMessage->getFilterName(),
+                    'filter_value' => $queryInfoMessage->getFilterValue(),
+                    'query' => $queryInfoMessage->getQuery()
                 ],
-                'snippetType' => $queryInfoMessageParser->getSnippetType()
+                'snippetType' => $queryInfoMessage->getType()
             ]
         );
+    }
+
+    /**
+     * @param $version
+     *
+     * @return bool
+     */
+    public static function isVersionLowerThan($version)
+    {
+        $shopwareVersion = getenv('SHOPWARE_VERSION') ?: '5.6.7';
+
+        // When in development mode, the shopware version can return `___VERSION___` so we use a more recent version
+        // for comparison instead
+        if ($shopwareVersion === '___VERSION___') {
+            $shopwareVersion = '5.6.7';
+        }
+
+        return version_compare($shopwareVersion, $version, '<');
     }
 }

@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="utf-8"?>
+<searchResult>
+    <servers>
+        <frontend>martell.frontend.findologic.com</frontend>
+        <backend>hydra.backend.findologic.com</backend>
+    </servers>
+    <query>
+        <limit first="0" count="24"/>
+        <queryString type="forced">ps3</queryString>
+    </query>
+    <landingPage link="https://www.landingpage.io/agb/"/>
+    <promotion link="https://promotion.com/" image="https://promotion.com/promotion.png"/>
+    <results>
+        <count>1808</count>
+    </results>
+    <products>
+        <product id="019111105-37900" relevance="1.3862943649292">
+            <properties>
+                <property name="ordernumber">019111105-37900</property>
+            </properties>
+        </product>
+        <product id="029214085-37860" relevance="1.3862943649292"/>
+        <product id="067501619-2501" relevance="1.3862943649292"/>
+        <product id="067507744-2501" relevance="1.3862943649292"/>
+        <product id="067507888-2501" relevance="1.3862943649292"/>
+        <product id="067511701-2501" relevance="1.3862943649292"/>
+        <product id="067518124-2501" relevance="1.3862943649292"/>
+        <product id="101197-208" relevance="1.3862943649292"/>
+        <product id="10194603-5" relevance="1.3862943649292"/>
+        <product id="1025-1" relevance="1.3862943649292"/>
+        <product id="103302-208" relevance="1.3862943649292"/>
+        <product id="104301524-2095" relevance="1.3862943649292"/>
+        <product id="104402187-432080" relevance="1.3862943649292"/>
+        <product id="104402205-64100" relevance="1.3862943649292"/>
+        <product id="10445208-2090" relevance="1.3862943649292"/>
+        <product id="10450379-4364105" relevance="1.3862943649292"/>
+        <product id="104851-29-001" relevance="1.3862943649292"/>
+        <product id="1050388-4300890" relevance="1.3862943649292"/>
+        <product id="1054605-305" relevance="1.3862943649292"/>
+        <product id="10614769-2" relevance="1.3862943649292"/>
+        <product id="10618085-0" relevance="1.3862943649292"/>
+        <product id="10618358-0" relevance="1.3862943649292"/>
+        <product id="10618369-0" relevance="1.3862943649292"/>
+        <product id="10618373-0" relevance="1.3862943649292"/>
+    </products>
+    <filters>
+        <main>
+            <filter>
+                <name>price</name>
+                <display>Preis</display>
+                <select>single</select>
+                <type>range-slider</type>
+                <attributes>
+                    <selectedRange>
+                        <min>0.39</min>
+                        <max>2239.1</max>
+                    </selectedRange>
+                    <totalRange>
+                        <min>0.39</min>
+                        <max>2239.1</max>
+                    </totalRange>
+                    <stepSize>0.1</stepSize>
+                    <unit>€</unit>
+                </attributes>
+                <items>
+                    <item>
+                        <name>0.39 - 13.4</name>
+                        <weight>0.51743012666702</weight>
+                        <parameters>
+                            <min>0.39</min>
+                            <max>13.4</max>
+                        </parameters>
+                    </item>
+                    <item>
+                        <name>13.45 - 25.99</name>
+                        <weight>0.50098878145218</weight>
+                        <parameters>
+                            <min>13.45</min>
+                            <max>25.99</max>
+                        </parameters>
+                    </item>
+                    <item>
+                        <name>26 - 40.3</name>
+                        <weight>0.3976277410984</weight>
+                        <parameters>
+                            <min>26</min>
+                            <max>40.3</max>
+                        </parameters>
+                    </item>
+                </items>
+            </filter>
+            <filter>
+                <name>Farbe</name>
+                <display>Farbe</display>
+                <select>multiselect</select>
+                <selectedItems>0</selectedItems>
+                <type>color</type>
+                <items>
+                    <item>
+                        <name>beige</name>
+                        <weight>0.10730088502169</weight>
+                        <image>https://blubbergurken.io/farbfilter/beige.gif</image>
+                        <color>#F5F5DC</color>
+                    </item>
+                    <item>
+                        <name>blau</name>
+                        <weight>0.3296460211277</weight>
+                        <image>https://blubbergurken.io/farbfilter/blau.gif</image>
+                        <color>#3c6380</color>
+                    </item>
+                    <item>
+                        <name>braun</name>
+                        <weight>0.90265488624573</weight>
+                        <image>https://blubbergurken.io/farbfilter/braun.gif</image>
+                        <color>#94651e</color>
+                    </item>
+                    <item>
+                        <name>gelb</name>
+                        <weight>0.030973451212049</weight>
+                        <image>https://blubbergurken.io/farbfilter/gelb.gif</image>
+                        <color>#e3ad3a</color>
+                    </item>
+                    <item>
+                        <name>grau</name>
+                        <weight>0.3230088353157</weight>
+                        <image>https://blubbergurken.io/farbfilter/grau.gif</image>
+                        <color>#808080</color>
+                    </item>
+                    <item>
+                        <name>grün</name>
+                        <weight>0.047566372901201</weight>
+                        <image>https://blubbergurken.io/farbfilter/grun.gif</image>
+                        <color>#47731a</color>
+                    </item>
+                    <item>
+                        <name>lila</name>
+                        <weight>0.076327435672283</weight>
+                        <image>https://blubbergurken.io/farbfilter/lila.gif</image>
+                        <color>#782365</color>
+                    </item>
+                    <item>
+                        <name>mehrfarbig</name>
+                        <weight>0.16261062026024</weight>
+                        <image>https://blubbergurken.io/farbfilter/mehrfarbig.gif</image>
+                    </item>
+                    <item>
+                        <name>orange</name>
+                        <weight>0.032079644501209</weight>
+                        <image>https://blubbergurken.io/farbfilter/orange.gif</image>
+                        <color>#FF8C00</color>
+                    </item>
+                    <item>
+                        <name>rot</name>
+                        <weight>0.36725664138794</weight>
+                        <image>https://blubbergurken.io/farbfilter/rot.gif</image>
+                        <color>#b13138</color>
+                    </item>
+                    <item>
+                        <name>schwarz</name>
+                        <weight>0.83407080173492</weight>
+                        <image>https://blubbergurken.io/farbfilter/schwarz.gif</image>
+                        <color>#000000</color>
+                    </item>
+                    <item>
+                        <name>silber</name>
+                        <weight>0.025442477315664</weight>
+                        <image>https://blubbergurken.io/farbfilter/silber.gif</image>
+                        <color>#C0C0C0</color>
+                    </item>
+                    <item>
+                        <name>violett</name>
+                        <weight>0.040929201990366</weight>
+                        <image>https://blubbergurken.io/farbfilter/violett.gif</image>
+                        <color>#EE82EE</color>
+                    </item>
+                    <item>
+                        <name>weiß</name>
+                        <weight>0.015486725606024</weight>
+                        <image>https://blubbergurken.io/farbfilter/weis.gif</image>
+                        <color>#FFFFFF</color>
+                    </item>
+                </items>
+            </filter>
+        </main>
+        <other>
+            <filter>
+                <name>Material</name>
+                <display>Material</display>
+                <select>multiple</select>
+                <type>select</type>
+                <items>
+                    <item>
+                        <name>Hartgepäck</name>
+                        <weight>0.038716815412045</weight>
+                        <frequency>35</frequency>
+                    </item>
+                    <item>
+                        <name>Leder</name>
+                        <weight>0.63053095340729</weight>
+                        <frequency>1238</frequency>
+                    </item>
+                    <item>
+                        <name>Nylon</name>
+                        <weight>0.12168141454458</weight>
+                        <frequency>110</frequency>
+                    </item>
+                    <item>
+                        <name>Stoff</name>
+                        <weight>0.12389380484819</weight>
+                        <frequency>112</frequency>
+                    </item>
+                    <item>
+                        <name>Synthetik</name>
+                        <weight>0.29424777626991</weight>
+                        <frequency>266</frequency>
+                    </item>
+                    <item>
+                        <name>Weichgepäck</name>
+                        <weight>0.036504425108433</weight>
+                        <frequency>33</frequency>
+                    </item>
+                </items>
+            </filter>
+            <filter>
+                <name>vendor</name>
+                <display>Hersteller</display>
+                <select>multiple</select>
+                <type>select</type>
+                <items>
+                    <item>
+                        <name>AEP</name>
+                        <weight>0.0099557526409626</weight>
+                        <frequency>9</frequency>
+                    </item>
+                    <item>
+                        <name>AEVOR</name>
+                        <weight>0.0099557526409626</weight>
+                        <frequency>9</frequency>
+                    </item>
+                    <item>
+                        <name>ANOTHER ME</name>
+                        <weight>0.0099557526409626</weight>
+                        <frequency>9</frequency>
+                    </item>
+                    <item>
+                        <name>Bernd Götz</name>
+                        <weight>0.0088495574891567</weight>
+                        <frequency>8</frequency>
+                    </item>
+                    <item>
+                        <name>Bodenschatz</name>
+                        <weight>0.0022123893722892</weight>
+                        <frequency>2</frequency>
+                    </item>
+                    <item>
+                        <name>Bogner</name>
+                        <weight>0.038716815412045</weight>
+                        <frequency>35</frequency>
+                    </item>
+                    <item>
+                        <name>Branco</name>
+                        <weight>0.056415930390358</weight>
+                        <frequency>51</frequency>
+                    </item>
+                    <item>
+                        <name>Braun Büffel</name>
+                        <weight>0.08517698943615</weight>
+                        <frequency>77</frequency>
+                    </item>
+                    <item>
+                        <name>Camel Active</name>
+                        <weight>0.13495574891567</weight>
+                        <frequency>122</frequency>
+                    </item>
+                    <item>
+                        <name>Campomaggi</name>
+                        <weight>0.079646021127701</weight>
+                        <frequency>72</frequency>
+                    </item>
+                    <item>
+                        <name>Caterina Lucchi</name>
+                        <weight>0.0011061946861446</weight>
+                        <frequency>1</frequency>
+                    </item>
+                    <item>
+                        <name>Chiarugi</name>
+                        <weight>0.011061946861446</weight>
+                        <frequency>10</frequency>
+                    </item>
+                    <item>
+                        <name>Chiemsee</name>
+                        <weight>0.0099557526409626</weight>
+                        <frequency>9</frequency>
+                    </item>
+                    <item>
+                        <name>Collonil</name>
+                        <weight>0.0066371681168675</weight>
+                        <frequency>6</frequency>
+                    </item>
+                    <item>
+                        <name>Davidt´s</name>
+                        <weight>0.0011061946861446</weight>
+                        <frequency>1</frequency>
+                    </item>
+                    <item>
+                        <name>DerDieDas</name>
+                        <weight>0.0066371681168675</weight>
+                        <frequency>6</frequency>
+                    </item>
+                    <item>
+                        <name>Deuter</name>
+                        <weight>0.095132745802402</weight>
+                        <frequency>86</frequency>
+                    </item>
+                    <item>
+                        <name>Dudra East</name>
+                        <weight>0.0033185840584338</weight>
+                        <frequency>3</frequency>
+                    </item>
+                    <item>
+                        <name>Emil</name>
+                        <weight>0.014380531385541</weight>
+                        <frequency>13</frequency>
+                    </item>
+                    <item>
+                        <name>ergobag</name>
+                        <weight>0.024336284026504</weight>
+                        <frequency>22</frequency>
+                    </item>
+                    <item>
+                        <name>Esquire</name>
+                        <weight>0.061946902424097</weight>
+                        <frequency>56</frequency>
+                    </item>
+                    <item>
+                        <name>Fjällräven</name>
+                        <weight>0.011061946861446</weight>
+                        <frequency>10</frequency>
+                    </item>
+                    <item>
+                        <name>Francinel</name>
+                        <weight>0.0022123893722892</weight>
+                        <frequency>2</frequency>
+                    </item>
+                    <item>
+                        <name>FREDsBRUDER</name>
+                        <weight>0.05309734493494</weight>
+                        <frequency>48</frequency>
+                    </item>
+                    <item>
+                        <name>Golden Head</name>
+                        <weight>0.15486726164818</weight>
+                        <frequency>140</frequency>
+                    </item>
+                    <item>
+                        <name>Green Burry</name>
+                        <weight>0.10508849471807</weight>
+                        <frequency>95</frequency>
+                    </item>
+                    <item>
+                        <name>Greenland</name>
+                        <weight>0.07190265506506</weight>
+                        <frequency>65</frequency>
+                    </item>
+                    <item>
+                        <name>Harbour 2nd</name>
+                        <weight>0.12168141454458</weight>
+                        <frequency>110</frequency>
+                    </item>
+                    <item>
+                        <name>Harolds</name>
+                        <weight>0.023230088874698</weight>
+                        <frequency>21</frequency>
+                    </item>
+                    <item>
+                        <name>Jansport</name>
+                        <weight>0.0011061946861446</weight>
+                        <frequency>1</frequency>
+                    </item>
+                    <item>
+                        <name>JOOP!</name>
+                        <weight>0.018805310130119</weight>
+                        <frequency>17</frequency>
+                    </item>
+                    <item>
+                        <name>Jost</name>
+                        <weight>0.051991149783134</weight>
+                        <frequency>47</frequency>
+                    </item>
+                    <item>
+                        <name>blub</name>
+                        <weight>0.0022123893722892</weight>
+                        <frequency>2</frequency>
+                    </item>
+                    <item>
+                        <name>Leonhard Heyden</name>
+                        <weight>0.015486725606024</weight>
+                        <frequency>14</frequency>
+                    </item>
+                    <item>
+                        <name>Levis</name>
+                        <weight>0.0011061946861446</weight>
+                        <frequency>1</frequency>
+                    </item>
+                    <item>
+                        <name>Maitre</name>
+                        <weight>0.037610620260239</weight>
+                        <frequency>34</frequency>
+                    </item>
+                    <item>
+                        <name>Mika</name>
+                        <weight>0.021017698571086</weight>
+                        <frequency>19</frequency>
+                    </item>
+                    <item>
+                        <name>Offermann</name>
+                        <weight>0.0077433628030121</weight>
+                        <frequency>7</frequency>
+                    </item>
+                    <item>
+                        <name>Oxmox</name>
+                        <weight>0.005530973430723</weight>
+                        <frequency>5</frequency>
+                    </item>
+                    <item>
+                        <name>Picard</name>
+                        <weight>0.14933627843857</weight>
+                        <frequency>135</frequency>
+                    </item>
+                    <item>
+                        <name>Porsche Design</name>
+                        <weight>0.061946902424097</weight>
+                        <frequency>56</frequency>
+                    </item>
+                    <item>
+                        <name>Reisenthel</name>
+                        <weight>0.084070794284344</weight>
+                        <frequency>76</frequency>
+                    </item>
+                    <item>
+                        <name>Samsonite</name>
+                        <weight>0.044247787445784</weight>
+                        <frequency>40</frequency>
+                    </item>
+                    <item>
+                        <name>Samsonite RED</name>
+                        <weight>0.027654867619276</weight>
+                        <frequency>25</frequency>
+                    </item>
+                    <item>
+                        <name>Sansibar</name>
+                        <weight>0.0033185840584338</weight>
+                        <frequency>3</frequency>
+                    </item>
+                    <item>
+                        <name>satch</name>
+                        <weight>0.014380531385541</weight>
+                        <frequency>13</frequency>
+                    </item>
+                    <item>
+                        <name>Spikes &amp; Sparrow</name>
+                        <weight>0.014380531385541</weight>
+                        <frequency>13</frequency>
+                    </item>
+                    <item>
+                        <name>Strellson</name>
+                        <weight>0.084070794284344</weight>
+                        <frequency>76</frequency>
+                    </item>
+                    <item>
+                        <name>Suri Frey</name>
+                        <weight>0.0088495574891567</weight>
+                        <frequency>8</frequency>
+                    </item>
+                    <item>
+                        <name>Thielemann</name>
+                        <weight>0.0011061946861446</weight>
+                        <frequency>1</frequency>
+                    </item>
+                    <item>
+                        <name>Titan</name>
+                        <weight>0.022123893722892</weight>
+                        <frequency>20</frequency>
+                    </item>
+                    <item>
+                        <name>Tom Tailor</name>
+                        <weight>0.0011061946861446</weight>
+                        <frequency>1</frequency>
+                    </item>
+                    <item>
+                        <name>Travelite</name>
+                        <weight>0.0099557526409626</weight>
+                        <frequency>9</frequency>
+                    </item>
+                    <item>
+                        <name>Vanzetti</name>
+                        <weight>0.0011061946861446</weight>
+                        <frequency>1</frequency>
+                    </item>
+                    <item>
+                        <name>Vaude</name>
+                        <weight>0.0077433628030121</weight>
+                        <frequency>7</frequency>
+                    </item>
+                    <item>
+                        <name>VOI</name>
+                        <weight>0.08517698943615</weight>
+                        <frequency>77</frequency>
+                    </item>
+                    <item>
+                        <name>Y NOT?</name>
+                        <weight>0.0022123893722892</weight>
+                        <frequency>2</frequency>
+                    </item>
+                </items>
+            </filter>
+        </other>
+    </filters>
+</searchResult>

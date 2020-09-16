@@ -4,13 +4,21 @@ namespace FinSearchUnified\Bundle;
 
 use Enlight_Controller_Request_Request;
 use Exception;
+use FINDOLOGIC\Api\Exceptions\ServiceNotAliveException;
+use FINDOLOGIC\Api\Responses\Response;
+use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\CategoryFacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\ColorFacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\ImageFacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\RangeFacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\TextFacetHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Filter\BaseFilter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\ResponseParser;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Filter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\LabelTextFilter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\RangeSliderFilter;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
@@ -21,7 +29,6 @@ use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
-use SimpleXMLElement;
 use Zend_Cache_Core;
 use Zend_Cache_Exception;
 
@@ -92,9 +99,15 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         /** @var QueryBuilder $query */
         $query = $this->queryBuilderFactory->createProductQuery($criteria, $context);
-        $response = $query->execute();
 
-        if (empty($response)) {
+        try {
+            /** @var Xml21Response $response */
+            $response = $query->execute();
+        } catch (ServiceNotAliveException $e) {
+            return $this->originalService->search($criteria, $context);
+        }
+
+        if (!$response instanceof Xml21Response) {
             static::setFallbackFlag(1);
             static::setFallbackSearchFlag(1);
             static::redirectToSameUrl();
@@ -103,16 +116,20 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         }
         static::setFallbackFlag(0);
         static::setFallbackSearchFlag(0);
-        $xmlResponse = StaticHelper::getXmlFromResponse($response);
-        static::redirectOnLandingpage($xmlResponse);
-        StaticHelper::setPromotion($xmlResponse);
-        StaticHelper::setSmartDidYouMean($xmlResponse);
-        StaticHelper::setQueryInfoMessage($xmlResponse);
 
-        $totalResults = (int)$xmlResponse->results->count;
-        $foundProducts = StaticHelper::getProductsFromXml($xmlResponse);
+        $responseParser = ResponseParser::getInstance($response);
+        $smartDidYouMean = $responseParser->getSmartDidYouMean();
+
+        static::redirectOnLandingpage($responseParser->getLandingPageUri());
+        StaticHelper::setPromotion($responseParser->getPromotion());
+        StaticHelper::setSmartDidYouMean($smartDidYouMean);
+        StaticHelper::setQueryInfoMessage($responseParser->getQueryInfoMessage($smartDidYouMean));
+
+        $totalResults = $response->getResults()->getCount();
+        $foundProducts = $responseParser->getProducts();
         $searchResult = StaticHelper::getShopwareArticlesFromFindologicId($foundProducts);
-        $facets = $this->createFacets($criteria, $context, $xmlResponse->filters->filter);
+
+        $facets = $this->createFacets($criteria, $context, $responseParser->getFilters());
 
         $searchResult = new ProductNumberSearchResult($searchResult, $totalResults, $facets);
 
@@ -122,14 +139,12 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     /**
      * Checks if a landing page is present in the response and in that case, performs a redirect.
      *
-     * @param SimpleXMLElement $xmlResponse
+     * @param string|null $landingPageUri
      */
-    protected static function redirectOnLandingpage(SimpleXMLElement $xmlResponse)
+    protected static function redirectOnLandingpage($landingPageUri)
     {
-        $hasLandingpage = StaticHelper::checkIfRedirect($xmlResponse);
-
-        if ($hasLandingpage !== null) {
-            header('Location: ' . $hasLandingpage);
+        if ($landingPageUri !== null) {
+            header('Location: ' . $landingPageUri);
             exit();
         }
     }
@@ -159,11 +174,11 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     }
 
     /**
-     * @param SimpleXMLElement $filter
+     * @param BaseFilter $filter
      *
      * @return PartialFacetHandlerInterface|null
      */
-    private function getFacetHandler(SimpleXMLElement $filter)
+    private function getFacetHandler(BaseFilter $filter)
     {
         foreach ($this->facetHandlers as $handler) {
             if ($handler->supportsFilter($filter)) {
@@ -177,28 +192,25 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     /**
      * @param Criteria $criteria
      * @param ShopContextInterface $context
-     * @param SimpleXMLElement|null $filters
+     * @param Filter[] $filters
      *
      * @return array
      * @throws Zend_Cache_Exception
      */
-    protected function createFacets(Criteria $criteria, ShopContextInterface $context, SimpleXMLElement $filters = null)
+    protected function createFacets(Criteria $criteria, ShopContextInterface $context, array $filters = [])
     {
         $facets = [];
 
         $request = Shopware()->Front()->Request();
         if (!$this->isAjaxRequest($request) && StaticHelper::isProductAndFilterLiveReloadingEnabled()) {
             $response = $this->getResponseWithoutFilters($criteria, $context);
-            $xmlResponse = StaticHelper::getXmlFromResponse($response);
-
-            if (!$xmlResponse->filters->filter) {
-                return [];
-            }
-
             // Show all filters for the initial requests for ajax reloading. This is required because Shopware
             // needs a general overview of all available filters before disabling other filters that may
             // not be available.
-            $filters = $xmlResponse->filters->filter;
+            $filters = ResponseParser::getInstance($response)->getFilters();
+            if (StaticHelper::isEmpty($filters)) {
+                return [];
+            }
         }
 
         /** @var ProductAttributeFacet $criteriaFacet */
@@ -206,17 +218,19 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             if (!($criteriaFacet instanceof ProductAttributeFacet)) {
                 continue;
             }
-            $field = $criteriaFacet->getField();
 
+            $field = $criteriaFacet->getField();
             $selectedFilter = $selectedFilterByResponse = $this->fetchSelectedFilterByResponse(
                 $filters,
                 $field
             );
+
             if (!$selectedFilterByResponse) {
                 $selectedFilter = $this->fetchSelectedFilterByUserCondition(
                     $criteria,
                     $criteriaFacet
                 );
+
                 if (!$selectedFilter) {
                     continue;
                 }
@@ -226,10 +240,12 @@ class ProductNumberSearch implements ProductNumberSearchInterface
             if ($handler === null) {
                 continue;
             }
+
             $partialFacet = $handler->generatePartialFacet($criteriaFacet, $criteria, $selectedFilter);
             if ($partialFacet === null) {
                 continue;
             }
+
             $facets[] = $partialFacet;
         }
 
@@ -255,23 +271,27 @@ class ProductNumberSearch implements ProductNumberSearchInterface
     }
 
     /**
-     * @param SimpleXMLElement $filters
+     * @param Filter[] $filters
      * @param string $field
      *
-     * @return SimpleXMLElement|null
+     * @return Filter|null
      */
-    private function fetchSelectedFilterByResponse(SimpleXMLElement $filters, $field)
+    private function fetchSelectedFilterByResponse(array $filters, $field)
     {
-        $selectedFilter = $filters->xpath(sprintf('//name[.="%s"]/parent::*', $field));
+        foreach ($filters as $filter) {
+            if ($filter->getId() === $field) {
+                return $filter;
+            }
+        }
 
-        return isset($selectedFilter[0]) ? $selectedFilter[0] : null;
+        return null;
     }
 
     /**
      * @param Criteria $criteria
      * @param FacetInterface $criteriaFacet
      *
-     * @return SimpleXMLElement|null
+     * @return BaseFilter|null
      */
     private function fetchSelectedFilterByUserCondition(
         Criteria $criteria,
@@ -301,46 +321,35 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      * @param FacetInterface $facet
      * @param ConditionInterface $condition
      *
-     * @return SimpleXMLElement
+     * @return BaseFilter
      */
     private function createSelectedFilter(FacetInterface $facet, ConditionInterface $condition)
     {
-        $data = '<filter />';
-        $filter = new SimpleXMLElement($data);
-
         if ($condition instanceof PriceCondition) {
-            $filter->addChild('name', $condition->getName());
-            $filter->addChild('type', 'range-slider');
-            $attributes = $filter->addChild('attributes');
-            $totalRange = $attributes->addChild('totalRange');
-            $totalRange->addChild('min', $condition->getMinPrice());
-            $totalRange->addChild('max', $condition->getMaxPrice() ?: PHP_INT_MAX);
-            $selectedRange = $attributes->addChild('selectedRange');
-            $selectedRange->addChild('min', $condition->getMinPrice());
-            $selectedRange->addChild('max', $condition->getMaxPrice() ?: PHP_INT_MAX);
+            $filter = new RangeSliderFilter($condition->getName(), $condition->getName());
+            $filter->setMode('range-slider');
+            $filter->setActiveMin($condition->getMinPrice());
+            $filter->setActiveMax($condition->getMaxPrice());
+            $filter->setMin($condition->getMinPrice());
+            $filter->setMax($condition->getMaxPrice() ?: PHP_INT_MAX);
 
             return $filter;
         }
 
         if ($facet->getMode() === ProductAttributeFacet::MODE_RANGE_RESULT) {
             $values = $condition->getValues();
-            $filter->addChild('name', $condition->getField());
-            $filter->addChild('type', 'range-slider');
-            $attributes = $filter->addChild('attributes');
-            $totalRange = $attributes->addChild('totalRange');
-            $totalRange->addChild('min', isset($values['min']) ? $values['min'] : 0);
-            $totalRange->addChild('max', isset($values['max']) ? $values['max'] : PHP_INT_MAX);
-            $selectedRange = $attributes->addChild('selectedRange');
-            $selectedRange->addChild('min', isset($values['min']) ? $values['min'] : 0);
-            $selectedRange->addChild('max', isset($values['max']) ? $values['max'] : PHP_INT_MAX);
+
+            $filter = new RangeSliderFilter($condition->getName(), $condition->getField());
+            $filter->setMode('range-slider');
+            $filter->setActiveMin(isset($values['min']) ? $values['min'] : 0);
+            $filter->setActiveMax(isset($values['max']) ? $values['max'] : PHP_INT_MAX);
+            $filter->setMin(isset($values['min']) ? $values['min'] : 0);
+            $filter->setMax(isset($values['max']) ? $values['max'] : PHP_INT_MAX);
 
             return $filter;
         }
 
-        $filter->addChild('name', $condition->getField());
-        $filter->addChild('type', 'label');
-
-        return $filter;
+        return new LabelTextFilter($condition->getName(), $condition->getField());
     }
 
     /**
@@ -362,7 +371,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
      * @param Criteria $criteria
      * @param ShopContextInterface $context
      *
-     * @return false|mixed|string|null
+     * @return Response|null
      * @throws Zend_Cache_Exception
      */
     private function getResponseWithoutFilters(Criteria $criteria, ShopContextInterface $context)
@@ -372,10 +381,17 @@ class ProductNumberSearch implements ProductNumberSearchInterface
 
         if ($this->cache->load($cacheId) === false) {
             /** @var QueryBuilder $query */
-            $query =
-                $this->queryBuilderFactory->createSearchNavigationQueryWithoutAdditionalFilters($criteria, $context);
-            $response = $query->execute();
-            $this->cache->save($response, $cacheId, ['FINDOLOGIC'], 60 * 60 * 24);
+            $query = $this->queryBuilderFactory->createSearchNavigationQueryWithoutAdditionalFilters(
+                $criteria,
+                $context
+            );
+            try {
+                /** @var Xml21Response $response */
+                $response = $query->execute();
+                $this->cache->save($response, $cacheId, ['FINDOLOGIC'], 60 * 60 * 24);
+            } catch (ServiceNotAliveException $ignored) {
+                return null;
+            }
         } else {
             $response = $this->cache->load($cacheId);
         }

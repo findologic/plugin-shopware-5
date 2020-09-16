@@ -17,6 +17,7 @@ branches:
   only:
     - master
     - develop
+    - /^[SW\-\d]{6}/
 
 env:
   matrix:

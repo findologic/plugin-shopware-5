@@ -1,9 +1,12 @@
 <?php
 
+use FINDOLOGIC\Api\Responses\Response;
+use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\Bundle\ProductNumberSearch;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilderFactory;
 use FinSearchUnified\Tests\Helper\Utility;
+use PHPUnit\Framework\MockObject\MockObject;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\ProductSearch;
@@ -187,9 +190,15 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             $product->addAttribute('id', $i);
         }
 
+        $xmlResponse->servers->frontend = 'martell.frontend.findologic.com';
+        $xmlResponse->servers->backend = 'hydra.backend.findologic.com';
+
+        $response = new Xml21Response($xmlResponse->asXML());
+
         Shopware()->Session()->offsetSet('isSearchPage', true);
         Shopware()->Session()->offsetSet('isCategoryPage', false);
         Shopware()->Session()->offsetSet('findologicDI', false);
+
 
         $criteria = new Criteria();
 
@@ -214,7 +223,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
             ->setMethods(['execute'])
             ->getMockForAbstractClass();
 
-        $mockedQuery->expects($this->once())->method('execute')->willReturn($xmlResponse->asXML());
+        $mockedQuery->expects($this->once())->method('execute')->willReturn($response);
 
         // Mock querybuilder factory method to check that custom implementation does not get called
         // as original implementation will be called in this case

@@ -146,7 +146,9 @@ class Frontend implements SubscriberInterface
             foreach ($params['attrib'] as $filterName => $filterValue) {
                 if ($filterName === 'wizard') {
                     continue;
-                } elseif ($filterName === 'price') {
+                }
+
+                if ($filterName === 'price') {
                     foreach ($filterValue as $key => $value) {
                         $mappedParams[$key] = $value;
                     }
@@ -171,9 +173,7 @@ class Frontend implements SubscriberInterface
 
             $request->setParams($mappedParams);
 
-            unset($mappedParams['module']);
-            unset($mappedParams['controller']);
-            unset($mappedParams['action']);
+            unset($mappedParams['module'], $mappedParams['controller'], $mappedParams['action']);
 
             $request->setRequestUri($path . '?' . http_build_query($mappedParams, null, '&', PHP_QUERY_RFC3986));
             $args->setReturn($request);

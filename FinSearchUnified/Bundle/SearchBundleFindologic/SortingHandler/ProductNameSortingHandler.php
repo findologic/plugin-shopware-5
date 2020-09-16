@@ -2,7 +2,7 @@
 
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler;
 
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandlerInterface;
 use Shopware\Bundle\SearchBundle\Sorting\ProductNameSorting;
 use Shopware\Bundle\SearchBundle\SortingInterface;
