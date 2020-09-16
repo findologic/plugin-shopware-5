@@ -299,7 +299,8 @@ class Utility
             /** @var ShopwareProcess $shopwareProcess */
             $shopwareProcess = Shopware()->Container()->get('fin_search_unified.shopware_process');
             $shopwareProcess->setShopKey('ABCDABCDABCDABCDABCDABCDABCDABCD');
-            $xmlDocument = $shopwareProcess->getFindologicXml();
+            $shopwareProcess->setUpExportService();
+            $xmlDocument = $shopwareProcess->getFindologicXml(0, 20);
 
             // Parse the xml and return the count of the products exported
             $xml = new SimpleXMLElement($xmlDocument);
