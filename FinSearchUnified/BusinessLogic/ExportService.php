@@ -176,7 +176,6 @@ class ExportService
     public function getFindologicArticle($shopwareArticle)
     {
         $errorInformation = new ExportErrorInformation($shopwareArticle->getId());
-        $findologicArticle = null;
         $inactiveCatCount = 0;
         $totalCatCount = 0;
 
@@ -238,6 +237,10 @@ class ExportService
 
         if (count($errorInformation->getErrors())) {
             $this->errorCount = $this->errorCount + 1;
+            return null;
+        }
+
+        if (!$findologicArticle) {
             return null;
         }
 
