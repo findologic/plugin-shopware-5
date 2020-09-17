@@ -34,6 +34,6 @@ class SimpleConditionHandler implements ConditionHandlerInterface
         QueryBuilder $query,
         ShopContextInterface $context
     ) {
-        $query->addFlag($condition->getName(), true);
+        $query->addFlag($condition->getName());
     }
 }

@@ -328,7 +328,6 @@ class SearchQueryBuilderTest extends TestCase
 
     public function testForceOriginalQueryIsNotTreatedAsFilter()
     {
-        $expectedValue = true;
         $searchNavigationRequest = new SearchRequest();
         $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
@@ -337,12 +336,12 @@ class SearchQueryBuilderTest extends TestCase
             $searchNavigationRequest
         );
 
-        $queryBuilder->addFlag('forceOriginalQuery', $expectedValue);
+        $queryBuilder->addFlag('forceOriginalQuery');
 
         $params = $searchNavigationRequest->getParams();
-        $this->assertArrayHasKey('attrib', $params);
+        $this->assertArrayNotHasKey('attrib', $params);
         $this->assertArrayHasKey('forceOriginalQuery', $params);
-        $this->assertArrayNotHasKey('forceOriginalQuery', $params['attrib']);
-        $this->assertSame($expectedValue, $params['forceOriginalQuery']);
+
+        $this->assertSame(1, $params['forceOriginalQuery']);
     }
 }

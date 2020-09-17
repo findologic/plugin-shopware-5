@@ -182,7 +182,7 @@ abstract class QueryBuilder
      * @param string $key
      * @param mixed $value
      */
-    public function addFlag($key, $value)
+    public function addFlag($key, $value = true)
     {
         if ($key === Constants::SDYM_PARAM_FORCE_QUERY) {
             $this->searchNavigationRequest->setForceOriginalQuery();
