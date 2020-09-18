@@ -11,6 +11,7 @@ use FINDOLOGIC\Api\Exceptions\InvalidParamException;
 use FINDOLOGIC\Api\Exceptions\ServiceNotAliveException;
 use FINDOLOGIC\Api\Requests\SearchNavigation\SearchNavigationRequest;
 use FINDOLOGIC\Api\Responses\Response;
+use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware_Components_Config;
@@ -181,8 +182,14 @@ abstract class QueryBuilder
      * @param string $key
      * @param mixed $value
      */
-    public function addFlag($key, $value)
+    public function addFlag($key, $value = true)
     {
+        if ($key === Constants::SDYM_PARAM_FORCE_QUERY) {
+            $this->searchNavigationRequest->setForceOriginalQuery();
+
+            return;
+        }
+
         $this->searchNavigationRequest->addAttribute($key, (bool)$value ? '1' : '0');
     }
 

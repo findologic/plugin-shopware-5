@@ -325,4 +325,23 @@ class SearchQueryBuilderTest extends TestCase
         $this->assertArrayHasKey('findologic', $params['attrib']);
         $this->assertSame($expectedValue, current($params['attrib']['findologic']));
     }
+
+    public function testForceOriginalQueryIsNotTreatedAsFilter()
+    {
+        $searchNavigationRequest = new SearchRequest();
+        $queryBuilder = new SearchQueryBuilder(
+            $this->installerService,
+            $this->config,
+            null,
+            $searchNavigationRequest
+        );
+
+        $queryBuilder->addFlag('forceOriginalQuery');
+
+        $params = $searchNavigationRequest->getParams();
+        $this->assertArrayNotHasKey('attrib', $params);
+        $this->assertArrayHasKey('forceOriginalQuery', $params);
+
+        $this->assertSame(1, $params['forceOriginalQuery']);
+    }
 }

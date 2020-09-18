@@ -62,11 +62,11 @@
     <changelog version="10.4.2">
         <changes lang="de">
             Die Basis-URL des Shops wurde bei cat_urls nicht berücksichtigt. Dies wurde behoben.;
-            Ein Fehler wurde behoben, welcher dazu führte, dass Filter nicht korrekt funktionierten, wenn diese multi-byte Zeichen beinhalteten.
+            Ein Fehler wurde behoben, welcher dazu führte, dass Filter nicht korrekt funktionierten, wenn diese multi-byte Zeichen beinhalteten.;
         </changes>
         <changes lang="en">
             The shops's base URL was not taken into account for cat_urls. This has been fixed.;
-            Fixed a bug that caused filters not to work properly, when the filter name contained multi-byte characters.
+            Fixed a bug that caused filters not to work properly, when the filter name contained multi-byte characters.;
         </changes>
     </changelog>
 </plugin>
