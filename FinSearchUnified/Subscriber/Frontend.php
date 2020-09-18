@@ -106,7 +106,7 @@ class Frontend implements SubscriberInterface
         if ($this->isSearchPage($request)) {
             Shopware()->Session()->offsetSet('isSearchPage', true);
             Shopware()->Session()->offsetSet('isCategoryPage', false);
-        } elseif ($this->isCategoryPage($request)) {
+        } elseif (StaticHelper::isCategoryPage($request)) {
             Shopware()->Session()->offsetSet('isCategoryPage', true);
             Shopware()->Session()->offsetSet('isSearchPage', false);
         } elseif ($this->isManufacturerPage($request) || !$this->isWhiteListed($request)) {
@@ -262,17 +262,6 @@ class Frontend implements SubscriberInterface
     private function isSearchPage(Enlight_Controller_Request_Request $request)
     {
         return array_key_exists('sSearch', $request->getParams());
-    }
-
-    /**
-     * @param Enlight_Controller_Request_Request $request
-     *
-     * @return bool
-     */
-    private function isCategoryPage(Enlight_Controller_Request_Request $request)
-    {
-        return $request->getControllerName() === 'listing' && $request->getActionName() !== 'manufacturer' &&
-            array_key_exists('sCategory', $request->getParams());
     }
 
     /**

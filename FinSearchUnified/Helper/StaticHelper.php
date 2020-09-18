@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Helper;
 
 use Enlight_Controller_Plugins_ViewRenderer_Bootstrap;
+use Enlight_Controller_Request_Request;
 use Enlight_View_Default;
 use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Promotion;
@@ -148,7 +149,7 @@ class StaticHelper
         $isDirectIntegration = static::checkDirectIntegration();
         $isActiveOnCategoryPages = (bool)Shopware()->Config()->offsetGet('ActivateFindologicForCategoryPages');
 
-        $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
+        $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage') || static::isCategoryPage($request);
         $isNoSearchAndCategoryPage = !$isCategoryPage && !Shopware()->Session()->offsetGet('isSearchPage');
         $isCategoryPageButDisabledInConfig = $isCategoryPage && !$isActiveOnCategoryPages;
 
@@ -163,6 +164,17 @@ class StaticHelper
             $isCategoryPageButDisabledInConfig ||
             $fallbackSearchIsSet
         );
+    }
+
+    /**
+     * @param Enlight_Controller_Request_Request $request
+     *
+     * @return bool
+     */
+    public static function isCategoryPage(Enlight_Controller_Request_Request $request)
+    {
+        return $request->getControllerName() === 'listing' && $request->getActionName() !== 'manufacturer' &&
+            array_key_exists('sCategory', $request->getParams());
     }
 
     /**

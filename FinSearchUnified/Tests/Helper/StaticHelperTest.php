@@ -450,6 +450,38 @@ class StaticHelperTest extends TestCase
         $this->assertEquals($expected, $result, sprintf($error, $shop));
     }
 
+    public function testDoNotUseShopSearchWhenCategoryPageAndSessionNotSet()
+    {
+        $configArray = [
+            ['ActivateFindologic', true],
+            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
+            ['ActivateFindologicForCategoryPages', true],
+            ['IntegrationType', Constants::INTEGRATION_TYPE_API]
+        ];
+        $request = new RequestHttp();
+        $request->setModuleName('frontend');
+        $request->setControllerName('listing');
+        $request->setParam('sCategory', '69');
+
+        Shopware()->Front()->setRequest($request);
+
+        // Create Mock object for Shopware Config
+        $config = $this->createMock(Config::class);
+        $config->expects($this->atLeastOnce())
+            ->method('offsetGet')
+            ->willReturnMap($configArray);
+        $config->method('offsetExists')
+            ->willReturn(true);
+
+        // Assign mocked config variable to application container
+        Shopware()->Container()->set('config', $config);
+
+        Shopware()->Session()->offsetSet('isCategoryPage', false);
+
+        $result = StaticHelper::useShopSearch();
+        $this->assertFalse($result, 'Expected Findologic search to be triggered but it was not');
+    }
+
     /**
      * @throws Enlight_Exception
      * @throws Zend_Cache_Exception
