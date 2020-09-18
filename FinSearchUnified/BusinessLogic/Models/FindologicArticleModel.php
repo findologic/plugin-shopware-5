@@ -534,7 +534,7 @@ class FindologicArticleModel
                 $tempPath = sprintf($routerCategoryTemplate, implode('/', $catPath));
 
                 if (Shopware()->Config()->get('routerToLower')) {
-                    $tempPath = strtolower($tempPath);
+                    $tempPath = mb_strtolower($tempPath);
                 }
 
                 if (!StaticHelper::isEmpty($tempPath)) {
