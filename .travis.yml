@@ -36,7 +36,10 @@ cache:
 
 before_install:
   - sudo apt-get install ant
-  - mkdir /tmp/opcache || true; echo -e 'opcache.enable_cli=1\nopcache.file_cache=/tmp/opcache' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  # PHP bug https://bugs.php.net/bug.php?id=66773 imports classes with wrong namespace information,
+  # which may result in classes being imported from a wrong namespace, causing conflicts.
+  # This bug has been fixed with PHP 7.
+  - if [[ "${TRAVIS_PHP_VERSION}" == "5.6" ]]; mkdir /tmp/opcache || true; echo -e 'opcache.enable_cli=1\nopcache.file_cache=/tmp/opcache' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
 
 install:
   - cd ${PLUGIN_NAME}
