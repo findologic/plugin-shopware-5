@@ -36,6 +36,7 @@ cache:
 
 before_install:
   - sudo apt-get install ant
+  - mkdir /tmp/opcache || true; echo -e 'opcache.enable_cli=1\nopcache.file_cache=/tmp/opcache' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
 
 install:
   - cd ${PLUGIN_NAME}
