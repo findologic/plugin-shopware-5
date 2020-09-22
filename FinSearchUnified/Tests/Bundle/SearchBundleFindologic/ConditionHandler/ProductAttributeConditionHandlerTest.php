@@ -2,12 +2,13 @@
 
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\ConditionHandler;
 
+use Enlight_Controller_Request_RequestHttp;
 use Exception;
 use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\ProductAttributeConditionHandler;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
-use FinSearchUnified\Bundle\SearchBundleFindologic\SearchQueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\SearchQueryBuilder;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
 
@@ -21,7 +22,7 @@ class ProductAttributeConditionHandlerTest extends TestCase
     /**
      * @var ProductContextInterface
      */
-    private $context = null;
+    private $context;
 
     /**
      * @var ProductAttributeConditionHandler
@@ -35,8 +36,14 @@ class ProductAttributeConditionHandlerTest extends TestCase
     {
         parent::setUp();
 
+        $request = new Enlight_Controller_Request_RequestHttp();
+        Shopware()->Front()->setRequest($request);
+
+        // By default, the search page is true
+        Shopware()->Session()->offsetSet('isSearchPage', true);
+        Shopware()->Config()->ShopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
+
         $this->querybuilder = new SearchQueryBuilder(
-            Shopware()->Container()->get('http_client'),
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
             Shopware()->Config()
         );
@@ -53,7 +60,7 @@ class ProductAttributeConditionHandlerTest extends TestCase
                 [
                     ['field' => 'vendor', 'value' => 'Brand+Name']
                 ],
-                ['vendor' => ['Brand Name']]
+                ['vendor' => ['' => 'Brand Name']]
             ],
             'Color is "blue" and "red"' => [
                 Operator::EQ,
@@ -61,7 +68,7 @@ class ProductAttributeConditionHandlerTest extends TestCase
                     ['field' => 'color', 'value' => 'blue'],
                     ['field' => 'color', 'value' => 'red']
                 ],
-                ['color' => ['blue', 'red']]
+                ['color' => ['' => ['blue', 'red']]]
             ],
             'Vendor is "Brand+Name" and color is "red"' => [
                 Operator::EQ,
@@ -69,7 +76,7 @@ class ProductAttributeConditionHandlerTest extends TestCase
                     ['field' => 'vendor', 'value' => 'Brand+Name'],
                     ['field' => 'color', 'value' => 'red']
                 ],
-                ['vendor' => ['Brand Name'], 'color' => ['red']]
+                ['vendor' => ['' => 'Brand Name'], 'color' => ['' => 'red']]
             ],
             'Discount is between 12.69 and PHP_INT_MAX' => [
                 Operator::BETWEEN,
@@ -118,10 +125,14 @@ class ProductAttributeConditionHandlerTest extends TestCase
         $this->assertArrayHasKey('attrib', $params, 'Parameter "attrib" was not found in the parameters');
 
         foreach ($expectedValues as $field => $values) {
-            $this->assertArrayHasKey($field, $params['attrib'], sprintf(
-                '"%s" is not set in the "attrib" parameter',
-                $field
-            ));
+            $this->assertArrayHasKey(
+                $field,
+                $params['attrib'],
+                sprintf(
+                    '"%s" is not set in the "attrib" parameter',
+                    $field
+                )
+            );
             $this->assertEquals(
                 $values,
                 $params['attrib'][$field],

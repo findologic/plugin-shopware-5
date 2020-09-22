@@ -2,9 +2,18 @@
 
 namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\FacetHandler;
 
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\ColorPickerFilter as ApiColorPickerFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\LabelTextFilter as ApiLabelTextFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\RangeSliderFilter as ApiRangeSliderFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\SelectDropdownFilter as ApiSelectDropdownFilter;
+use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\VendorImageFilter as ApiVendorImageFilter;
 use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\ImageFacetHandler;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Filter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Media as FilterMedia;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Values\ImageFilterValue;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\VendorImageFilter;
 use FinSearchUnified\Tests\TestCase;
 use GuzzleHttp\Client;
 use GuzzleHttp\Message\Response;
@@ -23,36 +32,26 @@ class ImageFacetHandlerTest extends TestCase
     public function filterProvider()
     {
         return [
-            'Filter with "select" type' => ['select', true, false],
-            'Filter with "label" type' => ['label', true, false],
-            'Filter with "range-slider" type' => ['range-slider', true, false],
-            'Filter with "color" type without image' => ['color', false, false],
-            'Filter with "color" type with image' => ['color', true, true],
-            'Filter with "image" type' => ['image', true, true],
+            'Filter with "select" type' => [ApiSelectDropdownFilter::class, false],
+            'Filter with "label" type' => [ApiLabelTextFilter::class, false],
+            'Filter with "image" type' => [ApiVendorImageFilter::class, true],
+            'Filter with "range-slider" type' => [ApiRangeSliderFilter::class, false],
+            'Filter with "color" type' => [ApiColorPickerFilter::class, false]
         ];
     }
 
     /**
      * @dataProvider filterProvider
      *
-     * @param string $type
-     * @param bool $hasImage
+     * @param string $apiFilter
      * @param bool $doesSupport
      */
-    public function testSupportsFilter($type, $hasImage, $doesSupport)
+    public function testSupportsFilter($apiFilter, $doesSupport)
     {
         $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $filter = new SimpleXMLElement($data);
-
-        $filter->addChild('name', 'vendor');
-        $filter->addChild('type', $type);
-
-        if ($type === 'color' && $hasImage) {
-            $filter->addChild('items')->addChild('item')->addChild('image', 'image');
-        }
-
-        $facetHandler = new ImageFacetHandler(Shopware()->Container()->get('guzzle_http_client_factory'), []);
-        $result = $facetHandler->supportsFilter($filter);
+        $filter = new $apiFilter(new SimpleXMLElement($data));
+        $facetHandler = new ImageFacetHandler(Shopware()->Container()->get('guzzle_http_client_factory'));
+        $result = $facetHandler->supportsFilter(Filter::getInstance($filter));
 
         $this->assertSame($doesSupport, $result);
     }
@@ -194,24 +193,19 @@ class ImageFacetHandlerTest extends TestCase
     /**
      * @param array $filterData
      *
-     * @return SimpleXMLElement
+     * @return VendorImageFilter
      */
     public function generateFilter(array $filterData)
     {
-        $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
-        $filter = new SimpleXMLElement($data);
+        $filter = new VendorImageFilter('vendor', 'Brand');
 
-        $filter->addChild('name', 'vendor');
-        $filter->addChild('display', 'Manufacturer');
-        $filter->addChild('select', 'single');
-        $filter->addChild('type', 'image');
-
-        $items = $filter->addChild('items');
-        // Loop through the data to generate filter xml
         foreach ($filterData as $key => $value) {
-            $item = $items->addChild('item');
-            $item->addChild('name', $value['name']);
-            $item->addChild('image', $value['image']);
+            $filterValue = new ImageFilterValue($value['name'], $value['name']);
+            if ($value['image']) {
+                $media = new FilterMedia($value['image']);
+                $filterValue->setMedia($media);
+            }
+            $filter->addValue($filterValue);
         }
 
         return $filter;

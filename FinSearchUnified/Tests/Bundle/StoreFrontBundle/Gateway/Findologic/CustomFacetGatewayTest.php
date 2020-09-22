@@ -2,20 +2,27 @@
 
 namespace FinSearchUnified\Tests\Bundle\StoreFrontBundle\Gateway\Findologic;
 
-use Enlight_Controller_Front;
 use Enlight_Controller_Request_RequestHttp;
+use Enlight_Exception;
 use Exception;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
-use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilderFactory;
+use FINDOLOGIC\Api\Responses\Response;
+use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilder;
+use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilderFactory;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\ResponseParser;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGateway;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
+use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
+use InvalidArgumentException;
+use PHPUnit\Framework\MockObject\MockObject;
+use ReflectionException;
 use ReflectionObject;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware_Components_Config;
-use SimpleXMLElement;
+use Zend_Cache_Exception;
 
 class CustomFacetGatewayTest extends TestCase
 {
@@ -23,10 +30,9 @@ class CustomFacetGatewayTest extends TestCase
     {
         parent::tearDown();
 
-        Shopware()->Container()->reset('front');
-        Shopware()->Container()->load('front');
         Shopware()->Container()->reset('config');
         Shopware()->Container()->load('config');
+
         Shopware()->Session()->offsetUnset('isSearchPage');
         Shopware()->Session()->offsetUnset('isCategoryPage');
         Shopware()->Session()->offsetUnset('findologicDI');
@@ -35,8 +41,11 @@ class CustomFacetGatewayTest extends TestCase
     /**
      * @throws Exception
      */
-    public function testUseOriginalServiceWhenFindologicResponseIsFaulty()
+    public function testExceptionForUnsupportedResponse()
     {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported response format');
+
         /** @var ContextServiceInterface $contextService */
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
         $context = $contextService->getShopContext();
@@ -44,17 +53,7 @@ class CustomFacetGatewayTest extends TestCase
         // Custom request object to trigger findologic search
         $request = new Enlight_Controller_Request_RequestHttp();
         $request->setModuleName('frontend');
-
-        // Create Mock object for Shopware Front Request
-        $mockFront = $this->getMockBuilder(Enlight_Controller_Front::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['Request'])
-            ->getMock();
-
-        $mockFront->method('Request')->willReturn($request);
-
-        // Assign mocked variable to application container
-        Shopware()->Container()->set('front', $mockFront);
+        Shopware()->Front()->setRequest($request);
 
         $configArray = [
             ['ActivateFindologic', true],
@@ -83,7 +82,10 @@ class CustomFacetGatewayTest extends TestCase
             ->disableOriginalConstructor()
             ->setMethods(['execute'])
             ->getMockForAbstractClass();
-        $mockedQuery->expects($this->once())->method('execute')->willReturn(null);
+
+        $responseMock = $this->createMock(Response::class);
+        $responseMock->method('getRawResponse')->willReturn(null);
+        $mockedQuery->expects($this->once())->method('execute')->willReturn($responseMock);
 
         // Mock querybuilder factory method to check that custom implementation does not get called
         // as original implementation will be called in this case
@@ -97,7 +99,8 @@ class CustomFacetGatewayTest extends TestCase
             $mockQuerybuilderFactory
         );
 
-        $this->assertCount(0, $facetGateway->getList([3], $context));
+        // Invoke the method to test response
+        $facetGateway->getList([3], $context);
     }
 
     /**
@@ -107,54 +110,48 @@ class CustomFacetGatewayTest extends TestCase
     {
         return [
             'Only default facets are returned' => [
-                [
+                'response' => Utility::getDemoResponse('demoResponseWithoutFilters.xml'),
+                'expectedFacetsData' => [
                     ['name' => 'cat', 'display' => 'Category', 'select' => 'single', 'type' => 'select'],
                     ['name' => 'vendor', 'display' => 'Manufacturer', 'select' => 'single', 'type' => 'select'],
                 ],
-                [
-                    ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
-                    ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
-                ]
+                'expectedFacetResult' =>
+                    [
+                        ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
+                        ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
+                    ]
             ],
             'Single facet and two default' => [
-                [
-                    ['name' => 'price', 'display' => 'Preis', 'select' => 'single', 'type' => 'range-slider'],
+                'response' => Utility::getDemoResponse('demoResponseWithoutDefaultFilters.xml'),
+                'expectedFacetsData' => [
+                    ['name' => 'Farbe', 'display' => 'Farbe', 'select' => 'multiselect', 'type' => 'color'],
                     ['name' => 'cat', 'display' => 'Category', 'select' => 'single', 'type' => 'select'],
                     ['name' => 'vendor', 'display' => 'Manufacturer', 'select' => 'single', 'type' => 'select'],
                 ],
-                [
-                    ProductAttributeFacet::MODE_RANGE_RESULT,
-                    ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
-                    ProductAttributeFacet::MODE_RADIO_LIST_RESULT
-                ]
-            ],
-            'Two facets and two default' => [
-                [
-                    ['name' => 'price', 'display' => 'Preis', 'select' => 'single', 'type' => 'range-slider'],
-                    ['name' => 'color', 'display' => 'Farbe', 'select' => 'multiple', 'type' => 'label'],
-                    ['name' => 'cat', 'display' => 'Category', 'select' => 'single', 'type' => 'select'],
-                    ['name' => 'vendor', 'display' => 'Manufacturer', 'select' => 'single', 'type' => 'select'],
-                ],
-                [
-                    ProductAttributeFacet::MODE_RANGE_RESULT,
+                'expectedFacetResult' => [
                     ProductAttributeFacet::MODE_VALUE_LIST_RESULT,
                     ProductAttributeFacet::MODE_RADIO_LIST_RESULT,
                     ProductAttributeFacet::MODE_RADIO_LIST_RESULT
                 ]
-            ],
+            ]
         ];
     }
 
     /**
      * @dataProvider findologicFilterProvider
      *
-     * @param array $filterData
-     * @param array $attributeMode
+     * @param Xml21Response $response
+     * @param array $expectedFacetsData
+     * @param array $expectedFacetResult
      *
-     * @throws Exception
+     * @throws Enlight_Exception
+     * @throws Zend_Cache_Exception
      */
-    public function testCreatesShopwareFacetsFromFindologicFilters(array $filterData, array $attributeMode)
-    {
+    public function testCreatesShopwareFacetsFromFindologicFilters(
+        Xml21Response $response,
+        array $expectedFacetsData,
+        array $expectedFacetResult
+    ) {
         /** @var ContextServiceInterface $contextService */
         $contextService = Shopware()->Container()->get('shopware_storefront.context_service');
         $context = $contextService->getShopContext();
@@ -162,17 +159,7 @@ class CustomFacetGatewayTest extends TestCase
         // Custom request object to trigger findologic search
         $request = new Enlight_Controller_Request_RequestHttp();
         $request->setModuleName('frontend');
-
-        // Create Mock object for Shopware Front Request
-        $mockFront = $this->getMockBuilder(Enlight_Controller_Front::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['Request'])
-            ->getMock();
-
-        $mockFront->method('Request')->willReturn($request);
-
-        // Assign mocked variable to application container
-        Shopware()->Container()->set('front', $mockFront);
+        Shopware()->Front()->setRequest($request);
 
         $configArray = [
             ['ActivateFindologic', true],
@@ -189,22 +176,9 @@ class CustomFacetGatewayTest extends TestCase
         // Assign mocked config variable to application container
         Shopware()->Container()->set('config', $mockConfig);
 
-        Shopware()->Session()->offsetSet('isSearchPage', true);
-        Shopware()->Session()->offsetSet('isCategoryPage', false);
-        Shopware()->Session()->offsetSet('findologicDI', false);
-
-        $xmlResponse = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>');
-
-        $results = $xmlResponse->addChild('results');
-        $results->addChild('count', 2);
-        $filters = $xmlResponse->addChild('filters');
-
-        foreach ($filterData as $data) {
-            $filter = $filters->addChild('filter');
-            foreach ($data as $key => $value) {
-                $filter->addChild($key, $value);
-            }
-        }
+        Shopware()->Session()->isSearchPage = true;
+        Shopware()->Session()->isCategoryPage = false;
+        Shopware()->Session()->findologicDI = false;
 
         $originalHydrator = Shopware()->Container()->get('fin_search_unified.custom_listing_hydrator');
 
@@ -212,7 +186,8 @@ class CustomFacetGatewayTest extends TestCase
             ->disableOriginalConstructor()
             ->setMethods(['execute'])
             ->getMockForAbstractClass();
-        $mockedQuery->expects($this->once())->method('execute')->willReturn($xmlResponse->asXML());
+
+        $mockedQuery->expects($this->once())->method('execute')->willReturn($response);
 
         // Mock querybuilder factory method to check that custom implementation does not get called
         // as original implementation will be called in this case
@@ -229,22 +204,21 @@ class CustomFacetGatewayTest extends TestCase
         $customFacets = $facetGateway->getList([3], $context);
 
         $this->assertCount(
-            count($filterData),
+            count($expectedFacetsData),
             $customFacets,
             'Expected same number of facets to be returned as the number of filters'
         );
 
-        /** @var CustomFacet $customFacet */
         foreach ($customFacets as $key => $customFacet) {
             $this->assertSame(
-                $filterData[$key]['name'],
+                $expectedFacetsData[$key]['name'],
                 $customFacet->getName(),
-                sprintf("Expected custom facet's name to be %s", $filterData[$key]['name'])
+                sprintf("Expected custom facet's name to be %s", $expectedFacetsData[$key]['name'])
             );
             $this->assertSame(
-                $filterData[$key]['name'],
+                $expectedFacetsData[$key]['name'],
                 $customFacet->getUniqueKey(),
-                sprintf("Expected custom facet's unique key to be %s", $filterData[$key]['name'])
+                sprintf("Expected custom facet's unique key to be %s", $expectedFacetsData[$key]['name'])
             );
 
             /** @var ProductAttributeFacet $productAttributeFacet */
@@ -256,27 +230,25 @@ class CustomFacetGatewayTest extends TestCase
                 "Expected custom facet's facet to be of type ProductAttributeFacet"
             );
             $this->assertSame(
-                sprintf('product_attribute_%s', $filterData[$key]['name']),
+                sprintf('product_attribute_%s', $expectedFacetsData[$key]['name']),
                 $productAttributeFacet->getName(),
                 sprintf(
                     "Expected product attribute facet's name to be %s",
-                    sprintf('product_attribute_%s', $filterData[$key]['name'])
+                    sprintf('product_attribute_%s', $expectedFacetsData[$key]['name'])
                 )
             );
             $this->assertSame(
-                $filterData[$key]['name'],
+                $expectedFacetsData[$key]['name'],
                 $productAttributeFacet->getFormFieldName(),
-                sprintf("Expected product attribute facet's form field name to be %s", $filterData[$key]['name'])
+                sprintf(
+                    "Expected product attribute facet's form field name to be %s",
+                    $expectedFacetsData[$key]['name']
+                )
             );
             $this->assertSame(
-                $filterData[$key]['display'],
-                $productAttributeFacet->getLabel(),
-                sprintf("Expected product attribute facet's label to be %s", $filterData[$key]['display'])
-            );
-            $this->assertSame(
-                $attributeMode[$key],
+                $expectedFacetResult[$key],
                 $productAttributeFacet->getMode(),
-                sprintf("Expected product attribute facet's mode to be %s", $attributeMode[$key])
+                sprintf("Expected product attribute facet's mode to be %s", $expectedFacetResult[$key])
             );
         }
     }
@@ -286,59 +258,32 @@ class CustomFacetGatewayTest extends TestCase
      */
     public function filterProviderForFacets()
     {
-        $categoryFacet = new CustomFacet();
-        $categoryFacet->setName('cat');
-        $categoryFacet->setUniqueKey('cat');
-        $productAttributeFacet = new ProductAttributeFacet('cat', 'radio', 'cat', 'Filter Category');
-        $categoryFacet->setFacet($productAttributeFacet);
-
-        $defaultCategoryFacet = new CustomFacet();
-        $defaultCategoryFacet->setName('cat');
-        $defaultCategoryFacet->setUniqueKey('cat');
-        $productAttributeFacet = new ProductAttributeFacet('cat', 'radio', 'cat', 'Category');
-        $defaultCategoryFacet->setFacet($productAttributeFacet);
-
-        $vendorFacet = new CustomFacet();
-        $vendorFacet->setName('vendor');
-        $vendorFacet->setUniqueKey('vendor');
-        $productAttributeFacet = new ProductAttributeFacet('vendor', 'value_list', 'vendor', 'Filter Manufacturer');
-        $vendorFacet->setFacet($productAttributeFacet);
-
-        $defaultVendorFacet = new CustomFacet();
-        $defaultVendorFacet->setName('vendor');
-        $defaultVendorFacet->setUniqueKey('vendor');
-        $productAttributeFacet = new ProductAttributeFacet('vendor', 'radio', 'cat', 'Manufacturer');
-        $defaultVendorFacet->setFacet($productAttributeFacet);
+        $colorFacet = $this->createFacet('color', 'radio', 'Color');
+        $categoryFacet = $this->createFacet('cat', 'radio', 'Kategorie');
+        $defaultCategoryFacet = $this->createFacet('cat', 'radio', 'Category');
+        $vendorFacet = $this->createFacet('vendor', 'value_list', 'Hersteller');
+        $defaultVendorFacet = $this->createFacet('vendor', 'radio', 'Manufacturer');
 
         return [
             'Category and Vendor filter is present' => [
-                'filterData' => [
-                    [
-                        'name' => 'cat',
-                        'display' => 'Filter Category',
-                        'select' => 'single',
-                        'type' => 'select'
-                    ],
-                    [
-                        'name' => 'vendor',
-                        'display' => 'Filter Manufacturer',
-                        'select' => 'multiple',
-                        'type' => 'select'
-                    ]
-                ],
-                'categoryFacet' => $categoryFacet,
-                'vendorFacet' => $vendorFacet,
-                'defaultInvoke' => $this->never(),
-                'defaultCategoryFacet' => $defaultCategoryFacet,
-                'defaultVendorFacet' => $defaultVendorFacet
-            ],
-            'Category and Vendor filter is not present' => [
-                'filterData' => [],
-                'categoryFacet' => $categoryFacet,
-                'vendorFacet' => $vendorFacet,
-                'defaultInvoke' => $this->exactly(2),
+                'response' => Utility::getDemoResponse('demoResponseWithDefaultFilters.xml'),
+                'hydrateFacets' => [$categoryFacet, $vendorFacet],
                 'defaultCategoryFacet' => $defaultCategoryFacet,
                 'defaultVendorFacet' => $defaultVendorFacet,
+                'expectedFacets' => [
+                    $categoryFacet,
+                    $vendorFacet
+                ]
+            ],
+            'Category and Vendor filter is not present' => [
+                'response' => Utility::getDemoResponse('demoResponseWithoutDefaultFilters.xml'),
+                'hydrateFacets' => [$colorFacet, $colorFacet],
+                'defaultCategoryFacet' => $defaultCategoryFacet,
+                'defaultVendorFacet' => $defaultVendorFacet,
+                'expectedFacets' => [
+                    $defaultCategoryFacet,
+                    $defaultVendorFacet
+                ]
             ]
         ];
     }
@@ -346,45 +291,26 @@ class CustomFacetGatewayTest extends TestCase
     /**
      * @dataProvider filterProviderForFacets
      *
-     * @param array $filterData
-     * @param $categoryFacet
-     * @param $vendorFacet
-     * @param $defaultInvoke
+     * @param Xml21Response $response
+     * @param array $hydrateFacets
      * @param $defaultCategoryFacet
      * @param $defaultVendorFacet
+     * @param CustomFacet[] $expectedFacets
+     *
+     * @throws ReflectionException
      */
     public function testDefaultHydrateFacets(
-        array $filterData,
-        $categoryFacet,
-        $vendorFacet,
-        $defaultInvoke,
-        $defaultCategoryFacet,
-        $defaultVendorFacet
+        Xml21Response $response,
+        array $hydrateFacets,
+        CustomFacet $defaultCategoryFacet,
+        CustomFacet $defaultVendorFacet,
+        array $expectedFacets
     ) {
-        $xmlResponse = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>');
-
-        $results = $xmlResponse->addChild('results');
-        $results->addChild('count', 2);
-        $filters = $xmlResponse->addChild('filters');
-
-        foreach ($filterData as $data) {
-            $filter = $filters->addChild('filter');
-            foreach ($data as $key => $value) {
-                $filter->addChild($key, $value);
-            }
-        }
-
+        /** @var CustomListingHydrator|MockObject $mockHydrator */
         $mockHydrator = $this->createMock(CustomListingHydrator::class);
-        $mockHydrator->expects($defaultInvoke)->method('hydrateDefaultCategoryFacet')->willReturn(
-            $defaultCategoryFacet
-        );
-
-        $invokeHydrateFacet = $filterData ? $this->exactly(2) : $this->never();
-        $mockHydrator->expects($defaultInvoke)->method('hydrateDefaultVendorFacet')->willReturn($defaultVendorFacet);
-        $mockHydrator->expects($invokeHydrateFacet)->method('hydrateFacet')->willReturnOnConsecutiveCalls(
-            $categoryFacet,
-            $vendorFacet
-        );
+        $mockHydrator->method('hydrateDefaultCategoryFacet')->willReturn($defaultCategoryFacet);
+        $mockHydrator->method('hydrateDefaultVendorFacet')->willReturn($defaultVendorFacet);
+        $mockHydrator->method('hydrateFacet')->willReturnOnConsecutiveCalls($hydrateFacets[0], $hydrateFacets[1]);
 
         $mockQuerybuilderFactory = $this->createMock(QueryBuilderFactory::class);
 
@@ -396,6 +322,26 @@ class CustomFacetGatewayTest extends TestCase
         $reflector = new ReflectionObject($facetGateway);
         $hydrateMethod = $reflector->getMethod('hydrate');
         $hydrateMethod->setAccessible(true);
-        $facetResult = $hydrateMethod->invoke($facetGateway, $xmlResponse->filters->filter);
+        $customFacets = $hydrateMethod->invoke($facetGateway, ResponseParser::getInstance($response)->getFilters());
+
+        $defaultFacets = array_slice($customFacets, -2, 2);
+        $this->assertEquals($expectedFacets, $defaultFacets);
+    }
+
+    /**
+     * @param string $field
+     * @param string $mode
+     * @param string $label
+     *
+     * @return CustomFacet
+     */
+    private function createFacet($field, $mode, $label)
+    {
+        $customFacet = new CustomFacet();
+        $customFacet->setName($field);
+        $customFacet->setUniqueKey($field);
+        $customFacet->setFacet(new ProductAttributeFacet($field, $mode, $field, $label));
+
+        return $customFacet;
     }
 }

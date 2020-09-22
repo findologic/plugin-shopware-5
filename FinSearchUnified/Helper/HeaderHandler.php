@@ -15,8 +15,7 @@ class HeaderHandler
         CONTENT_TYPE_HEADER = 'content-type',
         SHOPWARE_VERSION = 'Shopware/%s',
         PLUGIN_VERSION = 'Plugin-Shopware-5/%s',
-        EXTENSION_PLUGIN_VERSION = 'Plugin-Shopware-5-Extension/%s',
-        CONTENT_TYPE = 'text/xml';
+        EXTENSION_PLUGIN_VERSION = 'Plugin-Shopware-5-Extension/%s';
 
     /**
      * @var InstallerService $pluginManager
@@ -50,7 +49,6 @@ class HeaderHandler
         $this->shopwareVersion = $this->fetchShopwareVersion();
         $this->pluginVersion = $this->fetchPluginVersion();
         $this->extensionPluginVersion = $this->fetchExtensionPluginVersion();
-        $this->contentType = self::CONTENT_TYPE;
     }
 
     /**
@@ -124,5 +122,13 @@ class HeaderHandler
         }
 
         return null;
+    }
+
+    /**
+     * @param string $contentType
+     */
+    public function setContentType($contentType)
+    {
+        $this->contentType = $contentType;
     }
 }

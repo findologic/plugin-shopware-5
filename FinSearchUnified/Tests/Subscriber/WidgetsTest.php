@@ -56,7 +56,7 @@ class WidgetsTest extends SubscriberTestCase
 
         // Create mocked args for getting Subject and Request due to backwards compatibility
         $args = $this->createMock(Enlight_Hook_HookArgs::class);
-        $args->expects($this->once())->method('getSubject')->willReturn($subject);
+        $args->expects($this->any())->method('getSubject')->willReturn($subject);
 
         $widgets = Shopware()->Container()->get('fin_search_unified.subscriber.widgets');
         $widgets->beforeListingCountAction($args);

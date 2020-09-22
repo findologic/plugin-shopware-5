@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="../../../engine/Shopware/Components/Plugin/schema/plugin.xsd">
-    <label lang="de">FINDOLOGIC Suche (Unified)</label>
-    <label lang="en">FINDOLOGIC Search (Unified)</label>
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/shopware/5.6/engine/Shopware/Components/Plugin/schema/plugin.xsd">
+    <label lang="de">Findologic - Search &amp; Navigation Platform</label>
+    <label lang="en">Findologic - Search &amp; Navigation Platform</label>
 
-    <version>10.4.2</version>
+    <version>11.0.0</version>
     <link>https://www.findologic.com/</link>
     <author>FINDOLOGIC GmbH</author>
     <support>https://www.findologic.com/</support>
@@ -59,14 +59,44 @@
         ]]>
     </description>
     <compatibility minVersion="5.2.0" />
-    <changelog version="10.4.2">
+    <changelog version="11.0.0">
         <changes lang="de">
-            Die Basis-URL des Shops wurde bei cat_urls nicht berücksichtigt. Dies wurde behoben.;
-            Ein Fehler wurde behoben, welcher dazu führte, dass Filter nicht korrekt funktionierten, wenn diese multi-byte Zeichen beinhalteten.
+            INFO - Diese Version enthält große Änderungen.
+                Sollte die Suchlogik mit einem Erweiterungsplugin überschrieben worden sein, kontaktiere bitte unseren
+                Support (support@findologic.com), oder lies UPGRADE-11.0.md
+                (https://github.com/findologic/plugin-shopware-5/blob/develop/UPGRADE-11.0.md) für eine
+                Update-Anleitung durch.;
+            SW-480 - Die Export Route (/findologic?shopkey=xxx) erlaubt nun einen optionalen Parameter.
+                Wenn dieser hinzugefügt wird, werden alle Details zum Produkt als XML zurückgegeben.
+                Sollte das Produkt nicht exportiert werden können, wird stattdessen ein JSON zurückgegeben,
+                welches Informationen beinhaltet, warum das Produkt nicht exportiert werden kann.;
+            SW-334 - Intern wird nun die findologic-api Bibliothek verwendet, um Anfragen sowie Antworten
+                von der Findologic API zu verarbeiten.;
+            SW-495 - Ein Fehler wurde behoben, wodurch cat_urls nicht korrekt im Export übermittelt wurden,
+                wenn diese multibyte Zeichen beinhalteten.;
         </changes>
         <changes lang="en">
-            The shops's base URL was not taken into account for cat_urls. This has been fixed.;
-            Fixed a bug that caused filters not to work properly, when the filter name contained multi-byte characters.
+            NOTE - This version includes a major refactoring in regards of how the response is sent to Findologic,
+                and parsed back again. If the search logic has been overridden with an extension plugin,
+                please contact our support (support@findologic.com) or refer to
+                UPGRADE-11.0.md (https://github.com/findologic/plugin-shopware-5/blob/develop/UPGRADE-11.0.md)
+                for upgrade instructions.;
+            SW-480 - The export route (/findologic?shopkey=xxx) now allows an optional productId query parameter.
+                When it is supplied you will get all product details as XML. In case the product cannot be exported,
+                you will receive a JSON instead, containing all information on why that product cannot be exported.;
+            SW-334 - Internally the findologic-api library is now used, to send the requests and retrieve the
+                response from the Findologic API.;
+            SW-495 - Fixed a bug that caused wrong cat_urls to be exported, when it contained multibyte characters.;
+        </changes>
+    </changelog>
+    <changelog version="10.4.2">
+        <changes lang="de">
+            SW-464 - Die Basis-URL des Shops wurde bei cat_urls nicht berücksichtigt. Dies wurde behoben.;
+            SW-478 - Ein Fehler wurde behoben, welcher dazu führte, dass Filter nicht korrekt funktionierten, wenn diese multi-byte Zeichen beinhalteten.;
+        </changes>
+        <changes lang="en">
+            SW-464 - The shops's base URL was not taken into account for cat_urls. This has been fixed.;
+            SW-478 - Fixed a bug that caused filters not to work properly, when the filter name contained multi-byte characters.;
         </changes>
     </changelog>
 </plugin>

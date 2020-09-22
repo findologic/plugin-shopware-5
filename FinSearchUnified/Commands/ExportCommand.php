@@ -26,7 +26,6 @@ class ExportCommand extends ShopwareCommand
         /** @var ShopwareProcess $blController */
         $blController = $this->container->get('fin_search_unified.shopware_process');
         $shopkey = $input->getArgument('shopkey');
-        $language = $input->getArgument('language');
 
         $output->writeln('Starting export Data to Findologic XML');
 
@@ -34,7 +33,7 @@ class ExportCommand extends ShopwareCommand
 
         $progress->start();
         $blController->setShopKey($shopkey);
-        $blController->getFindologicXml($language, 0, 0, true);
+        $blController->getFindologicXml(0, 0, true);
 
         $progress->finish();
         $output->writeln('');

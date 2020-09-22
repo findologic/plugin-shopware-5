@@ -2,14 +2,15 @@
 
 namespace FinSearchUnified\Tests\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator;
 
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\ResponseParser;
 use FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator;
 use FinSearchUnified\Bundle\StoreFrontBundle\Struct\Search\CustomFacet;
 use FinSearchUnified\Components\ConfigLoader;
+use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
 use ReflectionException;
 use ReflectionObject;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
-use SimpleXMLElement;
 use Zend_Cache_Exception;
 
 class CustomListingHydratorTest extends TestCase
@@ -34,131 +35,66 @@ class CustomListingHydratorTest extends TestCase
     public function facetFilterProvider()
     {
         return [
-            'Price filter' => [
-                'filterArray' => [
-                    'type' => 'range-slider',
-                    'name' => 'price',
-                    'display' => 'Preis',
-                    'select' => 'single'
-                ],
-                'expectedName' => 'price',
-                'expectedUniqueKey' => 'price',
-                'expectedAttributeName' => 'product_attribute_price',
-                'expectedAttributeFormFieldName' => 'price',
-                'expectedAttributeLabel' => 'Preis',
-                'expectedAttributeMode' => ProductAttributeFacet::MODE_RANGE_RESULT
-            ],
-            'Color filter' => [
-                'filterArray' => [
-                    'type' => 'color',
-                    'name' => 'color',
-                    'display' => 'Farbe',
-                    'select' => 'multiselect'
-                ],
-                'expectedName' => 'color',
-                'expectedUniqueKey' => 'color',
-                'expectedAttributeName' => 'product_attribute_color',
-                'expectedAttributeFormFieldName' => 'color',
-                'expectedAttributeLabel' => 'Farbe',
-                'expectedAttributeMode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT
-            ],
-            'Image filter' => [
-                'filterArray' => [
-                    'type' => 'image',
-                    'name' => 'vendor',
-                    'display' => 'Marken',
-                    'select' => 'multiple'
-                ],
-                'expectedName' => 'vendor',
-                'expectedUniqueKey' => 'vendor',
-                'expectedAttributeName' => 'product_attribute_vendor',
-                'expectedAttributeFormFieldName' => 'vendor',
-                'expectedAttributeLabel' => 'Marken',
-                'expectedAttributeMode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT
-            ],
-            'Text filter supporting multiple values' => [
-                'filterArray' => [
-                    'type' => 'label',
-                    'name' => 'ingredients',
-                    'display' => 'Zutaten',
-                    'select' => 'multiple'
-                ],
-                'expectedName' => 'ingredients',
-                'expectedUniqueKey' => 'ingredients',
-                'expectedAttributeName' => 'product_attribute_ingredients',
-                'expectedAttributeFormFieldName' => 'ingredients',
-                'expectedAttributeLabel' => 'Zutaten',
-                'expectedAttributeMode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT
-            ],
-            'Text filter supporting only one value' => [
-                'filterArray' => [
-                    'type' => 'label',
-                    'name' => 'ingredients',
-                    'display' => 'Zutaten',
-                    'select' => 'single'
-                ],
-                'expectedName' => 'ingredients',
-                'expectedUniqueKey' => 'ingredients',
-                'expectedAttributeName' => 'product_attribute_ingredients',
-                'expectedAttributeFormFieldName' => 'ingredients',
-                'expectedAttributeLabel' => 'Zutaten',
-                'expectedAttributeMode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT
-            ],
-            'Dropdown filter for category' => [
-                'filterArray' => [
-                    'type' => 'select',
-                    'name' => 'cat',
-                    'display' => 'Kategorie',
-                    'select' => 'single'
-                ],
-                'expectedName' => 'cat',
-                'expectedUniqueKey' => 'cat',
-                'expectedAttributeName' => 'product_attribute_cat',
-                'expectedAttributeFormFieldName' => 'cat',
-                'expectedAttributeLabel' => 'Kategorie',
-                'expectedAttributeMode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT
-            ],
-            'Filter with a single special character' => [
-                'filterArray' => [
-                    'type' => 'select',
-                    'name' => 'zoom factor',
-                    'display' => 'Zoom Faktor',
-                    'select' => 'single'
-                ],
-                'expectedName' => 'zoom factor',
-                'expectedUniqueKey' => 'zoom factor',
-                'expectedAttributeName' => 'product_attribute_zoom factor',
-                'expectedAttributeFormFieldName' => 'zoom_factor',
-                'expectedAttributeLabel' => 'Zoom Faktor',
-                'expectedAttributeMode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT
-            ],
-            'Filter with multiple special characters' => [
-                'filterArray' => [
-                    'type' => 'select',
-                    'name' => 'special .characters',
-                    'display' => 'Sonderzeichen',
-                    'select' => 'single'
-                ],
-                'expectedName' => 'special .characters',
-                'expectedUniqueKey' => 'special .characters',
-                'expectedAttributeName' => 'product_attribute_special .characters',
-                'expectedAttributeFormFieldName' => 'special_characters',
-                'expectedAttributeLabel' => 'Sonderzeichen',
-                'expectedAttributeMode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT
-            ],
-            'Filter with multi-byte characters' => [
-                'filterArray' => [
-                    'type' => 'select',
-                    'name' => 'TISCHWÄSCHE - Ausführung',
-                    'display' => 'Multibyte - TISCHWÄSCHE - Ausführung',
-                    'select' => 'single'
-                ],
-                'expectedName' => 'TISCHWÄSCHE - Ausführung',
-                'expectedUniqueKey' => 'TISCHWÄSCHE - Ausführung',
-                'expectedAttributeName' => 'product_attribute_TISCHWÄSCHE - Ausführung',
-                'expectedAttributeFormFieldName' => 'TISCHW_SCHE_-_Ausführung',
-                'expectedAttributeLabel' => 'Multibyte - TISCHWÄSCHE - Ausführung',
-                'expectedAttributeMode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT
+            'Hydrate Facets from filters' => [
+                [
+
+                    [
+                        'name' => 'cat',
+                        'uniqueKey' => 'cat',
+                        'attributeName' => 'product_attribute_cat',
+                        'formFieldName' => 'cat',
+                        'label' => 'Kategorie',
+                        'mode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                    ],
+                    [
+                        'name' => 'vendor',
+                        'uniqueKey' => 'vendor',
+                        'attributeName' => 'product_attribute_vendor',
+                        'formFieldName' => 'vendor',
+                        'label' => 'Hersteller',
+                        'mode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                    ],
+                    [
+                        'name' => 'price',
+                        'uniqueKey' => 'price',
+                        'attributeName' => 'product_attribute_price',
+                        'formFieldName' => 'price',
+                        'label' => 'Preis',
+                        'mode' => ProductAttributeFacet::MODE_RANGE_RESULT
+                    ],
+                    [
+                        'name' => 'Farbe',
+                        'uniqueKey' => 'Farbe',
+                        'attributeName' => 'product_attribute_Farbe',
+                        'formFieldName' => 'Farbe',
+                        'label' => 'Farbe',
+                        'mode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                    ],
+                    [
+                        'name' => 'Material',
+                        'uniqueKey' => 'Material',
+                        'attributeName' => 'product_attribute_Material',
+                        'formFieldName' => 'Material',
+                        'label' => 'Material',
+                        'mode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                    ],
+                    [
+                        'name' => 'special .characters',
+                        'uniqueKey' => 'special .characters',
+                        'attributeName' => 'product_attribute_special .characters',
+                        'formFieldName' => 'special_characters',
+                        'label' => 'Sonderzeichen',
+                        'mode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                    ],
+                    [
+                        'name' => 'TISCHWÄSCHE - Ausführung',
+                        'uniqueKey' => 'TISCHWÄSCHE - Ausführung',
+                        'attributeName' => 'product_attribute_TISCHWÄSCHE - Ausführung',
+                        'formFieldName' => 'TISCHW_SCHE_-_Ausführung',
+                        'label' => 'Multibyte - TISCHWÄSCHE - Ausführung',
+                        'mode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                    ]
+                ]
             ]
         ];
     }
@@ -166,54 +102,32 @@ class CustomListingHydratorTest extends TestCase
     /**
      * @dataProvider facetFilterProvider
      *
-     * @param array $filterArray
-     * @param string $expectedName
-     * @param string $expectedUniqueKey
-     * @param string $expectedAttributeName
-     * @param string $expectedAttributeFormFieldName
-     * @param string $expectedAttributeLabel
-     * @param string $expectedAttributeMode
+     * @param array $expectedFields
      */
     public function testHydrateFacet(
-        array $filterArray,
-        $expectedName,
-        $expectedUniqueKey,
-        $expectedAttributeName,
-        $expectedAttributeFormFieldName,
-        $expectedAttributeLabel,
-        $expectedAttributeMode
+        array $expectedFields
     ) {
-        // Create custom XML object corresponding the xmlResponse
-        $data = '<?xml version="1.0" encoding="utf-8"?><searchResult></searchResult>';
-        $xmlResponse = new SimpleXMLElement($data);
-        $filters = $xmlResponse->addChild('filters');
-        $filter = $filters->addChild('filter');
-
-        foreach ($filterArray as $name => $value) {
-            $filter->addChild($name, $value);
-        }
-
         $customFacets = [];
-
-        foreach ($xmlResponse->filters->filter as $filter) {
+        $response = Utility::getDemoResponse('demoResponseWithSpecialCharacters.xml');
+        $filters = ResponseParser::getInstance($response)->getFilters();
+        foreach ($filters as $filter) {
             $customFacets[] = $this->hydrator->hydrateFacet($filter);
         }
 
-        foreach ($customFacets as $customFacet) {
+        foreach ($customFacets as $key => $customFacet) {
             $this->assertSame(
-                $expectedName,
+                $expectedFields[$key]['name'],
                 $customFacet->getName(),
-                sprintf("Expected custom facet's name to be %s", $expectedName)
+                sprintf("Expected custom facet's name to be %s", $expectedFields[$key]['name'])
             );
             $this->assertSame(
-                $expectedUniqueKey,
+                $expectedFields[$key]['uniqueKey'],
                 $customFacet->getUniqueKey(),
-                sprintf("Expected custom facet's unique key to be %s", $expectedUniqueKey)
+                sprintf("Expected custom facet's unique key to be %s", $expectedFields[$key]['uniqueKey'])
             );
 
             /** @var ProductAttributeFacet $productAttributeFacet */
             $productAttributeFacet = $customFacet->getFacet();
-
             $this->assertInstanceOf(
                 ProductAttributeFacet::class,
                 $productAttributeFacet,
@@ -223,24 +137,27 @@ class CustomListingHydratorTest extends TestCase
                 )
             );
             $this->assertSame(
-                $expectedAttributeName,
+                $expectedFields[$key]['attributeName'],
                 $productAttributeFacet->getName(),
-                sprintf("Expected product attribute facet's name to be %s", $expectedAttributeName)
+                sprintf("Expected product attribute facet's name to be %s", $expectedFields[$key]['attributeName'])
             );
             $this->assertSame(
-                $expectedAttributeFormFieldName,
+                $expectedFields[$key]['formFieldName'],
                 $productAttributeFacet->getFormFieldName(),
-                sprintf("Expected product attribute facet's form field name to be %s", $expectedAttributeFormFieldName)
+                sprintf(
+                    "Expected product attribute facet's form field name to be %s",
+                    $expectedFields[$key]['formFieldName']
+                )
             );
             $this->assertSame(
-                $expectedAttributeLabel,
+                $expectedFields[$key]['label'],
                 $productAttributeFacet->getLabel(),
-                sprintf("Expected product attribute facet's label to be %s", $expectedAttributeLabel)
+                sprintf("Expected product attribute facet's label to be %s", $expectedFields[$key]['label'])
             );
             $this->assertSame(
-                $expectedAttributeMode,
+                $expectedFields[$key]['mode'],
                 $productAttributeFacet->getMode(),
-                sprintf("Expected product attribute facet's mode to be %s", $expectedAttributeMode)
+                sprintf("Expected product attribute %s facet's mode to be %s", $key, $expectedFields[$key]['mode'])
             );
         }
     }

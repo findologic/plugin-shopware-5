@@ -3,6 +3,9 @@
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler;
 
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Filter\BaseFilter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Values\ImageFilterValue;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\VendorImageFilter;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Event\CompleteEvent;
 use GuzzleHttp\Event\ErrorEvent;
@@ -13,7 +16,8 @@ use Shopware\Bundle\SearchBundle\FacetResult\MediaListFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\MediaListItem;
 use Shopware\Bundle\StoreFrontBundle\Struct\Media;
 use Shopware\Components\HttpClient\GuzzleFactory;
-use SimpleXMLElement;
+
+use function array_search;
 
 class ImageFacetHandler implements PartialFacetHandlerInterface
 {
@@ -34,11 +38,11 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
     /**
      * @param FacetInterface $facet
      * @param Criteria $criteria
-     * @param SimpleXMLElement $filter
+     * @param BaseFilter $filter
      *
      * @return MediaListFacetResult
      */
-    public function generatePartialFacet(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filter)
+    public function generatePartialFacet(FacetInterface $facet, Criteria $criteria, BaseFilter $filter)
     {
         $actives = [];
 
@@ -52,7 +56,7 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
             $actives = [$actives];
         }
 
-        $values = $this->getMediaListItems($actives, $filter->items->item);
+        $values = $this->getMediaListItems($actives, $filter->getValues());
 
         return new MediaListFacetResult(
             $facet->getName(),
@@ -64,32 +68,32 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
     }
 
     /**
-     * @param SimpleXMLElement $filter
+     * @param BaseFilter $filter
      *
      * @return bool
      */
-    public function supportsFilter(SimpleXMLElement $filter)
+    public function supportsFilter(BaseFilter $filter)
     {
-        $type = (string)$filter->type;
-
-        return ($type === 'image' || ($type === 'color' && $filter->items->item[0]->image));
+        return $filter instanceof VendorImageFilter;
     }
 
     /**
      * @param array $actives
-     * @param SimpleXMLElement $filterItems
+     * @param ImageFilterValue[] $filterItems
      *
      * @return array
      */
-    private function getMediaListItems(array $actives, SimpleXMLElement $filterItems)
+    private function getMediaListItems(array $actives, array $filterItems)
     {
         $listItems = [];
         $items = [];
         $requests = [];
+        $orderedFilterItems = [];
 
         foreach ($filterItems as $filterItem) {
-            $name = (string)$filterItem->name;
-            $index = array_search($name, $actives);
+            $name = $filterItem->getName();
+            $orderedFilterItems[] = $name;
+            $index = $this->getItemIndex($name, $actives);
 
             if ($index === false) {
                 $active = false;
@@ -98,15 +102,15 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
                 unset($actives[$index]);
             }
 
-            if (empty($filterItem->image)) {
-                $listItems[] = new MediaListItem(
+            if ($filterItem->getMedia() === null) {
+                $idx = $this->getItemIndex($name, $orderedFilterItems);
+                $listItems[$idx] = new MediaListItem(
                     $name,
                     $name,
                     $active
                 );
             } else {
-                $url = (string)$filterItem->image;
-
+                $url = $filterItem->getMedia()->getUrl();
                 $items[$url] = [
                     'name' => $name,
                     'active' => $active
@@ -125,25 +129,27 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
         }
 
         $options = [
-            'complete' => function (CompleteEvent $event) use ($items, &$listItems) {
+            'complete' => function (CompleteEvent $event) use ($items, $orderedFilterItems, &$listItems) {
                 $url = $event->getRequest()->getUrl();
                 $data = $items[$url];
 
                 $media = new Media();
                 $media->setFile($url);
 
-                $listItems[] = new MediaListItem(
+                $idx = $this->getItemIndex($data['name'], $orderedFilterItems);
+                $listItems[$idx] = new MediaListItem(
                     $data['name'],
                     $data['name'],
                     $data['active'],
                     $media
                 );
             },
-            'error' => function (ErrorEvent $event) use ($items, &$listItems) {
+            'error' => function (ErrorEvent $event) use ($items, $orderedFilterItems, &$listItems) {
                 $url = $event->getRequest()->getUrl();
                 $data = $items[$url];
 
-                $listItems[] = new MediaListItem(
+                $idx = $this->getItemIndex($data['name'], $orderedFilterItems);
+                $listItems[$idx] = new MediaListItem(
                     $data['name'],
                     $data['name'],
                     $data['active']
@@ -154,5 +160,16 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
         Pool::send($this->guzzleClient, $requests, $options);
 
         return $listItems;
+    }
+
+    /**
+     * @param string $name
+     * @param array $orderedArray
+     *
+     * @return false|int|string
+     */
+    private function getItemIndex($name, array $orderedArray)
+    {
+        return array_search($name, $orderedArray, false);
     }
 }

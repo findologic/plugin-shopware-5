@@ -3,6 +3,10 @@
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler;
 
 use FinSearchUnified\Bundle\SearchBundleFindologic\PartialFacetHandlerInterface;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Filter\BaseFilter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\LabelTextFilter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\SelectDropdownFilter;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\Values\FilterValue;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
@@ -11,20 +15,17 @@ use Shopware\Bundle\SearchBundle\FacetResult\RadioFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\ValueListFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResult\ValueListItem;
 use Shopware\Bundle\SearchBundle\FacetResultInterface;
-use SimpleXMLElement;
 
 class TextFacetHandler implements PartialFacetHandlerInterface
 {
-    const ALLOWED_FILTER_TYPES = ['select', 'label'];
-
     /**
      * @param FacetInterface $facet
      * @param Criteria $criteria
-     * @param SimpleXMLElement $filter
+     * @param BaseFilter $filter
      *
      * @return FacetResultInterface|null
      */
-    public function generatePartialFacet(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filter)
+    public function generatePartialFacet(FacetInterface $facet, Criteria $criteria, BaseFilter $filter)
     {
         /** @var ProductAttributeFacet $facet */
         switch ($facet->getMode()) {
@@ -42,23 +43,23 @@ class TextFacetHandler implements PartialFacetHandlerInterface
     }
 
     /**
-     * @param SimpleXMLElement $filter
+     * @param BaseFilter $filter
      *
      * @return bool
      */
-    public function supportsFilter(SimpleXMLElement $filter)
+    public function supportsFilter(BaseFilter $filter)
     {
-        return ((string)$filter->name !== 'cat' && in_array((string)$filter->type, self::ALLOWED_FILTER_TYPES));
+        return $filter instanceof LabelTextFilter || $filter instanceof SelectDropdownFilter;
     }
 
     /**
      * @param FacetInterface $facet
      * @param Criteria $criteria
-     * @param SimpleXMLElement|null $filterItems
+     * @param FilterValue[] $filterItems
      *
      * @return ValueListItem[]
      */
-    private function getValueListItems(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filterItems = null)
+    private function getValueListItems(FacetInterface $facet, Criteria $criteria, array $filterItems = [])
     {
         $items = [];
         $actives = [];
@@ -75,8 +76,8 @@ class TextFacetHandler implements PartialFacetHandlerInterface
         }
 
         foreach ($filterItems as $filterItem) {
-            $name = (string)$filterItem->name;
-            $freq = (int)$filterItem->frequency;
+            $name = $filterItem->getName();
+            $freq = $filterItem->getFrequency();
             $index = array_search($name, $actives);
 
             if ($index === false) {
@@ -120,13 +121,13 @@ class TextFacetHandler implements PartialFacetHandlerInterface
     /**
      * @param FacetInterface $facet
      * @param Criteria $criteria
-     * @param SimpleXMLElement $filter
+     * @param BaseFilter $filter
      *
      * @return ValueListFacetResult
      */
-    private function createValueListFacetResult(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filter)
+    private function createValueListFacetResult(FacetInterface $facet, Criteria $criteria, BaseFilter $filter)
     {
-        $values = $this->getValueListItems($facet, $criteria, $filter->items->item);
+        $values = $this->getValueListItems($facet, $criteria, $filter->getValues());
         $active = $criteria->hasCondition($facet->getName());
 
         return new ValueListFacetResult(
@@ -141,13 +142,13 @@ class TextFacetHandler implements PartialFacetHandlerInterface
     /**
      * @param FacetInterface $facet
      * @param Criteria $criteria
-     * @param SimpleXMLElement $filter
+     * @param BaseFilter $filter
      *
      * @return RadioFacetResult
      */
-    private function createRadioFacetResult(FacetInterface $facet, Criteria $criteria, SimpleXMLElement $filter)
+    private function createRadioFacetResult(FacetInterface $facet, Criteria $criteria, BaseFilter $filter)
     {
-        $values = $this->getValueListItems($facet, $criteria, $filter->items->item);
+        $values = $this->getValueListItems($facet, $criteria, $filter->getValues());
         $active = $criteria->hasCondition($facet->getName());
 
         return new RadioFacetResult(
