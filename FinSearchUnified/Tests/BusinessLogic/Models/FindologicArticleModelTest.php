@@ -1246,7 +1246,7 @@ class FindologicArticleModelTest extends TestCase
             /** @var ArticleResource $resource */
             $resource = Manager::getResource('Category');
 
-            return $resource->create([
+            $resource->create([
                 'id' => 1337,
                 'name' => 'Öl',
                 'parent' => '3'
@@ -1303,6 +1303,8 @@ class FindologicArticleModelTest extends TestCase
         $baseCategory = new Category();
         $baseCategory->setId(1);
 
+        Shopware()->Config()->offsetSet('routerToLower', true);
+
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
             'ABCD0815',
@@ -1320,11 +1322,11 @@ class FindologicArticleModelTest extends TestCase
         $cat_urls = $values['cat_url']->getValues();
 
         $this->assertEquals(
-            $cat_urls,
             [
                 '/genusswelten/',
                 '/oel/'
-            ]
+            ],
+            $cat_urls
         );
     }
 
@@ -1334,17 +1336,15 @@ class FindologicArticleModelTest extends TestCase
             /** @var ArticleResource $resource */
             $resource = Manager::getResource('Category');
 
-            return $resource->create([
-                [
-                    'id' => 2000,
-                    'name' => 'Öl / Gewürze',
-                    'parent' => '3'
-                ],
-                [
-                    'id' => 3000,
-                    'name' => 'Öl/Gewürze',
-                    'parent' => '3'
-                ]
+            $resource->create([
+                'id' => 2000,
+                'name' => 'PC / Parts',
+                'parent' => '3',
+            ]);
+            $resource->create([
+                'id' => 3000,
+                'name' => 'Processor/Mainboards',
+                'parent' => '2000'
             ]);
         } catch (Exception $e) {
             echo sprintf('Exception: %s', $e->getMessage());
@@ -1358,7 +1358,6 @@ class FindologicArticleModelTest extends TestCase
             'categories' => [
                 ['id' => 3],
                 ['id' => 5],
-                ['id' => 2000],
                 ['id' => 3000]
             ],
             'images' => [
@@ -1399,6 +1398,8 @@ class FindologicArticleModelTest extends TestCase
         $baseCategory = new Category();
         $baseCategory->setId(1);
 
+        Shopware()->Config()->offsetSet('routerToLower', true);
+
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
             'ABCD0815',
@@ -1416,11 +1417,12 @@ class FindologicArticleModelTest extends TestCase
         $cat_urls = $values['cat_url']->getValues();
 
         $this->assertEquals(
-            $cat_urls,
             [
-                '/oel-gewuerze/',
-                '/oelgewuerze/'
-            ]
+                '/genusswelten/',
+                '/pc-parts/processormainboards/',
+                '/pc-parts/'
+            ],
+            $cat_urls
         );
     }
 }
