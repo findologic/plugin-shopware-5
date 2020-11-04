@@ -1327,4 +1327,100 @@ class FindologicArticleModelTest extends TestCase
             ]
         );
     }
+
+    public function categoriesWithSlashProvider()
+    {
+        try {
+            /** @var ArticleResource $resource */
+            $resource = Manager::getResource('Category');
+
+            return $resource->create([
+                [
+                    'id' => 2000,
+                    'name' => 'Öl / Gewürze',
+                    'parent' => '3'
+                ],
+                [
+                    'id' => 3000,
+                    'name' => 'Öl/Gewürze',
+                    'parent' => '3'
+                ]
+            ]);
+        } catch (Exception $e) {
+            echo sprintf('Exception: %s', $e->getMessage());
+        }
+
+        $articleConfiguration = [
+            'name' => 'FindologicArticle 1',
+            'active' => true,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5],
+                ['id' => 2000],
+                ['id' => 3000]
+            ],
+            'images' => [
+                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC1',
+                'active' => true,
+                'inStock' => 16,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+            'filterGroupId' => 1,
+        ];
+
+        return [
+            'Category is exported correctly' => [
+                'articleConfiguration' => $articleConfiguration,
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider categoriesWithSlashProvider
+     *
+     * @param array $articleConfiguration
+     *
+     * @throws Exception
+     */
+    public function testCategoryNamesWithSlashesAreExportedCorrectly($articleConfiguration)
+    {
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+        $baseCategory = new Category();
+        $baseCategory->setId(1);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+        $reflector = new ReflectionClass(Item::class);
+
+        $attributes = $reflector->getProperty('attributes');
+        $attributes->setAccessible(true);
+        $values = $attributes->getValue($xmlArticle);
+        $cat_urls = $values['cat_url']->getValues();
+
+        $this->assertEquals(
+            $cat_urls,
+            [
+                '/oel-gewuerze/',
+                '/oelgewuerze/'
+            ]
+        );
+    }
 }
