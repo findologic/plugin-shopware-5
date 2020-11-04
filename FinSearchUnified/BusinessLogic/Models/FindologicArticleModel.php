@@ -530,6 +530,10 @@ class FindologicArticleModel
 
             $catPath = $this->seoRouter->sCategoryPath($category->getId());
 
+            foreach ($catPath as $key => $item) {
+                $catPath[$key] = str_replace('/', '', $item);
+            }
+
             while (!empty($catPath)) {
                 $tempPath = sprintf($routerCategoryTemplate, implode('/', $catPath));
 
