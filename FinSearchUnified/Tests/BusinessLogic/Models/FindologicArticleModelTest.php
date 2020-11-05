@@ -1303,7 +1303,17 @@ class FindologicArticleModelTest extends TestCase
         $baseCategory = new Category();
         $baseCategory->setId(1);
 
-        Shopware()->Config()->offsetSet('routerToLower', true);
+        // Create mock object for Shopware Config and explicitly return the values
+        $mockConfig = $this->getMockBuilder(Config::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig->expects($this->any())
+            ->method('offsetGet')
+            ->willReturnMap([
+                ['routerToLower', true]
+            ]);
+
+        Shopware()->Container()->set('config', $mockConfig);
 
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
@@ -1323,8 +1333,8 @@ class FindologicArticleModelTest extends TestCase
 
         $this->assertEquals(
             [
-                '/genusswelten/',
-                '/oel/'
+                '/genusswelten',
+                '/oel'
             ],
             $cat_urls
         );
@@ -1398,7 +1408,17 @@ class FindologicArticleModelTest extends TestCase
         $baseCategory = new Category();
         $baseCategory->setId(1);
 
-        Shopware()->Config()->offsetSet('routerToLower', true);
+        // Create mock object for Shopware Config and explicitly return the values
+        $mockConfig = $this->getMockBuilder(Config::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig->expects($this->any())
+            ->method('offsetGet')
+            ->willReturnMap([
+                ['routerToLower', true]
+            ]);
+
+        Shopware()->Container()->set('config', $mockConfig);
 
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
@@ -1418,9 +1438,9 @@ class FindologicArticleModelTest extends TestCase
 
         $this->assertEquals(
             [
-                '/genusswelten/',
-                '/pc-parts/processormainboards/',
-                '/pc-parts/'
+                '/genusswelten',
+                '/pc-parts/processormainboards',
+                '/pc-parts'
             ],
             $cat_urls
         );
