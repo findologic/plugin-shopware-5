@@ -530,13 +530,9 @@ class FindologicArticleModel
 
             $catPath = $this->seoRouter->sCategoryPath($category->getId());
 
-            var_dump($catPath);
-
             foreach ($catPath as $key => $item) {
                 $catPath[$key] = str_replace('/', '', $item);
             }
-
-            var_dump($catPath);
 
             while (!empty($catPath)) {
                 $tempPath = sprintf($routerCategoryTemplate, implode('/', $catPath));
@@ -546,7 +542,7 @@ class FindologicArticleModel
                 }
 
                 if (!StaticHelper::isEmpty($tempPath)) {
-                    $categoryPath = $this->seoRouter->sCleanupPath($tempPath);
+                    $categoryPath = '/' . ltrim($this->seoRouter->sCleanupPath($tempPath), '/');
                     $catUrlArray[] = $categoryPath;
                     $catUrlArray[] = Shopware()->Shop()->getBaseUrl() . $categoryPath;
                 }
