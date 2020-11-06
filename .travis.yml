@@ -68,11 +68,12 @@ jobs:
       before_install: skip
       before_script: skip
       script: composer lint
-    - stage: "Shopware 5.2.0"
-      php: "5.6"
-      env:
-        - SHOPWARE_TAG="5.2.0"
-        - SHOPWARE_VERSION="5.2"
+# Deactivated until the fix in SW-528
+#    - stage: "Shopware 5.2.0"
+#      php: "5.6"
+#      env:
+#        - SHOPWARE_TAG="5.2.0"
+#        - SHOPWARE_VERSION="5.2"
     - stage: "Shopware 5.3.0"
       php: "5.6"
       env:

@@ -542,11 +542,6 @@ class FindologicArticleModel
                 }
 
                 if (!StaticHelper::isEmpty($tempPath)) {
-                    if ($category->getId() === 3000) {
-                        var_dump($tempPath);
-                        var_dump($this->seoRouter->sCleanupPath($tempPath));
-                        var_dump(ltrim($this->seoRouter->sCleanupPath($tempPath), '/'));
-                    }
                     $categoryPath = '/' . ltrim($this->seoRouter->sCleanupPath($tempPath), '/');
                     $catUrlArray[] = $categoryPath;
                     $catUrlArray[] = Shopware()->Shop()->getBaseUrl() . $categoryPath;
