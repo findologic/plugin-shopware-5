@@ -1246,7 +1246,7 @@ class FindologicArticleModelTest extends TestCase
             /** @var ArticleResource $resource */
             $resource = Manager::getResource('Category');
 
-            return $resource->create([
+            $resource->create([
                 'id' => 1337,
                 'name' => 'Öl',
                 'parent' => '3'
@@ -1299,9 +1299,25 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testMultiByteCharactersAreExportedInLowercase($articleConfiguration)
     {
+        if (getenv('SHOPWARE_TAG') === '5.2.0') {
+            $this->markTestSkipped('Deactivated until the fix in SW-528');
+        }
+
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
         $baseCategory = new Category();
         $baseCategory->setId(1);
+
+        // Create mock object for Shopware Config and explicitly return the values
+        $mockConfig = $this->getMockBuilder(Config::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig->expects($this->any())
+            ->method('offsetGet')
+            ->willReturnMap([
+                ['routerToLower', true]
+            ]);
+
+        Shopware()->Container()->set('config', $mockConfig);
 
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
@@ -1320,11 +1336,121 @@ class FindologicArticleModelTest extends TestCase
         $cat_urls = $values['cat_url']->getValues();
 
         $this->assertEquals(
-            $cat_urls,
             [
-                '/genusswelten/',
-                '/oel/'
+                '/genusswelten',
+                '/oel'
+            ],
+            $cat_urls
+        );
+    }
+
+    public function categoriesWithSlashProvider()
+    {
+        try {
+            /** @var ArticleResource $resource */
+            $resource = Manager::getResource('Category');
+
+            $resource->create([
+                'id' => 2000,
+                'name' => 'PC / Parts',
+                'parent' => '3',
+            ]);
+            $resource->create([
+                'id' => 3000,
+                'name' => 'Processor/Mainboards',
+                'parent' => '2000'
+            ]);
+        } catch (Exception $e) {
+            echo sprintf('Exception: %s', $e->getMessage());
+        }
+
+        $articleConfiguration = [
+            'name' => 'FindologicArticle 1',
+            'active' => true,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5],
+                ['id' => 3000]
+            ],
+            'images' => [
+                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC1',
+                'active' => true,
+                'inStock' => 16,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+            'filterGroupId' => 1,
+        ];
+
+        return [
+            'Category is exported correctly' => [
+                'articleConfiguration' => $articleConfiguration,
             ]
+        ];
+    }
+
+    /**
+     * @dataProvider categoriesWithSlashProvider
+     *
+     * @param array $articleConfiguration
+     *
+     * @throws Exception
+     */
+    public function testCategoryNamesWithSlashesAreExportedCorrectly($articleConfiguration)
+    {
+        if (getenv('SHOPWARE_TAG') === '5.2.0') {
+            $this->markTestSkipped('Deactivated until the fix in SW-528');
+        }
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+        $baseCategory = new Category();
+        $baseCategory->setId(1);
+
+        // Create mock object for Shopware Config and explicitly return the values
+        $mockConfig = $this->getMockBuilder(Config::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig->expects($this->any())
+            ->method('offsetGet')
+            ->willReturnMap([
+                ['routerToLower', true]
+            ]);
+
+        Shopware()->Container()->set('config', $mockConfig);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+        $reflector = new ReflectionClass(Item::class);
+
+        $attributes = $reflector->getProperty('attributes');
+        $attributes->setAccessible(true);
+        $values = $attributes->getValue($xmlArticle);
+        $cat_urls = $values['cat_url']->getValues();
+
+        $this->assertEquals(
+            [
+                '/genusswelten',
+                '/pc-parts/processormainboards',
+                '/pc-parts'
+            ],
+            $cat_urls
         );
     }
 }

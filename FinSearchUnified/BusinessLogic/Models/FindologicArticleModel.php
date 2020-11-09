@@ -530,10 +530,14 @@ class FindologicArticleModel
 
             $catPath = $this->seoRouter->sCategoryPath($category->getId());
 
+            foreach ($catPath as $key => $item) {
+                $catPath[$key] = str_replace('/', '', $item);
+            }
+
             while (!empty($catPath)) {
                 $tempPath = sprintf($routerCategoryTemplate, implode('/', $catPath));
 
-                if (Shopware()->Config()->get('routerToLower')) {
+                if (Shopware()->Config()->offsetGet('routerToLower')) {
                     $tempPath = mb_strtolower($tempPath);
                 }
 
