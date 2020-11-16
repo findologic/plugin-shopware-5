@@ -1,6 +1,6 @@
 # Upgrade from 10.x to 11.x
 
-Changes: [v10.4.2...v11.0.0](https://github.com/findologic/plugin-shopware-5/compare/v10.4.2...SW-334_switch_to_findologic_api)  
+Changes: [v10.4.2...v11.0.0](https://github.com/findologic/plugin-shopware-5/compare/v10.4.2...v11.0.0)  
 Changelog: [v11.0.0 Release](https://github.com/findologic/plugin-shopware-5/releases/tag/v11.0.0)
 
 This file is **irrelevant** for you in case you do **not have an extension plugin**.
