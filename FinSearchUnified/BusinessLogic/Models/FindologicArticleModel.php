@@ -476,7 +476,8 @@ class FindologicArticleModel
         $this->xmlArticle->setSalesFrequency($salesFrequency);
     }
 
-    protected function getArticleSalesFrequency() {
+    protected function getArticleSalesFrequency()
+    {
         $pseudoSales = $this->baseArticle->getPseudoSales();
         if ($pseudoSales !== null && $pseudoSales > 0) {
             $articleSales = $pseudoSales;
