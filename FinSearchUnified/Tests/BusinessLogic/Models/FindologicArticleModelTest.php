@@ -1472,11 +1472,10 @@ class FindologicArticleModelTest extends TestCase
      * @dataProvider productsWithPseudoSalesProvider
      *
      * @param int $pseudoSales
-     * @param int $expected
+     * @param int $expectedSalesFrequency
      *
-     * @throws Exception
      */
-    public function testPseudoSalesAreExportedCorrectly($pseudoSales, $expected)
+    public function testPseudoSalesAreExportedCorrectly($pseudoSales, $expectedSalesFrequency)
     {
         $articleConfiguration = [
             'name' => 'FindologicArticle 1',
@@ -1526,7 +1525,7 @@ class FindologicArticleModelTest extends TestCase
         $values = $salesFrequency->getValue($xmlArticle);
 
         $this->assertEquals(
-            ['' => $expected],
+            ['' => $expectedSalesFrequency],
             $values->getValues()
         );
     }

@@ -470,8 +470,15 @@ class FindologicArticleModel
 
     protected function setSales()
     {
+        $articleSales = $this->getArticleSalesFrequency();
+        $salesFrequency = new SalesFrequency();
+        $salesFrequency->setValue($articleSales);
+        $this->xmlArticle->setSalesFrequency($salesFrequency);
+    }
+
+    protected function getArticleSalesFrequency() {
         $pseudoSales = $this->baseArticle->getPseudoSales();
-        if (is_int($pseudoSales) && $pseudoSales > 0) {
+        if ($pseudoSales !== null && $pseudoSales > 0) {
             $articleSales = $pseudoSales;
         } else {
             $orderDetailQuery = $this->orderDetailRepository->createQueryBuilder('order_details')
@@ -479,13 +486,9 @@ class FindologicArticleModel
                 ->where('order_details.articleId = :articleId')
                 ->select('sum(order_details.quantity)')
                 ->setParameter('articleId', $this->baseArticle->getId());
-
             $articleSales = (int)$orderDetailQuery->getQuery()->getScalarResult()[0][1];
         }
-
-        $salesFrequency = new SalesFrequency();
-        $salesFrequency->setValue($articleSales);
-        $this->xmlArticle->setSalesFrequency($salesFrequency);
+        return $articleSales;
     }
 
     protected function setAttributes()
