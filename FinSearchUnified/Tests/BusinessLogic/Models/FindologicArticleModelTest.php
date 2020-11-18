@@ -1453,4 +1453,80 @@ class FindologicArticleModelTest extends TestCase
             $cat_urls
         );
     }
+
+    public function productsWithPseudoSalesProvider()
+    {
+        return [
+            'Pseudo sale value of 0 is not exported' => [
+                'pseudoSales' => 0,
+                'expectedSalesFrequency' => 1
+            ],
+            'Pseudo sale value of 10 is exported' => [
+                'pseudoSales' => 10,
+                'expectedSalesFrequency' => 10
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider productsWithPseudoSalesProvider
+     *
+     * @param int $pseudoSales
+     * @param int $expectedSalesFrequency
+     *
+     */
+    public function testPseudoSalesAreExportedCorrectly($pseudoSales, $expectedSalesFrequency)
+    {
+        $articleConfiguration = [
+            'name' => 'FindologicArticle 1',
+            'active' => true,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5]
+            ],
+            'images' => [
+                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
+                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC1',
+                'active' => true,
+                'inStock' => 16,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+            'pseudoSales' => $pseudoSales
+        ];
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $baseCategory = new Category();
+        $baseCategory->setId(1);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+        $reflector = new ReflectionClass(Item::class);
+        $salesFrequency = $reflector->getProperty('salesFrequency');
+        $salesFrequency->setAccessible(true);
+        $values = $salesFrequency->getValue($xmlArticle);
+
+        $this->assertEquals(
+            ['' => $expectedSalesFrequency],
+            $values->getValues()
+        );
+    }
 }
