@@ -59,6 +59,20 @@
         ]]>
     </description>
     <compatibility minVersion="5.2.0" />
+    <changelog version="11.1.0">
+        <changes lang="de">
+            SW-434 - Wenn Pseudo-Verkäufe für ein Produkt konfiguriert sind, wird der Export diese
+            Verkäufe anstatt der tatsächlichen Verkaufszahl exportieren.;
+            SW-526 - Ein Fehler wurde behoben, wodurch cat_urls nicht korrekt exportiert wurden, wenn
+            diese slashes (/) im Namen beinhalteten.;
+        </changes>
+        <changes lang="en">
+            SW-434 - Configuring a pseudo sale for a product, will export the configured pseudo sale as
+            sales frequency, instead of the actual sales frequency.;
+            SW-526 - Fixed a bug that caused cat_urls to not be properly exported, in case their name
+            contained slashes (/).;
+        </changes>
+    </changelog>
     <changelog version="11.0.0">
         <changes lang="de">
             INFO - Diese Version enthält große Änderungen.
