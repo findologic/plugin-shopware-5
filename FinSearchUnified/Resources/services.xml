@@ -9,21 +9,13 @@
     </parameters>
 
     <services>
-        <service
-            id="fin_search_unified.subscriber.frontend"
-            class="FinSearchUnified\Subscriber\Frontend"
-            public="true"
-        >
+        <service id="fin_search_unified.subscriber.frontend" class="FinSearchUnified\Subscriber\Frontend">
             <argument>%fin_search_unified.plugin_dir%</argument>
             <argument type="service" id="template" />
             <tag name="shopware.event_subscriber" />
         </service>
 
-        <service
-            id="fin_search_unified.subscriber.clear_cache"
-            class="FinSearchUnified\Subscriber\CacheSubscriber"
-            public="true"
-        >
+        <service id="fin_search_unified.subscriber.clear_cache" class="FinSearchUnified\Subscriber\CacheSubscriber">
             <argument>%fin_search_unified.plugin_name%</argument>
             <argument type="service" id="shopware.cache_manager" />
             <tag name="shopware.event_subscriber" />
@@ -32,7 +24,6 @@
         <service
             id="fin_search_unified.sdym_criteria_request_handler"
             class="FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler\SdymCriteriaRequestHandler"
-            public="true"
         >
             <tag name="criteria_request_handler" />
         </service>
@@ -40,7 +31,6 @@
         <service
             id="fin_search_unified.subscriber.register_components"
             class="FinSearchUnified\Subscriber\RegisterComponents"
-            public="true"
         >
             <argument>%fin_search_unified.plugin_dir%</argument>
             <tag name="shopware.event_subscriber" />
@@ -49,7 +39,6 @@
         <service
             class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\Hydrator\CustomListingHydrator"
             id="fin_search_unified.custom_listing_hydrator"
-            public="true"
         >
             <argument id="fin_search_unified.config_loader" type="service" />
         </service>
@@ -57,7 +46,6 @@
         <service
             class="FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic\CustomFacetGateway"
             id="fin_search_unified.findologic_facet_gateway"
-            public="true"
         >
             <argument type="service" id="fin_search_unified.custom_listing_hydrator" />
             <argument type="service" id="fin_search_unified.query_builder_factory" />
@@ -66,16 +54,11 @@
         <service
             class="FinSearchUnified\Bundle\StoreFrontBundle\Service\Core\CustomFacetService"
             id="fin_search_unified.custom_facet_service"
-            public="true"
         >
             <argument type="service" id="fin_search_unified.findologic_facet_gateway" />
         </service>
 
-        <service
-            id="fin_search_unified.shopware_process"
-            class="FinSearchUnified\ShopwareProcess"
-            public="true"
-        >
+        <service id="fin_search_unified.shopware_process" class="FinSearchUnified\ShopwareProcess">
             <argument type="service" id="cache" />
             <argument type="service" id="shopware_product_stream.repository" />
             <argument type="service" id="shopware_storefront.context_service" />
@@ -85,14 +68,9 @@
         <service
             id="fin_search_unified.article_model_factory"
             class="FinSearchUnified\BusinessLogic\FindologicArticleFactory"
-            public="true"
         />
 
-        <service
-            id="fin_search_unified.service_subscriber"
-            class="FinSearchUnified\Subscriber\ServiceSubscriber"
-            public="true"
-        >
+        <service id="fin_search_unified.service_subscriber" class="FinSearchUnified\Subscriber\ServiceSubscriber">
             <argument type="service" id="service_container" />
             <tag name="shopware.event_subscriber" />
         </service>
@@ -100,7 +78,6 @@
         <service
             id="fin_search_unified.findologic_facet_criteria_request_handler"
             class="FinSearchUnified\Bundle\SearchBundle\CriteriaRequestHandler\FindologicFacetCriteriaRequestHandler"
-            public="true"
         >
             <argument type="service" id="fin_search_unified.custom_facet_service" />
             <tag name="criteria_request_handler" />
@@ -109,7 +86,6 @@
         <service
             id="fin_search_unified.color_picker_facet_result"
             class="FinSearchUnified\Bundle\FacetResult\ColorPickerFacetResult"
-            public="true"
         />
 
         <service
@@ -134,11 +110,7 @@
             <argument type="service" id="cache" />
         </service>
 
-        <service
-            id="fin_search_unified.commands.export_command"
-            class="FinSearchUnified\Commands\ExportCommand"
-            public="true"
-        >
+        <service id="fin_search_unified.commands.export_command" class="FinSearchUnified\Commands\ExportCommand">
             <tag name="console.command" />
         </service>
 
@@ -146,7 +118,6 @@
             id="fin_search_unified.product_search"
             class="Shopware\Bundle\SearchBundle\ProductSearch"
             decorates="shopware_search.product_search"
-            public="true"
         >
             <argument type="service" id="shopware_storefront.list_product_service" />
             <argument type="service" id="fin_search_unified.product_number_search" />
@@ -156,7 +127,6 @@
             id="fin_search_unified.product_stream.criteria_factory"
             class="FinSearchUnified\Components\ProductStream\CriteriaFactory"
             decorates="shopware_product_stream.criteria_factory"
-            public="true"
         >
             <argument type="service" id="shopware_search.store_front_criteria_factory" />
             <argument type="service" id="fin_search_unified.product_stream.criteria_factory.inner" />
@@ -166,7 +136,6 @@
             id="fin_search_unified.product_stream.repository"
             class="FinSearchUnified\Components\ProductStream\Repository"
             decorates="shopware_product_stream.repository"
-            public="true"
         >
             <argument type="service" id="fin_search_unified.product_stream.repository.inner" />
         </service>
@@ -174,50 +143,30 @@
         <service
             id="fin_search_unified.query_builder_factory"
             class="FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilderFactory"
-            public="true"
         >
             <argument type="service" id="shopware_plugininstaller.plugin_manager" />
             <argument type="service" id="config" />
         </service>
 
-        <service
-            id="fin_search_unified.subscriber.widgets"
-            class="FinSearchUnified\Subscriber\Widgets"
-            public="true"
-        >
+        <service id="fin_search_unified.subscriber.widgets" class="FinSearchUnified\Subscriber\Widgets">
             <tag name="shopware.event_subscriber" />
             <argument id="cache" type="service" />
             <argument id="shopware.routing.matchers.rewrite_matcher" type="service" />
         </service>
 
-        <service
-            class="FinSearchUnified\Components\ConfigLoader"
-            id="fin_search_unified.config_loader"
-            public="true"
-        >
+        <service class="FinSearchUnified\Components\ConfigLoader" id="fin_search_unified.config_loader">
             <argument id="cache" type="service" />
             <argument id="http_client" type="service" />
             <argument id="config" type="service" />
         </service>
 
-        <service
-            class="FinSearchUnified\Components\Environment"
-            id="fin_search_unified.environment"
-            public="true"
-        />
+        <service class="FinSearchUnified\Components\Environment" id="fin_search_unified.environment" />
 
-        <service
-            class="FinSearchUnified\Helper\HeaderHandler"
-            id="fin_search_unified.helper.header_handler"
-            public="true"
-        />
+        <service class="FinSearchUnified\Helper\HeaderHandler" id="fin_search_unified.helper.header_handler"/>
 
         <!-- Re-declare non-existent shopware services in our xml for backward compatibility -->
-        <service
-            id="shopware.routing.matchers.rewrite_matcher"
-            class="Shopware\Components\Routing\Matchers\RewriteMatcher"
-            public="true"
-        >
+        <service id="shopware.routing.matchers.rewrite_matcher"
+            class="Shopware\Components\Routing\Matchers\RewriteMatcher">
             <argument type="service" id="dbal_connection" />
             <argument type="service" id="query_alias_mapper" />
             <argument type="service" id="Shopware_Components_Config"/>
