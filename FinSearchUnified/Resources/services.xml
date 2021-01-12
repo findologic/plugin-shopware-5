@@ -9,6 +9,8 @@
     </parameters>
 
     <services>
+        <defaults public="true" />
+
         <service id="fin_search_unified.subscriber.frontend" class="FinSearchUnified\Subscriber\Frontend">
             <argument>%fin_search_unified.plugin_dir%</argument>
             <argument type="service" id="template" />
