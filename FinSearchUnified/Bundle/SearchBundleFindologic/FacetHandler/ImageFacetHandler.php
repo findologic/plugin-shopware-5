@@ -85,81 +85,22 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
      */
     private function getMediaListItems(array $actives, array $filterItems)
     {
-        $listItems = [];
         $items = [];
-        $requests = [];
-        $orderedFilterItems = [];
-
         foreach ($filterItems as $filterItem) {
-            $name = $filterItem->getName();
-            $orderedFilterItems[] = $name;
-            $index = $this->getItemIndex($name, $actives);
+            $index = $this->getItemIndex($filterItem->getName(), $actives);
 
-            if ($index === false) {
-                $active = false;
-            } else {
-                $active = true;
-                unset($actives[$index]);
-            }
+            $media = new Media();
+            $media->setFile($filterItem->getMedia()->getUrl());
 
-            if ($filterItem->getMedia() === null) {
-                $idx = $this->getItemIndex($name, $orderedFilterItems);
-                $listItems[$idx] = new MediaListItem(
-                    $name,
-                    $name,
-                    $active
-                );
-            } else {
-                $url = $filterItem->getMedia()->getUrl();
-                $items[$url] = [
-                    'name' => $name,
-                    'active' => $active
-                ];
-
-                $requests[] = $this->guzzleClient->createRequest('HEAD', $url);
-            }
+            $items[] = new MediaListItem(
+                $filterItem->getId(),
+                $filterItem->getName(),
+                $index !== false,
+                $media
+            );
         }
 
-        if (empty($requests)) {
-            foreach ($actives as $element) {
-                $listItems[] = new MediaListItem($element, $element, true);
-            }
-
-            return $listItems;
-        }
-
-        $options = [
-            'complete' => function (CompleteEvent $event) use ($items, $orderedFilterItems, &$listItems) {
-                $url = $event->getRequest()->getUrl();
-                $data = $items[$url];
-
-                $media = new Media();
-                $media->setFile($url);
-
-                $idx = $this->getItemIndex($data['name'], $orderedFilterItems);
-                $listItems[$idx] = new MediaListItem(
-                    $data['name'],
-                    $data['name'],
-                    $data['active'],
-                    $media
-                );
-            },
-            'error' => function (ErrorEvent $event) use ($items, $orderedFilterItems, &$listItems) {
-                $url = $event->getRequest()->getUrl();
-                $data = $items[$url];
-
-                $idx = $this->getItemIndex($data['name'], $orderedFilterItems);
-                $listItems[$idx] = new MediaListItem(
-                    $data['name'],
-                    $data['name'],
-                    $data['active']
-                );
-            }
-        ];
-
-        Pool::send($this->guzzleClient, $requests, $options);
-
-        return $listItems;
+        return $items;
     }
 
     /**
