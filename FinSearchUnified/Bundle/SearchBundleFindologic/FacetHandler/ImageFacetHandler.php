@@ -89,8 +89,11 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
         foreach ($filterItems as $filterItem) {
             $index = $this->getItemIndex($filterItem->getName(), $actives);
 
-            $media = new Media();
-            $media->setFile($filterItem->getMedia()->getUrl());
+            $media = null;
+            if ($filterItem->getMedia() && $filterItem->getMedia()->getUrl()) {
+                $media = new Media();
+                $media->setFile($filterItem->getMedia()->getUrl());
+            }
 
             $items[] = new MediaListItem(
                 $filterItem->getId(),
