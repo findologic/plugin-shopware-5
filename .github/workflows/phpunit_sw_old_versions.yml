@@ -73,6 +73,12 @@ jobs:
           php bin/console sw:plugin:activate FinSearchUnified
           php bin/console sw:cache:clear
 
+      - name: Install new PhpUnit version
+        run: |
+          cd shopware
+          composer remove phpunit/phpunit --no-interaction
+          escapeProperty("composer require phpunit/phpunit:5.7.27 --no-interaction")
+
       - name: Run test suite
         run: |
           cd shopware/custom/plugins/FinSearchUnified
