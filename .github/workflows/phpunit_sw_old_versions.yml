@@ -69,5 +69,5 @@ jobs:
 
       - name: Run test suite
         run: |
-          cd shopware/custom/plugins/plugin-shopware-5
+          cd shopware/custom/plugins/FinSearchUnified
           composer test
