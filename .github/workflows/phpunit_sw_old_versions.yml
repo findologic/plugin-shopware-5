@@ -76,8 +76,7 @@ jobs:
       - name: Install new PhpUnit version
         run: |
           cd shopware
-          composer remove phpunit/phpunit --no-interaction
-          escapeProperty("composer require phpunit/phpunit:5.7.27 --no-interaction")
+          escapeProperty("composer update phpunit/phpunit:5.7.27|^6|^7|^8|^9 --no-interaction")
 
       - name: Run test suite
         run: |
