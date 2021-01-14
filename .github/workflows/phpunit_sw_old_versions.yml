@@ -38,7 +38,7 @@ jobs:
 
       - name: Validate dependencies
         run: |
-          cd plugin-shopware-5
+          cd plugin-shopware-5/FinSearchUnified
           composer validate
 
       - name: Clone Shopware repository
