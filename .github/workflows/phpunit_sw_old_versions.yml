@@ -74,7 +74,7 @@ jobs:
           php bin/console sw:cache:clear
 
       - name: Install new PhpUnit version
-        if: ${{ matrix.shopware-versions == v5.2.0 || matrix.shopware-versions == v5.3.0 }}
+        if: matrix.shopware-versions == "v5.2.0" || matrix.shopware-versions == "v5.3.0"
         run: |
           cd shopware
           composer remove phpunit/phpunit --no-interaction
