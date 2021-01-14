@@ -52,6 +52,7 @@ jobs:
           repository: shopware/shopware
           ref: ${{ matrix.shopware-versions }}
           path: shopware
+          fetch-depth: 0
 
       - name: Install Shopware
         run: |
