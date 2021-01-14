@@ -68,48 +68,42 @@ class ImageFacetHandlerTest extends TestCase
                     ['name' => 'Purple', 'image' => 'https://example.com/purple.gif', 'status' => 404],
                     ['name' => 'Light Purple', 'image' => 'https://example.com/light-purple.gif', 'status' => 404],
                 ],
-                'condition' =>
-                    new ProductAttributeCondition(
-                        'vendor',
-                        Operator::EQ,
-                        ['Red', 'Zima Blue', 'Purple']
-                    ),
-                'facetData' =>
-                    [
-                        ['id' => 'Red', 'active' => true, 'media' => null],
-                        ['id' => 'Green', 'active' => false, 'media' => null],
-                        ['id' => 'Zima Blue', 'active' => true, 'media' => 'https://example.com/zima-blue.gif'],
-                        ['id' => 'Yellow', 'active' => false, 'media' => 'https://example.com/yellow.gif'],
-                        ['id' => 'Purple', 'active' => true, 'media' => null],
-                        ['id' => 'Light Purple', 'active' => false, 'media' => null],
-                    ]
+                'condition' => new ProductAttributeCondition(
+                    'vendor',
+                    Operator::EQ,
+                    ['Red', 'Zima Blue', 'Purple']
+                ),
+                'facetData' => [
+                    ['id' => 'Red', 'active' => true, 'media' => null],
+                    ['id' => 'Green', 'active' => false, 'media' => null],
+                    ['id' => 'Zima Blue', 'active' => true, 'media' => 'https://example.com/zima-blue.gif'],
+                    ['id' => 'Yellow', 'active' => false, 'media' => 'https://example.com/yellow.gif'],
+                    ['id' => 'Purple', 'active' => true, 'media' => 'https://example.com/purple.gif'],
+                    ['id' => 'Light Purple', 'active' => false, 'media' => 'https://example.com/light-purple.gif'],
+                ],
             ],
             'Image filter without condition' => [
                 'filterData' => [
                     ['name' => 'Red', 'image' => '', 'status' => 404],
                 ],
                 'condition' => null,
-                'facetData' =>
-                    [
-                        ['id' => 'Red', 'active' => false, 'media' => null]
-                    ]
+                'facetData' => [
+                    ['id' => 'Red', 'active' => false, 'media' => null],
+                ],
             ],
             'Image filter with condition but without filters' => [
                 'filterData' => [],
-                'condition' =>
-                    new ProductAttributeCondition(
-                        'vendor',
-                        Operator::EQ,
-                        ['Red', 'Zima Blue', 'Purple']
-                    ),
-                'facetData' =>
-                    [
-                        ['id' => 'Red', 'active' => true, 'media' => null],
-                        ['id' => 'Zima Blue', 'active' => true, 'media' => null],
-                        ['id' => 'Purple', 'active' => true, 'media' => null]
-                    ]
+                'condition' => new ProductAttributeCondition(
+                    'vendor',
+                    Operator::EQ,
+                    ['Red', 'Zima Blue', 'Purple']
+                ),
+                'facetData' => [
+                    ['id' => 'Red', 'active' => true, 'media' => null],
+                    ['id' => 'Zima Blue', 'active' => true, 'media' => null],
+                    ['id' => 'Purple', 'active' => true, 'media' => null],
+                ],
             ],
-
         ];
     }
 

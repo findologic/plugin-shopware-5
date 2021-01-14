@@ -100,6 +100,12 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
             );
         }
 
+        if (empty($items)) {
+            foreach ($actives as $element) {
+                $items[] = new MediaListItem($element, $element, true);
+            }
+        }
+
         return $items;
     }
 
