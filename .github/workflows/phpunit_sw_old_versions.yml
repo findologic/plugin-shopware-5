@@ -74,11 +74,11 @@ jobs:
           php bin/console sw:cache:clear
 
       - name: Install new PhpUnit version
+        if: matrix.shopware-versions == v5.2.0 || matrix.shopware-versions == v5.3.0
         run: |
           cd shopware
           composer remove phpunit/phpunit --no-interaction
           composer require phpunit/phpunit:5.7.27 --no-interaction
-        if: matrix.shopware-versions == v5.2.0 || matrix.shopware-versions == v5.3.0
 
       - name: Run test suite
         run: |
