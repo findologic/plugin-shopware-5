@@ -73,10 +73,10 @@ jobs:
           php bin/console sw:plugin:activate FinSearchUnified
           php bin/console sw:cache:clear
 
-      - name: Install new PhpUnit version
+      - name: Update PhpUnit version
         run: |
           cd shopware
-          composer require "phpunit/phpunit:5.7.27" "sebastian/diff:*" "phpunit/dbunit:*"
+          composer require "phpunit/phpunit:5.7.27" --with-dependencies
 
       - name: Run test suite
         run: |
