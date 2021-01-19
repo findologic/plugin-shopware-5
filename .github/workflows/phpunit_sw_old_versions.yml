@@ -76,7 +76,7 @@ jobs:
       - name: Install new PhpUnit version
         run: |
           cd shopware
-          composer update phpunit/phpunit
+          composer require "phpunit/phpunit:5.7.27"
 
       - name: Run test suite
         run: |
