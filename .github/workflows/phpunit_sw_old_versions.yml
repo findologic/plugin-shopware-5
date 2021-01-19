@@ -76,7 +76,7 @@ jobs:
       - name: Install new PhpUnit version
         run: |
           cd shopware
-          composer require "phpunit/phpunit:5.7.27" "sebastian/diff:*"
+          composer require "phpunit/phpunit:5.7.27" "sebastian/diff:*" "phpunit/dbunit:*"
 
       - name: Run test suite
         run: |
