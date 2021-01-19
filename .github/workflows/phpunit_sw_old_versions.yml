@@ -76,7 +76,7 @@ jobs:
       - name: Install new PhpUnit version
         run: |
           cd shopware
-          escapeProperty("composer update phpunit/phpunit\:'5.7.27' --no-interaction")
+          escapeProperty("composer update phpunit/phpunit")
 
       - name: Run test suite
         run: |
