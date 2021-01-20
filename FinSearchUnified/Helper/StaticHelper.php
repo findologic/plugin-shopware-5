@@ -379,7 +379,7 @@ class StaticHelper
     {
         if (Shopware()->Container()->has('shopware.release.version')) {
             return Shopware()->Container()->get('shopware.release.version');
-        } else if (defined(Shopware::VERSION)) {
+        } elseif (defined(Shopware::VERSION)) {
             return Shopware::VERSION;
         }
 
