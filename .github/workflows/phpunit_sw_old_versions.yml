@@ -17,10 +17,6 @@ jobs:
         php-versions: ['5.6', '7.0', '7.1']
         shopware-versions: ['5.2', 'v5.2.0', '5.3', 'v5.3.0', '5.4', '5.5']
 
-    if: |
-      (maxtrix.shopware-versions !== 'v5.2.0' && matrix.php-versions !== '7.0') &&
-      (maxtrix.shopware-versions !== 'v5.2.0' && matrix.php-versions !== '7.1')
-
     name: Shopware ${{ matrix.shopware-versions }} Test (PHP ${{ matrix.php-versions }})
     steps:
       - uses: mirromutth/mysql-action@v1.1
@@ -86,3 +82,4 @@ jobs:
         run: |
           cd shopware/custom/plugins/FinSearchUnified
           composer test
+        if: !((matrix.shopware-versions == 'v5.2.0' && matrix.php-versions == '7.0') || (matrix.shopware-versions == 'v5.2.0' && matrix.php-versions == '7.1'))
