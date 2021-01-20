@@ -1299,7 +1299,7 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testMultiByteCharactersAreExportedInLowercase($articleConfiguration)
     {
-        if (getenv('SHOPWARE_TAG') === '5.2.0') {
+        if (Shopware()->Container()->get('shopware.release.version') === '5.2.0') {
             $this->markTestSkipped('Deactivated until the fix in SW-528');
         }
 
@@ -1408,7 +1408,7 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testCategoryNamesWithSlashesAreExportedCorrectly($articleConfiguration)
     {
-        if (getenv('SHOPWARE_TAG') === '5.2.0') {
+        if (Shopware()->Container()->get('shopware.release.version') === '5.2.0') {
             $this->markTestSkipped('Deactivated until the fix in SW-528');
         }
 
