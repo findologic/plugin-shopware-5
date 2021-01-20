@@ -364,13 +364,7 @@ class StaticHelper
      */
     public static function isVersionLowerThan($version)
     {
-        if (Shopware()->Container()->has('shopware.release.version')) {
-            $shopwareVersion = Shopware()->Container()->get('shopware.release.version');
-        } else if (defined(Shopware::VERSION)) {
-            $shopwareVersion = Shopware::VERSION;
-        } else {
-            $shopwareVersion = getenv('SHOPWARE_VERSION') ?: '5.6.7';
-        }
+        $shopwareVersion = static::getShopwareVersion();
 
         // When in development mode, the shopware version can return `___VERSION___` so we use a more recent version
         // for comparison instead
@@ -379,5 +373,16 @@ class StaticHelper
         }
 
         return version_compare($shopwareVersion, $version, '<');
+    }
+
+    public static function getShopwareVersion()
+    {
+        if (Shopware()->Container()->has('shopware.release.version')) {
+            return Shopware()->Container()->get('shopware.release.version');
+        } else if (defined(Shopware::VERSION)) {
+            return Shopware::VERSION;
+        }
+
+        return getenv('SHOPWARE_VERSION') ?: '5.6.7';
     }
 }

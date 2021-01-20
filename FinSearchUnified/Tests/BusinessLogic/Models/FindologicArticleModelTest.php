@@ -6,6 +6,7 @@ use Exception;
 use FINDOLOGIC\Export\Data\Item;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use FinSearchUnified\BusinessLogic\Models\FindologicArticleModel;
+use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
 use ReflectionClass;
@@ -1299,7 +1300,7 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testMultiByteCharactersAreExportedInLowercase($articleConfiguration)
     {
-        if (Shopware()->Container()->get('shopware.release.version') === '5.2.0') {
+        if (StaticHelper::getShopwareVersion() === '5.2.0') {
             $this->markTestSkipped('Deactivated until the fix in SW-528');
         }
 
@@ -1408,7 +1409,7 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testCategoryNamesWithSlashesAreExportedCorrectly($articleConfiguration)
     {
-        if (Shopware()->Container()->get('shopware.release.version') === '5.2.0') {
+        if (StaticHelper::getShopwareVersion() === '5.2.0') {
             $this->markTestSkipped('Deactivated until the fix in SW-528');
         }
 
