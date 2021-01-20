@@ -16,6 +16,8 @@ jobs:
       matrix:
         php-versions: ['5.6', '7.0', '7.1']
         shopware-versions: ['5.2', 'v5.2.0', '5.3', 'v5.3.0', '5.4', '5.5']
+    env:
+      SHOPWARE_VERSION: ${{shopware-versions}}
 
     name: Shopware ${{ matrix.shopware-versions }} Test (PHP ${{ matrix.php-versions }})
     steps:
@@ -73,6 +75,7 @@ jobs:
           php bin/console sw:plugin:activate FinSearchUnified
           php bin/console sw:cache:clear
 
+      # Update PHPUnit to a more recent version, as older versions didn't have proper namespace support.
       - name: Update PhpUnit version
         run: |
           cd shopware
@@ -82,4 +85,5 @@ jobs:
         run: |
           cd shopware/custom/plugins/FinSearchUnified
           composer test
+        # Shopware v5.2.0 did not support >= PHP 7, therefore we can not test these versions.
         if: ${{ !(( matrix.shopware-versions == 'v5.2.0' && matrix.php-versions == '7.0') || (matrix.shopware-versions == 'v5.2.0' && matrix.php-versions == '7.1')) }}
