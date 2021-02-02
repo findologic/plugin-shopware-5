@@ -33,7 +33,7 @@ class RangeFacetHandlerTest extends TestCase
             ->getMock();
         $mockConfig->expects($this->any())
             ->method('get')
-            ->willReturn(!empty(getenv('SHOPWARE_VERSION')) ? getenv('SHOPWARE_VERSION') : '5.6.4');
+            ->willReturn(StaticHelper::getShopwareVersion());
 
         Shopware()->Container()->set('config', $mockConfig);
     }
