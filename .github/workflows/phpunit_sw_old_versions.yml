@@ -78,6 +78,7 @@ jobs:
         run: |
           cd shopware
           composer update "phpunit/phpunit:5.7.27" --with-dependencies
+          composer dump-autoload -o # See https://issues.shopware.com/issues/SW-15496
 
       - name: Run test suite
         run: |
