@@ -1300,6 +1300,8 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testMultiByteCharactersAreExportedInLowercase($articleConfiguration)
     {
+        var_dump('SW VERSION:');
+        var_dump(StaticHelper::getShopwareVersion());
         if (StaticHelper::getShopwareVersion() === '5.2.0') {
             $this->markTestSkipped('Deactivated until the fix in SW-528');
         }
