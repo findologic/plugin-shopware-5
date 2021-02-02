@@ -56,10 +56,10 @@ class ProductAttributeConditionHandlerTest extends TestCase
     public function attributesDataProvider()
     {
         return [
-            'Vendor is "Brand+Name"' => [
+            'Vendor is "Brand Name"' => [
                 Operator::EQ,
                 [
-                    ['field' => 'vendor', 'value' => 'Brand+Name']
+                    ['field' => 'vendor', 'value' => 'Brand Name']
                 ],
                 ['vendor' => ['' => 'Brand Name']]
             ],
@@ -71,10 +71,10 @@ class ProductAttributeConditionHandlerTest extends TestCase
                 ],
                 ['color' => ['' => ['blue', 'red']]]
             ],
-            'Vendor is "Brand+Name" and color is "red"' => [
+            'Vendor is "Brand Name" and color is "red"' => [
                 Operator::EQ,
                 [
-                    ['field' => 'vendor', 'value' => 'Brand+Name'],
+                    ['field' => 'vendor', 'value' => 'Brand Name'],
                     ['field' => 'color', 'value' => 'red']
                 ],
                 ['vendor' => ['' => 'Brand Name'], 'color' => ['' => 'red']]
