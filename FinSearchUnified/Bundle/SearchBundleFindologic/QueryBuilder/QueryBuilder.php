@@ -91,6 +91,14 @@ abstract class QueryBuilder
     }
 
     /**
+     * @return string
+     */
+    public function getRequestUrl(Config $config)
+    {
+        return $this->searchNavigationRequest->buildRequestUrl($config);
+    }
+
+    /**
      * @param string $query
      */
     public function addQuery($query)
