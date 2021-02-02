@@ -388,6 +388,6 @@ class StaticHelper
             $version = getenv('SHOPWARE_VERSION') ?: '5.6.7';
         }
 
-        return $version;
+        return ltrim($version, 'v');
     }
 }
