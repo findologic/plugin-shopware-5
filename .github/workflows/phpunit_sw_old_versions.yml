@@ -82,6 +82,6 @@ jobs:
       - name: Run test suite
         run: |
           cd shopware/custom/plugins/FinSearchUnified
-          composer test
+          SHOPWARE_VERSION=${{ matrix.shopware-versions }} composer test
         # Shopware v5.2.0 did not support >= PHP 7, therefore we can not test these versions.
         if: ${{ !(( matrix.shopware-versions == 'v5.2.0' && matrix.php-versions == '7.0') || (matrix.shopware-versions == 'v5.2.0' && matrix.php-versions == '7.1')) }}
