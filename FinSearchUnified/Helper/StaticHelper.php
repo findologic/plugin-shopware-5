@@ -366,6 +366,12 @@ class StaticHelper
     {
         $shopwareVersion = static::getShopwareVersion();
 
+        // When in development mode, the shopware version can return `___VERSION___` so we use a more recent version
+        // for comparison instead
+        if ($shopwareVersion === '___VERSION___') {
+            $shopwareVersion = '5.6.7';
+        }
+
         return version_compare($shopwareVersion, $version, '<');
     }
 
@@ -379,7 +385,7 @@ class StaticHelper
         }
 
         if (!$version || $version === '___VERSION___') {
-            $version = getenv('SHOPWARE_VERSION') ?: '5.6.9';
+            $version = getenv('SHOPWARE_VERSION') ?: '5.6.7';
         }
 
         return ltrim($version, 'v');
