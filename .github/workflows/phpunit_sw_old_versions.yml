@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: mirromutth/mysql-action@v1.1
         with:
-          mysql version: '5.5'
+          mysql version: '5.7'
           mysql database: shopware
           mysql root password: shopware
 

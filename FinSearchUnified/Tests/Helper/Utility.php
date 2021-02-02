@@ -282,6 +282,7 @@ class Utility
 
                 $resource->create($testArticle);
             } catch (Exception $e) {
+                var_dump($e);
                 echo sprintf('Exception: %s', $e->getMessage());
             }
         }
@@ -345,6 +346,7 @@ class Utility
             return (int)$xml->items->attributes()->count;
         } catch (Exception $e) {
             echo sprintf('Exception: %s', $e->getMessage());
+            var_dump($e);
         }
 
         return 0;
