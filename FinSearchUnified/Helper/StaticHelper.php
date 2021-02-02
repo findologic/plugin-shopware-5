@@ -377,12 +377,13 @@ class StaticHelper
 
     public static function getShopwareVersion()
     {
+        $version = getenv('SHOPWARE_VERSION') ?: '5.6.7';
         if (Shopware()->Container()->has('shopware.release.version')) {
-            return Shopware()->Container()->get('shopware.release.version');
+            $version = Shopware()->Container()->get('shopware.release.version');
         } elseif (defined('\Shopware::VERSION')) {
-            return Shopware::VERSION;
+            $version = Shopware::VERSION;
         }
 
-        return getenv('SHOPWARE_VERSION') ?: '5.6.7';
+        return ltrim($version, 'v');
     }
 }
