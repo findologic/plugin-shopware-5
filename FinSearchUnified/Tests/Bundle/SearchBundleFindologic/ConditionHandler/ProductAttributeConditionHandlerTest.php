@@ -4,6 +4,7 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\ConditionHandler;
 
 use Enlight_Controller_Request_RequestHttp;
 use Exception;
+use FINDOLOGIC\Api\Config;
 use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\ProductAttributeConditionHandler;
@@ -55,10 +56,10 @@ class ProductAttributeConditionHandlerTest extends TestCase
     public function attributesDataProvider()
     {
         return [
-            'Vendor is "Brand+Name"' => [
+            'Vendor is "Brand Name"' => [
                 Operator::EQ,
                 [
-                    ['field' => 'vendor', 'value' => 'Brand+Name']
+                    ['field' => 'vendor', 'value' => 'Brand Name']
                 ],
                 ['vendor' => ['' => 'Brand Name']]
             ],
@@ -70,10 +71,10 @@ class ProductAttributeConditionHandlerTest extends TestCase
                 ],
                 ['color' => ['' => ['blue', 'red']]]
             ],
-            'Vendor is "Brand+Name" and color is "red"' => [
+            'Vendor is "Brand Name" and color is "red"' => [
                 Operator::EQ,
                 [
-                    ['field' => 'vendor', 'value' => 'Brand+Name'],
+                    ['field' => 'vendor', 'value' => 'Brand Name'],
                     ['field' => 'color', 'value' => 'red']
                 ],
                 ['vendor' => ['' => 'Brand Name'], 'color' => ['' => 'red']]
@@ -142,5 +143,34 @@ class ProductAttributeConditionHandlerTest extends TestCase
                 )
             );
         }
+    }
+
+    /**
+     * Data from Shopware's Criteria class already contains the query parameter URL decoded. Decoding them again
+     * must not be done! This test ensures that these information is never encoded multiple times.
+     */
+    public function testGenerateConditionDoesNotDecodeAlreadyDecodedData()
+    {
+        $filterName = 'blub';
+        $filterValue = 'this +"a_;# *<, +';
+        $config = new Config();
+        $config->setServiceId('ABCDABCDABCDABCDABCDABCDABCDABCD');
+
+        $this->handler->generateCondition(
+            new ProductAttributeCondition($filterName, Operator::EQ, $filterValue),
+            $this->querybuilder,
+            $this->context
+        );
+
+        $params = $this->querybuilder->getParameters();
+
+        static::assertArrayHasKey('attrib', $params);
+        static::assertArrayHasKey($filterName, $params['attrib']);
+        static::assertSame($filterValue, $params['attrib'][$filterName]['']);
+
+        static::assertContains(
+            'attrib%5Bblub%5D%5B%5D=this+%2B%22a_%3B%23+%2A%3C%2C+%2B',
+            $this->querybuilder->getRequestUrl($config)
+        );
     }
 }

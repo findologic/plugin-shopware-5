@@ -91,11 +91,19 @@ abstract class QueryBuilder
     }
 
     /**
+     * @return string
+     */
+    public function getRequestUrl(Config $config)
+    {
+        return $this->searchNavigationRequest->buildRequestUrl($config);
+    }
+
+    /**
      * @param string $query
      */
     public function addQuery($query)
     {
-        $this->searchNavigationRequest->setQuery(urldecode($query));
+        $this->searchNavigationRequest->setQuery($query);
     }
 
     /**
@@ -105,8 +113,8 @@ abstract class QueryBuilder
      */
     public function addRangeFilter($key, $min, $max)
     {
-        $this->searchNavigationRequest->addAttribute($key, urldecode($min), 'min');
-        $this->searchNavigationRequest->addAttribute($key, urldecode($max), 'max');
+        $this->searchNavigationRequest->addAttribute($key, $min, 'min');
+        $this->searchNavigationRequest->addAttribute($key, $max, 'max');
     }
 
     /**
@@ -120,7 +128,7 @@ abstract class QueryBuilder
         }
 
         foreach ($values as $value) {
-            $this->addParameter($key, urldecode($value));
+            $this->addParameter($key, $value);
         }
     }
 
@@ -166,7 +174,7 @@ abstract class QueryBuilder
      */
     public function addParameter($key, $value)
     {
-        $this->searchNavigationRequest->addAttribute($key, urldecode($value));
+        $this->searchNavigationRequest->addAttribute($key, $value);
     }
 
     /**
