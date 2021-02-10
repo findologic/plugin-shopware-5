@@ -59,6 +59,15 @@
         ]]>
     </description>
     <compatibility minVersion="5.2.0" />
+    <changelog version="11.1.1">
+        <changes lang="de">
+            SW-577 - Ein Fehler wurde behoben, wodurch Filter nicht korrekt kodiert wurden, wenn diese "+" Zeichen
+            beinhalteten.;
+        </changes>
+        <changes lang="en">
+            SW-577 - Fixed a bug that caused a wrong encoding, when a filter contained "+" signs.;
+        </changes>
+    </changelog>
     <changelog version="11.1.0">
         <changes lang="de">
             SW-434 - Wenn Pseudo-Verkäufe für ein Produkt konfiguriert sind, wird der Export diese
