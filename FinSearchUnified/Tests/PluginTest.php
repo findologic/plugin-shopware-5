@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Tests;
 
+use Doctrine\ORM\EntityNotFoundException;
 use FINDOLOGIC\Export\Helpers\EmptyValueNotAllowedException;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use FinSearchUnified\finSearchUnified as Plugin;
@@ -233,6 +234,21 @@ class PluginTest extends TestCase
         $findologicArticleFactoryMock = $this->createMock(FindologicArticleFactory::class);
         $findologicArticleFactoryMock->expects($this->once())->method('create')->willThrowException(
             new EmptyValueNotAllowedException()
+        );
+
+        Shopware()->Container()->set('fin_search_unified.article_model_factory', $findologicArticleFactoryMock);
+
+        $exported = Utility::runExportAndReturnCount();
+        $this->assertSame(0, $exported);
+    }
+
+    public function testEntityNotFoundExceptionIsThrownInExport()
+    {
+        // Create articles with the provided data to test the export functionality
+        Utility::createTestProduct('SOMENUMBER', true);
+        $findologicArticleFactoryMock = $this->createMock(FindologicArticleFactory::class);
+        $findologicArticleFactoryMock->expects($this->once())->method('create')->willThrowException(
+            new EntityNotFoundException()
         );
 
         Shopware()->Container()->set('fin_search_unified.article_model_factory', $findologicArticleFactoryMock);
