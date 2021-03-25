@@ -231,6 +231,17 @@ class ExportService
                     $shopwareArticle->getMainDetail()->getNumber()
                 )
             );
+        } catch (Exception $e) {
+            $errorInformation->addError('Exception' . $e->getMessage());
+
+            Shopware()->Container()->get('pluginlogger')->info(
+                sprintf(
+                    'Product with ID "%s" could not be exported. ' .
+                    'Error message: %s',
+                    $shopwareArticle->getId(),
+                    $e->getMessage()
+                )
+            );
         }
 
         $this->productErrors[] = $errorInformation;
