@@ -231,8 +231,8 @@ class ExportService
                     $shopwareArticle->getMainDetail()->getNumber()
                 )
             );
-        } catch (Exception $e) {
-            $errorInformation->addError('Exception' . $e->getMessage());
+        } catch (EntityNotFoundException $e) {
+            $errorInformation->addError('EntityNotFoundException' . $e->getMessage());
 
             Shopware()->Container()->get('pluginlogger')->info(
                 sprintf(
