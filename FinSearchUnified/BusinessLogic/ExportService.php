@@ -237,6 +237,18 @@ class ExportService
             Shopware()->Container()->get('pluginlogger')->info(
                 sprintf(
                     'Product with ID "%s" could not be exported. ' .
+                    'It appears to have a non existing variant configured in the database. ' .
+                    'Error message: %s',
+                    $shopwareArticle->getId(),
+                    $e->getMessage()
+                )
+            );
+        } catch (Exception $e) {
+            $errorInformation->addError('Exception' . $e->getMessage());
+
+            Shopware()->Container()->get('pluginlogger')->info(
+                sprintf(
+                    'Product with ID "%s" could not be exported. ' .
                     'Error message: %s',
                     $shopwareArticle->getId(),
                     $e->getMessage()

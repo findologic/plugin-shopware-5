@@ -3,11 +3,13 @@
 namespace FinSearchUnified\Tests;
 
 use Doctrine\ORM\EntityNotFoundException;
+use Exception;
 use FINDOLOGIC\Export\Helpers\EmptyValueNotAllowedException;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\Helper\Utility;
+use Shopware\Components\Logger;
 
 class PluginTest extends TestCase
 {
@@ -227,30 +229,38 @@ class PluginTest extends TestCase
         $this->assertSame($expectedCount, $exportedCount);
     }
 
-    public function testEmptyValueNotAllowedExceptionIsThrownInExport()
+    public function exceptionProvider()
     {
-        // Create articles with the provided data to test the export functionality
-        Utility::createTestProduct('SOMENUMBER', true);
-        $findologicArticleFactoryMock = $this->createMock(FindologicArticleFactory::class);
-        $findologicArticleFactoryMock->expects($this->once())->method('create')->willThrowException(
-            new EmptyValueNotAllowedException()
-        );
-
-        Shopware()->Container()->set('fin_search_unified.article_model_factory', $findologicArticleFactoryMock);
-
-        $exported = Utility::runExportAndReturnCount();
-        $this->assertSame(0, $exported);
+        return [
+            'EmptyValueNotAllowedException' => [
+                'exception' =>  new EmptyValueNotAllowedException(),
+            ],
+            'EntityNotFoundException' => [
+                'exception' => new EntityNotFoundException(),
+            ],
+            'Article exists in one of the cross-sell categories configured' => [
+                'exception' => new Exception(),
+            ],
+        ];
     }
 
-    public function testEntityNotFoundExceptionIsThrownInExport()
-    {
+    /**
+     * @dataProvider exceptionProvider
+     *
+     * @param $exception
+     */
+    public function testExceptionsAreThrown($exception) {
         // Create articles with the provided data to test the export functionality
         Utility::createTestProduct('SOMENUMBER', true);
         $findologicArticleFactoryMock = $this->createMock(FindologicArticleFactory::class);
         $findologicArticleFactoryMock->expects($this->once())->method('create')->willThrowException(
-            new EntityNotFoundException()
+            $exception
         );
+        $loggerMock = $this->createMock(Logger::class);
+        $loggerMock->expects($this->once())
+            ->method('info');
 
+        Shopware()->Container()->set('pluginlogger', $loggerMock);
         Shopware()->Container()->set('fin_search_unified.article_model_factory', $findologicArticleFactoryMock);
 
         $exported = Utility::runExportAndReturnCount();
