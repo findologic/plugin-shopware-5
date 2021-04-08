@@ -232,7 +232,7 @@ class ExportService
                 )
             );
         } catch (EntityNotFoundException $e) {
-            $errorInformation->addError('EntityNotFoundException' . $e->getMessage());
+            $errorInformation->addError('EntityNotFoundException ' . $e->getMessage());
 
             Shopware()->Container()->get('pluginlogger')->error(
                 sprintf(
@@ -244,7 +244,7 @@ class ExportService
                 )
             );
         } catch (Exception $e) {
-            $errorInformation->addError('Exception' . $e->getMessage());
+            $errorInformation->addError('Exception: ' . $e->getMessage());
 
             Shopware()->Container()->get('pluginlogger')->error(
                 sprintf(

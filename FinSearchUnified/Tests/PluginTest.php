@@ -238,7 +238,7 @@ class PluginTest extends TestCase
             'EntityNotFoundException' => [
                 'exception' => new EntityNotFoundException(),
             ],
-            'Article exists in one of the cross-sell categories configured' => [
+            'Exception' => [
                 'exception' => new Exception(),
             ],
         ];
@@ -246,10 +246,8 @@ class PluginTest extends TestCase
 
     /**
      * @dataProvider exceptionProvider
-     *
-     * @param $exception
      */
-    public function testExceptionsAreThrown($exception)
+    public function testExceptionsAreThrown(Exception $exception)
     {
         // Create articles with the provided data to test the export functionality
         Utility::createTestProduct('SOMENUMBER', true);
