@@ -249,7 +249,8 @@ class PluginTest extends TestCase
      *
      * @param $exception
      */
-    public function testExceptionsAreThrown($exception) {
+    public function testExceptionsAreThrown($exception)
+    {
         // Create articles with the provided data to test the export functionality
         Utility::createTestProduct('SOMENUMBER', true);
         $findologicArticleFactoryMock = $this->createMock(FindologicArticleFactory::class);
