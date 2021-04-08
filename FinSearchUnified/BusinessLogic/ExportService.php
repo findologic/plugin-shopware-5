@@ -152,7 +152,7 @@ class ExportService
                     $findologicArticles[] = $findologicArticle;
                 }
             } catch (Exception $e) {
-                Shopware()->Container()->get('pluginlogger')->info(
+                Shopware()->Container()->get('pluginlogger')->error(
                     sprintf(
                         'Error while exporting the product with number "%s"' .
                         'If you see this message in your logs, please report this as a bug' .

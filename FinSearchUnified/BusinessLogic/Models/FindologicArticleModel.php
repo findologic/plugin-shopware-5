@@ -190,7 +190,7 @@ class FindologicArticleModel
             $mainProductNumber = $productNumberService->getMainProductNumberById($this->baseArticle->getId());
             $this->productStruct = $productService->get($mainProductNumber, $context);
         } catch (RuntimeException $exception) {
-            $this->logger->warn(
+            $this->logger->error(
                 sprintf(
                     'Skipped product with ID %d: %s',
                     $this->baseArticle->getId(),
