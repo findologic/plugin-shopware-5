@@ -258,7 +258,7 @@ class PluginTest extends TestCase
         );
         $loggerMock = $this->createMock(Logger::class);
         $loggerMock->expects($this->once())
-            ->method('info');
+            ->method('error');
 
         Shopware()->Container()->set('pluginlogger', $loggerMock);
         Shopware()->Container()->set('fin_search_unified.article_model_factory', $findologicArticleFactoryMock);

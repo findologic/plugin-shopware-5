@@ -223,7 +223,7 @@ class ExportService
         } catch (EmptyValueNotAllowedException $e) {
             $errorInformation->addError('EmptyValueNotAllowedException');
 
-            Shopware()->Container()->get('pluginlogger')->info(
+            Shopware()->Container()->get('pluginlogger')->error(
                 sprintf(
                     'Product with number "%s" could not be exported. ' .
                     'It appears to have empty values assigned to it. ' .
@@ -234,7 +234,7 @@ class ExportService
         } catch (EntityNotFoundException $e) {
             $errorInformation->addError('EntityNotFoundException' . $e->getMessage());
 
-            Shopware()->Container()->get('pluginlogger')->info(
+            Shopware()->Container()->get('pluginlogger')->error(
                 sprintf(
                     'Product with ID "%s" could not be exported. ' .
                     'It appears to have a non existing variant configured in the database. ' .
@@ -246,7 +246,7 @@ class ExportService
         } catch (Exception $e) {
             $errorInformation->addError('Exception' . $e->getMessage());
 
-            Shopware()->Container()->get('pluginlogger')->info(
+            Shopware()->Container()->get('pluginlogger')->error(
                 sprintf(
                     'Product with ID "%s" could not be exported. ' .
                     'Error message: %s',
