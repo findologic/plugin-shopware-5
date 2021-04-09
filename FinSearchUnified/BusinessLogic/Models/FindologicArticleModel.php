@@ -331,10 +331,8 @@ class FindologicArticleModel
                 $price *= (1 + (float)$tax->getTax() / 100);
             }
 
-            // Calculate correct currency price if needed
-            if (!$currency->getDefault()) {
-                $price *= $currency->getFactor();
-            }
+            // Calculate correct price for currency
+            $price *= $currency->getFactor();
 
             if (!StaticHelper::isEmpty($price)) {
                 $xmlPrice = new Price();
