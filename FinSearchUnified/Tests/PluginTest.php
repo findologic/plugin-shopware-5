@@ -234,12 +234,31 @@ class PluginTest extends TestCase
         return [
             'EmptyValueNotAllowedException' => [
                 'exception' =>  new EmptyValueNotAllowedException(),
+                'expectedMessage' => sprintf(
+                    'Product with number "%s" could not be exported. ' .
+                    'It appears to have empty values assigned to it. ' .
+                    'If you see this message in your logs, please report this as a bug',
+                    'FINDOLOGICSOMENUMBER'
+                ),
             ],
             'EntityNotFoundException' => [
-                'exception' => new EntityNotFoundException(),
+                'exception' => new EntityNotFoundException('Detail not found'),
+                'expectedMessage' => sprintf(
+                    'Product with ID "%s" could not be exported. ' .
+                    'It appears to have a non existing variant configured in the database. ' .
+                    'Error message: %s',
+                    1,
+                    'Detail not found'
+                ),
             ],
             'Exception' => [
-                'exception' => new Exception(),
+                'exception' => new Exception('General Exception'),
+                'expectedMessage' => sprintf(
+                    'Product with ID "%s" could not be exported. ' .
+                    'Error message: %s',
+                    1,
+                    'General Exception'
+                ),
             ],
         ];
     }
@@ -247,7 +266,7 @@ class PluginTest extends TestCase
     /**
      * @dataProvider exceptionProvider
      */
-    public function testExceptionsAreThrown(Exception $exception)
+    public function testExceptionsAreThrown(Exception $exception, string $expectedMessage)
     {
         // Create articles with the provided data to test the export functionality
         Utility::createTestProduct('SOMENUMBER', true);
@@ -257,7 +276,8 @@ class PluginTest extends TestCase
         );
         $loggerMock = $this->createMock(Logger::class);
         $loggerMock->expects($this->once())
-            ->method('error');
+            ->method('error')
+            ->with($expectedMessage);
 
         Shopware()->Container()->set('pluginlogger', $loggerMock);
         Shopware()->Container()->set('fin_search_unified.article_model_factory', $findologicArticleFactoryMock);
