@@ -314,6 +314,7 @@ class FindologicArticleModel
             }
         }
 
+        $currency = Shopware()->Shop()->getCurrency();
         $tax = $this->baseArticle->getTax();
 
         // searching the loweset price for each customer group
@@ -328,6 +329,11 @@ class FindologicArticleModel
             // Add taxes if needed
             if ($userGroup->getTax()) {
                 $price *= (1 + (float)$tax->getTax() / 100);
+            }
+
+            // Calculate correct currency price if needed
+            if (!$currency->getDefault()) {
+                $price *= $currency->getFactor();
             }
 
             if (!StaticHelper::isEmpty($price)) {
