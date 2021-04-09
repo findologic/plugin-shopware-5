@@ -265,8 +265,11 @@ class PluginTest extends TestCase
 
     /**
      * @dataProvider exceptionProvider
+     *
+     * @param Exception $exception
+     * @param $expectedMessage
      */
-    public function testExceptionsAreThrown(Exception $exception, string $expectedMessage)
+    public function testExceptionsAreThrown(Exception $exception, $expectedMessage)
     {
         // Create articles with the provided data to test the export functionality
         Utility::createTestProduct('SOMENUMBER', true);
