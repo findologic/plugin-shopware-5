@@ -2,12 +2,15 @@
 
 namespace FinSearchUnified\Tests;
 
+use Doctrine\ORM\EntityNotFoundException;
+use Exception;
 use FINDOLOGIC\Export\Helpers\EmptyValueNotAllowedException;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\Helper\Utility;
 use Shopware\Models\Shop\Shop;
+use Shopware\Components\Logger;
 
 class PluginTest extends TestCase
 {
@@ -264,15 +267,60 @@ class PluginTest extends TestCase
         $this->assertSame($expectedCount, $exportedCount);
     }
 
-    public function testEmptyValueNotAllowedExceptionIsThrownInExport()
+    public function exceptionProvider()
+    {
+        return [
+            'EmptyValueNotAllowedException' => [
+                'exception' =>  new EmptyValueNotAllowedException(),
+                'expectedMessage' => sprintf(
+                    'Product with number "%s" could not be exported. ' .
+                    'It appears to have empty values assigned to it. ' .
+                    'If you see this message in your logs, please report this as a bug',
+                    'FINDOLOGICSOMENUMBER'
+                ),
+            ],
+            'EntityNotFoundException' => [
+                'exception' => new EntityNotFoundException('Detail not found'),
+                'expectedMessage' => sprintf(
+                    'Product with ID "%s" could not be exported. ' .
+                    'It appears to have a non existing variant configured in the database. ' .
+                    'Error message: %s',
+                    1,
+                    'Detail not found'
+                ),
+            ],
+            'Exception' => [
+                'exception' => new Exception('General Exception'),
+                'expectedMessage' => sprintf(
+                    'Product with ID "%s" could not be exported. ' .
+                    'Error message: %s',
+                    1,
+                    'General Exception'
+                ),
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider exceptionProvider
+     *
+     * @param Exception $exception
+     * @param $expectedMessage
+     */
+    public function testExceptionsAreThrown(Exception $exception, $expectedMessage)
     {
         // Create articles with the provided data to test the export functionality
         Utility::createTestProduct('SOMENUMBER', true);
         $findologicArticleFactoryMock = $this->createMock(FindologicArticleFactory::class);
         $findologicArticleFactoryMock->expects($this->once())->method('create')->willThrowException(
-            new EmptyValueNotAllowedException()
+            $exception
         );
+        $loggerMock = $this->createMock(Logger::class);
+        $loggerMock->expects($this->once())
+            ->method('error')
+            ->with($expectedMessage);
 
+        Shopware()->Container()->set('pluginlogger', $loggerMock);
         Shopware()->Container()->set('fin_search_unified.article_model_factory', $findologicArticleFactoryMock);
 
         $exported = Utility::runExportAndReturnCount();
