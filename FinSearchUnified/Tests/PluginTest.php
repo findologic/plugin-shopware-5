@@ -9,6 +9,7 @@ use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\Helper\Utility;
+use Shopware\Models\Shop\Shop;
 use Shopware\Components\Logger;
 
 class PluginTest extends TestCase
@@ -193,22 +194,43 @@ class PluginTest extends TestCase
 
     public function crossSellingCategoryProvider()
     {
+        $baseShop = Shopware()->Shop();
+        $subShop = Utility::createSubShop($baseShop);
+
         return [
             'No cross-sell categories configured' => [
                 'crossSellingCategories' => [],
-                'expectedCount' => 1
+                'expectedCount' => 1,
+                'baseShop' => $baseShop,
             ],
             'Article does not exist in cross-sell category configured' => [
                 'crossSellingCategories' => ['Deutsch>Genusswelten'],
-                'expectedCount' => 1
+                'expectedCount' => 1,
+                'baseShop' => $baseShop,
             ],
             'Article exists in one of the cross-sell categories configured' => [
                 'crossSellingCategories' => ['Deutsch>Genusswelten', 'Deutsch>Wohnwelten'],
-                'expectedCount' => 0
+                'expectedCount' => 0,
+                'baseShop' => $baseShop,
             ],
             'Article exists in all of cross-sell categories configured' => [
                 'crossSellingCategories' => ['Deutsch>Genusswelten', 'Deutsch>Wohnwelten', 'Deutsch>Beispiele'],
-                'expectedCount' => 0
+                'expectedCount' => 0,
+                'baseShop' => $baseShop,
+            ],
+            'No cross-sell categories for sub shop' => [
+                'crossSellingCategories' => ['Deutsch>Genusswelten', 'Deutsch>Wohnwelten', 'Deutsch>Beispiele'],
+                'expectedCount' => 1,
+                'baseShop' => $baseShop,
+                'subShop' => $subShop,
+                'subCrossSellingCategories' => [],
+            ],
+            'With cross-sell categories for sub shop' => [
+                'crossSellingCategories' => ['Deutsch>Genusswelten', 'Deutsch>Wohnwelten', 'Deutsch>Beispiele'],
+                'expectedCount' => 0,
+                'baseShop' => $baseShop,
+                'subShop' => $subShop,
+                'subCrossSellingCategories' => ['Deutsch>Beispiele'],
             ],
         ];
     }
@@ -216,14 +238,30 @@ class PluginTest extends TestCase
     /**
      * @dataProvider crossSellingCategoryProvider
      *
-     * @param int[] $crossSellingCategories
+     * @param int[] $baseCrossSellingCategories
      * @param int $expectedCount
+     * @param Shop $baseShop,
+     * @param ?Shop $subShop,
+     * @param int[] $subCrossSellingCategories,
      */
-    public function testArticleExportWithCrossSellingCategories($crossSellingCategories, $expectedCount)
-    {
+    public function testArticleExportWithCrossSellingCategories(
+        $baseCrossSellingCategories,
+        $expectedCount,
+        $baseShop,
+        $subShop = null,
+        $subCrossSellingCategories = []
+    ) {
         $assignedCategories = [8, 9, 10];
         Utility::createTestProduct('SOMENUMBER', true, $assignedCategories);
-        Shopware()->Config()->CrossSellingCategories = $crossSellingCategories;
+
+        Shopware()->Config()->setShop($baseShop);
+        Shopware()->Config()->CrossSellingCategories = $baseCrossSellingCategories;
+
+        if ($subShop) {
+            Shopware()->Config()->setShop($subShop);
+            Shopware()->Config()->CrossSellingCategories = $subCrossSellingCategories;
+        }
+
         $exportedCount = Utility::runExportAndReturnCount();
         unset(Shopware()->Config()->CrossSellingCategories);
         $this->assertSame($expectedCount, $exportedCount);
