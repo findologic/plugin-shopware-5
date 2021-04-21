@@ -1180,6 +1180,30 @@ class FindologicArticleModelTest extends TestCase
         $this->assertEquals(110.00, $price);
     }
 
+    public function testCurrencyFactorIsConsidered()
+    {
+        $article = Utility::createTestProduct('SOMENUMBER', true);
+
+        Shopware()->Shop()->getCurrency()->setFactor(0.5);
+
+        $findologicArticle = $this->articleFactory->create(
+            $article,
+            'ABCD0815',
+            [Shopware()->Shop()->getCustomerGroup()],
+            [],
+            $article->getCategories()->first()
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+        $reflector = new ReflectionClass(Item::class);
+
+        $prices = $reflector->getProperty('price');
+        $prices->setAccessible(true);
+        $price = (float)array_pop($prices->getValue($xmlArticle)->getValues());
+
+        $this->assertEquals(49.67, $price);
+    }
+
     public function articleProvider()
     {
         $articleConfiguration = [
