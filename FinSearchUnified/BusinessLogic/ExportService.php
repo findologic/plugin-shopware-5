@@ -152,7 +152,7 @@ class ExportService
                     $findologicArticles[] = $findologicArticle;
                 }
             } catch (Exception $e) {
-                Shopware()->Container()->get('pluginlogger')->info(
+                Shopware()->Container()->get('pluginlogger')->error(
                     sprintf(
                         'Error while exporting the product with number "%s"' .
                         'If you see this message in your logs, please report this as a bug' .
@@ -223,12 +223,35 @@ class ExportService
         } catch (EmptyValueNotAllowedException $e) {
             $errorInformation->addError('EmptyValueNotAllowedException');
 
-            Shopware()->Container()->get('pluginlogger')->info(
+            Shopware()->Container()->get('pluginlogger')->error(
                 sprintf(
                     'Product with number "%s" could not be exported. ' .
                     'It appears to have empty values assigned to it. ' .
                     'If you see this message in your logs, please report this as a bug',
                     $shopwareArticle->getMainDetail()->getNumber()
+                )
+            );
+        } catch (EntityNotFoundException $e) {
+            $errorInformation->addError('EntityNotFoundException ' . $e->getMessage());
+
+            Shopware()->Container()->get('pluginlogger')->error(
+                sprintf(
+                    'Product with ID "%s" could not be exported. ' .
+                    'It appears to have a non existing variant configured in the database. ' .
+                    'Error message: %s',
+                    $shopwareArticle->getId(),
+                    $e->getMessage()
+                )
+            );
+        } catch (Exception $e) {
+            $errorInformation->addError('Exception: ' . $e->getMessage());
+
+            Shopware()->Container()->get('pluginlogger')->error(
+                sprintf(
+                    'Product with ID "%s" could not be exported. ' .
+                    'Error message: %s',
+                    $shopwareArticle->getId(),
+                    $e->getMessage()
                 )
             );
         }
