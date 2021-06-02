@@ -1,0 +1,74 @@
+# Shopware 5.6 run on PHP versions >= 7.2
+name: PHPUnit (SW 5.6)
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-versions: ['7.2', '7.3']
+        shopware-versions: ['5.6']
+
+    name: Shopware ${{ matrix.shopware-versions }} Test (PHP ${{ matrix.php-versions }})
+    steps:
+      - uses: mirromutth/mysql-action@v1.1
+        with:
+          mysql version: '5.7'
+          mysql database: shopware
+          mysql root password: shopware
+
+      - uses: actions/checkout@v2
+        with:
+          path: plugin-shopware-5
+
+      - name: Setup PHP with Composer 2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: mbstring, dom, gd, pdo_mysql, zip
+          coverage: xdebug
+          tools: composer:v2
+
+      - name: Validate dependencies
+        run: |
+          cd plugin-shopware-5/FinSearchUnified
+          composer validate
+
+      - name: Clone Shopware repository
+        uses: actions/checkout@v2
+        with:
+          repository: shopware/shopware
+          ref: ${{ matrix.shopware-versions }}
+          path: shopware
+
+      - name: Install Shopware
+        run: |
+          cd shopware
+          ant -f build/build.xml -Dapp.host=localhost -Ddb.user=root -Ddb.password=shopware -Ddb.host=127.0.0.1 -Ddb.name=shopware build-unit
+
+      - name: Install Plugin dependencies
+        run: |
+          cd plugin-shopware-5/FinSearchUnified
+          composer install --no-interaction
+
+      - name: Install Plugin
+        run: |
+          mv plugin-shopware-5/FinSearchUnified shopware/custom/plugins
+          cd shopware
+          php bin/console sw:plugin:refresh
+          php bin/console sw:plugin:install FinSearchUnified
+          php bin/console sw:plugin:activate FinSearchUnified
+          php bin/console sw:cache:clear
+
+      - name: Run test suite
+        run: |
+          cd shopware/custom/plugins/FinSearchUnified
+          composer test
