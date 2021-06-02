@@ -16,6 +16,14 @@ jobs:
       matrix:
         php-versions: ['7.4']
         shopware-versions: ['5.7']
+    env:
+      DB_USER: shopware
+      DB_PASSWORD: shopware
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_NAME: shopware
+      SW_HOST: localhost
+      SW_BASE_PATH: ''
 
     name: Shopware ${{ matrix.shopware-versions }} Test (PHP ${{ matrix.php-versions }})
     steps:
@@ -52,7 +60,7 @@ jobs:
       - name: Install Shopware
         run: |
           cd shopware
-          ant -f build/build.xml -Dapp.host=localhost -Ddb.user=root -Ddb.password=shopware -Ddb.host=127.0.0.1 -Ddb.name=shopware build-unit
+          make test-phpunit
 
       - name: Install Plugin dependencies
         run: |
