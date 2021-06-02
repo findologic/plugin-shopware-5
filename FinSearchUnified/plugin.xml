@@ -4,11 +4,11 @@
     <label lang="de">Findologic - Search &amp; Navigation Platform</label>
     <label lang="en">Findologic - Search &amp; Navigation Platform</label>
 
-    <version>11.1.0</version>
+    <version>11.2.0</version>
     <link>https://www.findologic.com/</link>
     <author>FINDOLOGIC GmbH</author>
     <support>https://www.findologic.com/</support>
-    <copyright>Copyright (c) 2015 - 2020, FINDOLOGIC GmbH</copyright>
+    <copyright>Copyright (c) 2015 - 2021, FINDOLOGIC GmbH</copyright>
     <license>GPL-3.0-or-later</license>
     <description lang="de">
         <![CDATA[
@@ -59,6 +59,29 @@
         ]]>
     </description>
     <compatibility minVersion="5.2.0" />
+    <changelog version="11.2.0">
+        <changes lang="de">
+            SW-597 - Wenn ein Produkt beim exportieren scheitert, wird dieses Produkt nun übersprungen. Der Fehler
+            wird in das Plugin-Log geschrieben.
+            SW-598 - Cross-Selling Kategorien können nun per Subshop gespeichert werden.
+            SW-603 - Der konfigurierte Preis-Faktor wird nun beim Export bei der Preiskalkulation berücksichtigt;
+        </changes>
+        <changes lang="en">
+            SW-597 - In case a product fails while exporting, the product will now be skipped. The error will
+            be logged in the plugin log.;
+            SW-598 - Cross-Selling categories can now be configured per subshop.;
+            SW-603 - The configured price-factor is now taken into account, when exporting the product price.;
+        </changes>
+    </changelog>
+    <changelog version="11.1.1">
+        <changes lang="de">
+            SW-577 - Ein Fehler wurde behoben, wodurch Filter nicht korrekt kodiert wurden, wenn diese "+" Zeichen
+            beinhalteten.;
+        </changes>
+        <changes lang="en">
+            SW-577 - Fixed a bug that caused a wrong encoding, when a filter contained "+" signs.;
+        </changes>
+    </changelog>
     <changelog version="11.1.0">
         <changes lang="de">
             SW-434 - Wenn Pseudo-Verkäufe für ein Produkt konfiguriert sind, wird der Export diese

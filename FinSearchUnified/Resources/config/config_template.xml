@@ -27,7 +27,7 @@
             <description lang="de">Aktiviert die FINDOLOGIC Suche für Kategorieseiten.</description>
             <description lang="en">Activate the FINDOLOGIC search provider for category pages.</description>
         </element>
-        <element type="combo">
+        <element type="combo" scope="shop">
             <name>CrossSellingCategories</name>
             <label lang="de">Cross-Selling Kategorien (Produkte in diesen Kategorien werden vom Export ausgeschlossen)</label>
             <label lang="en">Cross-Selling categories (products in these categories are excluded from the export)</label>
