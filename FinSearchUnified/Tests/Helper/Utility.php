@@ -8,6 +8,7 @@ use FinSearchUnified\BusinessLogic\ExportErrorInformation;
 use FinSearchUnified\ShopwareProcess;
 use Shopware\Components\Api\Manager;
 use Shopware\Models\Article\Article;
+use Shopware\Models\Shop\Shop;
 use SimpleXMLElement;
 use Zend_Cache_Exception;
 
@@ -59,6 +60,31 @@ class Utility
             $resource = Manager::getResource('Article');
 
             return $resource->create($testArticle);
+        } catch (Exception $e) {
+            echo sprintf('Exception: %s', $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * @param Shop $baseShop
+     * @return Shop|null
+     */
+    public function createSubShop(Shop $baseShop)
+    {
+        $subShop = [
+            'name' => 'SubShop',
+            'categoryId' => $baseShop->getCategory()->getId(),
+            'localeId' => $baseShop->getLocale()->getId(),
+            'currencyId' => $baseShop->getCurrency()->getId(),
+            'customerGroupId' => $baseShop->getCustomerGroup()->getId(),
+        ];
+
+        try {
+            $resource = Manager::getResource('Shop');
+
+            return $resource->create($subShop);
         } catch (Exception $e) {
             echo sprintf('Exception: %s', $e->getMessage());
         }

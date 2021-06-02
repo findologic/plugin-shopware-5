@@ -190,7 +190,7 @@ class FindologicArticleModel
             $mainProductNumber = $productNumberService->getMainProductNumberById($this->baseArticle->getId());
             $this->productStruct = $productService->get($mainProductNumber, $context);
         } catch (RuntimeException $exception) {
-            $this->logger->warn(
+            $this->logger->error(
                 sprintf(
                     'Skipped product with ID %d: %s',
                     $this->baseArticle->getId(),
@@ -314,6 +314,7 @@ class FindologicArticleModel
             }
         }
 
+        $currency = Shopware()->Shop()->getCurrency();
         $tax = $this->baseArticle->getTax();
 
         // searching the loweset price for each customer group
@@ -329,6 +330,8 @@ class FindologicArticleModel
             if ($userGroup->getTax()) {
                 $price *= (1 + (float)$tax->getTax() / 100);
             }
+
+            $price *= $currency->getFactor();
 
             if (!StaticHelper::isEmpty($price)) {
                 $xmlPrice = new Price();

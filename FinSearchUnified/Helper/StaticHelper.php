@@ -12,6 +12,7 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\SmartDidYouMea
 use FinSearchUnified\Components\ConfigLoader;
 use FinSearchUnified\Components\Environment;
 use FinSearchUnified\Constants;
+use Shopware;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Bundle\StoreFrontBundle;
 use SimpleXMLElement;
@@ -363,14 +364,24 @@ class StaticHelper
      */
     public static function isVersionLowerThan($version)
     {
-        $shopwareVersion = getenv('SHOPWARE_VERSION') ?: '5.6.7';
-
-        // When in development mode, the shopware version can return `___VERSION___` so we use a more recent version
-        // for comparison instead
-        if ($shopwareVersion === '___VERSION___') {
-            $shopwareVersion = '5.6.7';
-        }
+        $shopwareVersion = static::getShopwareVersion();
 
         return version_compare($shopwareVersion, $version, '<');
+    }
+
+    public static function getShopwareVersion()
+    {
+        $version = null;
+        if (Shopware()->Container()->has('shopware.release.version')) {
+            $version = Shopware()->Container()->get('shopware.release.version');
+        } elseif (defined('\Shopware::VERSION')) {
+            $version = Shopware::VERSION;
+        }
+
+        if (!$version || $version === '___VERSION___') {
+            $version = getenv('SHOPWARE_VERSION') ?: '5.6.9';
+        }
+
+        return ltrim($version, 'v');
     }
 }

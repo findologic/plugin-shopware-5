@@ -6,6 +6,7 @@ use Exception;
 use FINDOLOGIC\Export\Data\Item;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use FinSearchUnified\BusinessLogic\Models\FindologicArticleModel;
+use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
 use ReflectionClass;
@@ -1179,6 +1180,30 @@ class FindologicArticleModelTest extends TestCase
         $this->assertEquals(110.00, $price);
     }
 
+    public function testCurrencyFactorIsConsidered()
+    {
+        $article = Utility::createTestProduct('SOMENUMBER', true);
+
+        Shopware()->Shop()->getCurrency()->setFactor(0.5);
+
+        $findologicArticle = $this->articleFactory->create(
+            $article,
+            'ABCD0815',
+            [Shopware()->Shop()->getCustomerGroup()],
+            [],
+            $article->getCategories()->first()
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+        $reflector = new ReflectionClass(Item::class);
+
+        $prices = $reflector->getProperty('price');
+        $prices->setAccessible(true);
+        $price = (float)array_pop($prices->getValue($xmlArticle)->getValues());
+
+        $this->assertEquals(49.67, $price);
+    }
+
     public function articleProvider()
     {
         $articleConfiguration = [
@@ -1299,7 +1324,7 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testMultiByteCharactersAreExportedInLowercase($articleConfiguration)
     {
-        if (getenv('SHOPWARE_TAG') === '5.2.0') {
+        if (StaticHelper::getShopwareVersion() === '5.2.0') {
             $this->markTestSkipped('Deactivated until the fix in SW-528');
         }
 
@@ -1408,7 +1433,7 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testCategoryNamesWithSlashesAreExportedCorrectly($articleConfiguration)
     {
-        if (getenv('SHOPWARE_TAG') === '5.2.0') {
+        if (StaticHelper::getShopwareVersion() === '5.2.0') {
             $this->markTestSkipped('Deactivated until the fix in SW-528');
         }
 
