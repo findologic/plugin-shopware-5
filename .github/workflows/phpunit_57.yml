@@ -59,7 +59,7 @@ jobs:
       - name: Install Shopware
         run: |
           cd shopware
-          make test-phpunit
+          make init
 
       - name: Install Plugin dependencies
         run: |
