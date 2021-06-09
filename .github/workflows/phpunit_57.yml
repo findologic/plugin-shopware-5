@@ -16,7 +16,7 @@ jobs:
         shopware-versions: ['5.7']
     runs-on: ubuntu-latest
     env:
-      DB_USER: shopware
+      DB_USER: root
       DB_PASSWORD: shopware
       DB_HOST: 127.0.0.1
       DB_PORT: 3306
