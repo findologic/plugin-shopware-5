@@ -18,6 +18,8 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\V
 use FinSearchUnified\Tests\TestCase;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Message\Response as LegacyResponse;
+use GuzzleHttp\Subscriber\Mock;
 use GuzzleHttp\Psr7\Response;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
@@ -141,14 +143,24 @@ class ImageFacetHandlerTest extends TestCase
 
         foreach ($filterData as $filterDatum) {
             if ($filterDatum['image']) {
-                $responses[] = new Response($filterDatum['status']);
+                $responses[] = class_exists(LegacyResponse::class) ?
+                    new LegacyResponse($filterDatum['status']) :
+                    new Response($filterDatum['status']);
             }
         }
 
-        $mock = new MockHandler($responses);
-        $handlerStack = HandlerStack::create($mock);
+        if (!class_exists(Mock::class)) {
+            $mock = new MockHandler($responses);
+            $handlerStack = HandlerStack::create($mock);
 
-        $client = new Client(['handler' => $handlerStack]);
+            $client = new Client(['handler' => $handlerStack]);
+        } else {
+            // Legacy Guzzle mocking
+            $client = new Client();
+
+            $mock = new Mock($responses);
+            $client->getEmitter()->attach($mock);
+        }
 
         $guzzleFactoryMock = $this->createMock(GuzzleFactory::class);
         $guzzleFactoryMock->method('createClient')->willReturn($client);
