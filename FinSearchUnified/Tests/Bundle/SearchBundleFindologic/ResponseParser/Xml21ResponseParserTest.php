@@ -19,7 +19,7 @@ use FinSearchUnified\Tests\TestCase;
 
 class Xml21ResponseParserTest extends TestCase
 {
-    protected function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
         Utility::sResetArticles();

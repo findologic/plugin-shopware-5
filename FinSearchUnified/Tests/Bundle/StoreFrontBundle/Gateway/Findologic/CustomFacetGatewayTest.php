@@ -26,7 +26,7 @@ use Zend_Cache_Exception;
 
 class CustomFacetGatewayTest extends TestCase
 {
-    protected function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
 

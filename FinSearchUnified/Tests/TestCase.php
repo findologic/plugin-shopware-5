@@ -40,7 +40,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
     /**
      * @throws Exception
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::$pluginManager = Shopware()->Container()->get('shopware_plugininstaller.plugin_manager');
         $loadedPlugins = static::$ensureLoadedPlugins;
@@ -61,11 +61,21 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
     /**
      * @throws Exception
      */
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass(): void
     {
         self::restorePluginStates();
         self::$pluginManager = null;
         Shopware()->Models()->clear();
+    }
+
+    public static function assertStringContainsString(string $needle, string $haystack, string $message = ''): void
+    {
+        if (method_exists(parent::class, 'assertStringContainsString')) {
+            parent::assertStringContainsString($needle, $haystack, $message);
+            return;
+        }
+
+        parent::assertContains($needle, $haystack, $message);
     }
 
     /**

@@ -15,14 +15,14 @@ use Zend_Cache_Exception;
 
 class WidgetsTest extends SubscriberTestCase
 {
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
 
         Shopware()->Container()->get('config_writer')->save('ActivateFindologic', true);
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         unset(Shopware()->Session()->isSearchPage, Shopware()->Session()->isCategoryPage);
         parent::tearDown();

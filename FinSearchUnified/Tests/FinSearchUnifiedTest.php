@@ -21,7 +21,7 @@ class FinSearchUnifiedTest extends TestCase
     /**
      * @throws Exception
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->plugin = new FinSearchUnified(true, 'FinSearchUnified');
         parent::setUp();
@@ -136,7 +136,7 @@ class FinSearchUnifiedTest extends TestCase
         $this->plugin->deactivate($context);
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         Shopware()->Container()->reset('shopware_plugininstaller.plugin_manager');
         Shopware()->Container()->load('shopware_plugininstaller.plugin_manager');

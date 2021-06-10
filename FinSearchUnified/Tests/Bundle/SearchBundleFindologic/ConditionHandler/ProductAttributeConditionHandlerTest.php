@@ -33,7 +33,7 @@ class ProductAttributeConditionHandlerTest extends TestCase
     /**
      * @throws Exception
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -168,7 +168,7 @@ class ProductAttributeConditionHandlerTest extends TestCase
         static::assertArrayHasKey($filterName, $params['attrib']);
         static::assertSame($filterValue, $params['attrib'][$filterName]['']);
 
-        static::assertContains(
+        static::assertStringContainsString(
             'attrib%5Bblub%5D%5B%5D=this+%2B%22a_%3B%23+%2A%3C%2C+%2B',
             $this->querybuilder->getRequestUrl($config)
         );

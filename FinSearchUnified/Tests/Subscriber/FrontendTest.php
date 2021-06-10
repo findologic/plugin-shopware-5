@@ -14,7 +14,7 @@ use Shopware_Controllers_Widgets_Listing;
 
 class FrontendTest extends SubscriberTestCase
 {
-    protected function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
 

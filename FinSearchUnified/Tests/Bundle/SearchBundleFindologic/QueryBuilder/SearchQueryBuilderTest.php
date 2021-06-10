@@ -27,7 +27,7 @@ class SearchQueryBuilderTest extends TestCase
      */
     private $config;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -39,7 +39,7 @@ class SearchQueryBuilderTest extends TestCase
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
         unset($_SERVER['REMOTE_ADDR']);
