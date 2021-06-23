@@ -300,7 +300,7 @@ class FrontendTest extends SubscriberTestCase
             ->willReturn($request);
         $subject->method('redirect')
             ->with($this->callback(function ($requestUrl) use ($vendor) {
-                Assert::assertContains(
+                $this->assertStringContainsString(
                     http_build_query(['vendor' => rawurldecode($vendor)]),
                     $requestUrl
                 );

@@ -38,12 +38,9 @@ class FinSearchUnifiedTest extends TestCase
     {
         $context = $this->createMock(UninstallContext::class);
 
-        $context->expects($this->at(0))
+        $context->expects($this->exactly(2))
             ->method('scheduleClearCache')
-            ->with([UninstallContext::CACHE_TAG_THEME]);
-        $context->expects($this->at(1))
-            ->method('scheduleClearCache')
-            ->with(UninstallContext::CACHE_LIST_DEFAULT);
+            ->withConsecutive([[UninstallContext::CACHE_TAG_THEME]], [UninstallContext::CACHE_LIST_DEFAULT]);
 
         $this->plugin->uninstall($context);
     }

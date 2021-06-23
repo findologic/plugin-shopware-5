@@ -5,6 +5,7 @@ namespace FinSearchUnified\Tests\Components;
 use Enlight_Components_Session_Namespace as Session;
 use Enlight_Controller_Request_RequestHttp as RequestHttp;
 use FinSearchUnified\Components\ConfigLoader;
+use FinSearchUnified\Components\Environment;
 use FinSearchUnified\Tests\TestCase;
 
 class EnvironmentTest extends TestCase
@@ -86,7 +87,6 @@ class EnvironmentTest extends TestCase
 
         // Create Mock object for Shopware Session
         $session = $this->getMockBuilder(Session::class)
-            ->setMethods(['offsetGet'])
             ->getMock();
         $session->expects($this->once())
             ->method('offsetGet')
@@ -102,6 +102,7 @@ class EnvironmentTest extends TestCase
 
         // Assign mocked session variable to application container
         Shopware()->Container()->set('session', $session);
+        /** @var Environment $environment */
         $environment = Shopware()->Container()->get('fin_search_unified.environment');
         $isStaging = $environment->isStaging($request);
         $this->assertSame($expected, $isStaging);

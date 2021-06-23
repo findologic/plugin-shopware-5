@@ -22,6 +22,8 @@ use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
  */
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
+    use OldPhpUnitVersionAware;
+
     /**
      * @var array
      */
@@ -66,16 +68,6 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         self::restorePluginStates();
         self::$pluginManager = null;
         Shopware()->Models()->clear();
-    }
-
-    public static function assertStringContainsString(string $needle, string $haystack, string $message = ''): void
-    {
-        if (method_exists(parent::class, 'assertStringContainsString')) {
-            parent::assertStringContainsString($needle, $haystack, $message);
-            return;
-        }
-
-        parent::assertContains($needle, $haystack, $message);
     }
 
     /**
