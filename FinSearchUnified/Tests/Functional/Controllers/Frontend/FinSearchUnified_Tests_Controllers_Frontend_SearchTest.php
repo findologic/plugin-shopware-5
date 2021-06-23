@@ -199,12 +199,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         $mockQueryBuilderFactory->expects($this->once())
             ->method('createProductQuery')
             ->with($criteria)
-            ->willReturnCallback(function () use ($mockedQuery) {
-                dump(new \Exception());
-                return $mockedQuery;
-            });
-
-        dump($mockQueryBuilderFactory);
+            ->willReturn($mockedQuery);
 
         /** @var SearchBundleDBAL\ProductNumberSearch|MockObject $originalService */
         $originalService = $this->createMock(SearchBundleDBAL\ProductNumberSearch::class);
