@@ -10,6 +10,7 @@ use FinSearchUnified\Subscriber\Widgets;
 use ReflectionException;
 use Shopware\Components\Routing\Matchers\RewriteMatcher;
 use Shopware_Controllers_Widgets_Listing;
+use Shopware_Components_Config;
 use Zend_Cache_Core;
 use Zend_Cache_Exception;
 
@@ -289,6 +290,10 @@ class WidgetsTest extends SubscriberTestCase
      */
     public function testHomePage($referer)
     {
+        /** @var Shopware_Components_Config $config */
+        $config = Shopware()->Container()->get('Shopware_Components_Config');
+        $config->offsetSet('ignore_trailing_slash', false);
+
         $request = new Enlight_Controller_Request_RequestHttp();
         $request->setModuleName('frontend')->setHeader('referer', $referer);
 
