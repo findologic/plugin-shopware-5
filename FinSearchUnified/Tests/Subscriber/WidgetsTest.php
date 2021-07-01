@@ -290,9 +290,11 @@ class WidgetsTest extends SubscriberTestCase
      */
     public function testHomePage($referer)
     {
-        /** @var Shopware_Components_Config $config */
-        $config = Shopware()->Container()->get('Shopware_Components_Config');
-        $config->offsetSet('ignore_trailing_slash', false);
+        if (Shopware()->Container()->has('Shopware_Components_Config')) {
+            /** @var Shopware_Components_Config $config */
+            $config = Shopware()->Container()->get('Shopware_Components_Config');
+            $config->offsetSet('ignore_trailing_slash', false);
+        }
 
         $request = new Enlight_Controller_Request_RequestHttp();
         $request->setModuleName('frontend')->setHeader('referer', $referer);
