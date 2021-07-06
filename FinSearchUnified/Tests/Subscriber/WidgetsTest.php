@@ -31,6 +31,7 @@ class WidgetsTest extends SubscriberTestCase
 
         /** @var Shop $shop */
         $shop = Shopware()->Container()->get('shop');
+        dump($shop->getId());
         Shopware()->Config()->setShop($shop);
 
         $config = Shopware()->Container()->get('config');
