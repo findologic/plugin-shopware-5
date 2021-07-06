@@ -8,9 +8,11 @@ use Enlight_Event_EventArgs;
 use Enlight_Hook_HookArgs;
 use FinSearchUnified\Subscriber\Widgets;
 use ReflectionException;
+use Shopware\Components\Routing\Context;
 use Shopware\Components\Routing\Matchers\RewriteMatcher;
 use Shopware\Models\Shop\Shop;
 use Shopware_Controllers_Widgets_Listing;
+use Shopware_Components_Config;
 use Zend_Cache_Core;
 use Zend_Cache_Exception;
 
