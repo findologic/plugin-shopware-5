@@ -59,6 +59,16 @@
         ]]>
     </description>
     <compatibility minVersion="5.2.0" />
+    <changelog version="11.3.0">
+        <changes lang="de">
+            SW-555 - Shopware 5.7.0 wird nun unterstützt;
+            SW-615 - Ausgewählte Farbfilter zeigen nun den Namen der Farbe neben der Farbe an;
+        </changes>
+        <changes lang="en">
+            SW-555 - Added support for Shopware 5.7.0;
+            SW-615 - Selected color filters will now show their name next to the color;
+        </changes>
+    </changelog>
     <changelog version="11.2.0">
         <changes lang="de">
             SW-597 - Wenn ein Produkt beim exportieren scheitert, wird dieses Produkt nun übersprungen. Der Fehler
