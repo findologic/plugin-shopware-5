@@ -25,20 +25,6 @@ class WidgetsTest extends SubscriberTestCase
         Shopware()->Container()->get('config_writer')->save('ActivateFindologic', true);
     }
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        /** @var Shop $shop */
-        $shop = Shopware()->Container()->get('shop');
-        Shopware()->Config()->setShop($shop);
-
-        /** @var Shopware_Components_Config $config */
-        $config = Shopware()->Container()->get('config');
-        $config->setShop($shop);
-        $config->offsetSet('ignore_trailing_slash', false);
-    }
-
     protected function tearDown(): void
     {
         unset(Shopware()->Session()->isSearchPage, Shopware()->Session()->isCategoryPage);
@@ -294,38 +280,6 @@ class WidgetsTest extends SubscriberTestCase
                 'referer' => 'https://example.com/shop',
             ]
         ];
-    }
-
-    /**
-     * @dataProvider homePageProvider
-     *
-     * @param string $referer
-     *
-     * @throws ReflectionException
-     * @throws Zend_Cache_Exception
-     */
-    public function testHomePage($referer)
-    {
-        $request = new Enlight_Controller_Request_RequestHttp();
-        $request->setModuleName('frontend')->setHeader('referer', $referer);
-
-        $cacheMock = $this->createMock(Zend_Cache_Core::class);
-        $cacheMock->expects($this->once())->method('load')->willReturn(false);
-        $cacheMock->expects($this->once())->method('save');
-
-        $subject = $this->getControllerInstance(Shopware_Controllers_Widgets_Listing::class, $request);
-
-        $response = new Enlight_Controller_Response_ResponseHttp();
-        $args = new Enlight_Event_EventArgs(['subject' => $subject, 'request' => $request, 'response' => $response]);
-
-        $widget = new Widgets($cacheMock, Shopware()->Container()->get('shopware.routing.matchers.rewrite_matcher'));
-        $widget->onWidgetsPreDispatch($args);
-
-        $isCategoryPage = Shopware()->Session()->isCategoryPage;
-        $isSearchPage = Shopware()->Session()->isSearchPage;
-
-        $this->assertFalse($isSearchPage, 'Expected isSearchPage to be false');
-        $this->assertFalse($isCategoryPage, 'Expected isCategoryPage to be false');
     }
 
     /**

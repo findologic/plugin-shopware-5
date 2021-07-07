@@ -1005,7 +1005,6 @@ class FindologicArticleModelTest extends TestCase
      */
     public function testTranslatedBooleanProperties($highlight, $locale, $expectedValue)
     {
-        $this->markTestSkipped();
         $articleConfiguration = [
             'name' => 'Sample Article',
             'active' => true,
