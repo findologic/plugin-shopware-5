@@ -31,10 +31,11 @@ class WidgetsTest extends SubscriberTestCase
 
         /** @var Shop $shop */
         $shop = Shopware()->Container()->get('shop');
-        dump($shop->getId());
         Shopware()->Config()->setShop($shop);
 
+        /** @var Shopware_Components_Config $config */
         $config = Shopware()->Container()->get('config');
+        $config->setShop($shop);
         $config->offsetSet('ignore_trailing_slash', false);
     }
 
