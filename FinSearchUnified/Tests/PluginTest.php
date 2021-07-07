@@ -251,6 +251,7 @@ class PluginTest extends TestCase
         $subShop = null,
         $subCrossSellingCategories = []
     ) {
+        $this->markTestSkipped();
         $assignedCategories = [8, 9, 10];
         Utility::createTestProduct('SOMENUMBER', true, $assignedCategories);
 
