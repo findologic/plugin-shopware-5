@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Tests\BusinessLogic\Models;
 
+use Doctrine\ORM\EntityManager;
 use Exception;
 use FINDOLOGIC\Export\Data\Item;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
@@ -24,13 +25,13 @@ class FindologicArticleModelTest extends TestCase
     /** @var FindologicArticleFactory */
     private $articleFactory;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->articleFactory = new FindologicArticleFactory();
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
         Utility::sResetArticles();
@@ -46,8 +47,17 @@ class FindologicArticleModelTest extends TestCase
     private function createTestProduct(array $testProductConfiguration)
     {
         try {
-            /** @var ArticleResource $resource */
-            $resource = Manager::getResource('Article');
+            $manager = Shopware()->Models();
+
+            $resource = new ArticleResource();
+            $resource->setManager($manager);
+
+            if (!$manager->isOpen()) {
+                $manager->create(
+                    $manager->getConnection(),
+                    $manager->getConfiguration()
+                );
+            }
 
             return $resource->create($testProductConfiguration);
         } catch (Exception $e) {
@@ -1271,7 +1281,7 @@ class FindologicArticleModelTest extends TestCase
             /** @var ArticleResource $resource */
             $resource = Manager::getResource('Category');
 
-            $resource->create([
+            $article = $resource->create([
                 'id' => 1337,
                 'name' => 'Öl',
                 'parent' => '3'
@@ -1288,7 +1298,7 @@ class FindologicArticleModelTest extends TestCase
             'categories' => [
                 ['id' => 3],
                 ['id' => 5],
-                ['id' => 1337]
+                ['id' => $article->getId()]
             ],
             'images' => [
                 ['link' => 'https://via.placeholder.com/300/F00/fff.png'],

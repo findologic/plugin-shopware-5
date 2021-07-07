@@ -21,7 +21,7 @@ class FinSearchUnifiedTest extends TestCase
     /**
      * @throws Exception
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->plugin = new FinSearchUnified(true, 'FinSearchUnified');
         parent::setUp();
@@ -38,12 +38,9 @@ class FinSearchUnifiedTest extends TestCase
     {
         $context = $this->createMock(UninstallContext::class);
 
-        $context->expects($this->at(0))
+        $context->expects($this->exactly(2))
             ->method('scheduleClearCache')
-            ->with([UninstallContext::CACHE_TAG_THEME]);
-        $context->expects($this->at(1))
-            ->method('scheduleClearCache')
-            ->with(UninstallContext::CACHE_LIST_DEFAULT);
+            ->withConsecutive([[UninstallContext::CACHE_TAG_THEME]], [UninstallContext::CACHE_LIST_DEFAULT]);
 
         $this->plugin->uninstall($context);
     }
@@ -136,7 +133,7 @@ class FinSearchUnifiedTest extends TestCase
         $this->plugin->deactivate($context);
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         Shopware()->Container()->reset('shopware_plugininstaller.plugin_manager');
         Shopware()->Container()->load('shopware_plugininstaller.plugin_manager');

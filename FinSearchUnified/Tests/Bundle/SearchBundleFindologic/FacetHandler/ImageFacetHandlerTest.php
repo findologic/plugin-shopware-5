@@ -7,6 +7,7 @@ use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\LabelTextFilter as ApiLabel
 use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\RangeSliderFilter as ApiRangeSliderFilter;
 use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\SelectDropdownFilter as ApiSelectDropdownFilter;
 use FINDOLOGIC\Api\Responses\Xml21\Properties\Filter\VendorImageFilter as ApiVendorImageFilter;
+use FINDOLOGIC\GuzzleHttp\Handler\MockHandler;
 use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\ImageFacetHandler;
@@ -16,8 +17,10 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\V
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\VendorImageFilter;
 use FinSearchUnified\Tests\TestCase;
 use GuzzleHttp\Client;
-use GuzzleHttp\Message\Response;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Message\Response as LegacyResponse;
 use GuzzleHttp\Subscriber\Mock;
+use GuzzleHttp\Psr7\Response;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\Facet\ProductAttributeFacet;
@@ -36,7 +39,7 @@ class ImageFacetHandlerTest extends TestCase
             'Filter with "label" type' => [ApiLabelTextFilter::class, false],
             'Filter with "image" type' => [ApiVendorImageFilter::class, true],
             'Filter with "range-slider" type' => [ApiRangeSliderFilter::class, false],
-            'Filter with "color" type' => [ApiColorPickerFilter::class, false]
+            'Filter with "color" type' => [ApiColorPickerFilter::class, false],
         ];
     }
 
@@ -44,7 +47,7 @@ class ImageFacetHandlerTest extends TestCase
      * @dataProvider filterProvider
      *
      * @param string $apiFilter
-     * @param bool $doesSupport
+     * @param bool   $doesSupport
      */
     public function testSupportsFilter($apiFilter, $doesSupport)
     {
@@ -53,7 +56,7 @@ class ImageFacetHandlerTest extends TestCase
         $facetHandler = new ImageFacetHandler(Shopware()->Container()->get('guzzle_http_client_factory'));
         $result = $facetHandler->supportsFilter(Filter::getInstance($filter));
 
-        $this->assertSame($doesSupport, $result);
+        static::assertSame($doesSupport, $result);
     }
 
     public function imageFilterProvider()
@@ -140,17 +143,24 @@ class ImageFacetHandlerTest extends TestCase
 
         foreach ($filterData as $filterDatum) {
             if ($filterDatum['image']) {
-                $responses[] = new Response($filterDatum['status']);
+                $responses[] = class_exists(LegacyResponse::class) ?
+                    new LegacyResponse($filterDatum['status']) :
+                    new Response($filterDatum['status']);
             }
         }
 
-        $client = new Client();
+        if (!class_exists(Mock::class)) {
+            $mock = new MockHandler($responses);
+            $handlerStack = HandlerStack::create($mock);
 
-        // Create a mock subscriber and queue responses.
-        $mock = new Mock($responses);
+            $client = new Client(['handler' => $handlerStack]);
+        } else {
+            // Legacy Guzzle mocking
+            $client = new Client();
 
-        // Add the mock subscriber to the client.
-        $client->getEmitter()->attach($mock);
+            $mock = new Mock($responses);
+            $client->getEmitter()->attach($mock);
+        }
 
         $guzzleFactoryMock = $this->createMock(GuzzleFactory::class);
         $guzzleFactoryMock->method('createClient')->willReturn($client);

@@ -22,6 +22,8 @@ use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
  */
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
+    use OldPhpUnitVersionAware;
+
     /**
      * @var array
      */
@@ -40,7 +42,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
     /**
      * @throws Exception
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::$pluginManager = Shopware()->Container()->get('shopware_plugininstaller.plugin_manager');
         $loadedPlugins = static::$ensureLoadedPlugins;
@@ -61,7 +63,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
     /**
      * @throws Exception
      */
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass(): void
     {
         self::restorePluginStates();
         self::$pluginManager = null;

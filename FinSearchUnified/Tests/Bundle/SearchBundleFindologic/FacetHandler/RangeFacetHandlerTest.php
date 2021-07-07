@@ -25,7 +25,7 @@ use SimpleXMLElement;
 
 class RangeFacetHandlerTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         $mockConfig = $this->getMockBuilder(Config::class)
             ->setMethods(['get'])
@@ -38,7 +38,7 @@ class RangeFacetHandlerTest extends TestCase
         Shopware()->Container()->set('config', $mockConfig);
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
         Shopware()->Container()->reset('config');

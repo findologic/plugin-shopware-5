@@ -14,7 +14,7 @@ use Shopware_Controllers_Widgets_Listing;
 
 class FrontendTest extends SubscriberTestCase
 {
-    protected function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
 
@@ -300,7 +300,7 @@ class FrontendTest extends SubscriberTestCase
             ->willReturn($request);
         $subject->method('redirect')
             ->with($this->callback(function ($requestUrl) use ($vendor) {
-                Assert::assertContains(
+                $this->assertStringContainsString(
                     http_build_query(['vendor' => rawurldecode($vendor)]),
                     $requestUrl
                 );
