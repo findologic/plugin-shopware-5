@@ -306,7 +306,7 @@ class WidgetsTest extends SubscriberTestCase
      */
     public function testHomePage($referer)
     {
-        $this->markTestSkipped('Skipped due to issues with Shopware 5.7');
+        $this->markTestSkipped('Skipped due to issues with Shopware 5.7 - see SW-622');
 
         $request = new Enlight_Controller_Request_RequestHttp();
         $request->setModuleName('frontend')->setHeader('referer', $referer);

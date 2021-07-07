@@ -164,7 +164,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
         array $expectedText,
         $expectedLink
     ) {
-        $this->markTestSkipped('Skipped due to issues with Shopware 5.7');
+        $this->markTestSkipped('Skipped due to issues with Shopware 5.7 - see SW-622');
 
         $data = '<?xml version="1.0" encoding="UTF-8"?><searchResult></searchResult>';
         $xmlResponse = new SimpleXMLElement($data);
