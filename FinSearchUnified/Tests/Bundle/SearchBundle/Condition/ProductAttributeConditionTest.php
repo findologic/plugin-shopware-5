@@ -7,6 +7,24 @@ use FinSearchUnified\Tests\TestCase;
 
 class ProductAttributeConditionTest extends \FinSearchUnified\Tests\Subscriber\SubscriberTestCase
 {
+    public function homePageProvider()
+    {
+        return [
+            'Referer is https://example.com/' => [
+                'referer' => 'https://example.com/',
+            ],
+            'Referer is https://example.com' => [
+                'referer' => 'https://example.com',
+            ],
+            'Referer is https://example.com/shop/' => [
+                'referer' => 'https://example.com/shop/',
+            ],
+            'Referer is https://example.com/shop' => [
+                'referer' => 'https://example.com/shop',
+            ]
+        ];
+    }
+
     /**
      * @dataProvider homePageProvider
      *

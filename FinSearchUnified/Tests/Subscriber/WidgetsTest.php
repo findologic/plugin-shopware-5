@@ -264,24 +264,6 @@ class WidgetsTest extends SubscriberTestCase
         $this->assertEquals($expectedIsCategoryPage, $isCategoryPage);
     }
 
-    public function homePageProvider()
-    {
-        return [
-            'Referer is https://example.com/' => [
-                'referer' => 'https://example.com/',
-            ],
-            'Referer is https://example.com' => [
-                'referer' => 'https://example.com',
-            ],
-            'Referer is https://example.com/shop/' => [
-                'referer' => 'https://example.com/shop/',
-            ],
-            'Referer is https://example.com/shop' => [
-                'referer' => 'https://example.com/shop',
-            ]
-        ];
-    }
-
     /**
      * @throws ReflectionException
      * @throws Zend_Cache_Exception
