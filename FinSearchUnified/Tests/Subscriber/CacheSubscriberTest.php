@@ -12,7 +12,7 @@ use function property_exists;
 
 class CacheSubscriberTest extends SubscriberTestCase
 {
-    protected function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
         unset($_SERVER['REQUEST_METHOD']);

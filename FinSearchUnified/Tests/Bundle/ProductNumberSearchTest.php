@@ -37,6 +37,7 @@ use Shopware\Bundle\SearchBundle\FacetResult\ValueListFacetResult;
 use Shopware\Bundle\SearchBundle\FacetResultInterface;
 use Shopware\Bundle\SearchBundleDBAL\ProductNumberSearch as OriginalProductNumberSearch;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
+use Shopware\Bundle\StoreFrontBundle\Struct\Media;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use Shopware_Components_Config as Config;
 use SimpleXMLElement;
@@ -49,7 +50,7 @@ class ProductNumberSearchTest extends TestCase
      */
     private $context;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -76,7 +77,7 @@ class ProductNumberSearchTest extends TestCase
         $this->context = $contextService->getShopContext();
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
 
@@ -358,6 +359,10 @@ class ProductNumberSearchTest extends TestCase
     public function facetWithVendorFilterProvider()
     {
         $xmlResponse = Utility::getDemoXML('demoResponseWithVendorFilter.xml');
+        $firstMedia = new Media();
+        $firstMedia->setFile('https://demo.findologic.com/vendor/anderson_gusikowski_and_barton.png');
+        $secondMedia = new Media();
+        $secondMedia->setFile('https://demo.findologic.com/vendor/bednar_ltd.png');
 
         return [
             'All vendor filter values are displayed along with selected filter' => [
@@ -367,12 +372,22 @@ class ProductNumberSearchTest extends TestCase
                     true,
                     'Hersteller',
                     [
-                        new MediaListItem('Anderson, Gusikowski and Barton', 'Anderson, Gusikowski and Barton', true),
-                        new MediaListItem('Bednar Ltd', 'Bednar Ltd', false)
+                        new MediaListItem(
+                            'Anderson, Gusikowski and Barton',
+                            'Anderson, Gusikowski and Barton',
+                            true,
+                            $firstMedia
+                        ),
+                        new MediaListItem(
+                            'Bednar Ltd',
+                            'Bednar Ltd',
+                            false,
+                            $secondMedia
+                        ),
                     ],
                     'vendor'
                 ),
-                'condition' => new ProductAttributeCondition('vendor', '=', 'Anderson, Gusikowski and Barton')
+                'condition' => new ProductAttributeCondition('vendor', '=', 'Anderson, Gusikowski and Barton'),
             ],
             'All vendor filter values are displayed if no filters are selected' => [
                 'xmlResponse' => $xmlResponse,
@@ -381,13 +396,23 @@ class ProductNumberSearchTest extends TestCase
                     false,
                     'Hersteller',
                     [
-                        new MediaListItem('Anderson, Gusikowski and Barton', 'Anderson, Gusikowski and Barton', false),
-                        new MediaListItem('Bednar Ltd', 'Bednar Ltd', false)
+                        new MediaListItem(
+                            'Anderson, Gusikowski and Barton',
+                            'Anderson, Gusikowski and Barton',
+                            false,
+                            $firstMedia
+                        ),
+                        new MediaListItem(
+                            'Bednar Ltd',
+                            'Bednar Ltd',
+                            false,
+                            $secondMedia
+                        ),
                     ],
                     'vendor'
                 ),
-                'condition' => null
-            ]
+                'condition' => null,
+            ],
         ];
     }
 

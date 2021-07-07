@@ -5,7 +5,7 @@ use Shopware\Components\Api\Manager;
 
 class FinSearchUnified_Tests_Controllers_Frontend_FindologicTest extends Enlight_Components_Test_Plugin_TestCase
 {
-    protected function tearDown()
+    protected function tearDown(): void
     {
         parent::tearDown();
         $this->reset();

@@ -27,5 +27,7 @@
         {else}
             <img class="filter-panel--media-image color--filter-item" title="{$option->getId()|escape:'htmlall'}" src="/custom/plugins/FinSearchUnified/Resources/views/frontend/_public/src/img/no-picture.png" alt="{$option->getId()|escape:'htmlall'}">
         {/if}
+
+        <span class="color--filter-name">{$option->getId()|escape:'htmlall'}</span>
     </label>
 {/block}

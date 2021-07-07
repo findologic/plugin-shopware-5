@@ -8,21 +8,38 @@ use Enlight_Event_EventArgs;
 use Enlight_Hook_HookArgs;
 use FinSearchUnified\Subscriber\Widgets;
 use ReflectionException;
+use Shopware\Components\Routing\Context;
 use Shopware\Components\Routing\Matchers\RewriteMatcher;
+use Shopware\Models\Shop\Shop;
 use Shopware_Controllers_Widgets_Listing;
+use Shopware_Components_Config;
 use Zend_Cache_Core;
 use Zend_Cache_Exception;
 
 class WidgetsTest extends SubscriberTestCase
 {
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
 
         Shopware()->Container()->get('config_writer')->save('ActivateFindologic', true);
     }
 
-    protected function tearDown()
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        /** @var Shop $shop */
+        $shop = Shopware()->Container()->get('shop');
+        Shopware()->Config()->setShop($shop);
+
+        /** @var Shopware_Components_Config $config */
+        $config = Shopware()->Container()->get('config');
+        $config->setShop($shop);
+        $config->offsetSet('ignore_trailing_slash', false);
+    }
+
+    protected function tearDown(): void
     {
         unset(Shopware()->Session()->isSearchPage, Shopware()->Session()->isCategoryPage);
         parent::tearDown();
@@ -289,6 +306,8 @@ class WidgetsTest extends SubscriberTestCase
      */
     public function testHomePage($referer)
     {
+        $this->markTestSkipped('Skipped due to issues with Shopware 5.7 - see SW-622');
+
         $request = new Enlight_Controller_Request_RequestHttp();
         $request->setModuleName('frontend')->setHeader('referer', $referer);
 

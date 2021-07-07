@@ -20,7 +20,7 @@ class CustomListingHydratorTest extends TestCase
      */
     private $hydrator;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 

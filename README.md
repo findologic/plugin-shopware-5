@@ -1,5 +1,6 @@
 # FINDOLOGIC Shopware 5 Plugin
-[![PHPUnit (SW >= 5.6)](https://github.com/findologic/plugin-shopware-5/actions/workflows/phpunit.yml/badge.svg?branch=main)](https://github.com/findologic/plugin-shopware-5/actions/workflows/phpunit.yml)
+[![PHPUnit (SW 5.7)](https://github.com/findologic/plugin-shopware-5/actions/workflows/phpunit_57.yml/badge.svg?branch=main)](https://github.com/findologic/plugin-shopware-5/actions/workflows/phpunit_57.yml)
+[![PHPUnit (SW 5.6)](https://github.com/findologic/plugin-shopware-5/actions/workflows/phpunit_56.yml/badge.svg?branch=main)](https://github.com/findologic/plugin-shopware-5/actions/workflows/phpunit_56.yml)
 [![PHPUnit (SW 5.2 - 5.5)](https://github.com/findologic/plugin-shopware-5/actions/workflows/phpunit_sw_old_versions.yml/badge.svg?branch=main)](https://github.com/findologic/plugin-shopware-5/actions/workflows/phpunit_sw_old_versions.yml)
 
 Needs to be installed in Shopware 5 eShop in order to export products and its data for a successful integration of the
