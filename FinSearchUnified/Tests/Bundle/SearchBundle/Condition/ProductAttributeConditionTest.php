@@ -47,6 +47,17 @@ class ProductAttributeConditionTest extends \FinSearchUnified\Tests\Subscriber\S
         $response = new Enlight_Controller_Response_ResponseHttp();
         $args = new Enlight_Event_EventArgs(['subject' => $subject, 'request' => $request, 'response' => $response]);
 
+        /** @var Shop $shop */
+        $shop = Shopware()->Container()->get('shop');
+        Shopware()->Config()->setShop($shop);
+
+        /** @var Shopware_Components_Config $config */
+        $config = Shopware()->Container()->get('config');
+        $config->setShop($shop);
+        Shopware()->Snippets()->setShop($shop);
+
+        $config->offsetSet('ignore_trailing_slash', false);
+
         $widget = new Widgets($cacheMock, Shopware()->Container()->get('shopware.routing.matchers.rewrite_matcher'));
         $widget->onWidgetsPreDispatch($args);
 
