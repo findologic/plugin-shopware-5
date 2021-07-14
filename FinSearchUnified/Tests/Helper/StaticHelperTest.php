@@ -364,8 +364,8 @@ class StaticHelperTest extends TestCase
                 'Expected umlauts to be left unaltered.'
             ],
             'String with html code' => [
-                'With&nbsp;HTML&nbsp;code',
-                html_entity_decode('With&nbsp;HTML&nbsp;code'),
+                'Text &amp; normal space &gt; HTML codes',
+                'Text & normal space > HTML codes',
                 'Expected HTML code to be decoded.'
             ]
         ];
