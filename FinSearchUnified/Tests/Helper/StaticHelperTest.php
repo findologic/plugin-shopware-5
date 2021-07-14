@@ -365,7 +365,7 @@ class StaticHelperTest extends TestCase
             ],
             'String with html code' => [
                 'With&nbsp;HTML&nbsp;code',
-                'With HTML code',
+                html_entity_decode('With&nbsp;HTML&nbsp;code'),
                 'Expected HTML code to be decoded.'
             ]
         ];
