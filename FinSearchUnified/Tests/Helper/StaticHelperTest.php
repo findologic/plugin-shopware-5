@@ -362,6 +362,11 @@ class StaticHelperTest extends TestCase
                 'Findolögic123',
                 'Findolögic123',
                 'Expected umlauts to be left unaltered.'
+            ],
+            'String with html code' => [
+                'With&nbsp;HTML&nbsp;code',
+                'With HTML code',
+                'Expected HTML code to be decoded.'
             ]
         ];
     }
