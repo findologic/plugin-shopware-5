@@ -59,6 +59,14 @@
         ]]>
     </description>
     <compatibility minVersion="5.2.0" />
+    <changelog version="11.4.0">
+        <changes lang="de">
+            SW-626 - HTML Entitäten in der Beschreibung, Titel, etc. werden nun automatisch im Export enkodiert.;
+        </changes>
+        <changes lang="en">
+            SW-626 - HTML entities in descriptions, titles, etc. are now encoded in the export.;
+        </changes>
+    </changelog>
     <changelog version="11.3.0">
         <changes lang="de">
             SW-555 - Shopware 5.7.0 wird nun unterstützt;
