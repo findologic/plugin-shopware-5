@@ -79,6 +79,7 @@ class StaticHelper
     {
         $string = str_replace('\\', '', addslashes(strip_tags($string)));
         $string = str_replace(["\n", "\r", "\t"], ' ', $string);
+        $string = html_entity_decode($string);
 
         // Remove unprintable characters since they would cause an invalid XML.
         $string = static::removeControlCharacters($string);
