@@ -154,13 +154,11 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
      */
     private function addPushAttribs(QueryBuilder $query)
     {
-        $params = Shopware()->Front()->Request()->getParams();
+        $pushAttribs = Shopware()->Front()->Request()->getParam(QueryParameter::PUSH_ATTRIB);
 
-        if (array_key_exists(QueryParameter::PUSH_ATTRIB, $params)) {
-            foreach ($params[QueryParameter::PUSH_ATTRIB] as $pushAttribFilterName => $pushAttribFilter) {
-                foreach ($pushAttribFilter as $pushAttribValue => $weight) {
-                    $query->addPushAttrib($pushAttribFilterName, $pushAttribValue, floatval($weight));
-                }
+        foreach ($pushAttribs as $pushAttribFilterName => $pushAttribFilter) {
+            foreach ($pushAttribFilter as $pushAttribValue => $weight) {
+                $query->addPushAttrib($pushAttribFilterName, $pushAttribValue, floatval($weight));
             }
         }
     }
