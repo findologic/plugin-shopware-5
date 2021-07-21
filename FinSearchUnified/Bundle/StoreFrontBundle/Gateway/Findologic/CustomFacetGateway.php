@@ -3,7 +3,6 @@
 namespace FinSearchUnified\Bundle\StoreFrontBundle\Gateway\Findologic;
 
 use Exception;
-use FINDOLOGIC\Api\Exceptions\ServiceNotAliveException;
 use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilderFactory;
@@ -17,6 +16,7 @@ use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
+use Throwable;
 use Zend_Cache_Exception;
 
 class CustomFacetGateway implements CustomFacetGatewayInterface
@@ -62,7 +62,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         try {
             /** @var Xml21Response $response */
             $response = $query->execute();
-        } catch (ServiceNotAliveException $e) {
+        } catch (Throwable $e) {
             return [];
         }
         $responseParser = ResponseParser::getInstance($response);
@@ -94,7 +94,7 @@ class CustomFacetGateway implements CustomFacetGatewayInterface
         try {
             /** @var Xml21Response $response */
             $response = $query->execute();
-        } catch (ServiceNotAliveException $e) {
+        } catch (Throwable $e) {
             return [];
         }
         $responseParser = ResponseParser::getInstance($response);

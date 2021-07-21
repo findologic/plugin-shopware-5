@@ -4,7 +4,6 @@ namespace FinSearchUnified\Bundle;
 
 use Enlight_Controller_Request_Request;
 use Exception;
-use FINDOLOGIC\Api\Exceptions\ServiceNotAliveException;
 use FINDOLOGIC\Api\Responses\Response;
 use FINDOLOGIC\Api\Responses\Xml21\Xml21Response;
 use FinSearchUnified\Bundle\SearchBundleFindologic\FacetHandler\CategoryFacetHandler;
@@ -29,6 +28,7 @@ use Shopware\Bundle\SearchBundle\ProductNumberSearchInterface;
 use Shopware\Bundle\SearchBundle\ProductNumberSearchResult;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
+use Throwable;
 use Zend_Cache_Core;
 use Zend_Cache_Exception;
 
@@ -103,7 +103,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         try {
             /** @var Xml21Response $response */
             $response = $query->execute();
-        } catch (ServiceNotAliveException $e) {
+        } catch (Throwable $e) {
             return $this->originalService->search($criteria, $context);
         }
 
@@ -389,7 +389,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
                 /** @var Xml21Response $response */
                 $response = $query->execute();
                 $this->cache->save($response, $cacheId, ['FINDOLOGIC'], 60 * 60 * 24);
-            } catch (ServiceNotAliveException $ignored) {
+            } catch (Throwable $ignored) {
                 return null;
             }
         } else {
