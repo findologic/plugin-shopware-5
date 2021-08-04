@@ -6,6 +6,7 @@ use Enlight_Controller_Plugins_ViewRenderer_Bootstrap;
 use Enlight_Controller_Request_Request;
 use Enlight_View_Default;
 use Exception;
+use FINDOLOGIC\Api\Definitions\QueryParameter;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Promotion;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\QueryInfoMessage\QueryInfoMessage;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\SmartDidYouMean;
@@ -356,6 +357,21 @@ class StaticHelper
                 'snippetType' => $queryInfoMessage->getType()
             ]
         );
+    }
+
+    public static function setPushAttribs()
+    {
+        /** @var Enlight_View_Default $view */
+        $view = Shopware()->Container()->get('front')->Plugins()->get('ViewRenderer')->Action()->View();
+        $pushAttribs = Shopware()->Front()->Request()->getParam(QueryParameter::PUSH_ATTRIB);
+
+        if ($pushAttribs) {
+            $view->assign(
+                [
+                    'finPushAttribs' => $pushAttribs
+                ]
+            );
+        }
     }
 
     /**

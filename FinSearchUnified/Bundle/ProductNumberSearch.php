@@ -121,6 +121,7 @@ class ProductNumberSearch implements ProductNumberSearchInterface
         $smartDidYouMean = $responseParser->getSmartDidYouMean();
 
         static::redirectOnLandingpage($responseParser->getLandingPageUri());
+        StaticHelper::setPushAttribs();
         StaticHelper::setPromotion($responseParser->getPromotion());
         StaticHelper::setSmartDidYouMean($smartDidYouMean);
         StaticHelper::setQueryInfoMessage($responseParser->getQueryInfoMessage($smartDidYouMean));
