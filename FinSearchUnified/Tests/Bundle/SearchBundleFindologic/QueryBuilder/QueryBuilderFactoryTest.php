@@ -141,6 +141,49 @@ class QueryBuilderFactoryTest extends TestCase
         $this->assertCount(3, $attrib, 'Expected attributes to not contain any other parameters');
     }
 
+    public function testCreateQueryWithPushAttribs()
+    {
+        $request = new Enlight_Controller_Request_RequestHttp();
+        $request->setParam(
+            'pushAttrib',
+            [
+                'color' => [
+                    'Red' => 0.9,
+                    'Blue' => 2.7
+                ],
+                'vendor' => [
+                    'Shopware' => 1.3,
+                ],
+            ]
+        );
+        Shopware()->Front()->setRequest($request);
+
+        $criteria = new Criteria();
+
+        $query = $this->factory->createQuery($criteria, $this->context);
+        $params = $query->getParameters();
+
+        $this->assertArrayHasKey('pushAttrib', $params);
+        $this->assertArrayHasKey('color', $params['pushAttrib']);
+        $this->assertArrayHasKey('vendor', $params['pushAttrib']);
+        $this->assertArrayHasKey('Red', $params['pushAttrib']['color']);
+        $this->assertArrayHasKey('Blue', $params['pushAttrib']['color']);
+        $this->assertArrayHasKey('Shopware', $params['pushAttrib']['vendor']);
+        $this->assertSame(
+            [
+                'Red' => 0.9,
+                'Blue' => 2.7
+            ],
+            $params['pushAttrib']['color']
+        );
+        $this->assertSame(
+            [
+                'Shopware' => 1.3,
+            ],
+            $params['pushAttrib']['vendor']
+        );
+    }
+
     /**
      * @throws Exception
      */
