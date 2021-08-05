@@ -113,8 +113,8 @@ abstract class QueryBuilder
      */
     public function addRangeFilter($key, $min, $max)
     {
-        $this->searchNavigationRequest->addAttribute($key, $min, 'min');
-        $this->searchNavigationRequest->addAttribute($key, $max, 'max');
+        $this->searchNavigationRequest->addAttribute($key, strval($min), 'min');
+        $this->searchNavigationRequest->addAttribute($key, strval($max), 'max');
     }
 
     /**

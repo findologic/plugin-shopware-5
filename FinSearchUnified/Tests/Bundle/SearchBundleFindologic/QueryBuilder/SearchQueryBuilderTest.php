@@ -99,7 +99,7 @@ class SearchQueryBuilderTest extends TestCase
         $this->assertArrayHasKey('attrib', $params);
         $this->assertArrayHasKey('price', $params['attrib']);
         $this->assertSame('0.44', $params['attrib']['price']['min']);
-        $this->assertSame('12.00', $params['attrib']['price']['max']);
+        $this->assertSame('12', $params['attrib']['price']['max']);
     }
 
     public function testFilterParameter()
