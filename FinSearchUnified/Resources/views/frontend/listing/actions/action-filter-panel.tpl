@@ -4,7 +4,7 @@
     {if $finPushAttribs}
         {foreach $finPushAttribs as $finFilterName => $finFilterValues}
             {foreach $finFilterValues as $finFilterValue => $finWeight}
-                <input type="hidden" name="pushAttrib[{$finFilterName}][{$finFilterValue}]" value="{$finWeight}"/>
+                <input type="hidden" name="pushAttrib[{$finFilterName|escape:'html'}][{$finFilterValue|escape:'html'}]" value="{$finWeight|escape:'html'}"/>
             {/foreach}
         {/foreach}
     {/if}
