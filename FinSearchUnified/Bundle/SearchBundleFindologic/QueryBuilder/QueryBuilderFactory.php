@@ -3,6 +3,7 @@
 namespace FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder;
 
 use Exception;
+use FINDOLOGIC\Api\Definitions\QueryParameter;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\CategoryConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\PriceConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\ProductAttributeConditionHandler;
@@ -149,6 +150,20 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     }
 
     /**
+     * @param QueryBuilder $query
+     */
+    private function addPushAttribs(QueryBuilder $query)
+    {
+        $pushAttribs = Shopware()->Front()->Request()->getParam(QueryParameter::PUSH_ATTRIB);
+
+        foreach ($pushAttribs as $pushAttribFilterName => $pushAttribFilter) {
+            foreach ($pushAttribFilter as $pushAttribValue => $weight) {
+                $query->addPushAttrib($pushAttribFilterName, $pushAttribValue, floatval($weight));
+            }
+        }
+    }
+
+    /**
      * Creates the product number search query for the provided
      * criteria and context.
      * Adds the sortings and conditions of the provided criteria.
@@ -209,6 +224,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
         $query = $this->createQueryBuilder();
         $query->addUserGroup($context->getCurrentCustomerGroup()->getKey());
         $this->addConditions($criteria, $query, $context);
+        $this->addPushAttribs($query);
 
         return $query;
     }

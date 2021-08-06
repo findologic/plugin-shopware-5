@@ -121,6 +121,42 @@ class SearchQueryBuilderTest extends TestCase
         $this->assertSame(['Red', 'Blue'], current($params['attrib']['color']));
     }
 
+    public function testPushAttribs()
+    {
+        $searchNavigationRequest = new SearchRequest();
+        $queryBuilder = new SearchQueryBuilder(
+            $this->installerService,
+            $this->config,
+            null,
+            $searchNavigationRequest
+        );
+
+        $queryBuilder->addPushAttrib('color', 'Red', 0.9);
+        $queryBuilder->addPushAttrib('color', 'Blue', 2.7);
+        $queryBuilder->addPushAttrib('vendor', 'Shopware', 1.3);
+
+        $params = $searchNavigationRequest->getParams();
+        $this->assertArrayHasKey('pushAttrib', $params);
+        $this->assertArrayHasKey('color', $params['pushAttrib']);
+        $this->assertArrayHasKey('vendor', $params['pushAttrib']);
+        $this->assertArrayHasKey('Red', $params['pushAttrib']['color']);
+        $this->assertArrayHasKey('Blue', $params['pushAttrib']['color']);
+        $this->assertArrayHasKey('Shopware', $params['pushAttrib']['vendor']);
+        $this->assertSame(
+            [
+                'Red' => 0.9,
+                'Blue' => 2.7
+            ],
+            $params['pushAttrib']['color']
+        );
+        $this->assertSame(
+            [
+                'Shopware' => 1.3,
+            ],
+            $params['pushAttrib']['vendor']
+        );
+    }
+
     public function testCategoriesParameterForSearch()
     {
         $searchNavigationRequest = new SearchRequest();

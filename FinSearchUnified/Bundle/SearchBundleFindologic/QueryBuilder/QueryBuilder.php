@@ -133,6 +133,16 @@ abstract class QueryBuilder
     }
 
     /**
+     * @param string $filterName
+     * @param string $filterValue
+     * @param float $weight
+     */
+    public function addPushAttrib($filterName, $filterValue, $weight)
+    {
+        $this->searchNavigationRequest->addPushAttrib($filterName, $filterValue, $weight);
+    }
+
+    /**
      * @param string $order
      */
     public function addOrder($order)
