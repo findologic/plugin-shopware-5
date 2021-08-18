@@ -21,10 +21,13 @@
     <label class="filter-panel--label"
            for="__{$facet->getFieldName()|escape:'htmlall'}__{$option->getId()|escape:'htmlall'}">
 
-        {if $option->getColorcode()}
-            {$imageUrl = $option->getImageUrl()}
-            {$colorCode = $option->getColorcode()}
+        {$colorCode = $option->getColorcode()}
+        {$imageUrl = $option->getImageUrl()}
+
+        {if $colorCode && $imageUrl}
             <div class="color--filter-item" style="background-image: url({$imageUrl}); background-color: {$colorCode};" title="{$option->getId()|escape:'htmlall'}"></div>
+        {elseif colorCode}
+            <div class="color--filter-item" style="background: {$colorCode};" title="{$option->getId()|escape:'htmlall'}"></div>
         {else}
             <img class="filter-panel--media-image color--filter-item" title="{$option->getId()|escape:'htmlall'}" src="/custom/plugins/FinSearchUnified/Resources/views/frontend/_public/src/img/no-picture.png" alt="{$option->getId()|escape:'htmlall'}">
         {/if}
