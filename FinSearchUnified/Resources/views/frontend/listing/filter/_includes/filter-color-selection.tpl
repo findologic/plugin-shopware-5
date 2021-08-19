@@ -26,6 +26,8 @@
 
         {if $colorCode && $imageUrl}
             <div class="color--filter-item" style="background-image: url({$imageUrl}); background-color: {$colorCode};" title="{$option->getId()|escape:'htmlall'}"></div>
+        {elseif $imageUrl}
+            <div class="color--filter-item" style="background-image: url({$imageUrl}), url('/custom/plugins/FinSearchUnified/Resources/views/frontend/_public/src/img/no-picture.png');" title="{$option->getId()|escape:'htmlall'}"></div>
         {elseif $colorCode}
             <div class="color--filter-item" style="background: {$colorCode};" title="{$option->getId()|escape:'htmlall'}"></div>
         {else}
