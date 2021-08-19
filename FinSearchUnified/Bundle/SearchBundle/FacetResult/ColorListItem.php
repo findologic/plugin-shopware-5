@@ -49,7 +49,7 @@ class ColorListItem extends FacetResult\MediaListItem
     }
 
     /**
-     * @return string
+     * @return string|null
      */
     public function getImageUrl()
     {
