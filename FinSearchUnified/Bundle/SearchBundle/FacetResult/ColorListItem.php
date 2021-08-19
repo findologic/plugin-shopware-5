@@ -13,7 +13,7 @@ class ColorListItem extends FacetResult\MediaListItem
     protected $colorcode;
 
     /**
-     * @var string
+     * @var string|null
      */
     protected $imageUrl;
 
