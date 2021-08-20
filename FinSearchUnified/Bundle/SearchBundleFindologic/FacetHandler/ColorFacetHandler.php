@@ -79,11 +79,16 @@ class ColorFacetHandler implements PartialFacetHandlerInterface
                 unset($actives[$index]);
             }
 
+            if ($image = $filterItem->getMedia()) {
+                $imageUrl = $image->getUrl();
+            }
+
             $items[] = new ColorListItem(
                 $name,
                 $name,
                 $active,
-                !empty($color) ? $color : null
+                !empty($color) ? $color : null,
+                !empty($imageUrl) ? $imageUrl : null
             );
         }
 
