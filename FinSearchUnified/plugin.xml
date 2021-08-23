@@ -59,6 +59,21 @@
         ]]>
     </description>
     <compatibility minVersion="5.2.0" />
+    <changelog version="11.5.0">
+        <changes lang="de">
+            SW-628 - Das Setzen von versteckten pushAttrib Feldern im Suchformular wird nun für Personalisierung
+            unterstützt.;
+            SW-637 - Ein Fehler wurde behoben, wodurch Bereichsslider Filter das Resultat nicht korrekt
+            gefiltert wurde.;
+            SW-640 - Ein Fehler wurde behoben, wodurch bei Filter mit Bildern das keine-Ergebnisse Bild
+            angezeigt wurde.;
+        </changes>
+        <changes lang="en">
+            SW-628 - Setting hidden pushAttrib fields to the search form for personalization is now supported.;
+            SW-637 - Fixed a bug that would cause range-slider filters to not properly filter the results.;
+            SW-640 - Fixed a bug that caused filters with images to show a no-result-image instead.;
+        </changes>
+    </changelog>
     <changelog version="11.4.0">
         <changes lang="de">
             SW-626 - HTML Entitäten in der Beschreibung, Titel, etc. werden nun automatisch im Export enkodiert.;
