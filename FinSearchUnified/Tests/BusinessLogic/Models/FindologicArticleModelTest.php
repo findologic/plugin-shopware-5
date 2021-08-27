@@ -1280,9 +1280,10 @@ class FindologicArticleModelTest extends TestCase
         try {
             /** @var ArticleResource $resource */
             $resource = Manager::getResource('Category');
+            $category = $resource->getRepository()->find(1337);
 
-            if (!$resource->getRepository()->find(1337)) {
-                $article = $resource->create([
+            if (!$category) {
+                $category = $resource->create([
                     'id' => 1337,
                     'name' => 'Öl',
                     'parent' => '3'
@@ -1300,7 +1301,7 @@ class FindologicArticleModelTest extends TestCase
             'categories' => [
                 ['id' => 3],
                 ['id' => 5],
-                ['id' => $article->getId()]
+                ['id' => $category->getId()]
             ],
             'images' => [
                 ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
