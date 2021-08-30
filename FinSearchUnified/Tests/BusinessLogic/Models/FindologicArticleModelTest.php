@@ -1280,12 +1280,15 @@ class FindologicArticleModelTest extends TestCase
         try {
             /** @var ArticleResource $resource */
             $resource = Manager::getResource('Category');
+            $category = $resource->getRepository()->find(1337);
 
-            $article = $resource->create([
-                'id' => 1337,
-                'name' => 'Öl',
-                'parent' => '3'
-            ]);
+            if (!$category) {
+                $category = $resource->create([
+                    'id' => 1337,
+                    'name' => 'Öl',
+                    'parent' => '3'
+                ]);
+            }
         } catch (Exception $e) {
             echo sprintf('Exception: %s', $e->getMessage());
         }
@@ -1298,7 +1301,7 @@ class FindologicArticleModelTest extends TestCase
             'categories' => [
                 ['id' => 3],
                 ['id' => 5],
-                ['id' => $article->getId()]
+                ['id' => $category->getId()]
             ],
             'images' => [
                 ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
@@ -1385,16 +1388,20 @@ class FindologicArticleModelTest extends TestCase
             /** @var ArticleResource $resource */
             $resource = Manager::getResource('Category');
 
-            $resource->create([
-                'id' => 2000,
-                'name' => 'PC / Parts',
-                'parent' => '3',
-            ]);
-            $resource->create([
-                'id' => 3000,
-                'name' => 'Processor/Mainboards',
-                'parent' => '2000'
-            ]);
+            if (!$resource->getRepository()->find(2000)) {
+                $resource->create([
+                    'id' => 2000,
+                    'name' => 'PC / Parts',
+                    'parent' => '3',
+                ]);
+            }
+            if (!$resource->getRepository()->find(3000)) {
+                $resource->create([
+                    'id' => 3000,
+                    'name' => 'Processor/Mainboards',
+                    'parent' => '2000'
+                ]);
+            }
         } catch (Exception $e) {
             echo sprintf('Exception: %s', $e->getMessage());
         }

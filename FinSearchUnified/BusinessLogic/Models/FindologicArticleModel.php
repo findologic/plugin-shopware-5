@@ -393,12 +393,6 @@ class FindologicArticleModel
 
         if ($this->productStruct && $this->productStruct->getKeywords()) {
             $keywords = $this->productStruct->getKeywords();
-
-            // Check if there exist
-            if (Shopware()->Shop()->getId() !== 1
-                && $this->productStruct->getKeywords() === $this->baseArticle->getKeywords()) {
-                $keywords = '';
-            }
         }
 
         if ($keywords) {
