@@ -42,8 +42,8 @@ class FinSearchUnified extends Plugin
             $loader->load($this->getPath() . '/Resources/shopware/searchBundleES.xml');
         }
 
-        if ($container->has('shopware_elastic_search.client')) {
-            $loader->load($this->getPath() . '/Resources/shopware/productSearchES.xml');
+        if ($container->getParameter('shopware.es.enabled')) {
+            $loader->load($this->getPath() . '/Resources/shopware/productSearch.xml');
         } else {
             $loader->load($this->getPath() . '/Resources/shopware/productSearch.xml');
         }
