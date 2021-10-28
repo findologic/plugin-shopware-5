@@ -143,16 +143,6 @@
         </service>
 
         <service
-            id="fin_search_unified.product_search"
-            class="Shopware\Bundle\SearchBundle\ProductSearch"
-            decorates="shopware_search.product_search"
-            public="true"
-        >
-            <argument type="service" id="shopware_storefront.list_product_service" />
-            <argument type="service" id="fin_search_unified.product_number_search" />
-        </service>
-
-        <service
             id="fin_search_unified.product_stream.criteria_factory"
             class="FinSearchUnified\Components\ProductStream\CriteriaFactory"
             decorates="shopware_product_stream.criteria_factory"
