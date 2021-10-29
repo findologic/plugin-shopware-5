@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service
+            id="fin_search_unified.product_search"
+            class="Shopware\Bundle\SearchBundle\ProductSearch"
+            decorates="shopware_search.product_search"
+            public="true"
+        >
+            <argument type="service" id="shopware_storefront.list_product_service" />
+            <argument type="service" id="fin_search_unified.product_number_search" />
+        </service>
+    </services>
+</container>

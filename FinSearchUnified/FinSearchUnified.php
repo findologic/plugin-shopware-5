@@ -26,6 +26,11 @@ class FinSearchUnified extends Plugin
 
     public function build(ContainerBuilder $container)
     {
+        $loader = new XmlFileLoader(
+            $container,
+            new FileLocator()
+        );
+
         // Required for Shopware 5.2.x compatibility.
         if (!$container->hasParameter($this->getContainerPrefix() . '.plugin_dir')) {
             $container->setParameter($this->getContainerPrefix() . '.plugin_dir', $this->getPath());
@@ -34,12 +39,13 @@ class FinSearchUnified extends Plugin
             $container->setParameter($this->getContainerPrefix() . '.plugin_name', $this->getName());
         }
         if (!$container->has('shopware_search_es.product_number_search_factory')) {
-            $loader = new XmlFileLoader(
-                $container,
-                new FileLocator()
-            );
-
             $loader->load($this->getPath() . '/Resources/shopware/searchBundleES.xml');
+        }
+
+        if ($container->getParameter('shopware.es.enabled')) {
+            $loader->load($this->getPath() . '/Resources/shopware/productSearchES.xml');
+        } else {
+            $loader->load($this->getPath() . '/Resources/shopware/productSearch.xml');
         }
 
         $container->addCompilerPass(new RegisterControllerCompilerPass([$this]));
