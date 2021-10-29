@@ -43,7 +43,7 @@ class FinSearchUnified extends Plugin
         }
 
         if ($container->getParameter('shopware.es.enabled')) {
-            $loader->load($this->getPath() . '/Resources/shopware/productSearch.xml');
+            $loader->load($this->getPath() . '/Resources/shopware/productSearchES.xml');
         } else {
             $loader->load($this->getPath() . '/Resources/shopware/productSearch.xml');
         }
