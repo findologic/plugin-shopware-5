@@ -59,6 +59,18 @@
         ]]>
     </description>
     <compatibility minVersion="5.2.0" />
+    <changelog version="11.5.1">
+        <changes lang="de">
+            SW-643 - Ein Fehler wurde behoben, wodurch keywords nur auf dem Hauptshop exportiert wurden.;
+            SW-655 - Ein Fehler wurde behoben, wodurch manche Filter deaktiviert wurden, wenn ElasticSearch
+            verwendet wurde.;
+        </changes>
+        <changes lang="en">
+            SW-643 - Fixed a bug that caused no keywords to be exported, in case the exported shop was not the main
+            shop.;
+            SW-655 - Fixed a bug that could cause filters to be disabled when using ElasticSearch.;
+        </changes>
+    </changelog>
     <changelog version="11.5.0">
         <changes lang="de">
             SW-628 - Das Setzen von versteckten pushAttrib Feldern im Suchformular wird nun für Personalisierung
