@@ -1571,4 +1571,74 @@ class FindologicArticleModelTest extends TestCase
             $values->getValues()
         );
     }
+
+    public function testCoverImageIsExportedAsFirstImage()
+    {
+        $articleConfiguration = [
+            'name' => 'FindologicArticle 1',
+            'active' => true,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5]
+            ],
+            'images' => [
+                [
+                    "mediaId" => 2,
+                    'main' => 0,
+                    'position' => 1,
+                ],
+                [
+                    "mediaId" => 3,
+                    'main' => 1,
+                    'position' => 2,
+                ],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC1',
+                'active' => true,
+                'inStock' => 16,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+        ];
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $baseCategory = new Category();
+        $baseCategory->setId(1);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+        $reflector = new ReflectionClass(Item::class);
+        $imagesProperty = $reflector->getProperty('images');
+        $imagesProperty->setAccessible(true);
+        $images = $imagesProperty->getValue($xmlArticle);
+        $images = array_pop($images);
+
+        $this->assertEquals(
+            [
+                'http://localhost/media/image/a7/60/e2/Muensterlaender_Lagerkorn_Imagefoto.jpg',
+                'http://localhost/media/image/88/ee/bf/Muensterlaender_Lagerkorn_Imagefoto_200x200.jpg',
+                'http://localhost/media/image/ab/7f/4f/Muensterlaender_Lagerkorn_Ballons_Hochformat.jpg',
+                'http://localhost/media/image/70/db/7d/Muensterlaender_Lagerkorn_Ballons_Hochformat_200x200.jpg'
+            ],
+            array_map(function ($image) {
+                return $image->getUrl();
+            }, $images)
+        );
+    }
 }
