@@ -1585,14 +1585,19 @@ class FindologicArticleModelTest extends TestCase
             ],
             'images' => [
                 [
-                    "mediaId" => 2,
+                    "mediaId" => 2, // Muensterlaender_Lagerkorn_Ballons_Hochformat
                     'main' => 0,
                     'position' => 1,
                 ],
                 [
-                    "mediaId" => 3,
+                    "mediaId" => 3, // Muensterlaender_Lagerkorn_Imagefoto
                     'main' => 1,
                     'position' => 2,
+                ],
+                [
+                    "mediaId" => 4, // Muensterlaender_Lagerkorn_Produktion
+                    'main' => 0,
+                    'position' => 3,
                 ],
             ],
             'mainDetail' => [
@@ -1634,7 +1639,9 @@ class FindologicArticleModelTest extends TestCase
                 'http://localhost/media/image/a7/60/e2/Muensterlaender_Lagerkorn_Imagefoto.jpg',
                 'http://localhost/media/image/88/ee/bf/Muensterlaender_Lagerkorn_Imagefoto_200x200.jpg',
                 'http://localhost/media/image/ab/7f/4f/Muensterlaender_Lagerkorn_Ballons_Hochformat.jpg',
-                'http://localhost/media/image/70/db/7d/Muensterlaender_Lagerkorn_Ballons_Hochformat_200x200.jpg'
+                'http://localhost/media/image/70/db/7d/Muensterlaender_Lagerkorn_Ballons_Hochformat_200x200.jpg',
+                'http://localhost/media/image/79/79/5b/Muensterlaender_Lagerkorn_Produktion.jpg',
+                'http://localhost/media/image/ca/d6/a9/Muensterlaender_Lagerkorn_Produktion_200x200.jpg'
             ],
             array_map(function ($image) {
                 return $image->getUrl();
