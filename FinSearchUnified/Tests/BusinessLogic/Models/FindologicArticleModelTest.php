@@ -1574,6 +1574,7 @@ class FindologicArticleModelTest extends TestCase
 
     public function testCoverImageIsExportedAsFirstImage()
     {
+        $expectedCoverImageUrl = 'http://localhost/media/image/a7/60/e2/Muensterlaender_Lagerkorn_Imagefoto.jpg';
         $articleConfiguration = [
             'name' => 'FindologicArticle 1',
             'active' => true,
@@ -1583,19 +1584,20 @@ class FindologicArticleModelTest extends TestCase
                 ['id' => 3],
                 ['id' => 5]
             ],
+            // Media IDs are from the Shopware Test data
             'images' => [
                 [
-                    "mediaId" => 2, // Muensterlaender_Lagerkorn_Ballons_Hochformat
+                    'mediaId' => 2, // Muensterlaender_Lagerkorn_Ballons_Hochformat
                     'main' => 0,
                     'position' => 1,
                 ],
                 [
-                    "mediaId" => 3, // Muensterlaender_Lagerkorn_Imagefoto
+                    'mediaId' => 3, // Muensterlaender_Lagerkorn_Imagefoto
                     'main' => 1,
                     'position' => 2,
                 ],
                 [
-                    "mediaId" => 4, // Muensterlaender_Lagerkorn_Produktion
+                    'mediaId' => 4, // Muensterlaender_Lagerkorn_Produktion
                     'main' => 0,
                     'position' => 3,
                 ],
@@ -1636,7 +1638,7 @@ class FindologicArticleModelTest extends TestCase
 
         $this->assertEquals(
             [
-                'http://localhost/media/image/a7/60/e2/Muensterlaender_Lagerkorn_Imagefoto.jpg',
+                $expectedCoverImageUrl,
                 'http://localhost/media/image/88/ee/bf/Muensterlaender_Lagerkorn_Imagefoto_200x200.jpg',
                 'http://localhost/media/image/ab/7f/4f/Muensterlaender_Lagerkorn_Ballons_Hochformat.jpg',
                 'http://localhost/media/image/70/db/7d/Muensterlaender_Lagerkorn_Ballons_Hochformat_200x200.jpg',
