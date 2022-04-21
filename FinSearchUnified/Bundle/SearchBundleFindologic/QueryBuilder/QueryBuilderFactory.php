@@ -59,7 +59,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     /**
      * @return SortingHandlerInterface[]
      */
-    private function registerSortingHandlers()
+    protected function registerSortingHandlers()
     {
         $sortingHandlers = [];
 
