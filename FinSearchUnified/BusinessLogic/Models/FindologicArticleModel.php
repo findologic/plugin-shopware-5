@@ -448,9 +448,14 @@ class FindologicArticleModel
                     $imagePathThumb = strtr($mediaService->getUrl(array_values($imageDetails)[0]), $replacements);
                     if ($imagePathThumb !== '') {
                         $xmlImagePath = new ExportImage($imagePath, ExportImage::TYPE_DEFAULT);
-                        $imagesArray[] = $xmlImagePath;
                         $xmlImageThumb = new ExportImage($imagePathThumb, ExportImage::TYPE_THUMBNAIL);
-                        $imagesArray[] = $xmlImageThumb;
+
+                        if ($articleImage->getMain()) {
+                            array_unshift($imagesArray, $xmlImagePath, $xmlImageThumb);
+                        } else {
+                            $imagesArray[] = $xmlImagePath;
+                            $imagesArray[] = $xmlImageThumb;
+                        }
                     }
                 }
             }
