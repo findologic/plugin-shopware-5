@@ -12,6 +12,7 @@ use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
 use ReflectionClass;
 use ReflectionException;
+use Shopware\Bundle\MediaBundle\MediaService;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource\Article as ArticleResource;
 use Shopware\Models\Article\Article;
@@ -1654,7 +1655,7 @@ class FindologicArticleModelTest extends TestCase
     public function testImageUrlsWithSpecialCharactersAreEncoded()
     {
         $expectedImageUrl = 'https://via.placeholder.com/300/F00/fff/test%C2%B2%21%C3%9C%C3%A4%C2%B4%C2%B0.png';
-        $expectedThumbnailUrl = 'https://via.placeholder.com/300/F00/fff/test-UEae-.png';
+        $expectedThumbnailUrl = $expectedImageUrl;
         $articleConfiguration = [
             'name' => 'FindologicArticle 1',
             'active' => true,
@@ -1684,6 +1685,15 @@ class FindologicArticleModelTest extends TestCase
 
         $baseCategory = new Category();
         $baseCategory->setId(1);
+
+        $mockMediaService = $this->getMockBuilder(MediaService::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockMediaService
+            ->method('getUrl')
+            ->willReturn('https://via.placeholder.com/300/F00/fff/test²!Üä´°.png');
+
+        Shopware()->Container()->set('shopware_media.media_service', $mockMediaService);
 
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
