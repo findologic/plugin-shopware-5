@@ -47,6 +47,19 @@ class StaticHelper
     }
 
     /**
+     * @see https://stackoverflow.com/a/7974253
+     *
+     * @param $url
+     * @return array|string|string[]|null
+     */
+    public static function encodeUrlPath($url)
+    {
+        return preg_replace_callback('#://([^/]+)/([^?]+)#', function ($match) {
+            return '://' . $match[1] . '/' . join('/', array_map('rawurlencode', explode('/', $match[2])));
+        }, $url);
+    }
+
+    /**
      * @param string $responseText
      *
      * @return SimpleXMLElement

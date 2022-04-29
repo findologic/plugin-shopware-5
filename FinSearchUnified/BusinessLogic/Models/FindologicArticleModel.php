@@ -24,6 +24,7 @@ use FINDOLOGIC\Export\XML\XMLExporter;
 use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
 use RuntimeException;
+use Shopware\Bundle\MediaBundle\MediaService;
 use Shopware\Bundle\StoreFrontBundle\Struct\BaseProduct;
 use Shopware\Bundle\StoreFrontBundle\Struct\Product;
 use Shopware\Components\Logger;
@@ -363,26 +364,11 @@ class FindologicArticleModel
     {
         $baseLink = Shopware()->Config()->get('baseFile') . '?sViewport=detail&sArticle=' . $this->baseArticle->getId();
         $seoUrl = Shopware()->Modules()->Core()->sRewriteLink($baseLink, $this->baseArticle->getName());
-        $urlPath = ltrim(parse_url($seoUrl, PHP_URL_PATH), '/');
-        $shopUrl = rtrim(str_replace($urlPath, '', $seoUrl), '/');
+        $encodedUrl = StaticHelper::encodeUrlPath($seoUrl);
 
-        // This will only encode parts of the URL path and leave separator itself untouched.
-        $seoUrl = $shopUrl . array_reduce(
-            explode('/', $urlPath),
-            function ($encodedPath, $item) {
-                $encodedPath .= '/';
-
-                if ($item) {
-                    $encodedPath .= rawurlencode($item);
-                }
-
-                return $encodedPath;
-            }
-        );
-
-        if (!StaticHelper::isEmpty($seoUrl)) {
+        if (!StaticHelper::isEmpty($encodedUrl)) {
             $xmlUrl = new Url();
-            $xmlUrl->setValue($seoUrl);
+            $xmlUrl->setValue($encodedUrl);
             $this->xmlArticle->setUrl($xmlUrl);
         }
     }
@@ -416,11 +402,8 @@ class FindologicArticleModel
         $imagesArray = [];
         $articleMainImages = [];
         $baseLink = Shopware()->Modules()->Core()->sRewriteLink();
+        /** @var MediaService $mediaService */
         $mediaService = Shopware()->Container()->get('shopware_media.media_service');
-        $replacements = [
-            '[' => '%5B',
-            ']' => '%5D'
-        ];
 
         if ($this->baseArticle->getImages() !== null) {
             $articleMainImages = $this->baseArticle->getImages()->getValues();
@@ -436,19 +419,20 @@ class FindologicArticleModel
                 }
 
                 try {
-                    $imageDetails = $imageRaw->getThumbnailFilePaths();
-                    $imageDefault = $imageRaw->getPath();
+                    $image = $imageRaw->getPath();
+                    $thumbnails = $imageRaw->getThumbnailFilePaths();
                 } catch (Exception $ex) {
-                    // Entitiy removed
+                    // Entity removed
                     continue;
                 }
 
-                if (count($imageDetails) > 0) {
-                    $imagePath = strtr($mediaService->getUrl($imageDefault), $replacements);
-                    $imagePathThumb = strtr($mediaService->getUrl(array_values($imageDetails)[0]), $replacements);
-                    if ($imagePathThumb !== '') {
+                if (count($thumbnails) > 0) {
+                    $imagePath = StaticHelper::encodeUrlPath($mediaService->getUrl($image));
+                    $thumbnailPath = StaticHelper::encodeUrlPath($mediaService->getUrl(array_values($thumbnails)[0]));
+
+                    if ($thumbnailPath !== '') {
                         $xmlImagePath = new ExportImage($imagePath, ExportImage::TYPE_DEFAULT);
-                        $xmlImageThumb = new ExportImage($imagePathThumb, ExportImage::TYPE_THUMBNAIL);
+                        $xmlImageThumb = new ExportImage($thumbnailPath, ExportImage::TYPE_THUMBNAIL);
 
                         if ($articleImage->getMain()) {
                             array_unshift($imagesArray, $xmlImagePath, $xmlImageThumb);
@@ -460,14 +444,13 @@ class FindologicArticleModel
                 }
             }
         }
-        if (count($imagesArray) > 0) {
-            $this->xmlArticle->setAllImages($imagesArray);
-        } else {
+
+        if (!count($imagesArray)) {
             $noImage = $baseLink . 'templates/_default/frontend/_resources/images/no_picture.jpg';
-            $xmlImage = new ExportImage($noImage);
-            $imagesArray[] = $xmlImage;
-            $this->xmlArticle->setAllImages($imagesArray);
+            $imagesArray[] = new ExportImage($noImage);
         }
+
+        $this->xmlArticle->setAllImages($imagesArray);
     }
 
     protected function setSales()
