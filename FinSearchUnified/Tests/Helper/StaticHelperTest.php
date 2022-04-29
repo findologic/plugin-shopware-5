@@ -802,4 +802,30 @@ class StaticHelperTest extends TestCase
     {
         $this->assertTrue(StaticHelper::isEmpty($value));
     }
+
+    public function urlWithSpecialCharactersProvider()
+    {
+        return [
+            'special characters in path are encoded' => [
+                'value' => 'https://example.com/a7/das8/test! Üä°´.png',
+                'expectedValue' => 'https://example.com/a7/das8/test%21%20%C3%9C%C3%A4%C2%B0%C2%B4.png',
+            ],
+            'works without secure protocol' => [
+                'value' => 'http://example.com/a7/das8/test! Üä°´.png',
+                'expectedValue' => 'http://example.com/a7/das8/test%21%20%C3%9C%C3%A4%C2%B0%C2%B4.png',
+            ],
+            'works for sub domain secure protocol' => [
+                'value' => 'https://staging.example.com/a7/das8/test! Üä°´.png',
+                'expectedValue' => 'https://staging.example.com/a7/das8/test%21%20%C3%9C%C3%A4%C2%B0%C2%B4.png',
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider urlWithSpecialCharactersProvider
+     */
+    public function testUrlsWithSpecialCharacterAreReturnedEncoded($value, $expectedValue)
+    {
+        $this->assertSame($expectedValue, StaticHelper::encodeUrlPath($value));
+    }
 }
