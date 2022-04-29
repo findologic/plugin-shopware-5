@@ -1650,4 +1650,65 @@ class FindologicArticleModelTest extends TestCase
             }, $images)
         );
     }
+
+    public function testImageUrlsWithSpecialCharactersAreEncoded()
+    {
+        $expectedImageUrl = 'https://via.placeholder.com/300/F00/fff/test%C2%B2%21%C3%9C%C3%A4%C2%B4%C2%B0.png';
+        $expectedThumbnailUrl = 'https://via.placeholder.com/300/F00/fff/test-UEae-.png';
+        $articleConfiguration = [
+            'name' => 'FindologicArticle 1',
+            'active' => true,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5]
+            ],
+            'images' => [
+                ['link' => 'https://via.placeholder.com/300/F00/fff/test²!Üä´°.png'],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC1',
+                'active' => true,
+                'inStock' => 16,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+        ];
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $baseCategory = new Category();
+        $baseCategory->setId(1);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+        $reflector = new ReflectionClass(Item::class);
+        $imagesProperty = $reflector->getProperty('images');
+        $imagesProperty->setAccessible(true);
+        $images = $imagesProperty->getValue($xmlArticle);
+        $images = array_pop($images);
+
+        $this->assertEquals(
+            [
+                $expectedImageUrl,
+                $expectedThumbnailUrl
+            ],
+            array_map(function ($image) {
+                return $image->getUrl();
+            }, $images)
+        );
+    }
 }

@@ -432,13 +432,13 @@ class FindologicArticleModel
 
                     if ($thumbnailPath !== '') {
                         $xmlImagePath = new ExportImage($imagePath, ExportImage::TYPE_DEFAULT);
-                        $xmlImageThumb = new ExportImage($thumbnailPath, ExportImage::TYPE_THUMBNAIL);
+                        $xmlThumbnailPath = new ExportImage($thumbnailPath, ExportImage::TYPE_THUMBNAIL);
 
                         if ($articleImage->getMain()) {
-                            array_unshift($imagesArray, $xmlImagePath, $xmlImageThumb);
+                            array_unshift($imagesArray, $xmlImagePath, $xmlThumbnailPath);
                         } else {
                             $imagesArray[] = $xmlImagePath;
-                            $imagesArray[] = $xmlImageThumb;
+                            $imagesArray[] = $xmlThumbnailPath;
                         }
                     }
                 }
