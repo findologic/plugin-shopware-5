@@ -806,15 +806,15 @@ class StaticHelperTest extends TestCase
     public function urlWithSpecialCharactersProvider()
     {
         return [
-            'special characters in path are encoded' => [
+            'image path with https' => [
                 'value' => 'https://example.com/a7/das8/test! Üä°´.png',
                 'expectedValue' => 'https://example.com/a7/das8/test%21%20%C3%9C%C3%A4%C2%B0%C2%B4.png',
             ],
-            'works without secure protocol' => [
+            'image path with http' => [
                 'value' => 'http://example.com/a7/das8/test! Üä°´.png',
                 'expectedValue' => 'http://example.com/a7/das8/test%21%20%C3%9C%C3%A4%C2%B0%C2%B4.png',
             ],
-            'works for sub domain secure protocol' => [
+            'mage path with https and subdomain' => [
                 'value' => 'https://staging.example.com/a7/das8/test! Üä°´.png',
                 'expectedValue' => 'https://staging.example.com/a7/das8/test%21%20%C3%9C%C3%A4%C2%B0%C2%B4.png',
             ]

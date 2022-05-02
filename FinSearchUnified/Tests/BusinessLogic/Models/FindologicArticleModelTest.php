@@ -1654,6 +1654,7 @@ class FindologicArticleModelTest extends TestCase
 
     public function testImageUrlsWithSpecialCharactersAreEncoded()
     {
+        $actualImageUrl = 'https://via.placeholder.com/300/F00/fff/test²!Üä´°.png';
         $expectedImageUrl = 'https://via.placeholder.com/300/F00/fff/test%C2%B2%21%C3%9C%C3%A4%C2%B4%C2%B0.png';
         $expectedThumbnailUrl = $expectedImageUrl;
         $articleConfiguration = [
@@ -1666,7 +1667,7 @@ class FindologicArticleModelTest extends TestCase
                 ['id' => 5]
             ],
             'images' => [
-                ['link' => 'https://via.placeholder.com/300/F00/fff/test²!Üä´°.png'],
+                ['link' => $actualImageUrl],
             ],
             'mainDetail' => [
                 'number' => 'FINDOLOGIC1',
@@ -1691,7 +1692,7 @@ class FindologicArticleModelTest extends TestCase
             ->getMock();
         $mockMediaService
             ->method('getUrl')
-            ->willReturn('https://via.placeholder.com/300/F00/fff/test²!Üä´°.png');
+            ->willReturn($actualImageUrl);
 
         Shopware()->Container()->set('shopware_media.media_service', $mockMediaService);
 
