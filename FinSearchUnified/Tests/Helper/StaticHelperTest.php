@@ -814,7 +814,7 @@ class StaticHelperTest extends TestCase
                 'value' => 'http://example.com/a7/das8/test! Üä°´.png',
                 'expectedValue' => 'http://example.com/a7/das8/test%21%20%C3%9C%C3%A4%C2%B0%C2%B4.png',
             ],
-            'mage path with https and subdomain' => [
+            'image path with https and subdomain' => [
                 'value' => 'https://staging.example.com/a7/das8/test! Üä°´.png',
                 'expectedValue' => 'https://staging.example.com/a7/das8/test%21%20%C3%9C%C3%A4%C2%B0%C2%B4.png',
             ]
