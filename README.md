@@ -70,7 +70,7 @@ Before starting the deployment make sure that a release is already created.
  for Shopware 5.2 and newer. Last but not least upload the plugins' zip file and mark all
  required checkboxes.
 1. Once the release is available require an *automatic code review*.
-1. Notify everyone at Basecamp that the new release is available.
+1. Notify everyone in Slack #releases.
 
 # License
 Please see [License File](LICENSE) for more information.

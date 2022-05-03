@@ -12,6 +12,7 @@ use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
 use ReflectionClass;
 use ReflectionException;
+use Shopware\Bundle\MediaBundle\MediaService;
 use Shopware\Components\Api\Manager;
 use Shopware\Components\Api\Resource\Article as ArticleResource;
 use Shopware\Models\Article\Article;
@@ -1569,6 +1570,156 @@ class FindologicArticleModelTest extends TestCase
         $this->assertEquals(
             ['' => $expectedSalesFrequency],
             $values->getValues()
+        );
+    }
+
+    public function testCoverImageIsExportedAsFirstImage()
+    {
+        $expectedCoverImageUrl = 'http://localhost/media/image/a7/60/e2/Muensterlaender_Lagerkorn_Imagefoto.jpg';
+        $articleConfiguration = [
+            'name' => 'FindologicArticle 1',
+            'active' => true,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5]
+            ],
+            // Media IDs are from the Shopware Test data
+            'images' => [
+                [
+                    'mediaId' => 2, // Muensterlaender_Lagerkorn_Ballons_Hochformat
+                    'main' => 0,
+                    'position' => 1,
+                ],
+                [
+                    'mediaId' => 3, // Muensterlaender_Lagerkorn_Imagefoto
+                    'main' => 1,
+                    'position' => 2,
+                ],
+                [
+                    'mediaId' => 4, // Muensterlaender_Lagerkorn_Produktion
+                    'main' => 0,
+                    'position' => 3,
+                ],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC1',
+                'active' => true,
+                'inStock' => 16,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+        ];
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $baseCategory = new Category();
+        $baseCategory->setId(1);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+        $reflector = new ReflectionClass(Item::class);
+        $imagesProperty = $reflector->getProperty('images');
+        $imagesProperty->setAccessible(true);
+        $images = $imagesProperty->getValue($xmlArticle);
+        $images = array_pop($images);
+
+        $this->assertEquals(
+            [
+                $expectedCoverImageUrl,
+                'http://localhost/media/image/88/ee/bf/Muensterlaender_Lagerkorn_Imagefoto_200x200.jpg',
+                'http://localhost/media/image/ab/7f/4f/Muensterlaender_Lagerkorn_Ballons_Hochformat.jpg',
+                'http://localhost/media/image/70/db/7d/Muensterlaender_Lagerkorn_Ballons_Hochformat_200x200.jpg',
+                'http://localhost/media/image/79/79/5b/Muensterlaender_Lagerkorn_Produktion.jpg',
+                'http://localhost/media/image/ca/d6/a9/Muensterlaender_Lagerkorn_Produktion_200x200.jpg'
+            ],
+            array_map(function ($image) {
+                return $image->getUrl();
+            }, $images)
+        );
+    }
+
+    public function testImageUrlsWithSpecialCharactersAreEncoded()
+    {
+        $actualImageUrl = 'https://via.placeholder.com/300/F00/fff/test²!Üä´°.png';
+        $expectedImageUrl = 'https://via.placeholder.com/300/F00/fff/test%C2%B2%21%C3%9C%C3%A4%C2%B4%C2%B0.png';
+        $expectedThumbnailUrl = $expectedImageUrl;
+        $articleConfiguration = [
+            'name' => 'FindologicArticle 1',
+            'active' => true,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5]
+            ],
+            'images' => [
+                ['link' => $actualImageUrl],
+            ],
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC1',
+                'active' => true,
+                'inStock' => 16,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+        ];
+
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+
+        $baseCategory = new Category();
+        $baseCategory->setId(1);
+
+        $mockMediaService = $this->getMockBuilder(MediaService::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockMediaService
+            ->method('getUrl')
+            ->willReturn($actualImageUrl);
+
+        Shopware()->Container()->set('shopware_media.media_service', $mockMediaService);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+
+        $reflector = new ReflectionClass(Item::class);
+        $imagesProperty = $reflector->getProperty('images');
+        $imagesProperty->setAccessible(true);
+        $images = $imagesProperty->getValue($xmlArticle);
+        $images = array_pop($images);
+
+        $this->assertEquals(
+            [
+                $expectedImageUrl,
+                $expectedThumbnailUrl
+            ],
+            array_map(function ($image) {
+                return $image->getUrl();
+            }, $images)
         );
     }
 }
