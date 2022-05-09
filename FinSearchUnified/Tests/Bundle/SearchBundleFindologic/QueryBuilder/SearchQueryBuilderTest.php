@@ -380,4 +380,38 @@ class SearchQueryBuilderTest extends TestCase
 
         $this->assertSame(1, $params['forceOriginalQuery']);
     }
+
+    public function testShopTypeParameter()
+    {
+        $searchNavigationRequest = new SearchRequest();
+        $queryBuilder = new SearchQueryBuilder(
+            $this->installerService,
+            $this->config,
+            null,
+            $searchNavigationRequest
+        );
+
+        $queryBuilder->addQuery('shopware5');
+
+        $params = $searchNavigationRequest->getParams();
+        $this->assertArrayHasKey('query', $params);
+        $this->assertSame('shopware5', $params['query']);
+    }
+
+    public function testShopVersionParameter()
+    {
+        $searchNavigationRequest = new SearchRequest();
+        $queryBuilder = new SearchQueryBuilder(
+            $this->installerService,
+            $this->config,
+            null,
+            $searchNavigationRequest
+        );
+
+        $queryBuilder->addQuery('5.7.7');
+
+        $params = $searchNavigationRequest->getParams();
+        $this->assertArrayHasKey('query', $params);
+        $this->assertSame('5.7.7', $params['query']);
+    }
 }
