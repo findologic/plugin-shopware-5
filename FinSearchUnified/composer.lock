@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "39591d5e0f93a8d53d7bd4c5e18dc442",
+    "content-hash": "ce3138f4b715ed30e826f18a163ece81",
     "packages": [
         {
             "name": "findologic/findologic-api",
-            "version": "v1.5.1",
+            "version": "v1.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/findologic/findologic-api.git",
-                "reference": "8e8c4ee36f2a3d4780be4b8a7601f63216ccfa5e"
+                "reference": "3c3a36134654bdd6610ec43948280a2dc41285a2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/findologic/findologic-api/zipball/8e8c4ee36f2a3d4780be4b8a7601f63216ccfa5e",
-                "reference": "8e8c4ee36f2a3d4780be4b8a7601f63216ccfa5e",
+                "url": "https://api.github.com/repos/findologic/findologic-api/zipball/3c3a36134654bdd6610ec43948280a2dc41285a2",
+                "reference": "3c3a36134654bdd6610ec43948280a2dc41285a2",
                 "shasum": ""
             },
             "require": {
@@ -67,11 +67,7 @@
                 }
             ],
             "description": "Library for FINDOLOGIC API requests",
-            "support": {
-                "issues": "https://github.com/findologic/findologic-api/issues",
-                "source": "https://github.com/findologic/findologic-api/tree/develop"
-            },
-            "time": "2020-08-25T09:30:27+00:00"
+            "time": "2021-10-20T10:12:38+00:00"
         },
         {
             "name": "findologic/guzzle",
@@ -229,10 +225,6 @@
             ],
             "description": "FINDOLOGIC Search API XML Response Schema.",
             "homepage": "https://github.com/findologic/xml-response-schema",
-            "support": {
-                "issues": "https://github.com/findologic/xml-response-schema/issues",
-                "source": "https://github.com/findologic/xml-response-schema/tree/v2.2.0"
-            },
             "time": "2020-02-14T11:49:14+00:00"
         },
         {
@@ -262,12 +254,12 @@
                 }
             },
             "autoload": {
-                "psr-4": {
-                    "GuzzleHttp\\Promise\\": "src/"
-                },
                 "files": [
                     "src/functions_include.php"
-                ]
+                ],
+                "psr-4": {
+                    "GuzzleHttp\\Promise\\": "src/"
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -284,10 +276,6 @@
             "keywords": [
                 "promise"
             ],
-            "support": {
-                "issues": "https://github.com/guzzle/promises/issues",
-                "source": "https://github.com/guzzle/promises/tree/master"
-            },
             "time": "2016-12-20T10:07:11+00:00"
         },
         {
@@ -380,10 +368,6 @@
                 "uri",
                 "url"
             ],
-            "support": {
-                "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/1.8.5"
-            },
             "funding": [
                 {
                     "url": "https://github.com/GrahamCampbell",
@@ -526,12 +510,12 @@
                 }
             },
             "autoload": {
-                "psr-4": {
-                    "Symfony\\Polyfill\\Intl\\Idn\\": ""
-                },
                 "files": [
                     "bootstrap.php"
-                ]
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Intl\\Idn\\": ""
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -557,9 +541,6 @@
                 "portable",
                 "shim"
             ],
-            "support": {
-                "source": "https://github.com/symfony/polyfill-intl-idn/tree/master"
-            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -603,12 +584,12 @@
                 }
             },
             "autoload": {
-                "psr-4": {
-                    "Symfony\\Polyfill\\Mbstring\\": ""
-                },
                 "files": [
                     "bootstrap.php"
-                ]
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Mbstring\\": ""
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -633,9 +614,6 @@
                 "portable",
                 "shim"
             ],
-            "support": {
-                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.17.0"
-            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -676,12 +654,12 @@
                 }
             },
             "autoload": {
-                "psr-4": {
-                    "Symfony\\Polyfill\\Php72\\": ""
-                },
                 "files": [
                     "bootstrap.php"
-                ]
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Php72\\": ""
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -705,9 +683,6 @@
                 "portable",
                 "shim"
             ],
-            "support": {
-                "source": "https://github.com/symfony/polyfill-php72/tree/master"
-            },
             "funding": [
                 {
                     "url": "https://symfony.com/sponsor",
@@ -771,10 +746,6 @@
                 "validation",
                 "validator"
             ],
-            "support": {
-                "issues": "https://github.com/vlucas/valitron/issues",
-                "source": "https://github.com/vlucas/valitron/tree/v1.4.7"
-            },
             "time": "2019-08-29T19:49:43+00:00"
         }
     ],
@@ -847,5 +818,5 @@
         "ext-json": "*"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.2.0"
+    "plugin-api-version": "1.1.0"
 }
