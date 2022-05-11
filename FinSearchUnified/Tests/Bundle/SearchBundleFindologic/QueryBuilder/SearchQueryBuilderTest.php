@@ -34,6 +34,7 @@ class SearchQueryBuilderTest extends TestCase
         $this->installerService = Shopware()->Container()->get('shopware.plugin_manager');
         $this->config = Shopware()->Config();
         $this->config->ShopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
+        $this->config->version = '5.7.7';
 
         // Set default values for test
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
