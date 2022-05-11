@@ -381,37 +381,33 @@ class SearchQueryBuilderTest extends TestCase
         $this->assertSame(1, $params['forceOriginalQuery']);
     }
 
-    public function testShopTypeParameter()
+    public function testShopTypeParameterIsAddedByDefault()
     {
         $searchNavigationRequest = new SearchRequest();
-        $queryBuilder = new SearchQueryBuilder(
+        new SearchQueryBuilder(
             $this->installerService,
             $this->config,
             null,
             $searchNavigationRequest
         );
 
-        $queryBuilder->addQuery('shopware5');
-
         $params = $searchNavigationRequest->getParams();
-        $this->assertArrayHasKey('query', $params);
-        $this->assertSame('shopware5', $params['query']);
+        $this->assertArrayHasKey('shopType', $params);
+        $this->assertSame('Shopware5', $params['shopType']);
     }
 
-    public function testShopVersionParameter()
+    public function testShopVersionParameterIsAddedByDefault()
     {
         $searchNavigationRequest = new SearchRequest();
-        $queryBuilder = new SearchQueryBuilder(
+        new SearchQueryBuilder(
             $this->installerService,
             $this->config,
             null,
             $searchNavigationRequest
         );
 
-        $queryBuilder->addQuery('5.7.7');
-
         $params = $searchNavigationRequest->getParams();
-        $this->assertArrayHasKey('query', $params);
-        $this->assertSame('5.7.7', $params['query']);
+        $this->assertArrayHasKey('shopVersion', $params);
+        $this->assertSame('5.7.7', $params['shopVersion']);
     }
 }
