@@ -18,7 +18,7 @@
 {/block}
 
 {block name="frontend_listing_filter_facet_multi_selection_label"}
-    <label class="filter-panel--label {if $option->isActive()|escape:'htmlall'}active{/if}"
+    <label class="filter-panel--label"
            for="__{$facet->getFieldName()|escape:'htmlall'}__{$option->getId()|escape:'htmlall'}">
 
         {$colorCode = $option->getColorcode()}
