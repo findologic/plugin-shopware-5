@@ -34,6 +34,7 @@ class SearchQueryBuilderTest extends TestCase
         $this->installerService = Shopware()->Container()->get('shopware.plugin_manager');
         $this->config = Shopware()->Config();
         $this->config->ShopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
+        $this->config->version = '5.7.7';
 
         // Set default values for test
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
@@ -379,5 +380,35 @@ class SearchQueryBuilderTest extends TestCase
         $this->assertArrayHasKey('forceOriginalQuery', $params);
 
         $this->assertSame(1, $params['forceOriginalQuery']);
+    }
+
+    public function testShopTypeParameterIsAddedByDefault()
+    {
+        $searchNavigationRequest = new SearchRequest();
+        new SearchQueryBuilder(
+            $this->installerService,
+            $this->config,
+            null,
+            $searchNavigationRequest
+        );
+
+        $params = $searchNavigationRequest->getParams();
+        $this->assertArrayHasKey('shopType', $params);
+        $this->assertSame('Shopware5', $params['shopType']);
+    }
+
+    public function testShopVersionParameterIsAddedByDefault()
+    {
+        $searchNavigationRequest = new SearchRequest();
+        new SearchQueryBuilder(
+            $this->installerService,
+            $this->config,
+            null,
+            $searchNavigationRequest
+        );
+
+        $params = $searchNavigationRequest->getParams();
+        $this->assertArrayHasKey('shopVersion', $params);
+        $this->assertSame('5.7.7', $params['shopVersion']);
     }
 }
