@@ -16,6 +16,9 @@ use FinSearchUnified\Constants;
 use Shopware;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Bundle\StoreFrontBundle;
+use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
+use Shopware\Bundle\StoreFrontBundle\Service\ManufacturerServiceInterface;
+use Shopware\Bundle\StoreFrontBundle\Struct\Product\Manufacturer;
 use SimpleXMLElement;
 use Zend_Cache_Exception;
 
@@ -44,6 +47,22 @@ class StaticHelper
         $categoryName = implode('_', $categoryNames);
 
         return $categoryName;
+    }
+
+    /**
+     * @param int $manufacturerId
+     *
+     * @return string
+     */
+    public static function buildManufacturerName($manufacturerId)
+    {
+        /** @var Manufacturer|null $manufacturer */
+        $manufacturer = Shopware()->Container()->get(ManufacturerServiceInterface::class)->get(
+            $manufacturerId,
+            Shopware()->Container()->get(ContextServiceInterface::class)->getShopContext()
+        );
+
+        return $manufacturer->getName();
     }
 
     /**
