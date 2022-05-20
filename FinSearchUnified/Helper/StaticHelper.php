@@ -166,6 +166,7 @@ class StaticHelper
         $isActiveOnCategoryPages = (bool)Shopware()->Config()->offsetGet('ActivateFindologicForCategoryPages');
 
         $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage') || static::isCategoryPage($request);
+        $isManufacturerPage = Shopware()->Session()->offsetGet('isManufacturerPage') || static::isManufacturerPage($request);
         $isNoSearchAndCategoryPage = !$isCategoryPage && !Shopware()->Session()->offsetGet('isSearchPage');
         $isCategoryPageButDisabledInConfig = $isCategoryPage && !$isActiveOnCategoryPages;
 
@@ -178,6 +179,7 @@ class StaticHelper
             $isDirectIntegration ||
             $isNoSearchAndCategoryPage ||
             $isCategoryPageButDisabledInConfig ||
+            $isManufacturerPage ||
             $fallbackSearchIsSet
         );
     }
@@ -191,6 +193,17 @@ class StaticHelper
     {
         return $request->getControllerName() === 'listing' && $request->getActionName() !== 'manufacturer' &&
             array_key_exists('sCategory', $request->getParams());
+    }
+
+    /**
+     * @param Enlight_Controller_Request_Request $request
+     *
+     * @return bool
+     */
+    public static function isManufacturerPage(Enlight_Controller_Request_Request $request)
+    {
+        return $request->getControllerName() === 'listing' &&
+            ($request->getActionName() === 'manufacturer' || $request->getActionName() === 'listingCount');
     }
 
     /**
