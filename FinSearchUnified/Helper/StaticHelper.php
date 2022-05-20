@@ -166,7 +166,8 @@ class StaticHelper
         $isActiveOnCategoryPages = (bool)Shopware()->Config()->offsetGet('ActivateFindologicForCategoryPages');
 
         $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage') || static::isCategoryPage($request);
-        $isManufacturerPage = Shopware()->Session()->offsetGet('isManufacturerPage') || static::isManufacturerPage($request);
+        $isManufacturerPage = Shopware()->Session()->offsetGet('isManufacturerPage') ||
+            static::isManufacturerPage($request);
         $isNoSearchAndCategoryPage = !$isCategoryPage && !Shopware()->Session()->offsetGet('isSearchPage');
         $isCategoryPageButDisabledInConfig = $isCategoryPage && !$isActiveOnCategoryPages;
 
