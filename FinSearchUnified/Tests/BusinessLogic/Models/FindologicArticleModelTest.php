@@ -81,10 +81,7 @@ class FindologicArticleModelTest extends TestCase
                         ['id' => 3],
                         ['id' => 5],
                     ],
-                    'images' => [
-                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-                    ],
+                    'images' => Utility::getDefaultImages(),
                     'mainDetail' => [
                         'number' => 'FINDOLOGIC6',
                         'active' => true,
@@ -108,10 +105,7 @@ class FindologicArticleModelTest extends TestCase
                         ['id' => 3],
                         ['id' => 5],
                     ],
-                    'images' => [
-                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-                    ],
+                    'images' => Utility::getDefaultImages(),
                     'mainDetail' => [
                         'number' => 'FINDOLOGIC2',
                         'active' => true,
@@ -135,10 +129,7 @@ class FindologicArticleModelTest extends TestCase
                         ['id' => 3],
                         ['id' => 5],
                     ],
-                    'images' => [
-                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-                    ],
+                    'images' => Utility::getDefaultImages(),
                     'mainDetail' => [
                         'number' => 'FINDOLOGIC2',
                         'active' => true,
@@ -190,10 +181,7 @@ class FindologicArticleModelTest extends TestCase
                 ['id' => 3],
                 ['id' => 5],
             ],
-            'images' => [
-                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-            ],
+            'images' => Utility::getDefaultImages(),
             'mainDetail' => [
                 'number' => 'FINDOLOGIC1',
                 'active' => true,
@@ -342,10 +330,7 @@ class FindologicArticleModelTest extends TestCase
                 ['id' => 3],
                 ['id' => 5],
             ],
-            'images' => [
-                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-            ],
+            'images' => Utility::getDefaultImages(),
             'mainDetail' => [
                 'number' => 'FINDOLOGIC2',
                 'active' => true,
@@ -449,10 +434,7 @@ class FindologicArticleModelTest extends TestCase
                         ['id' => 3],
                         ['id' => 5],
                     ],
-                    'images' => [
-                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-                    ],
+                    'images' => Utility::getDefaultImages(),
                     'mainDetail' => [
                         'number' => 'FINDOLOGIC2',
                         'active' => true,
@@ -477,10 +459,7 @@ class FindologicArticleModelTest extends TestCase
                         ['id' => 3],
                         ['id' => 5],
                     ],
-                    'images' => [
-                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-                    ],
+                    'images' => Utility::getDefaultImages(),
                     'mainDetail' => [
                         'number' => 'FINDOLOGIC2',
                         'active' => true,
@@ -511,10 +490,7 @@ class FindologicArticleModelTest extends TestCase
                         ['id' => 3],
                         ['id' => 5],
                     ],
-                    'images' => [
-                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-                    ],
+                    'images' => Utility::getDefaultImages(),
                     'mainDetail' => [
                         'number' => 'FINDOLOGIC3',
                         'active' => true,
@@ -545,10 +521,7 @@ class FindologicArticleModelTest extends TestCase
                         ['id' => 3],
                         ['id' => 5],
                     ],
-                    'images' => [
-                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-                    ],
+                    'images' => Utility::getDefaultImages(),
                     'mainDetail' => [
                         'number' => 'FINDOLOGIC2',
                         'active' => true,
@@ -579,10 +552,7 @@ class FindologicArticleModelTest extends TestCase
                         ['id' => 3],
                         ['id' => 5],
                     ],
-                    'images' => [
-                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-                    ],
+                    'images' => Utility::getDefaultImages(),
                     'mainDetail' => [
                         'number' => 'FINDOLOGIC2',
                         'active' => true,
@@ -613,10 +583,7 @@ class FindologicArticleModelTest extends TestCase
                         ['id' => 3],
                         ['id' => 5],
                     ],
-                    'images' => [
-                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-                    ],
+                    'images' => Utility::getDefaultImages(),
                     'mainDetail' => [
                         'number' => 'FINDOLOGIC2',
                         'active' => true,
@@ -647,10 +614,7 @@ class FindologicArticleModelTest extends TestCase
                         ['id' => 3],
                         ['id' => 5],
                     ],
-                    'images' => [
-                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-                    ],
+                    'images' => Utility::getDefaultImages(),
                     'mainDetail' => [
                         'number' => 'FINDOLOGIC2',
                         'active' => true,
@@ -678,10 +642,7 @@ class FindologicArticleModelTest extends TestCase
                         ['id' => 3],
                         ['id' => 5],
                     ],
-                    'images' => [
-                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-                    ],
+                    'images' => Utility::getDefaultImages(),
                     'mainDetail' => [
                         'number' => 'FINDOLOGIC2',
                         'active' => true,
@@ -789,10 +750,7 @@ class FindologicArticleModelTest extends TestCase
                         ['id' => 3],
                         ['id' => 5],
                     ],
-                    'images' => [
-                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-                    ],
+                    'images' => Utility::getDefaultImages(),
                     'mainDetail' => [
                         'number' => 'FINDOLOGIC2',
                         'active' => true,
@@ -853,10 +811,7 @@ class FindologicArticleModelTest extends TestCase
                         ['id' => 3],
                         ['id' => 5],
                     ],
-                    'images' => [
-                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-                    ],
+                    'images' => Utility::getDefaultImages(),
                     'mainDetail' => [
                         'number' => 'FINDOLOGIC2',
                         'active' => true,
@@ -917,10 +872,7 @@ class FindologicArticleModelTest extends TestCase
                         ['id' => 3],
                         ['id' => 5],
                     ],
-                    'images' => [
-                        ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                        ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-                    ],
+                    'images' => Utility::getDefaultImages(),
                     'mainDetail' => [
                         'number' => 'FINDOLOGIC2',
                         'active' => true,
@@ -1015,10 +967,7 @@ class FindologicArticleModelTest extends TestCase
                 ['id' => 3],
                 ['id' => 5],
             ],
-            'images' => [
-                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-            ],
+            'images' => Utility::getDefaultImages(),
             'mainDetail' => [
                 'number' => 'FINDOLOGIC2',
                 'active' => true,
@@ -1072,10 +1021,7 @@ class FindologicArticleModelTest extends TestCase
                 ['id' => 3],
                 ['id' => 5],
             ],
-            'images' => [
-                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-            ],
+            'images' => Utility::getDefaultImages(),
             'mainDetail' => [
                 'number' => 'FINDOLOGIC1',
                 'active' => true,
@@ -1226,10 +1172,7 @@ class FindologicArticleModelTest extends TestCase
                 ['id' => 3],
                 ['id' => 5],
             ],
-            'images' => [
-                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-            ],
+            'images' => Utility::getDefaultImages(),
             'mainDetail' => [
                 'number' => 'FINDOLOGIC1',
                 'active' => true,
@@ -1304,10 +1247,7 @@ class FindologicArticleModelTest extends TestCase
                 ['id' => 5],
                 ['id' => $category->getId()]
             ],
-            'images' => [
-                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-            ],
+            'images' => Utility::getDefaultImages(),
             'mainDetail' => [
                 'number' => 'FINDOLOGIC1',
                 'active' => true,
@@ -1417,10 +1357,7 @@ class FindologicArticleModelTest extends TestCase
                 ['id' => 5],
                 ['id' => 3000]
             ],
-            'images' => [
-                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-            ],
+            'images' => Utility::getDefaultImages(),
             'mainDetail' => [
                 'number' => 'FINDOLOGIC1',
                 'active' => true,
@@ -1529,10 +1466,7 @@ class FindologicArticleModelTest extends TestCase
                 ['id' => 3],
                 ['id' => 5]
             ],
-            'images' => [
-                ['link' => 'https://via.placeholder.com/300/F00/fff.png'],
-                ['link' => 'https://via.placeholder.com/300/09f/000.png'],
-            ],
+            'images' => Utility::getDefaultImages(),
             'mainDetail' => [
                 'number' => 'FINDOLOGIC1',
                 'active' => true,
@@ -1654,8 +1588,8 @@ class FindologicArticleModelTest extends TestCase
 
     public function testImageUrlsWithSpecialCharactersAreEncoded()
     {
-        $actualImageUrl = 'https://via.placeholder.com/300/F00/fff/test²!Üä´°.png';
-        $expectedImageUrl = 'https://via.placeholder.com/300/F00/fff/test%C2%B2%21%C3%9C%C3%A4%C2%B4%C2%B0.png';
+        $actualImageUrl = 'https://dummyimage.com/300/F00/fff/test²!Üä´°.png';
+        $expectedImageUrl = 'https://dummyimage.com/300/F00/fff/test%C2%B2%21%C3%9C%C3%A4%C2%B4%C2%B0.png';
         $expectedThumbnailUrl = $expectedImageUrl;
         $articleConfiguration = [
             'name' => 'FindologicArticle 1',
