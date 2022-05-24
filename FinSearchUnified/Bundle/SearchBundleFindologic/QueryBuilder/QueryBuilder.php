@@ -15,6 +15,7 @@ use FinSearchUnified\Constants;
 use FinSearchUnified\Helper\StaticHelper;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware_Components_Config;
+use FINDOLOGIC\Api\Requests\Request;
 
 abstract class QueryBuilder
 {
@@ -230,6 +231,12 @@ abstract class QueryBuilder
         $this->searchNavigationRequest->setUserIp($this->getClientIp());
         $this->searchNavigationRequest->setRevision(rtrim($plugin->getVersion()));
         $this->searchNavigationRequest->setOutputAdapter(OutputAdapter::XML_21);
+        $this->searchNavigationRequest->addIndividualParam('shopType', 'Shopware5', Request::ADD_VALUE);
+        $this->searchNavigationRequest->addIndividualParam(
+            'shopVersion',
+            Shopware()->Config()->offsetGet('version'),
+            Request::ADD_VALUE
+        );
     }
 
     /**
