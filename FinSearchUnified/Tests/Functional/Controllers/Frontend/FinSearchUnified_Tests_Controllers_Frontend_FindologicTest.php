@@ -44,10 +44,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_FindologicTest extends Enlight
             'categories' => [
                 ['id' => 5],
             ],
-            'images' => [
-                ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
-                ['link' => 'https://via.placeholder.com/100/09f/000.png'],
-            ],
+            'images' => Utility::getDefaultImages(),
             'mainDetail' => [
                 'number' => 'FINDOLOGIC' . $number,
                 'active' => $isActive,
