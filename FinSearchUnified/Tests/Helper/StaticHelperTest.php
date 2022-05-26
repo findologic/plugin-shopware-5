@@ -153,6 +153,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
+                'isManufacturerPage' => null,
                 'fallbackSearchCookie' => null,
                 'expected' => true
             ],
@@ -163,6 +164,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
+                'isManufacturerPage' => null,
                 'fallbackSearchCookie' => null,
                 'expected' => true
             ],
@@ -173,6 +175,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
+                'isManufacturerPage' => null,
                 'fallbackSearchCookie' => null,
                 'expected' => true
             ],
@@ -183,6 +186,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => true,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
+                'isManufacturerPage' => null,
                 'fallbackSearchCookie' => null,
                 'expected' => true
             ],
@@ -193,6 +197,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => false,
+                'isManufacturerPage' => null,
                 'fallbackSearchCookie' => null,
                 'expected' => true
             ],
@@ -203,6 +208,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
+                'isManufacturerPage' => null,
                 'fallbackSearchCookie' => null,
                 'expected' => true
             ],
@@ -213,6 +219,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
+                'isManufacturerPage' => null,
                 'fallbackSearchCookie' => null,
                 'expected' => false
             ],
@@ -223,8 +230,20 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
+                'isManufacturerPage' => null,
                 'fallbackSearchCookie' => null,
                 'expected' => false
+            ],
+            'FINDOLOGIC is active on manufacturer pages' => [
+                'activateFindologic' => true,
+                'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
+                'activateFindologicForCategoryPages' => true,
+                'findologicDI' => false,
+                'isSearchPage' => false,
+                'isCategoryPage' => false,
+                'isManufacturerPage' => true,
+                'fallbackSearchCookie' => null,
+                'expected' => true
             ],
             'Cookie "fallback-search" is set and true' => [
                 'activateFindologic' => true,
@@ -233,6 +252,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
+                'isManufacturerPage' => null,
                 'fallbackSearchCookie' => true,
                 'expected' => true
             ],
@@ -243,6 +263,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
+                'isManufacturerPage' => null,
                 'fallbackSearchCookie' => 1,
                 'expected' => true
             ],
@@ -253,6 +274,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
+                'isManufacturerPage' => null,
                 'fallbackSearchCookie' => false,
                 'expected' => false
             ],
@@ -263,6 +285,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
+                'isManufacturerPage' => null,
                 'fallbackSearchCookie' => null,
                 'expected' => false
             ],
@@ -393,6 +416,7 @@ class StaticHelperTest extends TestCase
      * @param bool $checkIntegration
      * @param bool $isSearchPage
      * @param bool $isCategoryPage
+     * @param bool $isManufacturerPage
      * @param bool|null $fallbackCookie
      * @param bool $expected
      *
@@ -405,6 +429,7 @@ class StaticHelperTest extends TestCase
         $checkIntegration,
         $isSearchPage,
         $isCategoryPage,
+        $isManufacturerPage,
         $fallbackCookie,
         $expected
     ) {
@@ -425,6 +450,7 @@ class StaticHelperTest extends TestCase
             $sessionArray = [
                 ['isSearchPage', $isSearchPage],
                 ['isCategoryPage', $isCategoryPage],
+                ['isManufacturerPage', $isManufacturerPage],
                 ['findologicDI', $checkIntegration]
             ];
 
@@ -453,38 +479,6 @@ class StaticHelperTest extends TestCase
         $error = 'Expected %s search to be triggered but it was not';
         $shop = $expected ? 'shop' : 'FINDOLOGIC';
         $this->assertEquals($expected, $result, sprintf($error, $shop));
-    }
-
-    public function testUseShopSearchWhenManufacturerPage()
-    {
-        $configArray = [
-            ['ActivateFindologic', true],
-            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
-            ['ActivateFindologicForCategoryPages', true],
-            ['IntegrationType', Constants::INTEGRATION_TYPE_API]
-        ];
-        $request = new RequestHttp();
-        $request->setModuleName('frontend');
-        $request->setControllerName('listing');
-        $request->setParam('sManufacturer', '69');
-
-        Shopware()->Front()->setRequest($request);
-
-        // Create Mock object for Shopware Config
-        $config = $this->createMock(Config::class);
-        $config->expects($this->atLeastOnce())
-            ->method('offsetGet')
-            ->willReturnMap($configArray);
-        $config->method('offsetExists')
-            ->willReturn(true);
-
-        // Assign mocked config variable to application container
-        Shopware()->Container()->set('config', $config);
-
-        Shopware()->Session()->offsetSet('isManufacturerPage', false);
-
-        $result = StaticHelper::useShopSearch();
-        $this->assertTrue($result, 'Expected Shopware search to be triggered but it was not');
     }
 
     public function testDoNotUseShopSearchWhenCategoryPageAndSessionNotSet()

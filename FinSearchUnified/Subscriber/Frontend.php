@@ -111,10 +111,14 @@ class Frontend implements SubscriberInterface
             Shopware()->Session()->offsetSet('isCategoryPage', true);
             Shopware()->Session()->offsetSet('isSearchPage', false);
             Shopware()->Session()->offsetSet('isManufacturerPage', false);
-        } elseif (StaticHelper::isManufacturerPage($request) || !$this->isWhiteListed($request)) {
+        } elseif (StaticHelper::isManufacturerPage($request)) {
             Shopware()->Session()->offsetSet('isCategoryPage', false);
             Shopware()->Session()->offsetSet('isSearchPage', false);
-            Shopware()->Session()->offsetSet('isManufacturerPage', StaticHelper::isManufacturerPage($request));
+            Shopware()->Session()->offsetSet('isManufacturerPage', true);
+        } elseif (!$this->isWhiteListed($request)) {
+            Shopware()->Session()->offsetSet('isCategoryPage', false);
+            Shopware()->Session()->offsetSet('isSearchPage', false);
+            Shopware()->Session()->offsetSet('isManufacturerPage', false);
         } else {
             // Keep the flags as they are since these might be subsequent requests from the same page.
         }
