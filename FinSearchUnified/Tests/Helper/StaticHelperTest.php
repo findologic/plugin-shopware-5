@@ -197,7 +197,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => false,
-                'isManufacturerPage' => null,
+                'isManufacturerPage' => false,
                 'fallbackSearchCookie' => null,
                 'expected' => true
             ],
@@ -208,7 +208,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
-                'isManufacturerPage' => null,
+                'isManufacturerPage' => false,
                 'fallbackSearchCookie' => null,
                 'expected' => true
             ],
@@ -219,7 +219,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
-                'isManufacturerPage' => null,
+                'isManufacturerPage' => false,
                 'fallbackSearchCookie' => null,
                 'expected' => false
             ],
@@ -230,7 +230,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
-                'isManufacturerPage' => null,
+                'isManufacturerPage' => false,
                 'fallbackSearchCookie' => null,
                 'expected' => false
             ],
@@ -252,7 +252,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
-                'isManufacturerPage' => null,
+                'isManufacturerPage' => false,
                 'fallbackSearchCookie' => true,
                 'expected' => true
             ],
@@ -263,7 +263,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
-                'isManufacturerPage' => null,
+                'isManufacturerPage' => false,
                 'fallbackSearchCookie' => 1,
                 'expected' => true
             ],
@@ -274,7 +274,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
-                'isManufacturerPage' => null,
+                'isManufacturerPage' => false,
                 'fallbackSearchCookie' => false,
                 'expected' => false
             ],
@@ -285,7 +285,7 @@ class StaticHelperTest extends TestCase
                 'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
-                'isManufacturerPage' => null,
+                'isManufacturerPage' => false,
                 'fallbackSearchCookie' => null,
                 'expected' => false
             ],
