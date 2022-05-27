@@ -203,8 +203,7 @@ class StaticHelper
      */
     public static function isManufacturerPage(Enlight_Controller_Request_Request $request)
     {
-        return $request->getControllerName() === 'listing' &&
-            ($request->getActionName() === 'manufacturer' || $request->getActionName() === 'listingCount');
+        return $request->getControllerName() === 'listing' && $request->getActionName() === 'manufacturer';
     }
 
     /**
