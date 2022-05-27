@@ -58,6 +58,7 @@ abstract class Filter extends BaseFilter
     private static function handleLabelTextFilter(ApiLabelTextFilter $filter)
     {
         $customFilter = new LabelTextFilter($filter->getName(), $filter->getDisplay());
+        $customFilter->setMode($filter->getSelect());
 
         /** @var DefaultItem $item */
         foreach ($filter->getItems() as $item) {
@@ -75,6 +76,7 @@ abstract class Filter extends BaseFilter
     private static function handleSelectDropdownFilter(ApiSelectDropdownFilter $filter)
     {
         $customFilter = new SelectDropdownFilter($filter->getName(), $filter->getDisplay());
+        $customFilter->setMode($filter->getSelect());
 
         /** @var DefaultItem $item */
         foreach ($filter->getItems() as $item) {
@@ -116,6 +118,7 @@ abstract class Filter extends BaseFilter
     private static function handleColorPickerFilter(ApiColorPickerFilter $filter)
     {
         $customFilter = new ColorPickerFilter($filter->getName(), $filter->getDisplay());
+        $customFilter->setMode($filter->getSelect());
 
         /** @var ColorItem $item */
         foreach ($filter->getItems() as $item) {
@@ -134,6 +137,7 @@ abstract class Filter extends BaseFilter
     private static function handleVendorImageFilter(ApiVendorImageFilter $filter)
     {
         $customFilter = new VendorImageFilter($filter->getName(), $filter->getDisplay());
+        $customFilter->setMode($filter->getSelect());
 
         /** @var VendorImageItem $item */
         foreach ($filter->getItems() as $item) {

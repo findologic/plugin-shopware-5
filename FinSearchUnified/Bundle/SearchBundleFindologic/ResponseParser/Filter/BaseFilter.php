@@ -6,6 +6,8 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\ResponseParser\Xml21\Filter\V
 
 abstract class BaseFilter
 {
+    const MULTISELECT_TYPE = 'multiselect';
+
     /** @var string|null */
     protected $type;
 

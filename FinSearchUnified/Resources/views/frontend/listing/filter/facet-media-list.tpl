@@ -6,5 +6,5 @@
         {$type = 'value-list'}
     {/if}
 
-    {include file='frontend/listing/filter/_includes/filter-color-selection.tpl' filterType=$type}
+    {include file='frontend/listing/filter/_includes/filter-multi-media-selection.tpl' filterType=$type}
 {/block}

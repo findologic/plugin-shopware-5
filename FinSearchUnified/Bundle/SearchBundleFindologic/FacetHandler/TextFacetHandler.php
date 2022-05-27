@@ -135,7 +135,9 @@ class TextFacetHandler implements PartialFacetHandlerInterface
             $active,
             $facet->getLabel(),
             $values,
-            $facet->getFormFieldName()
+            $facet->getFormFieldName(),
+            ['multiselect' => $filter->getMode() === BaseFilter::MULTISELECT_TYPE],
+            'frontend/listing/filter/facet-value-list.tpl'
         );
     }
 

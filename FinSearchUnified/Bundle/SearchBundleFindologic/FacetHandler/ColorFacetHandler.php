@@ -42,7 +42,7 @@ class ColorFacetHandler implements PartialFacetHandlerInterface
             $facet->getLabel(),
             $this->getColorItems($filter->getValues(), $actives),
             $facet->getFormFieldName(),
-            [],
+            ['multiselect' => $filter->getMode() === BaseFilter::MULTISELECT_TYPE],
             'frontend/listing/filter/facet-color-list.tpl'
         );
     }
