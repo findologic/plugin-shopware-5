@@ -189,7 +189,7 @@ class FrontendTest extends SubscriberTestCase
     {
         $isSearch = isset($sSearch);
         $isCategory = isset($sCategory);
-        $isManufacturerTrue = $sController === 'listing' && $sAction === 'manufacturer';
+        $isManufacturer = $sController === 'listing' && $sAction === 'manufacturer';
 
         // Create Request object to be passed in the mocked Subject
         $request = new RequestHttp();
@@ -229,7 +229,7 @@ class FrontendTest extends SubscriberTestCase
             sprintf('Expected isCategoryPage to be %s', $isCategory ? 'true' : 'false')
         );
         $this->assertEquals(
-            $isManufacturerTrue,
+            $isManufacturer,
             $isManufacturerPage,
             sprintf('Expected isManufacturerPage to be %s', $isManufacturerPage ? 'true' : 'false')
         );
