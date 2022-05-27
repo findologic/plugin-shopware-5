@@ -100,7 +100,7 @@ class ColorFacetHandlerTest extends TestCase
                         new ColorListItem('Green', 'Green', false, '#00ff00')
                     ],
                     'color',
-                    [],
+                    ['multiselect' => false],
                     'frontend/listing/filter/facet-color-list.tpl'
                 )
             ],
@@ -121,7 +121,7 @@ class ColorFacetHandlerTest extends TestCase
                         new ColorListItem('Green', 'Green', false, null)
                     ],
                     'color',
-                    [],
+                    ['multiselect' => false],
                     'frontend/listing/filter/facet-color-list.tpl'
                 )
             ],
@@ -146,7 +146,7 @@ class ColorFacetHandlerTest extends TestCase
                         new ColorListItem('Green', 'Green', true, '#00ff00')
                     ],
                     'color',
-                    [],
+                    ['multiselect' => false],
                     'frontend/listing/filter/facet-color-list.tpl'
                 )
             ],
@@ -172,8 +172,8 @@ class ColorFacetHandlerTest extends TestCase
                         new ColorListItem('Zima Blue', 'Zima Blue', true, null)
                     ],
                     'color',
-                    [],
-                    'frontend/listing/filter/facet-color-list.tpl'
+                    ['multiselect' => false],
+                    'frontend/listing/filter/facet-color-list.tpl',
                 )
             ]
         ];

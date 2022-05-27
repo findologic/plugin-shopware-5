@@ -385,7 +385,8 @@ class ProductNumberSearchTest extends TestCase
                             $secondMedia
                         ),
                     ],
-                    'vendor'
+                    'vendor',
+                    ['multiselect' => false]
                 ),
                 'condition' => new ProductAttributeCondition('vendor', '=', 'Anderson, Gusikowski and Barton'),
             ],
@@ -409,7 +410,8 @@ class ProductNumberSearchTest extends TestCase
                             $secondMedia
                         ),
                     ],
-                    'vendor'
+                    'vendor',
+                    ['multiselect' => false]
                 ),
                 'condition' => null,
             ],

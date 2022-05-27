@@ -188,7 +188,8 @@ class ImageFacetHandlerTest extends TestCase
             $active,
             'Manufacturer',
             $mediaListItems,
-            'vendor'
+            'vendor',
+            ['multiselect' => false]
         );
 
         $this->assertEquals($facetResult, $result);
