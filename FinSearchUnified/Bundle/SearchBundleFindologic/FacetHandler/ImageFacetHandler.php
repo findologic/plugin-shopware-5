@@ -65,7 +65,7 @@ class ImageFacetHandler implements PartialFacetHandlerInterface
             $values,
             $facet->getFormFieldName(),
             ['multiselect' => $filter->getMode() === BaseFilter::MULTISELECT_TYPE],
-            'frontend/listing/filter/facet-media-list.tpl'
+            'frontend/listing/filter/facet-vendor-image-list.tpl'
         );
     }
 

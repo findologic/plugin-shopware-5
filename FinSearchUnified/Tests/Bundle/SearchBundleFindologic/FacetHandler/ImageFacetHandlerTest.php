@@ -189,7 +189,8 @@ class ImageFacetHandlerTest extends TestCase
             'Manufacturer',
             $mediaListItems,
             'vendor',
-            ['multiselect' => false]
+            ['multiselect' => false],
+            'frontend/listing/filter/facet-vendor-image-list.tpl'
         );
 
         $this->assertEquals($facetResult, $result);

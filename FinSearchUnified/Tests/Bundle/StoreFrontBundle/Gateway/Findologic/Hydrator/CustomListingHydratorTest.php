@@ -84,7 +84,7 @@ class CustomListingHydratorTest extends TestCase
                         'attributeName' => 'product_attribute_special .characters',
                         'formFieldName' => 'special_characters',
                         'label' => 'Sonderzeichen',
-                        'mode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                        'mode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT
                     ],
                     [
                         'name' => 'TISCHWÄSCHE - Ausführung',
@@ -92,7 +92,7 @@ class CustomListingHydratorTest extends TestCase
                         'attributeName' => 'product_attribute_TISCHWÄSCHE - Ausführung',
                         'formFieldName' => 'TISCHW_SCHE_-_Ausführung',
                         'label' => 'Multibyte - TISCHWÄSCHE - Ausführung',
-                        'mode' => ProductAttributeFacet::MODE_VALUE_LIST_RESULT
+                        'mode' => ProductAttributeFacet::MODE_RADIO_LIST_RESULT
                     ]
                 ]
             ]
@@ -154,9 +154,12 @@ class CustomListingHydratorTest extends TestCase
                 $productAttributeFacet->getLabel(),
                 sprintf("Expected product attribute facet's label to be %s", $expectedFields[$key]['label'])
             );
+//            dump($expectedFields[$key]['mode'],$productAttributeFacet->getMode());
+//            dd($expectedFields[$key]['mode'],$productAttributeFacet->getMode());
             $this->assertSame(
                 $expectedFields[$key]['mode'],
                 $productAttributeFacet->getMode(),
+//                dd('nenad')
                 sprintf("Expected product attribute %s facet's mode to be %s", $key, $expectedFields[$key]['mode'])
             );
         }
