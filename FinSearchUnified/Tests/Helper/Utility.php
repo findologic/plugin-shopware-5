@@ -31,10 +31,7 @@ class Utility
             'categories' => [
                 ['id' => 5],
             ],
-            'images' => [
-                ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
-                ['link' => 'https://via.placeholder.com/100/09f/000.png'],
-            ],
+            'images' => self::getDefaultImages(),
             'mainDetail' => [
                 'number' => 'FINDOLOGIC' . $number,
                 'active' => $isActive,
@@ -104,10 +101,7 @@ class Utility
                 'categories' => [
                     ['id' => 5]
                 ],
-                'images' => [
-                    ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
-                    ['link' => 'https://via.placeholder.com/100/09f/000.png']
-                ],
+                'images' => self::getDefaultImages(),
                 'mainDetail' => [
                     'number' => 'FINDOLOGIC1',
                     'active' => true,
@@ -130,10 +124,7 @@ class Utility
                 'categories' => [
                     ['id' => 5]
                 ],
-                'images' => [
-                    ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
-                    ['link' => 'https://via.placeholder.com/100/09f/000.png']
-                ],
+                'images' => self::getDefaultImages(),
                 'mainDetail' => [
                     'number' => 'FINDOLOGIC2',
                     'active' => true,
@@ -155,10 +146,7 @@ class Utility
                 'categories' => [
                     ['id' => 5]
                 ],
-                'images' => [
-                    ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
-                    ['link' => 'https://via.placeholder.com/100/09f/000.png']
-                ],
+                'images' => self::getDefaultImages(),
                 'mainDetail' => [
                     'number' => 'FINDOLOGIC3',
                     'active' => true,
@@ -180,10 +168,7 @@ class Utility
                 'categories' => [
                     ['id' => 5]
                 ],
-                'images' => [
-                    ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
-                    ['link' => 'https://via.placeholder.com/100/09f/000.png']
-                ],
+                'images' => self::getDefaultImages(),
                 'mainDetail' => [
                     'number' => 'FINDOLOGIC4',
                     'active' => false,
@@ -205,10 +190,7 @@ class Utility
                 'categories' => [
                     ['id' => 75]
                 ],
-                'images' => [
-                    ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
-                    ['link' => 'https://via.placeholder.com/100/09f/000.png']
-                ],
+                'images' => self::getDefaultImages(),
                 'mainDetail' => [
                     'number' => 'FINDOLOGIC5',
                     'active' => true,
@@ -230,10 +212,7 @@ class Utility
                 'categories' => [
                     ['id' => 5]
                 ],
-                'images' => [
-                    ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
-                    ['link' => 'https://via.placeholder.com/100/09f/000.png']
-                ],
+                'images' => self::getDefaultImages(),
                 'mainDetail' => [
                     'number' => 'FINDOLOGIC6',
                     'active' => true,
@@ -257,10 +236,7 @@ class Utility
                 'categories' => [
                     ['id' => 5]
                 ],
-                'images' => [
-                    ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
-                    ['link' => 'https://via.placeholder.com/100/09f/000.png']
-                ],
+                'images' => self::getDefaultImages(),
                 'mainDetail' => [
                     'number' => '2',
                     'active' => true,
@@ -283,10 +259,7 @@ class Utility
                 'categories' => [
                     ['id' => 5]
                 ],
-                'images' => [
-                    ['link' => 'https://via.placeholder.com/100/F00/fff.png'],
-                    ['link' => 'https://via.placeholder.com/100/09f/000.png']
-                ],
+                'images' => self::getDefaultImages(),
                 'mainDetail' => [
                     'number' => 'FINDOLOGIC8',
                     'active' => false,
@@ -311,6 +284,14 @@ class Utility
                 echo sprintf('Exception: %s', $e->getMessage());
             }
         }
+    }
+
+    public static function getDefaultImages()
+    {
+        return [
+            ['link' => 'https://dummyimage.com/100/F00/fff.png'],
+            ['link' => 'https://dummyimage.com/100/09f/000.png'],
+        ];
     }
 
     /**

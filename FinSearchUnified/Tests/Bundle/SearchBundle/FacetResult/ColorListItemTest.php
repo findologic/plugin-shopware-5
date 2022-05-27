@@ -12,10 +12,10 @@ class ColorListItemTest extends TestCase
             'Color',
             true,
             '#696969',
-            'https://via.placeholder.com/50x50'
+            'https://dummyimage.com/50x50'
         );
 
         $this->assertSame('#696969', $colorListItem->getColorcode());
-        $this->assertSame('https://via.placeholder.com/50x50', $colorListItem->getImageUrl());
+        $this->assertSame('https://dummyimage.com/50x50', $colorListItem->getImageUrl());
     }
 }
