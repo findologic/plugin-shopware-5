@@ -154,12 +154,9 @@ class CustomListingHydratorTest extends TestCase
                 $productAttributeFacet->getLabel(),
                 sprintf("Expected product attribute facet's label to be %s", $expectedFields[$key]['label'])
             );
-//            dump($expectedFields[$key]['mode'],$productAttributeFacet->getMode());
-//            dd($expectedFields[$key]['mode'],$productAttributeFacet->getMode());
             $this->assertSame(
                 $expectedFields[$key]['mode'],
                 $productAttributeFacet->getMode(),
-//                dd('nenad')
                 sprintf("Expected product attribute %s facet's mode to be %s", $key, $expectedFields[$key]['mode'])
             );
         }

@@ -388,7 +388,6 @@ class ProductNumberSearchTest extends TestCase
                     'vendor',
                     ['multiselect' => false],
                     'frontend/listing/filter/facet-vendor-image-list.tpl'
-
                 ),
                 'condition' => new ProductAttributeCondition('vendor', '=', 'Anderson, Gusikowski and Barton'),
             ],
@@ -525,7 +524,6 @@ class ProductNumberSearchTest extends TestCase
 
         $this->assertNotEmpty($result);
         $facetResult = current($result);
-//        dd($expectedResult, $facetResult);
         $this->assertEquals($expectedResult, $facetResult);
     }
 
