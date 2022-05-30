@@ -20,6 +20,7 @@ class FrontendTest extends SubscriberTestCase
 
         Shopware()->Session()->offsetUnset('isCategoryPage');
         Shopware()->Session()->offsetUnset('isSearchPage');
+        Shopware()->Session()->offsetUnset('isManufacturerPage');
         $_GET = [];
     }
 
@@ -188,6 +189,7 @@ class FrontendTest extends SubscriberTestCase
     {
         $isSearch = isset($sSearch);
         $isCategory = isset($sCategory);
+        $isManufacturer = $sController === 'listing' && $sAction === 'manufacturer';
 
         // Create Request object to be passed in the mocked Subject
         $request = new RequestHttp();
@@ -214,6 +216,7 @@ class FrontendTest extends SubscriberTestCase
         // Check session values after FrontendPreDispatch Call
         $isCategoryPage = Shopware()->Session()->isCategoryPage;
         $isSearchPage = Shopware()->Session()->isSearchPage;
+        $isManufacturerPage = Shopware()->Session()->isManufacturerPage;
 
         $this->assertEquals(
             $isSearch,
@@ -224,6 +227,11 @@ class FrontendTest extends SubscriberTestCase
             $isCategory,
             $isCategoryPage,
             sprintf('Expected isCategoryPage to be %s', $isCategory ? 'true' : 'false')
+        );
+        $this->assertEquals(
+            $isManufacturer,
+            $isManufacturerPage,
+            sprintf('Expected isManufacturerPage to be %s', $isManufacturerPage ? 'true' : 'false')
         );
     }
 

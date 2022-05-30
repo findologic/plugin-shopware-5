@@ -106,12 +106,19 @@ class Frontend implements SubscriberInterface
         if ($this->isSearchPage($request)) {
             Shopware()->Session()->offsetSet('isSearchPage', true);
             Shopware()->Session()->offsetSet('isCategoryPage', false);
+            Shopware()->Session()->offsetSet('isManufacturerPage', false);
         } elseif (StaticHelper::isCategoryPage($request)) {
             Shopware()->Session()->offsetSet('isCategoryPage', true);
             Shopware()->Session()->offsetSet('isSearchPage', false);
-        } elseif ($this->isManufacturerPage($request) || !$this->isWhiteListed($request)) {
+            Shopware()->Session()->offsetSet('isManufacturerPage', false);
+        } elseif (StaticHelper::isManufacturerPage($request)) {
             Shopware()->Session()->offsetSet('isCategoryPage', false);
             Shopware()->Session()->offsetSet('isSearchPage', false);
+            Shopware()->Session()->offsetSet('isManufacturerPage', true);
+        } elseif (!$this->isWhiteListed($request)) {
+            Shopware()->Session()->offsetSet('isCategoryPage', false);
+            Shopware()->Session()->offsetSet('isSearchPage', false);
+            Shopware()->Session()->offsetSet('isManufacturerPage', false);
         } else {
             // Keep the flags as they are since these might be subsequent requests from the same page.
         }
@@ -262,16 +269,6 @@ class Frontend implements SubscriberInterface
     private function isSearchPage(Enlight_Controller_Request_Request $request)
     {
         return array_key_exists('sSearch', $request->getParams());
-    }
-
-    /**
-     * @param Enlight_Controller_Request_Request $request
-     *
-     * @return bool
-     */
-    private function isManufacturerPage(Enlight_Controller_Request_Request $request)
-    {
-        return $request->getControllerName() === 'listing' && $request->getActionName() === 'manufacturer';
     }
 
     /**
