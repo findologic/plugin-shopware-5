@@ -61,7 +61,6 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
 
         $this->sortingHandlers = $this->registerSortingHandlers();
         $this->conditionHandlers = $this->registerConditionHandlers();
-
         $this->apiClient = $this->createClient();
     }
 
@@ -71,7 +70,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     private function createClient()
     {
         $apiConfig = new Config();
-        $apiConfig->setServiceId($this->config->get('shopKey'));
+        $apiConfig->setServiceId($this->config->offsetGet('ShopKey'));
 
         return new Client($apiConfig);
     }
@@ -260,13 +259,13 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
             $querybuilder = new SearchQueryBuilder(
                 $this->installerService,
                 $this->config,
-                $this->apiClient
+//                $this->apiClient
             );
         } else {
             $querybuilder = new NavigationQueryBuilder(
                 $this->installerService,
                 $this->config,
-                $this->apiClient
+//                $this->apiClient
             );
         }
 
