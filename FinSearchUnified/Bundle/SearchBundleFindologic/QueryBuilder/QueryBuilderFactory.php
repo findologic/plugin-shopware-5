@@ -259,13 +259,13 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
             $querybuilder = new SearchQueryBuilder(
                 $this->installerService,
                 $this->config,
-//                $this->apiClient
+                $this->apiClient
             );
         } else {
             $querybuilder = new NavigationQueryBuilder(
                 $this->installerService,
                 $this->config,
-//                $this->apiClient
+                $this->apiClient
             );
         }
 
