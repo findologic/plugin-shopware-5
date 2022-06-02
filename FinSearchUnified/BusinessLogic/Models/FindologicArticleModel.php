@@ -428,20 +428,19 @@ class FindologicArticleModel
                 }
 
                 if (count($thumbnails) > 0) {
-                    $bestExportResolution = "600x600";
+                    $bestExportWidth = 600;
+                    $bestExportHeight = 600;
+                    $bestExportResolution = sprintf("%dx%d", $bestExportWidth, $bestExportHeight);
                     if (array_key_exists($bestExportResolution, $thumbnails)) {
                         $image = $thumbnails[$bestExportResolution];
-                    } else {
-                        if ($imageSize < 600*600) {
-                            $thumbnailsKeys = array_keys($thumbnails);
-                            $tempArray = [];
-                            foreach ($thumbnailsKeys as $thumbnail) {
-                                $dimensions = explode('x', $thumbnail);
-                                $tempArray[strval($thumbnail)] = intval($dimensions[0]) * intval($dimensions[1]);
-                            }
-                            krsort($tempArray);
-                            $image = $thumbnails[array_key_last($tempArray)];
+                    } else if ($imageSize < $bestExportWidth*$bestExportHeight) {
+                        $thumbnailsKeys = array_keys($thumbnails);
+                        foreach ($thumbnailsKeys as $thumbnail) {
+                            $dimensions = explode('x', $thumbnail);
+                            $thumbnailsSizes[$thumbnail] = intval($dimensions[0]) * intval($dimensions[1]);
                         }
+                        krsort($thumbnailsSizes, 1);
+                        $image = $thumbnails[array_key_first($thumbnailsSizes)];
                     }
                     $imagePath = StaticHelper::encodeUrlPath($mediaService->getUrl($image));
                     $thumbnailPath = StaticHelper::encodeUrlPath($mediaService->getUrl(array_values($thumbnails)[0]));
