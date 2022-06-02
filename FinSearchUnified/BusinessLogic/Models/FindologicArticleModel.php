@@ -421,12 +421,28 @@ class FindologicArticleModel
                 try {
                     $image = $imageRaw->getPath();
                     $thumbnails = $imageRaw->getThumbnailFilePaths();
+                    $imageSize = $imageRaw->getWidth() * $imageRaw->getHeight();
                 } catch (Exception $ex) {
                     // Entity removed
                     continue;
                 }
 
                 if (count($thumbnails) > 0) {
+                    $bestExportResolution = "600x600";
+                    if (array_key_exists($bestExportResolution, $thumbnails)) {
+                        $image = $thumbnails[$bestExportResolution];
+                    } else {
+                        if ($imageSize < 600*600) {
+                            $thumbnailsKeys = array_keys($thumbnails);
+                            $tempArray = [];
+                            foreach ($thumbnailsKeys as $thumbnail) {
+                                $dimensions = explode('x', $thumbnail);
+                                $tempArray[strval($thumbnail)] = intval($dimensions[0]) * intval($dimensions[1]);
+                            }
+                            krsort($tempArray);
+                            $image = $thumbnails[array_key_last($tempArray)];
+                        }
+                    }
                     $imagePath = StaticHelper::encodeUrlPath($mediaService->getUrl($image));
                     $thumbnailPath = StaticHelper::encodeUrlPath($mediaService->getUrl(array_values($thumbnails)[0]));
 
