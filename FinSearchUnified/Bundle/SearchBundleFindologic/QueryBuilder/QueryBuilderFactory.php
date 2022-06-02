@@ -22,6 +22,8 @@ use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\SearchBundleDBAL\QueryBuilderFactoryInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
 use Shopware_Components_Config;
+use FINDOLOGIC\Api\Client;
+use FINDOLOGIC\Api\Config;
 
 class QueryBuilderFactory implements QueryBuilderFactoryInterface
 {
@@ -45,6 +47,11 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
      */
     private $conditionHandlers;
 
+    /**
+     * @var Client;
+     */
+    private $apiClient;
+
     public function __construct(
         InstallerService $installerService,
         Shopware_Components_Config $config
@@ -54,6 +61,18 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
 
         $this->sortingHandlers = $this->registerSortingHandlers();
         $this->conditionHandlers = $this->registerConditionHandlers();
+        $this->apiClient = $this->createClient();
+    }
+
+    /**
+     * @return Client
+     */
+    private function createClient()
+    {
+        $apiConfig = new Config();
+        $apiConfig->setServiceId($this->config->offsetGet('ShopKey'));
+
+        return new Client($apiConfig);
     }
 
     /**
@@ -239,12 +258,14 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
         if ($isSearchPage) {
             $querybuilder = new SearchQueryBuilder(
                 $this->installerService,
-                $this->config
+                $this->config,
+                $this->apiClient
             );
         } else {
             $querybuilder = new NavigationQueryBuilder(
                 $this->installerService,
-                $this->config
+                $this->config,
+                $this->apiClient
             );
         }
 
