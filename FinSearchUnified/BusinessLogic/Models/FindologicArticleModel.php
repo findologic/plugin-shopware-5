@@ -433,7 +433,7 @@ class FindologicArticleModel
                     $bestExportResolution = sprintf("%dx%d", $bestExportWidth, $bestExportHeight);
                     if (array_key_exists($bestExportResolution, $thumbnails)) {
                         $image = $thumbnails[$bestExportResolution];
-                    } else if ($imageSize < $bestExportWidth * $bestExportHeight) {
+                    } elseif ($imageSize < $bestExportWidth * $bestExportHeight) {
                         foreach (array_keys($thumbnails) as $thumbnail) {
                             $dimensions = explode('x', $thumbnail);
                             $thumbnailsSizes[$thumbnail] = intval($dimensions[0]) * intval($dimensions[1]);

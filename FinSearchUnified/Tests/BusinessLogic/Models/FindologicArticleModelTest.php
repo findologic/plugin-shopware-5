@@ -1509,7 +1509,8 @@ class FindologicArticleModelTest extends TestCase
 
     public function testCoverImageIsExportedAsFirstImage()
     {
-        $expectedCoverImageUrl = 'http://localhost/media/image/1b/79/f4/Muensterlaender_Lagerkorn_Imagefoto_600x600.jpg';
+        $expectedCoverImageUrl =
+            'http://localhost/media/image/1b/79/f4/Muensterlaender_Lagerkorn_Imagefoto_600x600.jpg';
         $articleConfiguration = [
             'name' => 'FindologicArticle 1',
             'active' => true,
