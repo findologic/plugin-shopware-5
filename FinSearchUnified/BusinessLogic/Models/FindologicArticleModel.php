@@ -44,6 +44,8 @@ class FindologicArticleModel
     const WISHLIST_URL = 'note/add/ordernumber/';
     const COMPARE_URL = 'compare/add_article/articleID/';
     const CART_URL = 'checkout/addArticle/sAdd/';
+    const PREFERRED_EXPORT_WIDTH = 600;
+    const PREFERRED_EXPORT_HEIGHT = 600;
 
     /**
      * @var XMLExporter
@@ -428,19 +430,7 @@ class FindologicArticleModel
                 }
 
                 if (count($thumbnails) > 0) {
-                    $bestExportWidth = 600;
-                    $bestExportHeight = 600;
-                    $bestExportResolution = sprintf("%dx%d", $bestExportWidth, $bestExportHeight);
-                    if (array_key_exists($bestExportResolution, $thumbnails)) {
-                        $image = $thumbnails[$bestExportResolution];
-                    } elseif ($imageSize < $bestExportWidth * $bestExportHeight) {
-                        foreach (array_keys($thumbnails) as $thumbnail) {
-                            $dimensions = explode('x', $thumbnail);
-                            $thumbnailsSizes[$thumbnail] = intval($dimensions[0]) * intval($dimensions[1]);
-                        }
-                        krsort($thumbnailsSizes, 1);
-                        $image = $thumbnails[array_key_first($thumbnailsSizes)];
-                    }
+                    $image = $this->getPreferredImage($image, $thumbnails, $imageSize);
                     $imagePath = StaticHelper::encodeUrlPath($mediaService->getUrl($image));
                     $thumbnailPath = StaticHelper::encodeUrlPath($mediaService->getUrl(array_values($thumbnails)[0]));
 
@@ -900,5 +890,22 @@ class FindologicArticleModel
         }
 
         return $this->buildCategoryTree($category->getParent()) . '>' . $category->getName();
+    }
+
+    protected function getPreferredImage($image, $thumbnails, $imageSize)
+    {
+        $preferredExportResolution = sprintf("%dx%d", self::PREFERRED_EXPORT_WIDTH, self::PREFERRED_EXPORT_HEIGHT);
+        if (array_key_exists($preferredExportResolution, $thumbnails)) {
+            $image = $thumbnails[$preferredExportResolution];
+        } elseif ($imageSize < self::PREFERRED_EXPORT_WIDTH * self::PREFERRED_EXPORT_HEIGHT) {
+            foreach (array_keys($thumbnails) as $resolution) {
+                $dimensions = explode('x', $resolution);
+                $thumbnailsSizes[$resolution] = intval($dimensions[0]) * intval($dimensions[1]);
+            }
+            krsort($thumbnailsSizes, SORT_NUMERIC);
+            $image = $thumbnails[array_key_first($thumbnailsSizes)];
+        }
+
+        return $image;
     }
 }
