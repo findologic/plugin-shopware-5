@@ -905,6 +905,19 @@ class StaticHelperTest extends TestCase
                 'imageSize' => 359999,
                 'imageUrl' => 'image.jpg',
                 'expectedImageUrl' => 'image_900x900.jpg',
+            ],
+            'Thumbnails array not have preferred size and Main Image is Smaller then preferred, use first bigger' => [
+                'preferredExportWidth' => 600,
+                'preferredExportHeight' => 600,
+                'thumbnails' => [
+                    '100x100' => 'image_100x100.jpg',
+                    '300x300' => 'image_300x300.jpg',
+                    '800x800' => 'image_800x800.jpg',
+                    '900x900' => 'image_900x900.jpg'
+                ],
+                'imageSize' => 359999,
+                'imageUrl' => 'image.jpg',
+                'expectedImageUrl' => 'image_800x800.jpg',
             ]
         ];
     }
