@@ -428,8 +428,13 @@ class StaticHelper
         return ltrim($version, 'v');
     }
 
-    public static function getPreferredImage($image, $thumbnails, $imageSize, $preferredExportWidth, $preferredExportHeight)
-    {
+    public static function getPreferredImage(
+        $image,
+        $thumbnails,
+        $imageSize,
+        $preferredExportWidth,
+        $preferredExportHeight
+    ) {
         $preferredExportResolution = sprintf("%dx%d", $preferredExportWidth, $preferredExportHeight);
         if (array_key_exists($preferredExportResolution, $thumbnails)) {
             $image = $thumbnails[$preferredExportResolution];

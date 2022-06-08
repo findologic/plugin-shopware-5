@@ -926,8 +926,7 @@ class StaticHelperTest extends TestCase
         $imageSize,
         $imageUrl,
         $expectedImageUrl
-    )
-    {
+    ) {
         $actualImageUrl = StaticHelper::getPreferredImage(
             $imageUrl,
             $thumbnails,
