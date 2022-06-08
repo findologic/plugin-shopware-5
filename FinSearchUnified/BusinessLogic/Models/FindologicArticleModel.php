@@ -430,7 +430,13 @@ class FindologicArticleModel
                 }
 
                 if (count($thumbnails) > 0) {
-                    $image = $this->getPreferredImage($image, $thumbnails, $imageSize);
+                    $image = StaticHelper::getPreferredImage(
+                        $image,
+                        $thumbnails,
+                        $imageSize,
+                        self::PREFERRED_EXPORT_WIDTH,
+                        self::PREFERRED_EXPORT_HEIGHT
+                    );
                     $imagePath = StaticHelper::encodeUrlPath($mediaService->getUrl($image));
                     $thumbnailPath = StaticHelper::encodeUrlPath($mediaService->getUrl(array_values($thumbnails)[0]));
 
@@ -890,22 +896,5 @@ class FindologicArticleModel
         }
 
         return $this->buildCategoryTree($category->getParent()) . '>' . $category->getName();
-    }
-
-    protected function getPreferredImage($image, $thumbnails, $imageSize)
-    {
-        $preferredExportResolution = sprintf("%dx%d", self::PREFERRED_EXPORT_WIDTH, self::PREFERRED_EXPORT_HEIGHT);
-        if (array_key_exists($preferredExportResolution, $thumbnails)) {
-            $image = $thumbnails[$preferredExportResolution];
-        } elseif ($imageSize < self::PREFERRED_EXPORT_WIDTH * self::PREFERRED_EXPORT_HEIGHT) {
-            foreach (array_keys($thumbnails) as $resolution) {
-                $dimensions = explode('x', $resolution);
-                $thumbnailsSizes[$resolution] = intval($dimensions[0]) * intval($dimensions[1]);
-            }
-            krsort($thumbnailsSizes, SORT_NUMERIC);
-            $image = $thumbnails[array_key_first($thumbnailsSizes)];
-        }
-
-        return $image;
     }
 }

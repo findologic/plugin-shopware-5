@@ -854,4 +854,91 @@ class StaticHelperTest extends TestCase
     {
         $this->assertSame($expectedValue, StaticHelper::encodeUrlPath($value));
     }
+
+    public function preferredSizeAndThumbnailsProvider()
+    {
+        return [
+            'Thumbnails array has preferred size' => [
+                'preferredExportWidth' => 600,
+                'preferredExportHeight' => 600,
+                'thumbnails' => [
+                    '100x100' => 'image_100x100.jpg',
+                    '600x600' => 'image_600x600.jpg',
+                    '900x900' => 'image_900x900.jpg'
+                ],
+                'imageSize' => 0,
+                'imageUrl' => 'image.jpg',
+                'expectedImageUrl' => 'image_600x600.jpg',
+            ],
+            'Thumbnails array not have preferred size, but Main Image is equal then preferred' => [
+                'preferredExportWidth' => 600,
+                'preferredExportHeight' => 600,
+                'thumbnails' => [
+                    '100x100' => 'image_100x100.jpg',
+                    '300x300' => 'image_300x300.jpg',
+                    '900x900' => 'image_900x900.jpg'
+                ],
+                'imageSize' => 360000,
+                'imageUrl' => 'image.jpg',
+                'expectedImageUrl' => 'image.jpg',
+            ],
+            'Thumbnails array not have preferred size, but Main Image is Bigger then preferred' => [
+                'preferredExportWidth' => 600,
+                'preferredExportHeight' => 600,
+                'thumbnails' => [
+                    '100x100' => 'image_100x100.jpg',
+                    '300x300' => 'image_300x300.jpg',
+                    '900x900' => 'image_900x900.jpg'
+                ],
+                'imageSize' => 360001,
+                'imageUrl' => 'image.jpg',
+                'expectedImageUrl' => 'image.jpg',
+            ],
+            'Thumbnails array not have preferred size and Main Image is Smaller then preferred' => [
+                'preferredExportWidth' => 600,
+                'preferredExportHeight' => 600,
+                'thumbnails' => [
+                    '100x100' => 'image_100x100.jpg',
+                    '300x300' => 'image_300x300.jpg',
+                    '900x900' => 'image_900x900.jpg'
+                ],
+                'imageSize' => 359999,
+                'imageUrl' => 'image.jpg',
+                'expectedImageUrl' => 'image_900x900.jpg',
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider preferredSizeAndThumbnailsProvider
+     *
+     * @param int $preferredExportWidth
+     * @param int $preferredExportHeight
+     * @param array $thumbnails
+     * @param int $imageSize
+     * @param string $imageUrl
+     * @param string $expectedImageUrl
+     */
+    public function testGetPreferredImage(
+        $preferredExportWidth,
+        $preferredExportHeight,
+        $thumbnails,
+        $imageSize,
+        $imageUrl,
+        $expectedImageUrl
+    )
+    {
+        $actualImageUrl = StaticHelper::getPreferredImage(
+            $imageUrl,
+            $thumbnails,
+            $imageSize,
+            $preferredExportWidth,
+            $preferredExportHeight
+        );
+
+        $this->assertEquals(
+            $expectedImageUrl,
+            $actualImageUrl
+        );
+    }
 }
