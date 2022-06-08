@@ -444,7 +444,7 @@ class StaticHelper
                 $thumbnailsSizes[$resolution] = intval($dimensions[0]) * intval($dimensions[1]);
             }
             krsort($thumbnailsSizes, SORT_NUMERIC);
-            $image = $thumbnails[array_key_first($thumbnailsSizes)];
+            $image = $thumbnails[key(array_slice($thumbnailsSizes, 0, 1))];
         }
 
         return $image;
