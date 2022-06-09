@@ -870,7 +870,7 @@ class StaticHelperTest extends TestCase
                 'imageUrl' => 'image.jpg',
                 'expectedImageUrl' => 'image_600x600.jpg',
             ],
-            'Thumbnails array not have preferred size, but Main Image is equal then preferred' => [
+            'Thumbnails array does not have preferred size, but main image is equal to preferred' => [
                 'preferredExportWidth' => 600,
                 'preferredExportHeight' => 600,
                 'thumbnails' => [
@@ -882,7 +882,7 @@ class StaticHelperTest extends TestCase
                 'imageUrl' => 'image.jpg',
                 'expectedImageUrl' => 'image.jpg',
             ],
-            'Thumbnails array not have preferred size, but Main Image is Bigger then preferred' => [
+            'Thumbnails array does not have preferred size, but main image is bigger than preferred' => [
                 'preferredExportWidth' => 600,
                 'preferredExportHeight' => 600,
                 'thumbnails' => [
@@ -894,7 +894,7 @@ class StaticHelperTest extends TestCase
                 'imageUrl' => 'image.jpg',
                 'expectedImageUrl' => 'image.jpg',
             ],
-            'Thumbnails array not have preferred size and Main Image is Smaller then preferred' => [
+            'Thumbnails array does not have preferred size and main image is smaller than preferred' => [
                 'preferredExportWidth' => 600,
                 'preferredExportHeight' => 600,
                 'thumbnails' => [
@@ -906,7 +906,7 @@ class StaticHelperTest extends TestCase
                 'imageUrl' => 'image.jpg',
                 'expectedImageUrl' => 'image_900x900.jpg',
             ],
-            'Thumbnails array not have preferred size and Main Image is Smaller then preferred, use first bigger' => [
+            'Thumbnails array does not have preferred size and main image is smaller than preferred, use next biggest' => [
                 'preferredExportWidth' => 600,
                 'preferredExportHeight' => 600,
                 'thumbnails' => [

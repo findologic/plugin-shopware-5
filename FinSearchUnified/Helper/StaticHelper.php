@@ -443,15 +443,14 @@ class StaticHelper
                 $dimensions = explode('x', $resolution);
                 $thumbnailsSizes[$resolution] = intval($dimensions[0]) * intval($dimensions[1]);
             }
+
             ksort($thumbnailsSizes, SORT_NUMERIC);
-            $index = 0;
+
             foreach ($thumbnailsSizes as $key => $thumbnailsSize) {
                 if ($thumbnailsSize > $imageSize) {
-                    $index = $key;
-                    break;
+                    return $thumbnails[$key];
                 }
             }
-            $image = $thumbnails[$index];
         }
 
         return $image;
