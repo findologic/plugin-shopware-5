@@ -906,7 +906,7 @@ class StaticHelperTest extends TestCase
                 'imageUrl' => 'image.jpg',
                 'expectedImageUrl' => 'image_900x900.jpg',
             ],
-            'Thumbnails array does not have preferred size and main image is smaller than preferred, use next biggest' => [
+            'Thumbnail array doesnt have preferred size and main image is smaller than preferred, use next biggest' => [
                 'preferredExportWidth' => 600,
                 'preferredExportHeight' => 600,
                 'thumbnails' => [
