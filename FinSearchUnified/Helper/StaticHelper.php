@@ -16,6 +16,8 @@ use FinSearchUnified\Constants;
 use Shopware;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Bundle\StoreFrontBundle;
+use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
+use Shopware\Bundle\StoreFrontBundle\Service\ManufacturerServiceInterface;
 use SimpleXMLElement;
 use Zend_Cache_Exception;
 
@@ -184,7 +186,10 @@ class StaticHelper
         $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage') || static::isCategoryPage($request);
         $isManufacturerPage = Shopware()->Session()->offsetGet('isManufacturerPage') ||
             static::isManufacturerPage($request);
-        $isNoSearchAndCategoryPage = !$isCategoryPage && !Shopware()->Session()->offsetGet('isSearchPage');
+        $isNoSearchAndCategoryPageAndManufacturerPage =
+            !Shopware()->Session()->offsetGet('isSearchPage') &&
+            !$isCategoryPage &&
+            !$isManufacturerPage;
         $isCategoryPageButDisabledInConfig = $isCategoryPage && !$isActiveOnCategoryPages;
 
         $fallbackSearchIsSet = static::checkIfFallbackSearchCookieIsSet();
@@ -194,9 +199,8 @@ class StaticHelper
             $isEmotionPage ||
             !$isFindologicActive ||
             $isDirectIntegration ||
-            $isNoSearchAndCategoryPage ||
+            $isNoSearchAndCategoryPageAndManufacturerPage ||
             $isCategoryPageButDisabledInConfig ||
-            $isManufacturerPage ||
             $fallbackSearchIsSet
         );
     }
