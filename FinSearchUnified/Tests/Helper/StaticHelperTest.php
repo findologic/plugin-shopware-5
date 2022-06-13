@@ -243,7 +243,7 @@ class StaticHelperTest extends TestCase
                 'isCategoryPage' => true,
                 'isManufacturerPage' => true,
                 'fallbackSearchCookie' => null,
-                'expected' => true
+                'expected' => false
             ],
             'Cookie "fallback-search" is set and true' => [
                 'activateFindologic' => true,
