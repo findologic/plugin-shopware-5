@@ -47,6 +47,22 @@ class StaticHelper
     }
 
     /**
+     * @param int $manufacturerId
+     *
+     * @return string
+     */
+    public static function buildManufacturerName($manufacturerId)
+    {
+        /** @var Manufacturer|null $manufacturer */
+        $manufacturer = Shopware()->Container()->get(ManufacturerServiceInterface::class)->get(
+            $manufacturerId,
+            Shopware()->Container()->get(ContextServiceInterface::class)->getShopContext()
+        );
+
+        return $manufacturer->getName();
+    }
+
+    /**
      * @see https://stackoverflow.com/a/7974253
      *
      * @param $url
