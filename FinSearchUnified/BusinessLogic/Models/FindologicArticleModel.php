@@ -44,6 +44,8 @@ class FindologicArticleModel
     const WISHLIST_URL = 'note/add/ordernumber/';
     const COMPARE_URL = 'compare/add_article/articleID/';
     const CART_URL = 'checkout/addArticle/sAdd/';
+    const PREFERRED_EXPORT_WIDTH = 600;
+    const PREFERRED_EXPORT_HEIGHT = 600;
 
     /**
      * @var XMLExporter
@@ -421,12 +423,20 @@ class FindologicArticleModel
                 try {
                     $image = $imageRaw->getPath();
                     $thumbnails = $imageRaw->getThumbnailFilePaths();
+                    $imageSize = $imageRaw->getWidth() * $imageRaw->getHeight();
                 } catch (Exception $ex) {
                     // Entity removed
                     continue;
                 }
 
                 if (count($thumbnails) > 0) {
+                    $image = StaticHelper::getPreferredImage(
+                        $image,
+                        $thumbnails,
+                        $imageSize,
+                        self::PREFERRED_EXPORT_WIDTH,
+                        self::PREFERRED_EXPORT_HEIGHT
+                    );
                     $imagePath = StaticHelper::encodeUrlPath($mediaService->getUrl($image));
                     $thumbnailPath = StaticHelper::encodeUrlPath($mediaService->getUrl(array_values($thumbnails)[0]));
 

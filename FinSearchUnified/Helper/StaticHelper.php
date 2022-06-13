@@ -427,4 +427,32 @@ class StaticHelper
 
         return ltrim($version, 'v');
     }
+
+    public static function getPreferredImage(
+        $image,
+        $thumbnails,
+        $imageSize,
+        $preferredExportWidth,
+        $preferredExportHeight
+    ) {
+        $preferredExportResolution = sprintf("%dx%d", $preferredExportWidth, $preferredExportHeight);
+        if (array_key_exists($preferredExportResolution, $thumbnails)) {
+            $image = $thumbnails[$preferredExportResolution];
+        } elseif ($imageSize < $preferredExportWidth * $preferredExportHeight) {
+            foreach (array_keys($thumbnails) as $resolution) {
+                $dimensions = explode('x', $resolution);
+                $thumbnailsSizes[$resolution] = intval($dimensions[0]) * intval($dimensions[1]);
+            }
+
+            ksort($thumbnailsSizes, SORT_NUMERIC);
+
+            foreach ($thumbnailsSizes as $key => $thumbnailsSize) {
+                if ($thumbnailsSize > $imageSize) {
+                    return $thumbnails[$key];
+                }
+            }
+        }
+
+        return $image;
+    }
 }
