@@ -444,7 +444,7 @@ class FindologicArticleModel
                         $xmlImagePath = new ExportImage($imagePath, ExportImage::TYPE_DEFAULT);
                         $xmlThumbnailPath = new ExportImage($thumbnailPath, ExportImage::TYPE_THUMBNAIL);
 
-                        if ($articleImage->getMain()) {
+                        if ($articleImage->getMain() === 1) {
                             array_unshift($imagesArray, $xmlImagePath, $xmlThumbnailPath);
                         } else {
                             $imagesArray[] = $xmlImagePath;

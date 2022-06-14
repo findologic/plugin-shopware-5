@@ -1534,7 +1534,7 @@ class FindologicArticleModelTest extends TestCase
                 ],
                 [
                     'mediaId' => 4, // Muensterlaender_Lagerkorn_Produktion
-                    'main' => 0,
+                    'main' => 2,
                     'position' => 3,
                 ],
             ],
