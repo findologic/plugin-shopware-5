@@ -38,18 +38,18 @@ class ManufacturerConditionHandler implements ConditionHandlerInterface
         QueryBuilder $query,
         ShopContextInterface $context
     ) {
-        $manufactures = [];
+        $manufacturers = [];
 
         /** @var ManufacturerCondition $condition */
         foreach ($condition->getManufacturerIds() as $manufacturerId) {
             $manufacturerName = StaticHelper::buildManufacturerName($manufacturerId);
-            if (!empty($manufacturerName)) {
-                $manufactures[] = $manufacturerName;
+            if (!StaticHelper::isEmpty($manufacturerName)) {
+                $manufacturers[] = $manufacturerName;
             }
         }
 
-        if (!empty($manufactures)) {
-            $query->addManufactures($manufactures);
+        if (!StaticHelper::isEmpty($manufacturers)) {
+            $query->addManufactures($manufacturers);
         }
     }
 }

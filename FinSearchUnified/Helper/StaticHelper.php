@@ -186,7 +186,7 @@ class StaticHelper
         $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage') || static::isCategoryPage($request);
         $isManufacturerPage = Shopware()->Session()->offsetGet('isManufacturerPage') ||
             static::isManufacturerPage($request);
-        $isNoSearchAndCategoryPageAndManufacturerPage =
+        $isNoSupportedPage =
             !Shopware()->Session()->offsetGet('isSearchPage') &&
             !$isCategoryPage &&
             !$isManufacturerPage;
@@ -199,7 +199,7 @@ class StaticHelper
             $isEmotionPage ||
             !$isFindologicActive ||
             $isDirectIntegration ||
-            $isNoSearchAndCategoryPageAndManufacturerPage ||
+            $isNoSupportedPage ||
             $isCategoryPageButDisabledInConfig ||
             $fallbackSearchIsSet
         );
