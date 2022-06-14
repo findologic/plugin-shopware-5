@@ -13,8 +13,6 @@ use FinSearchUnified\Helper\StaticHelper;
 class ManufacturerConditionHandler implements ConditionHandlerInterface
 {
     /**
-     * Checks if the passed condition can be handled by this class.
-     *
      * @param ConditionInterface $condition
      *
      * @return bool
@@ -25,8 +23,6 @@ class ManufacturerConditionHandler implements ConditionHandlerInterface
     }
 
     /**
-     * Handles the passed condition object.
-     *
      * @param ConditionInterface $condition
      * @param QueryBuilder $query
      * @param ShopContextInterface $context
