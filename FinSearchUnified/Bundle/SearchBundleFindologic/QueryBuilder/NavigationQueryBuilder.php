@@ -26,9 +26,8 @@ class NavigationQueryBuilder extends QueryBuilder
         $this->searchNavigationRequest->setSelected('cat', $categoryPath);
     }
 
-    public function addManufactures(array $manufactures)
+    public function addManufacturer($manufacturerName)
     {
-        $manufacturePath = implode('_', $manufactures);
-        $this->searchNavigationRequest->setSelected('vendor', $manufacturePath);
+        $this->searchNavigationRequest->setSelected('vendor', $manufacturerName);
     }
 }

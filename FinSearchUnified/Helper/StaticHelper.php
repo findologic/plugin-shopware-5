@@ -18,6 +18,7 @@ use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Bundle\StoreFrontBundle;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Bundle\StoreFrontBundle\Service\ManufacturerServiceInterface;
+use Shopware\Bundle\StoreFrontBundle\Struct\Product\Manufacturer;
 use SimpleXMLElement;
 use Zend_Cache_Exception;
 
