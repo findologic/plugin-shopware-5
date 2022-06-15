@@ -408,6 +408,19 @@ class StaticHelperTest extends TestCase
     }
 
     /**
+     * Data provider for testing manufacturer names
+     *
+     * @return array
+     */
+    public function manufacturerNamesProvider()
+    {
+        return [
+            'Findologic Fashion' => [1, 'Findologic Fashion'],
+            'Findologic Food' => [2, 'Findologic Food']
+        ];
+    }
+
+    /**
      * @dataProvider shopSearchProvider
      *
      * @param bool $isActive
@@ -609,6 +622,18 @@ class StaticHelperTest extends TestCase
         $result = StaticHelper::buildCategoryName($categoryModel->getId());
         $categoryResource->update($categoryId, ['name' => trim($category)]);
         $this->assertSame($expected, $result, 'Expected category name to be trimmed but was not');
+    }
+
+    /**
+     * @dataProvider manufacturerNamesProvider
+     *
+     * @param int $manufacturerId
+     * @param string $expected
+     */
+    public function testBuildManufacturerName($manufacturerId, $expected)
+    {
+        $result = StaticHelper::buildManufacturerName($manufacturerId);
+        $this->assertSame($expected, $result, 'Expected correct manufacturer name by ID');
     }
 
     /**
