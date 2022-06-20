@@ -457,6 +457,13 @@ class QueryBuilderFactoryTest extends TestCase
      */
     public function testSearchNavigationQuerybuilder(ConditionInterface $condition, $key, $expected)
     {
+        if ($condition instanceof ManufacturerCondition) {
+            StaticHelperTest::createTestManufacturer([
+                'id' => $key,
+                'name' => reset($expected)[0]
+            ]);
+        }
+
         Shopware()->Session()->offsetSet('isSearchPage', $condition instanceof SearchTermCondition);
 
         $criteria = new Criteria();
