@@ -358,6 +358,21 @@ class Utility
     }
 
     /**
+     * Delete all Suppliers
+     */
+    public static function sResetManufacturers()
+    {
+        try {
+            Shopware()->Db()->exec(
+                'SET foreign_key_checks = 0;
+                TRUNCATE `s_articles_supplier`;
+                SET foreign_key_checks = 1;'
+            );
+        } catch (Exception $ignored) {
+        }
+    }
+
+    /**
      * Delete all articles
      */
     public static function sResetArticles()

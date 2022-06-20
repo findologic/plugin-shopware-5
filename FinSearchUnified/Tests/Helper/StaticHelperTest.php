@@ -17,12 +17,14 @@ use Shopware\Components\Api\Exception\NotFoundException;
 use Shopware\Components\Api\Exception\ParameterMissingException;
 use Shopware\Components\Api\Exception\ValidationException;
 use Shopware\Components\Api\Manager;
+use Shopware\Components\Api\Resource\Manufacturer;
 use Shopware\Components\HttpClient\GuzzleHttpClient;
 use Shopware_Components_Config;
 use Shopware_Components_Config as Config;
 use SimpleXMLElement;
 use Zend_Cache_Core;
 use Zend_Cache_Exception;
+use Shopware\Components\Api\Resource\Manufacturer as ManufacturerResource;
 
 class StaticHelperTest extends TestCase
 {
@@ -38,6 +40,8 @@ class StaticHelperTest extends TestCase
 
         Shopware()->Container()->reset('fin_search_unified.config_loader');
         Shopware()->Container()->load('fin_search_unified.config_loader');
+
+        Utility::sResetManufacturers();
     }
 
     public function isFindologicActiveDataprovider()
@@ -415,8 +419,9 @@ class StaticHelperTest extends TestCase
     public function manufacturerNamesProvider()
     {
         return [
-            'Findologic Fashion' => [1, 'Findologic Fashion'],
-            'Findologic Food' => [2, 'Findologic Food']
+            'FindologicVendor ID 1' => [1, 'FindologicVendor1'],
+            'FindologicVendor ID 2' => [2, 'FindologicVendor2'],
+            'FindologicVendor ID 3' => [3, 'FindologicVendor3']
         ];
     }
 
@@ -625,6 +630,34 @@ class StaticHelperTest extends TestCase
     }
 
     /**
+     * Method to create test manufacturer
+     *
+     * @param array $testManufacturerConfiguration The configuration of the test manufacturer which is to be created.
+     *
+     * @return Manufacturer|null
+     */
+    public static function createTestManufacturer(array $testManufacturerConfiguration)
+    {
+        try {
+            $manager = Shopware()->Models();
+
+            $resource = new ManufacturerResource();
+            $resource->setManager($manager);
+
+            if (!$manager->isOpen()) {
+                $manager->create(
+                    $manager->getConnection(),
+                    $manager->getConfiguration()
+                );
+            }
+
+            $resource->create($testManufacturerConfiguration);
+        } catch (Exception $e) {
+            echo sprintf('Exception: %s', $e->getMessage());
+        }
+    }
+
+    /**
      * @dataProvider manufacturerNamesProvider
      *
      * @param int $manufacturerId
@@ -632,6 +665,11 @@ class StaticHelperTest extends TestCase
      */
     public function testBuildManufacturerName($manufacturerId, $expected)
     {
+        self::createTestManufacturer([
+            'id' => $manufacturerId,
+            'name' => $expected
+        ]);
+
         $result = StaticHelper::buildManufacturerName($manufacturerId);
         $this->assertSame($expected, $result, 'Expected correct manufacturer name by ID');
     }
