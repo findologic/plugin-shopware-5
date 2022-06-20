@@ -17,6 +17,8 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\ProductNameSor
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\ReleaseDateSortingHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandlerInterface;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
+use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
+use Shopware\Bundle\SearchBundle\Condition\ManufacturerCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\SortingInterface;
@@ -294,8 +296,12 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
         if ($query instanceof SearchQueryBuilder) {
             $condition = $criteria->getCondition('search');
         }
-        if ($query instanceof NavigationQueryBuilder) {
-            $condition = $criteria->getCondition('category');
+        elseif ($query instanceof NavigationQueryBuilder) {
+            if ($criteria->getConditions()[0] instanceof ManufacturerCondition) {
+                $condition = $criteria->getCondition('manufacturer');
+            } elseif ($criteria->getConditions()[0] instanceof CategoryCondition) {
+                $condition = $criteria->getCondition('category');
+            }
         }
 
         if ($condition !== null) {
