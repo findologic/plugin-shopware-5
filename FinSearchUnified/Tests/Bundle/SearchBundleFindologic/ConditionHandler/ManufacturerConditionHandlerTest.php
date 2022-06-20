@@ -95,7 +95,7 @@ class ManufacturerConditionHandlerTest extends TestCase
             );
         } else {
             $this->assertArrayHasKey('attrib', $params, 'Parameter "attrib" was not found in the parameters');
-            $this->assertArrayHasKey('vendor', $params['attrib'], 'Manufacturers are not set in the "attrib" parameter');
+            $this->assertArrayHasKey('vendor', $params['attrib'], 'Vendor are not set in the "attrib" parameter');
             $this->assertEquals(
                 reset($expectedManufacturerNames),
                 reset($params['attrib']['vendor']),

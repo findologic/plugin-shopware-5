@@ -295,8 +295,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
 
         if ($query instanceof SearchQueryBuilder) {
             $condition = $criteria->getCondition('search');
-        }
-        elseif ($query instanceof NavigationQueryBuilder) {
+        } elseif ($query instanceof NavigationQueryBuilder) {
             if ($criteria->getConditions()[0] instanceof ManufacturerCondition) {
                 $condition = $criteria->getCondition('manufacturer');
             } elseif ($criteria->getConditions()[0] instanceof CategoryCondition) {

@@ -131,7 +131,11 @@ class QueryBuilderFactoryTest extends TestCase
         );
 
         // ManufacturerCondition
-        $this->assertArrayHasKey('vendor', $attrib, 'Manufacturer was expected to be present in the attribute parameters');
+        $this->assertArrayHasKey(
+            'vendor',
+            $attrib,
+            'Manufacturer was expected to be present in the attribute parameters'
+        );
         $this->assertEquals(
             ['' => 'Findologic Fashion'],
             $attrib['vendor'],
@@ -146,7 +150,11 @@ class QueryBuilderFactoryTest extends TestCase
         $this->assertEquals(20, $attrib['price']['max'], 'Expected maximum price to be 20');
 
         // ProductAttributeCondition
-        $this->assertArrayHasKey('findologic-vendor', $attrib, 'Expected "vendor" to be available in the attribute parameters');
+        $this->assertArrayHasKey(
+            'findologic-vendor',
+            $attrib,
+            'Expected "findologic-vendor" to be available in the attribute parameters'
+        );
         $this->assertEquals(
             ['' => 'Findologic Rockers'],
             $attrib['findologic-vendor'],
