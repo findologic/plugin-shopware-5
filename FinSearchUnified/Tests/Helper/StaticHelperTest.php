@@ -419,9 +419,9 @@ class StaticHelperTest extends TestCase
     public function manufacturerNamesProvider()
     {
         return [
-            'FindologicVendor ID 1' => [1, 'FindologicVendor1'],
-            'FindologicVendor ID 2' => [2, 'FindologicVendor2'],
-            'FindologicVendor ID 3' => [3, 'FindologicVendor3']
+            'FindologicVendor ID 10' => [10, 'FindologicVendor10'],
+            'FindologicVendor ID 11' => [11, 'FindologicVendor11'],
+            'FindologicVendor ID 12' => [12, 'FindologicVendor12']
         ];
     }
 

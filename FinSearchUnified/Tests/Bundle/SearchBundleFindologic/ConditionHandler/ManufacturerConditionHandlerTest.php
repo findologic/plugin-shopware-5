@@ -58,8 +58,8 @@ class ManufacturerConditionHandlerTest extends TestCase
     public function manufacturerIdsDataProvider()
     {
         return [
-            'Manufacturer ID of "1"' => [[1], ['FindologicVendor1']],
-            'Manufacturer ID of "3"' => [[3], ['FindologicVendor3']]
+            'Manufacturer ID of "10"' => [[10], ['FindologicVendor10']],
+            'Manufacturer ID of "11"' => [[11], ['FindologicVendor11']]
         ];
     }
 

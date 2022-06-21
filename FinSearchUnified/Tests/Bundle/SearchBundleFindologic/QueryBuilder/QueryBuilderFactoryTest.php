@@ -104,13 +104,13 @@ class QueryBuilderFactoryTest extends TestCase
     public function testCreateQueryWithConditions()
     {
         StaticHelperTest::createTestManufacturer([
-            'id' => 1,
-            'name' => 'FindologicVendor1'
+            'id' => 8,
+            'name' => 'FindologicVendor8'
         ]);
 
         $criteria = new Criteria();
         $criteria->addCondition(new CategoryCondition([5, 12]));
-        $criteria->addCondition(new ManufacturerCondition([1]));
+        $criteria->addCondition(new ManufacturerCondition([8]));
         $criteria->addCondition(new PriceCondition(1, 20));
         $criteria->addCondition(new ProductAttributeCondition('findologic-vendor', '=', 'Findologic Rockers'));
         $criteria->addCondition(new SearchTermCondition('blubbergurke'));
@@ -137,7 +137,7 @@ class QueryBuilderFactoryTest extends TestCase
             'Manufacturer was expected to be present in the attribute parameters'
         );
         $this->assertEquals(
-            ['' => 'FindologicVendor1'],
+            ['' => 'FindologicVendor8'],
             $attrib['vendor'],
             'Expected manufacturer to contain the name of the provided category IDs'
         );

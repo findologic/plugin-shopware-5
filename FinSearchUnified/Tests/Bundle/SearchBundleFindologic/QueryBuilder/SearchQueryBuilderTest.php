@@ -205,12 +205,12 @@ class SearchQueryBuilderTest extends TestCase
             $searchNavigationRequest
         );
 
-        $queryBuilder->addManufacturer('FindologicVendor1');
+        $queryBuilder->addManufacturer('FindologicVendor10');
 
         $params = $searchNavigationRequest->getParams();
         $this->assertArrayHasKey('attrib', $params);
         $this->assertArrayHasKey('vendor', $params['attrib']);
-        $this->assertSame('FindologicVendor1', current($params['attrib']['vendor']));
+        $this->assertSame('FindologicVendor10', current($params['attrib']['vendor']));
     }
 
     public function testManufacturerParameterForNavigation()
@@ -223,12 +223,12 @@ class SearchQueryBuilderTest extends TestCase
             $searchNavigationRequest
         );
 
-        $queryBuilder->addManufacturer('FindologicVendor1');
+        $queryBuilder->addManufacturer('FindologicVendor10');
 
         $params = $searchNavigationRequest->getParams();
         $this->assertArrayHasKey('selected', $params);
         $this->assertArrayHasKey('vendor', $params['selected']);
-        $this->assertSame('FindologicVendor1', current($params['selected']['vendor']));
+        $this->assertSame('FindologicVendor10', current($params['selected']['vendor']));
     }
 
     public function testOrderParameter()
