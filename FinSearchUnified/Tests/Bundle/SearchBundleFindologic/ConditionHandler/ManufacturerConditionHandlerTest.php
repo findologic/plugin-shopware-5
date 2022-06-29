@@ -32,6 +32,7 @@ class ManufacturerConditionHandlerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        Utility::sResetManufacturers();
 
         $request = new Enlight_Controller_Request_RequestHttp();
         Shopware()->Front()->setRequest($request);
