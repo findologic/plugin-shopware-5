@@ -7,7 +7,6 @@ use Exception;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\ManufacturerConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilder;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\SearchQueryBuilder;
-use FinSearchUnified\Tests\Helper\StaticHelperTest;
 use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\ManufacturerCondition;
@@ -74,7 +73,7 @@ class ManufacturerConditionHandlerTest extends TestCase
      */
     public function testGenerateCondition(array $manufacturerIds, array $expectedManufacturerNames)
     {
-        StaticHelperTest::createTestManufacturer([
+        Utility::createTestManufacturer([
             'id' => reset($manufacturerIds),
             'name' => reset($expectedManufacturerNames)
         ]);

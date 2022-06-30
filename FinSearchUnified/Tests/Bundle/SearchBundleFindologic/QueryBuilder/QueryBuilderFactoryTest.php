@@ -9,7 +9,6 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NavigationQueryB
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilderFactory;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\SearchQueryBuilder;
 use FinSearchUnified\Helper\StaticHelper;
-use FinSearchUnified\Tests\Helper\StaticHelperTest;
 use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
@@ -103,7 +102,7 @@ class QueryBuilderFactoryTest extends TestCase
      */
     public function testCreateQueryWithConditions()
     {
-        StaticHelperTest::createTestManufacturer([
+        Utility::createTestManufacturer([
             'id' => 8,
             'name' => 'FindologicVendor8'
         ]);
@@ -466,7 +465,7 @@ class QueryBuilderFactoryTest extends TestCase
     public function testSearchNavigationQuerybuilder(ConditionInterface $condition, $key, $expected)
     {
         if ($condition instanceof ManufacturerCondition) {
-            StaticHelperTest::createTestManufacturer([
+            Utility::createTestManufacturer([
                 'id' => $key,
                 'name' => reset($expected)[0]
             ]);
