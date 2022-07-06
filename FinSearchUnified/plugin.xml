@@ -4,7 +4,7 @@
     <label lang="de">Findologic - Search &amp; Navigation Platform</label>
     <label lang="en">Findologic - Search &amp; Navigation Platform</label>
 
-    <version>11.5.2</version>
+    <version>11.6.0</version>
     <link>https://www.findologic.com/</link>
     <author>FINDOLOGIC GmbH</author>
     <support>https://www.findologic.com/</support>
@@ -59,16 +59,41 @@
         ]]>
     </description>
     <compatibility minVersion="5.2.0" />
+    <changelog version="11.6.0">
+        <changes lang="de">
+            SW-560 - Produktbilder werden jetzt in einer Größe von 600x600px exportiert.;
+            SW-602 - Die Shop Version wird nun beim Request mit übergeben.;
+            SW-684 - Unser JavaScript Dateien werden nun vorgeladen.;
+            SW-717 - Version von guzzlehttp/psr7 wurde erhöht.;
+            SW-448 - Ein Fehler wurde behoben, wodurch pro Suche oder Navigation extra Anfragen geschickt wurden.;
+            SW-625 - Ein Fehler wurde behoben, wobei die Kachel beim Farbfilter nicht als selektiert markiert wurde.;
+            SW-714 - Ein Fehler wurde behoben, wodurch die Bild Urls nicht vollständig kodiert wurden.;
+            SW-725 - Ein Fehler wurde behoben, wodurch bei Herstellerseiten nach Interaktion alle Produkte des Shops
+            angezeigt wurden.;
+            SW-726 - Ein Fehler wurde behoben, wodurch das falsche Produktbild in der Suggest angezeigt wurde.;
+        </changes>
+        <changes lang="en">
+            SW-560 - Product images are now exported in a size of 600x600px.;
+            SW-602 - The shop version is now sent with each request.;
+            SW-684 - Our JavaScript bundle is now pre-loaded.;
+            SW-717 - Version of guzzlehttp/psr7 has been increased.;
+            SW-448 - Fixed a bug that lead to extra requests with each search or navigation request.;
+            SW-625 - Fixed a bug that caused the color tile to not being marked as selected.;
+            SW-714 - Fixed a bug that could cause image urls not being completely encoded.;
+            SW-725 - Fixed a bug that lead to all products being shown after interacting with a manufacturer page.;
+            SW-726 - Fixed a bug that lead to the wrong image being exported as preview image.;
+        </changes>
+    </changelog>
     <changelog version="11.5.2">
         <changes lang="de">
             SW-676 - Ein Fehler wurde behoben, wodurch das Cover-Bild eines Produktes nicht als erstes Bild exportiert
-            wurde;
+            wurde.;
             SW-713 - Es ist nun möglich eigene Sortier-Optionen mithilfe des Findologic Erweiterungsplugins
-            zu definieren;
+            zu definieren.;
         </changes>
         <changes lang="en">
-            SW-676 - Fixed a bug that caused the cover image of a product not being exported as first image;
-            SW-713 - Added possibility to define custom sorting options using the plugin extension;
+            SW-676 - Fixed a bug that caused the cover image of a product not being exported as first image.;
+            SW-713 - Added possibility to define custom sorting options using the plugin extension.;
         </changes>
     </changelog>
     <changelog version="11.5.1">
