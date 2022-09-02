@@ -33,7 +33,7 @@ class ConfigLoaderTest extends TestCase
     {
         parent::setUp();
 
-        $this->shopkey = Shopware()->Config()->offsetGet('ShopKey');
+        $this->shopkey = Shopware()->Config()->getByNamespace('FinSearchUnified', 'ShopKey');
         $this->expectedUrl = sprintf(
             '%s/%s/%s',
             'https://cdn.findologic.com/static',

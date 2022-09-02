@@ -54,7 +54,7 @@ class ConfigLoader
         $this->cache = $cache;
         $this->httpClient = $httpClient;
         $this->config = $config;
-        $this->shopkey = $config->offsetGet('ShopKey');
+        $this->shopkey = $config->getByNamespace('FinSearchUnified', 'ShopKey');
     }
 
     /**

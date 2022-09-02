@@ -220,7 +220,7 @@ class StaticHelper
         /** @var Environment $environment */
         $environment = Shopware()->Container()->get('fin_search_unified.environment');
 
-        $shopkey = trim(Shopware()->Config()->offsetGet('ShopKey'));
+        $shopkey = trim(Shopware()->Config()->getByNamespace('FinSearchUnified', 'ShopKey'));
         $isStagingMode = $environment->isStaging(Shopware()->Front()->Request());
         $isActivateFindologic = (bool)Shopware()->Config()->offsetGet('ActivateFindologic');
 

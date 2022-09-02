@@ -77,7 +77,7 @@ class QueryBuilderFactoryTest extends TestCase
         $params = $query->getParameters();
 
         $hashed = StaticHelper::calculateUsergroupHash(
-            Shopware()->Config()->offsetGet('ShopKey'),
+            Shopware()->Config()->getByNamespace('FinSearchUnified', 'ShopKey'),
             'EK'
         );
 

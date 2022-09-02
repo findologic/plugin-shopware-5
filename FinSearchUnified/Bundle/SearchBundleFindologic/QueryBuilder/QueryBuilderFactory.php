@@ -70,7 +70,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
     private function createClient()
     {
         $apiConfig = new Config();
-        $apiConfig->setServiceId($this->config->offsetGet('ShopKey'));
+        $apiConfig->setServiceId($this->config->getByNamespace('FinSearchUnified', 'ShopKey'));
 
         return new Client($apiConfig);
     }

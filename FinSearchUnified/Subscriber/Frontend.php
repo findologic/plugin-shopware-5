@@ -230,7 +230,7 @@ class Frontend implements SubscriberInterface
      */
     private function getShopKey()
     {
-        $shopKey = Shopware()->Config()->get('ShopKey');
+        $shopKey = Shopware()->Config()->getByNamespace('FinSearchUnified', 'ShopKey');
 
         if ($shopKey) {
             $this->shopKey = $shopKey;

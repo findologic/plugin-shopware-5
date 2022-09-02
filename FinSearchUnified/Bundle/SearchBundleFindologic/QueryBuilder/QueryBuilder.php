@@ -56,7 +56,7 @@ abstract class QueryBuilder
     ) {
         $this->installerService = $installerService;
         $this->config = $config;
-        $this->shopKey = $config->offsetGet('ShopKey');
+        $this->shopKey = $config->getByNamespace('FinSearchUnified', 'ShopKey');
         $this->shopUrl = rtrim(Shopware()->Shop()->getHost(), '/');
 
         if ($apiClient === null) {
