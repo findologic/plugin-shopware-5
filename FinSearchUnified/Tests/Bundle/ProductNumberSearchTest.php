@@ -61,7 +61,7 @@ class ProductNumberSearchTest extends TestCase
         ];
         // Create mock object for Shopware Config and explicitly return the values
         $mockConfig = $this->getMockBuilder(Config::class)
-            ->setMethods(['FinSearchUnified', 'get'])
+            ->setMethods(['getByNamespace', 'get'])
             ->disableOriginalConstructor()
             ->getMock();
         $mockConfig->method('getByNamespace')
