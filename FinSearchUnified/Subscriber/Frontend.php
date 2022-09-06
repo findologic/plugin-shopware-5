@@ -199,7 +199,7 @@ class Frontend implements SubscriberInterface
      */
     public function onFrontendPostDispatch(Enlight_Event_EventArgs $args)
     {
-        if (!(bool)Shopware()->Config()->get('ActivateFindologic')) {
+        if (!(bool)Shopware()->Config()->getByNamespace('FinSearchUnified', 'ActivateFindologic')) {
             return;
         }
 

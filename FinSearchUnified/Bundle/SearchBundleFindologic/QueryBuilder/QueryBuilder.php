@@ -234,7 +234,7 @@ abstract class QueryBuilder
         $this->searchNavigationRequest->addIndividualParam('shopType', 'Shopware5', Request::ADD_VALUE);
         $this->searchNavigationRequest->addIndividualParam(
             'shopVersion',
-            Shopware()->Config()->offsetGet('version'),
+            Shopware()->Config()->getByNamespace('FinSearchUnified', 'version'),
             Request::ADD_VALUE
         );
     }
