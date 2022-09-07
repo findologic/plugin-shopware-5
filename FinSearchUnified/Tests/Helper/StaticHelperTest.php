@@ -108,8 +108,8 @@ class StaticHelperTest extends TestCase
         $expected
     ) {
         $configArray = [
-            ['ActivateFindologic', $activateFindologic],
-            ['ShopKey', $shopKey],
+            ['FinSearchUnified', 'ActivateFindologic', null, $activateFindologic],
+            ['FinSearchUnified', 'ShopKey', null, $shopKey],
         ];
 
         $request = new RequestHttp();
@@ -120,7 +120,7 @@ class StaticHelperTest extends TestCase
 
         // Create Mock object for Shopware Config
         $config = $this->createMock(Config::class);
-        $config->method('offsetGet')
+        $config->method('getByNamespace')
             ->willReturnMap($configArray);
 
         // Assign mocked config variable to application container
@@ -434,9 +434,9 @@ class StaticHelperTest extends TestCase
         $expected
     ) {
         $configArray = [
-            ['ActivateFindologic', $isActive],
-            ['ShopKey', $shopKey],
-            ['ActivateFindologicForCategoryPages', $isActiveForCategory],
+            ['FinSearchUnified', 'ActivateFindologic', null, $isActive],
+            ['FinSearchUnified', 'ShopKey', null, $shopKey],
+            ['FinSearchUnified', 'ActivateFindologicForCategoryPages', null, $isActiveForCategory],
             ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API]
         ];
         $request = new RequestHttp();
@@ -467,7 +467,7 @@ class StaticHelperTest extends TestCase
         // Create Mock object for Shopware Config
         $config = $this->createMock(Config::class);
         $config->expects($this->atLeastOnce())
-            ->method('offsetGet')
+            ->method('getByNamespace')
             ->willReturnMap($configArray);
         $config->method('offsetExists')
             ->willReturn(true);
@@ -484,9 +484,9 @@ class StaticHelperTest extends TestCase
     public function testDoNotUseShopSearchWhenCategoryPageAndSessionNotSet()
     {
         $configArray = [
-            ['ActivateFindologic', true],
-            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
-            ['ActivateFindologicForCategoryPages', true],
+            ['FinSearchUnified', 'ActivateFindologic', null, true],
+            ['FinSearchUnified', 'ShopKey', null, 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
+            ['FinSearchUnified', 'ActivateFindologicForCategoryPages', null, true],
             ['IntegrationType', Constants::INTEGRATION_TYPE_API]
         ];
         $request = new RequestHttp();
@@ -499,9 +499,9 @@ class StaticHelperTest extends TestCase
         // Create Mock object for Shopware Config
         $config = $this->createMock(Config::class);
         $config->expects($this->atLeastOnce())
-            ->method('offsetGet')
+            ->method('getByNamespace')
             ->willReturnMap($configArray);
-        $config->method('offsetExists')
+        $config->method('getByNamespace')
             ->willReturn(true);
 
         // Assign mocked config variable to application container

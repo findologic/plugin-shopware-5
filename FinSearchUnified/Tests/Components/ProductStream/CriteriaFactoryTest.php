@@ -100,19 +100,19 @@ class CriteriaFactoryTest extends TestCase
         Shopware()->Front()->setRequest($request);
 
         $configArray = [
-            ['ActivateFindologic', $isActive],
-            ['ShopKey', $shopKey],
-            ['ActivateFindologicForCategoryPages', $isActiveForCategory],
+            ['FinSearchUnified', 'ActivateFindologic', null, $isActive],
+            ['FinSearchUnified', 'ShopKey', null,  $shopKey],
+            ['FinSearchUnified', 'ActivateFindologicForCategoryPages', null, $isActiveForCategory],
             ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API]
         ];
 
         // Create mock object for Shopware Config and explicitly return the values
         $config = $this->getMockBuilder(Shopware_Components_Config::class)
-            ->setMethods(['offsetGet'])
+            ->setMethods(['getByNamespace'])
             ->disableOriginalConstructor()
             ->getMock();
         $config->expects($this->atLeastOnce())
-            ->method('offsetGet')
+            ->method('getByNamespace')
             ->willReturnMap($configArray);
 
         // Assign mocked config variable to application container

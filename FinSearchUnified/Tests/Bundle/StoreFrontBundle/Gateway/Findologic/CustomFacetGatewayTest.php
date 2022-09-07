@@ -56,16 +56,16 @@ class CustomFacetGatewayTest extends TestCase
         Shopware()->Front()->setRequest($request);
 
         $configArray = [
-            ['ActivateFindologic', true],
-            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
-            ['ActivateFindologicForCategoryPages', false]
+            ['FinSearchUnified', 'ActivateFindologic', null, true],
+            ['FinSearchUnified', 'ShopKey', null, 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
+            ['FinSearchUnified', 'ActivateFindologicForCategoryPages', null, false]
         ];
         // Create mock object for Shopware Config and explicitly return the values
         $mockConfig = $this->getMockBuilder(Shopware_Components_Config::class)
-            ->setMethods(['offsetGet'])
+            ->setMethods(['getByNamespace'])
             ->disableOriginalConstructor()
             ->getMock();
-        $mockConfig->method('offsetGet')
+        $mockConfig->method('getByNamespace')
             ->willReturnMap($configArray);
         // Assign mocked config variable to application container
         Shopware()->Container()->set('config', $mockConfig);
@@ -162,16 +162,16 @@ class CustomFacetGatewayTest extends TestCase
         Shopware()->Front()->setRequest($request);
 
         $configArray = [
-            ['ActivateFindologic', true],
-            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
-            ['ActivateFindologicForCategoryPages', false]
+            ['FinSearchUnified', 'ActivateFindologic', null, true],
+            ['FinSearchUnified', 'ShopKey', null, 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
+            ['FinSearchUnified', 'ActivateFindologicForCategoryPages', null, false]
         ];
         // Create mock object for Shopware Config and explicitly return the values
         $mockConfig = $this->getMockBuilder(Shopware_Components_Config::class)
-            ->setMethods(['offsetGet'])
+            ->setMethods(['getByNamespace'])
             ->disableOriginalConstructor()
             ->getMock();
-        $mockConfig->method('offsetGet')
+        $mockConfig->method('getByNamespace')
             ->willReturnMap($configArray);
         // Assign mocked config variable to application container
         Shopware()->Container()->set('config', $mockConfig);

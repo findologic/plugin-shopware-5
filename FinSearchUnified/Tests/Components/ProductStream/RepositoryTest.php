@@ -79,17 +79,17 @@ class RepositoryTest extends TestCase
         Shopware()->Front()->setRequest($request);
 
         $configArray = [
-            ['ActivateFindologic', $isActive],
-            ['ShopKey', $shopKey],
-            ['ActivateFindologicForCategoryPages', $isActiveForCategory]
+            ['FinSearchUnified', 'ActivateFindologic', null, $isActive],
+            ['FinSearchUnified', 'ShopKey', null, $shopKey],
+            ['FinSearchUnified', 'ActivateFindologicForCategoryPages', null, $isActiveForCategory]
         ];
 
         // Create mock object for Shopware Config and explicitly return the values
         $config = $this->getMockBuilder(Shopware_Components_Config::class)
-            ->setMethods(['offsetGet'])
+            ->setMethods(['getByNamespace'])
             ->disableOriginalConstructor()
             ->getMock();
-        $config->method('offsetGet')
+        $config->method('getByNamespace')
             ->willReturnMap($configArray);
 
         // Assign mocked config variable to application container

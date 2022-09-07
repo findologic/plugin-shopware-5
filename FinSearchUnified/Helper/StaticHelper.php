@@ -222,7 +222,7 @@ class StaticHelper
 
         $shopkey = trim(Shopware()->Config()->getByNamespace('FinSearchUnified', 'ShopKey'));
         $isStagingMode = $environment->isStaging(Shopware()->Front()->Request());
-        $isActivateFindologic = (bool)Shopware()->Config()->getByNamespace('FinSearchUnified','ActivateFindologic');
+        $isActivateFindologic = (bool)Shopware()->Config()->getByNamespace('FinSearchUnified', 'ActivateFindologic');
         return !$isStagingMode && $isActivateFindologic && !empty($shopkey);
     }
 

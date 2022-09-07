@@ -642,9 +642,9 @@ class ProductNumberSearchTest extends TestCase
         $response = new Xml21Response($xmlResponse->asXML());
         $responseParser = ResponseParser::getInstance($response);
         $configArray = [
-            ['ActivateFindologic', true],
-            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
-            ['ActivateFindologicForCategoryPages', false],
+            ['FinSearchUnified', 'ActivateFindologic', null, true],
+            ['FinSearchUnified', 'ShopKey', null, 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
+            ['FinSearchUnified', 'ActivateFindologicForCategoryPages', null, false],
             ['listingMode', $config]
         ];
 
