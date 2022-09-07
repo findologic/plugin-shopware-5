@@ -305,7 +305,10 @@ class SearchQueryBuilderTest extends TestCase
             $searchNavigationRequest
         );
 
-        $usergrouphash = StaticHelper::calculateUsergroupHash($this->config->getByNamespace('FinSearchUnified', 'ShopKey'), $userGroup);
+        $usergrouphash = StaticHelper::calculateUsergroupHash(
+            $this->config->getByNamespace('FinSearchUnified', 'ShopKey'),
+            $userGroup
+        );
         $queryBuilder->addUserGroup($userGroup);
 
         $params = $searchNavigationRequest->getParams();

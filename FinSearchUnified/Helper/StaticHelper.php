@@ -163,7 +163,8 @@ class StaticHelper
         $isEmotionPage = $request->getControllerName() === 'emotion';
         $isFindologicActive = static::isFindologicActive();
         $isDirectIntegration = static::checkDirectIntegration();
-        $isActiveOnCategoryPages = (bool)Shopware()->Config()->getByNamespace('FinSearchUnified', 'ActivateFindologicForCategoryPages');
+        $isActiveOnCategoryPages = (bool)Shopware()->Config()
+            ->getByNamespace('FinSearchUnified', 'ActivateFindologicForCategoryPages');
 
         $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage') || static::isCategoryPage($request);
         $isManufacturerPage = Shopware()->Session()->offsetGet('isManufacturerPage') ||
@@ -235,7 +236,8 @@ class StaticHelper
         /** @var ConfigLoader $configLoader */
         $configLoader = Shopware()->Container()->get('fin_search_unified.config_loader');
 
-        $integrationType = Shopware()->Config()->getByNamespace('FinSearchUnified', Constants::CONFIG_KEY_INTEGRATION_TYPE);
+        $integrationType = Shopware()->Config()
+            ->getByNamespace('FinSearchUnified', Constants::CONFIG_KEY_INTEGRATION_TYPE);
         $isDirectIntegration = $configLoader->directIntegrationEnabled(
             $integrationType === Constants::INTEGRATION_TYPE_DI
         );
