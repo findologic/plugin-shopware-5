@@ -55,9 +55,9 @@ class ProductNumberSearchTest extends TestCase
         parent::setUp();
 
         $configArray = [
-            ['FinSearchUnified', 'ActivateFindologic', true],
-            ['FinSearchUnified', 'ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
-            ['FinSearchUnified', 'ActivateFindologicForCategoryPages', false]
+            ['FinSearchUnified', 'ActivateFindologic', null, true],
+            ['FinSearchUnified', 'ShopKey', null, 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
+            ['FinSearchUnified', 'ActivateFindologicForCategoryPages', null, false]
         ];
         // Create mock object for Shopware Config and explicitly return the values
         $mockConfig = $this->getMockBuilder(Config::class)

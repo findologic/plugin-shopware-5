@@ -541,7 +541,7 @@ class FindologicArticleModel
             while (!empty($catPath)) {
                 $tempPath = sprintf($routerCategoryTemplate, implode('/', $catPath));
 
-                if (Shopware()->Config()->getByNamespace('FinSearchUnified', 'routerToLower')) {
+                if (Shopware()->Config()->offsetGet('routerToLower')) {
                     $tempPath = mb_strtolower($tempPath);
                 }
 
@@ -875,7 +875,7 @@ class FindologicArticleModel
 
     protected function isCrossSellingCategoryConfiguredForArticle()
     {
-        $crossSellingCategories = Shopware()->Config()->getByNamespace('FinSearchUnified', 'CrossSellingCategories');
+        $crossSellingCategories = Shopware()->Config()->offsetGet('CrossSellingCategories');
         /** @var Category $category */
         foreach ($this->baseArticle->getCategories() as $category) {
             if (!$category->isChildOf($this->baseCategory)) {

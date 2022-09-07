@@ -359,7 +359,7 @@ class StaticHelper
      */
     public static function isProductAndFilterLiveReloadingEnabled()
     {
-        $listingMode = Shopware()->Config()->getByNamespace('FinSearchUnified', 'listingMode');
+        $listingMode = Shopware()->Config()->offsetGet('listingMode');
 
         return ($listingMode === 'filter_ajax_reload');
     }
