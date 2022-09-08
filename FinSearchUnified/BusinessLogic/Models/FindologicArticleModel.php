@@ -158,7 +158,6 @@ class FindologicArticleModel
         }
 
         $this->setUpStruct();
-
         if ($this->legacyStruct) {
             // Load all variants
             $this->variantArticles = $this->baseArticle->getDetails();
