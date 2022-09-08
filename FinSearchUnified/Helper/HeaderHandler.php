@@ -56,7 +56,7 @@ class HeaderHandler
      */
     private function fetchShopwareVersion()
     {
-        $shopwareVersion = Shopware()->Config()->getByNamespace('FinSearchUnified', 'version');
+        $shopwareVersion = Shopware()->Config()->offsetGet('version');
 
         return sprintf(self::SHOPWARE_VERSION, $shopwareVersion);
     }

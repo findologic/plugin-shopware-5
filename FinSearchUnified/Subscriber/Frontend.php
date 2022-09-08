@@ -208,8 +208,8 @@ class Frontend implements SubscriberInterface
         $groupKey = $context->getShopContext()->getCurrentCustomerGroup()->getKey();
         $hash = StaticHelper::calculateUsergroupHash($this->getShopKey(), $groupKey);
 
-        $searchResultContainer = Shopware()->Config()->get('SearchResultContainer');
-        $navigationContainer = Shopware()->Config()->get('NavigationContainer');
+        $searchResultContainer = Shopware()->Config()->getByNamespace('FinSearchUnified', 'SearchResultContainer');
+        $navigationContainer = Shopware()->Config()->getByNamespace('FinSearchUnified', 'NavigationContainer');
 
         try {
             /** @var Enlight_Controller_ActionEventArgs $args */
