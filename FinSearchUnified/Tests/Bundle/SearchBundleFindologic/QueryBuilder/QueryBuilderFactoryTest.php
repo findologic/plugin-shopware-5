@@ -52,7 +52,7 @@ class QueryBuilderFactoryTest extends TestCase
             ->setMethods(['getByNamespace', 'get'])
             ->disableOriginalConstructor()
             ->getMock();
-        $mockConfig->expects($this->once())
+        $mockConfig->expects($this->any())
             ->method('getByNamespace')
             ->with('FinSearchUnified', 'ShopKey', null)
             ->willReturn('ABCDABCDABCDABCDABCDABCDABCDABCD');
