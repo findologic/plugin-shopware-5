@@ -418,7 +418,6 @@ class SearchQueryBuilderTest extends TestCase
 
         $params = $searchNavigationRequest->getParams();
         $this->assertArrayHasKey('shopVersion', $params);
-        dd($params);
         $this->assertSame('5.7.7', $params['shopVersion']);
     }
 }
