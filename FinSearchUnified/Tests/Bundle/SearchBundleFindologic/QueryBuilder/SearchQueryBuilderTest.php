@@ -38,7 +38,8 @@ class SearchQueryBuilderTest extends TestCase
             ->willReturn('ABCDABCDABCDABCDABCDABCDABCDABCD');
         $mockConfig->expects($this->any())
             ->method('get')
-            ->willReturn(StaticHelper::getShopwareVersion());
+            ->with('version')
+            ->willReturn('5.7.7');
 
         Shopware()->Container()->set('config', $mockConfig);
 
@@ -418,6 +419,6 @@ class SearchQueryBuilderTest extends TestCase
 
         $params = $searchNavigationRequest->getParams();
         $this->assertArrayHasKey('shopVersion', $params);
-        $this->assertSame('5.7.7', $params['shopVersion']);
+        $this->assertSame('5.7.7', Shopware()->Config()->get('version'));
     }
 }
