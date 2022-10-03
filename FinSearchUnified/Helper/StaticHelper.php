@@ -413,6 +413,18 @@ class StaticHelper
         return version_compare($shopwareVersion, $version, '<');
     }
 
+    /**
+     * @param $version
+     *
+     * @return bool
+     */
+    public static function isVersionGreaterOrEqual($version)
+    {
+        $shopwareVersion = static::getShopwareVersion();
+
+        return version_compare($shopwareVersion, $version, '>=');
+    }
+
     public static function getShopwareVersion()
     {
         $version = null;
