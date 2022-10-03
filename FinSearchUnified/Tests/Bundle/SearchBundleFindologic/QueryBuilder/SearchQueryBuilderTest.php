@@ -195,6 +195,42 @@ class SearchQueryBuilderTest extends TestCase
         $this->assertSame('Genusswelten_Sommerwelten', current($params['selected']['cat']));
     }
 
+    public function testManufacturerParameterForSearch()
+    {
+        $searchNavigationRequest = new SearchRequest();
+        $queryBuilder = new SearchQueryBuilder(
+            $this->installerService,
+            $this->config,
+            null,
+            $searchNavigationRequest
+        );
+
+        $queryBuilder->addManufacturer('FindologicVendor9');
+
+        $params = $searchNavigationRequest->getParams();
+        $this->assertArrayHasKey('attrib', $params);
+        $this->assertArrayHasKey('vendor', $params['attrib']);
+        $this->assertSame('FindologicVendor9', current($params['attrib']['vendor']));
+    }
+
+    public function testManufacturerParameterForNavigation()
+    {
+        $searchNavigationRequest = new NavigationRequest();
+        $queryBuilder = new NavigationQueryBuilder(
+            $this->installerService,
+            $this->config,
+            null,
+            $searchNavigationRequest
+        );
+
+        $queryBuilder->addManufacturer('FindologicVendor9');
+
+        $params = $searchNavigationRequest->getParams();
+        $this->assertArrayHasKey('selected', $params);
+        $this->assertArrayHasKey('vendor', $params['selected']);
+        $this->assertSame('FindologicVendor9', current($params['selected']['vendor']));
+    }
+
     public function testOrderParameter()
     {
         $searchNavigationRequest = new SearchRequest();

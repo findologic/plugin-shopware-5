@@ -16,6 +16,7 @@ use FinSearchUnified\Constants;
 use Shopware;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 use Shopware\Bundle\StoreFrontBundle;
+use Shopware\Bundle\StoreFrontBundle\Struct\Product\Manufacturer;
 use SimpleXMLElement;
 use Zend_Cache_Exception;
 
@@ -44,6 +45,22 @@ class StaticHelper
         $categoryName = implode('_', $categoryNames);
 
         return $categoryName;
+    }
+
+    /**
+     * @param int $manufacturerId
+     *
+     * @return string
+     */
+    public static function buildManufacturerName($manufacturerId)
+    {
+        /** @var Manufacturer|null $manufacturer */
+        $manufacturer = Shopware()->Container()->get('shopware_storefront.manufacturer_service')->get(
+            $manufacturerId,
+            Shopware()->Container()->get('shopware_storefront.context_service')->getShopContext()
+        );
+
+        return $manufacturer->getName();
     }
 
     /**
@@ -168,7 +185,10 @@ class StaticHelper
         $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage') || static::isCategoryPage($request);
         $isManufacturerPage = Shopware()->Session()->offsetGet('isManufacturerPage') ||
             static::isManufacturerPage($request);
-        $isNoSearchAndCategoryPage = !$isCategoryPage && !Shopware()->Session()->offsetGet('isSearchPage');
+        $isNoSupportedPage =
+            !Shopware()->Session()->offsetGet('isSearchPage') &&
+            !$isCategoryPage &&
+            !$isManufacturerPage;
         $isCategoryPageButDisabledInConfig = $isCategoryPage && !$isActiveOnCategoryPages;
 
         $fallbackSearchIsSet = static::checkIfFallbackSearchCookieIsSet();
@@ -178,9 +198,8 @@ class StaticHelper
             $isEmotionPage ||
             !$isFindologicActive ||
             $isDirectIntegration ||
-            $isNoSearchAndCategoryPage ||
+            $isNoSupportedPage ||
             $isCategoryPageButDisabledInConfig ||
-            $isManufacturerPage ||
             $fallbackSearchIsSet
         );
     }
