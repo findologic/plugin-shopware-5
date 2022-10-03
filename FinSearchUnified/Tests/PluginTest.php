@@ -263,11 +263,14 @@ class PluginTest extends TestCase
             ['FinSearchUnified', 'ActivateFindologicForCategoryPages', null, false],
             ['FinSearchUnified', 'CrossSellingCategories', null, $categories],
         ];
+
         $swConfigArray = [
-            'release' => new ShopwareReleaseStruct('0.0.0', '0.0.0', 5),
             'db' => Shopware()->Container()->get('dbal_connection'),
             'shop' => $subShop ?: $baseShop,
         ];
+        if (!StaticHelper::isVersionLowerThan('5.4.0')) {
+            $swConfigArray['release'] = new ShopwareReleaseStruct('0.0.0', '0.0.0', 5);
+        }
 
         $mockConfig = $this->getMockBuilder(Config::class)
             ->setMethods(['getByNamespace'])
