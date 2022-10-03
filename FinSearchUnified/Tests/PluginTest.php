@@ -265,10 +265,10 @@ class PluginTest extends TestCase
         ];
 
         $swConfigArray = ['shop' => $subShop ?: $baseShop];
-        if (StaticHelper::isVersionGreaterOrEqual('5.4.0')) {
+        if (StaticHelper::isVersionGreaterOrEqual('5.4')) {
             $swConfigArray['release'] = new ShopwareReleaseStruct('0.0.0', '0.0.0', 5);
         }
-        if (StaticHelper::isVersionLowerThan('5.6.0')) {
+        if (StaticHelper::isVersionLowerThan('5.6')) {
             $swConfigArray['db'] = Shopware()->Db();
         } else {
             $swConfigArray['db'] = Shopware()->Container()->get('dbal_connection');
