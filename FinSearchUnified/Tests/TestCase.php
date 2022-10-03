@@ -60,6 +60,13 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         }
     }
 
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        Shopware()->Container()->reset('config');
+    }
+
     /**
      * @throws Exception
      */
