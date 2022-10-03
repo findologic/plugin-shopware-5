@@ -207,7 +207,7 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
@@ -225,7 +225,7 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new NavigationRequest();
         $queryBuilder = new NavigationQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
