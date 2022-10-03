@@ -264,12 +264,14 @@ class PluginTest extends TestCase
             ['FinSearchUnified', 'CrossSellingCategories', null, $categories],
         ];
 
-        $swConfigArray = [
-            'db' => Shopware()->Container()->get('dbal_connection'),
-            'shop' => $subShop ?: $baseShop,
-        ];
+        $swConfigArray = ['shop' => $subShop ?: $baseShop];
         if (!StaticHelper::isVersionLowerThan('5.4.0')) {
             $swConfigArray['release'] = new ShopwareReleaseStruct('0.0.0', '0.0.0', 5);
+        }
+        if (StaticHelper::isVersionLowerThan('5.6.0')) {
+            $swConfigArray['db'] = Shopware()->Db();
+        } else {
+            $swConfigArray['db'] = Shopware()->Container()->get('dbal_connection');
         }
 
         $mockConfig = $this->getMockBuilder(Config::class)
