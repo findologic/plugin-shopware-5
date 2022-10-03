@@ -133,8 +133,7 @@ class ProductNumberSearchTest extends TestCase
         $response = Utility::getDemoResponse();
         $criteria->setFetchCount($isFetchCount);
 
-        Shopware()->Session()->findologicDI = $isUseShopSearch;
-        Shopware()->Session()->isSearchPage = !$isUseShopSearch;
+        Shopware()->Session()->offsetSet('isSearchPage', !$isUseShopSearch);
 
         $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
             ->disableOriginalConstructor()
@@ -191,8 +190,7 @@ class ProductNumberSearchTest extends TestCase
             $criteria->setFetchCount(true);
         }
 
-        Shopware()->Session()->findologicDI = false;
-        Shopware()->Session()->isSearchPage = true;
+        Shopware()->Session()->offsetSet('isSearchPage', true);
 
         $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
             ->disableOriginalConstructor()

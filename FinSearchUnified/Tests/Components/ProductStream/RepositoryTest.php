@@ -98,7 +98,6 @@ class RepositoryTest extends TestCase
         $sessionArray = [
             ['isSearchPage', $isSearchPage],
             ['isCategoryPage', $isCategoryPage],
-            ['findologicDI', false]
         ];
 
         // Create mock object for Shopware Session and explicitly return the values
@@ -106,7 +105,6 @@ class RepositoryTest extends TestCase
             ->setMethods(['offsetGet', 'offsetExists'])
             ->getMock();
         $session->method('offsetGet')->willReturnMap($sessionArray);
-        $session->method('offsetExists')->with('findologicDI')->willReturn(true);
 
         // Assign mocked session variable to application container
         Shopware()->Container()->set('session', $session);

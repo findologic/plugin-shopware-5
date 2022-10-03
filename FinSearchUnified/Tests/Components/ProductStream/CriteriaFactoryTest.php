@@ -37,7 +37,6 @@ class CriteriaFactoryTest extends TestCase
                 'ActivateFindologic' => true,
                 'ShopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'ActivateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
                 'expected' => Shopware()->Shop()->getCategory()->getId()
@@ -46,7 +45,6 @@ class CriteriaFactoryTest extends TestCase
                 'ActivateFindologic' => true,
                 'ShopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'ActivateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
                 'expected' => Shopware()->Shop()->getCategory()->getId()
@@ -55,7 +53,6 @@ class CriteriaFactoryTest extends TestCase
                 'ActivateFindologic' => true,
                 'ShopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'ActivateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
                 'expected' => -1
@@ -69,7 +66,6 @@ class CriteriaFactoryTest extends TestCase
      * @param bool $isActive
      * @param string $shopKey
      * @param bool $isActiveForCategory
-     * @param bool $checkIntegration
      * @param bool $isSearchPage
      * @param bool $isCategoryPage
      * @param int $expected
@@ -80,7 +76,6 @@ class CriteriaFactoryTest extends TestCase
         $isActive,
         $shopKey,
         $isActiveForCategory,
-        $checkIntegration,
         $isSearchPage,
         $isCategoryPage,
         $expected
@@ -103,7 +98,7 @@ class CriteriaFactoryTest extends TestCase
             ['FinSearchUnified', 'ActivateFindologic', null, $isActive],
             ['FinSearchUnified', 'ShopKey', null,  $shopKey],
             ['FinSearchUnified', 'ActivateFindologicForCategoryPages', null, $isActiveForCategory],
-            ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API]
+            ['FinSearchUnified', 'IntegrationType', Constants::INTEGRATION_TYPE_API]
         ];
 
         // Create mock object for Shopware Config and explicitly return the values
@@ -121,7 +116,6 @@ class CriteriaFactoryTest extends TestCase
         $sessionArray = [
             ['isSearchPage', $isSearchPage],
             ['isCategoryPage', $isCategoryPage],
-            ['findologicDI', $checkIntegration]
         ];
 
         // Create mock object for Shopware Session and explicitly return the values

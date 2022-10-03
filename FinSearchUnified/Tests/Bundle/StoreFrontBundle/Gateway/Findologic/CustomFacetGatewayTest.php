@@ -35,7 +35,6 @@ class CustomFacetGatewayTest extends TestCase
 
         Shopware()->Session()->offsetUnset('isSearchPage');
         Shopware()->Session()->offsetUnset('isCategoryPage');
-        Shopware()->Session()->offsetUnset('findologicDI');
     }
 
     /**
@@ -72,7 +71,6 @@ class CustomFacetGatewayTest extends TestCase
 
         Shopware()->Session()->offsetSet('isSearchPage', true);
         Shopware()->Session()->offsetSet('isCategoryPage', false);
-        Shopware()->Session()->offsetSet('findologicDI', false);
 
         $mockHydrator = $this->createMock(CustomListingHydrator::class);
         $mockHydrator->expects($this->never())
@@ -176,9 +174,8 @@ class CustomFacetGatewayTest extends TestCase
         // Assign mocked config variable to application container
         Shopware()->Container()->set('config', $mockConfig);
 
-        Shopware()->Session()->isSearchPage = true;
-        Shopware()->Session()->isCategoryPage = false;
-        Shopware()->Session()->findologicDI = false;
+        Shopware()->Session()->offsetSet('isSearchPage', true);
+        Shopware()->Session()->offsetSet('isCategoryPage', false);
 
         $originalHydrator = Shopware()->Container()->get('fin_search_unified.custom_listing_hydrator');
 

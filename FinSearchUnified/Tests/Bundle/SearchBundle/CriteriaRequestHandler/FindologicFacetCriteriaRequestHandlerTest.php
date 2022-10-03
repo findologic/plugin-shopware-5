@@ -113,7 +113,6 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
             $sessionArray = [
                 ['isSearchPage', $isSearchPage],
                 ['isCategoryPage', $isCategoryPage],
-                ['findologicDI', false]
             ];
 
             // Create Mock object for Shopware Session
@@ -258,7 +257,6 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
 
         $sessionArray = [
             ['isSearchPage', true],
-            ['findologicDI', false]
         ];
         // Create Mock object for Shopware Session
         $session = $this->getMockBuilder(Session::class)->getMock();
