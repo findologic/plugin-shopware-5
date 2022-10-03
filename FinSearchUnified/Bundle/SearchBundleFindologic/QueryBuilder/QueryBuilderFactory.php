@@ -9,6 +9,7 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\PriceConditi
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\ProductAttributeConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\SearchTermConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\SimpleConditionHandler;
+use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\ManufacturerConditionHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandlerInterface;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\PopularitySortingHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\PriceSortingHandler;
@@ -16,6 +17,8 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\ProductNameSor
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandler\ReleaseDateSortingHandler;
 use FinSearchUnified\Bundle\SearchBundleFindologic\SortingHandlerInterface;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
+use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
+use Shopware\Bundle\SearchBundle\Condition\ManufacturerCondition;
 use Shopware\Bundle\SearchBundle\ConditionInterface;
 use Shopware\Bundle\SearchBundle\Criteria;
 use Shopware\Bundle\SearchBundle\SortingInterface;
@@ -102,6 +105,7 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
         $conditionHandlers[] = new ProductAttributeConditionHandler();
         $conditionHandlers[] = new SearchTermConditionHandler();
         $conditionHandlers[] = new SimpleConditionHandler();
+        $conditionHandlers[] = new ManufacturerConditionHandler();
 
         return $conditionHandlers;
     }
@@ -291,9 +295,12 @@ class QueryBuilderFactory implements QueryBuilderFactoryInterface
 
         if ($query instanceof SearchQueryBuilder) {
             $condition = $criteria->getCondition('search');
-        }
-        if ($query instanceof NavigationQueryBuilder) {
-            $condition = $criteria->getCondition('category');
+        } elseif ($query instanceof NavigationQueryBuilder) {
+            if ($criteria->getConditions()[0] instanceof ManufacturerCondition) {
+                $condition = $criteria->getCondition('manufacturer');
+            } elseif ($criteria->getConditions()[0] instanceof CategoryCondition) {
+                $condition = $criteria->getCondition('category');
+            }
         }
 
         if ($condition !== null) {

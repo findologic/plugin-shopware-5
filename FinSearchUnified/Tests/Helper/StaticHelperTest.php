@@ -38,6 +38,8 @@ class StaticHelperTest extends TestCase
 
         Shopware()->Container()->reset('fin_search_unified.config_loader');
         Shopware()->Container()->load('fin_search_unified.config_loader');
+
+        Utility::sResetManufacturers();
     }
 
     public function isFindologicActiveDataprovider()
@@ -243,7 +245,7 @@ class StaticHelperTest extends TestCase
                 'isCategoryPage' => true,
                 'isManufacturerPage' => true,
                 'fallbackSearchCookie' => null,
-                'expected' => true
+                'expected' => false
             ],
             'Cookie "fallback-search" is set and true' => [
                 'activateFindologic' => true,
@@ -404,6 +406,20 @@ class StaticHelperTest extends TestCase
         return [
             'Root category name without children' => [5, ' Genusswelten ', 'Genusswelten'],
             'Category name with parent' => [12, ' Tees ', 'Genusswelten_Tees%20und%20Zubeh%C3%B6r_Tees'],
+        ];
+    }
+
+    /**
+     * Data provider for testing manufacturer names
+     *
+     * @return array
+     */
+    public function manufacturerNamesProvider()
+    {
+        return [
+            'FindologicVendor ID 3' => [3, 'FindologicVendor3'],
+            'FindologicVendor ID 4' => [4, 'FindologicVendor4'],
+            'FindologicVendor ID 5' => [5, 'FindologicVendor5']
         ];
     }
 
@@ -606,6 +622,23 @@ class StaticHelperTest extends TestCase
         $result = StaticHelper::buildCategoryName($categoryModel->getId());
         $categoryResource->update($categoryId, ['name' => trim($category)]);
         $this->assertSame($expected, $result, 'Expected category name to be trimmed but was not');
+    }
+
+    /**
+     * @dataProvider manufacturerNamesProvider
+     *
+     * @param int $manufacturerId
+     * @param string $expected
+     */
+    public function testBuildManufacturerName($manufacturerId, $expected)
+    {
+        Utility::createTestManufacturer([
+            'id' => $manufacturerId,
+            'name' => $expected
+        ]);
+
+        $result = StaticHelper::buildManufacturerName($manufacturerId);
+        $this->assertSame($expected, $result, 'Expected correct manufacturer name by ID');
     }
 
     /**

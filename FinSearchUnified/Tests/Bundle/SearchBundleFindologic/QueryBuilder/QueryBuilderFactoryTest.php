@@ -9,8 +9,10 @@ use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\NavigationQueryB
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\QueryBuilderFactory;
 use FinSearchUnified\Bundle\SearchBundleFindologic\QueryBuilder\SearchQueryBuilder;
 use FinSearchUnified\Helper\StaticHelper;
+use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\CategoryCondition;
+use Shopware\Bundle\SearchBundle\Condition\ManufacturerCondition;
 use Shopware\Bundle\SearchBundle\Condition\IsAvailableCondition;
 use Shopware\Bundle\SearchBundle\Condition\PriceCondition;
 use Shopware\Bundle\SearchBundle\Condition\SearchTermCondition;
@@ -73,6 +75,8 @@ class QueryBuilderFactoryTest extends TestCase
         parent::tearDown();
 
         Shopware()->Session()->offsetUnset('isSearchPage');
+
+        Utility::sResetManufacturers();
     }
 
     /**
@@ -107,10 +111,16 @@ class QueryBuilderFactoryTest extends TestCase
      */
     public function testCreateQueryWithConditions()
     {
+        Utility::createTestManufacturer([
+            'id' => 8,
+            'name' => 'FindologicVendor8'
+        ]);
+
         $criteria = new Criteria();
         $criteria->addCondition(new CategoryCondition([5, 12]));
+        $criteria->addCondition(new ManufacturerCondition([8]));
         $criteria->addCondition(new PriceCondition(1, 20));
-        $criteria->addCondition(new ProductAttributeCondition('vendor', '=', 'Findologic Rockers'));
+        $criteria->addCondition(new ProductAttributeCondition('findologic-vendor', '=', 'Findologic Rockers'));
         $criteria->addCondition(new SearchTermCondition('blubbergurke'));
         $criteria->addCondition(new IsAvailableCondition());
 
@@ -128,6 +138,18 @@ class QueryBuilderFactoryTest extends TestCase
             'Expected categories to contain the name of the provided category IDs'
         );
 
+        // ManufacturerCondition
+        $this->assertArrayHasKey(
+            'vendor',
+            $attrib,
+            'Manufacturer was expected to be present in the attribute parameters'
+        );
+        $this->assertEquals(
+            ['' => 'FindologicVendor8'],
+            $attrib['vendor'],
+            'Expected manufacturer to contain the name of the provided category IDs'
+        );
+
         // PriceCondition
         $this->assertArrayHasKey('price', $attrib, 'Prices were expected to be present in the attribute parameters');
         $this->assertArrayHasKey('min', $attrib['price'], 'Expected minimum price to be set');
@@ -136,18 +158,22 @@ class QueryBuilderFactoryTest extends TestCase
         $this->assertEquals(20, $attrib['price']['max'], 'Expected maximum price to be 20');
 
         // ProductAttributeCondition
-        $this->assertArrayHasKey('vendor', $attrib, 'Expected "vendor" to be available in the attribute parameters');
+        $this->assertArrayHasKey(
+            'findologic-vendor',
+            $attrib,
+            'Expected "findologic-vendor" to be available in the attribute parameters'
+        );
         $this->assertEquals(
             ['' => 'Findologic Rockers'],
-            $attrib['vendor'],
-            'Expected "vendor" to be an array containing "Findologic Rockers"'
+            $attrib['findologic-vendor'],
+            'Expected "findologic-vendor" to be an array containing "Findologic Rockers"'
         );
 
         // SearchTermCondition
         $this->assertArrayHasKey('query', $params, 'Expected search query to be in the parameters');
         $this->assertSame('blubbergurke', $params['query'], 'Expected search query to be "blubbergurke"');
 
-        $this->assertCount(3, $attrib, 'Expected attributes to not contain any other parameters');
+        $this->assertCount(4, $attrib, 'Expected attributes to not contain any other parameters');
     }
 
     public function testCreateQueryWithPushAttribs()
@@ -427,8 +453,12 @@ class QueryBuilderFactoryTest extends TestCase
                 'condition' => new CategoryCondition([5, 12]),
                 'key' => 'selected',
                 'expected' => ['cat' => ['Genusswelten_Genusswelten_Tees und Zubehör_Tees']]
+            ],
+            'Manufacturer condition' => [
+                'condition' => new ManufacturerCondition([1]),
+                'key' => 'selected',
+                'expected' => ['vendor' => ['FindologicVendor1']]
             ]
-
         ];
     }
 
@@ -443,6 +473,13 @@ class QueryBuilderFactoryTest extends TestCase
      */
     public function testSearchNavigationQuerybuilder(ConditionInterface $condition, $key, $expected)
     {
+        if ($condition instanceof ManufacturerCondition) {
+            Utility::createTestManufacturer([
+                'id' => $key,
+                'name' => reset($expected)[0]
+            ]);
+        }
+
         Shopware()->Session()->offsetSet('isSearchPage', $condition instanceof SearchTermCondition);
 
         $criteria = new Criteria();

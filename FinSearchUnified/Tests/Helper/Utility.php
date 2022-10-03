@@ -11,6 +11,7 @@ use Shopware\Models\Article\Article;
 use Shopware\Models\Shop\Shop;
 use SimpleXMLElement;
 use Zend_Cache_Exception;
+use Shopware\Components\Api\Resource\Manufacturer;
 
 class Utility
 {
@@ -358,6 +359,21 @@ class Utility
     }
 
     /**
+     * Delete all Suppliers
+     */
+    public static function sResetManufacturers()
+    {
+        try {
+            Shopware()->Db()->exec(
+                'SET foreign_key_checks = 0;
+                TRUNCATE `s_articles_supplier`;
+                SET foreign_key_checks = 1;'
+            );
+        } catch (Exception $ignored) {
+        }
+    }
+
+    /**
      * Delete all articles
      */
     public static function sResetArticles()
@@ -442,5 +458,31 @@ class Utility
         $response = file_get_contents(__DIR__ . '/../MockData/XMLResponse/' . $file);
 
         return new Xml21Response($response);
+    }
+
+    /**
+     * @param array $testManufacturerConfiguration The configuration of the test manufacturer which is to be created.
+     *
+     * @return null
+     */
+    public static function createTestManufacturer(array $testManufacturerConfiguration)
+    {
+        try {
+            $manager = Shopware()->Models();
+
+            $resource = new Manufacturer();
+            $resource->setManager($manager);
+
+            if (!$manager->isOpen()) {
+                $manager->create(
+                    $manager->getConnection(),
+                    $manager->getConfiguration()
+                );
+            }
+
+            $resource->create($testManufacturerConfiguration);
+        } catch (Exception $e) {
+            echo sprintf('Exception: %s', $e->getMessage());
+        }
     }
 }

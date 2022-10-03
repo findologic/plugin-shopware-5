@@ -26,6 +26,11 @@ class SearchQueryBuilder extends QueryBuilder
         $this->addParameter('cat', $categoryPath);
     }
 
+    public function addManufacturer($manufacturerName)
+    {
+        $this->addParameter('vendor', $manufacturerName);
+    }
+
     protected function setDefaultParameters()
     {
         parent::setDefaultParameters();
