@@ -78,7 +78,6 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
     {
         parent::tearDown();
 
-        Shopware()->Session()->offsetUnset('findologicDI');
         Shopware()->Session()->offsetUnset('isSearchPage');
         Shopware()->Session()->offsetUnset('isCategoryPage');
 
@@ -200,7 +199,6 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
         Shopware()->Session()->offsetSet('isSearchPage', true);
         Shopware()->Session()->offsetSet('isCategoryPage', false);
-        Shopware()->Session()->offsetSet('findologicDI', false);
 
 
         $criteria = new Criteria();

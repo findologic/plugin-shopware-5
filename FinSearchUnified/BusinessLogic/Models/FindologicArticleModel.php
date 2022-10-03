@@ -875,7 +875,7 @@ class FindologicArticleModel
 
     protected function isCrossSellingCategoryConfiguredForArticle()
     {
-        $crossSellingCategories = Shopware()->Config()->offsetGet('CrossSellingCategories');
+        $crossSellingCategories = Shopware()->Config()->getByNamespace('FinSearchUnified', 'CrossSellingCategories');
         /** @var Category $category */
         foreach ($this->baseArticle->getCategories() as $category) {
             if (!$category->isChildOf($this->baseCategory)) {

@@ -41,7 +41,9 @@ class WidgetsTest extends SubscriberTestCase
 
     protected function tearDown(): void
     {
-        unset(Shopware()->Session()->isSearchPage, Shopware()->Session()->isCategoryPage);
+        Shopware()->Session()->offsetUnset('isSearchPage');
+        Shopware()->Session()->offsetUnset('isCategoryPage');
+
         parent::tearDown();
     }
 
@@ -67,7 +69,7 @@ class WidgetsTest extends SubscriberTestCase
 
         // Make sure that the findologic search is triggered
         Shopware()->Container()->get('front')->setRequest($request);
-        Shopware()->Session()->isSearchPage = true;
+        Shopware()->Session()->offsetSet('isSearchPage', true);
 
         $subject = $this->getControllerInstance(Shopware_Controllers_Widgets_Listing::class, $request);
 
@@ -188,8 +190,8 @@ class WidgetsTest extends SubscriberTestCase
         $widget = new Widgets($cacheMock, Shopware()->Container()->get('shopware.routing.matchers.rewrite_matcher'));
         $widget->onWidgetsPreDispatch($args);
 
-        $isCategoryPage = Shopware()->Session()->isCategoryPage;
-        $isSearchPage = Shopware()->Session()->isSearchPage;
+        $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
+        $isSearchPage = Shopware()->Session()->offsetGet('isSearchPage');
 
         $this->assertTrue($isSearchPage, 'Expected isSearchPage to be true');
         $this->assertFalse($isCategoryPage, 'Expected isCategoryPage to be false');
@@ -271,8 +273,8 @@ class WidgetsTest extends SubscriberTestCase
         $widget = new Widgets($cacheMock, Shopware()->Container()->get('shopware.routing.matchers.rewrite_matcher'));
         $widget->onWidgetsPreDispatch($args);
 
-        $isCategoryPage = Shopware()->Session()->isCategoryPage;
-        $isSearchPage = Shopware()->Session()->isSearchPage;
+        $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
+        $isSearchPage = Shopware()->Session()->offsetGet('isSearchPage');
 
         $this->assertFalse($isSearchPage);
         $this->assertEquals($expectedIsCategoryPage, $isCategoryPage);
@@ -323,8 +325,8 @@ class WidgetsTest extends SubscriberTestCase
         $widget = new Widgets($cacheMock, Shopware()->Container()->get('shopware.routing.matchers.rewrite_matcher'));
         $widget->onWidgetsPreDispatch($args);
 
-        $isCategoryPage = Shopware()->Session()->isCategoryPage;
-        $isSearchPage = Shopware()->Session()->isSearchPage;
+        $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
+        $isSearchPage = Shopware()->Session()->offsetGet('isSearchPage');
 
         $this->assertFalse($isSearchPage, 'Expected isSearchPage to be false');
         $this->assertFalse($isCategoryPage, 'Expected isCategoryPage to be false');
@@ -355,8 +357,8 @@ class WidgetsTest extends SubscriberTestCase
         $widget = new Widgets($cacheMock, $rewriteMatcherMock);
         $widget->onWidgetsPreDispatch($args);
 
-        $isCategoryPage = Shopware()->Session()->isCategoryPage;
-        $isSearchPage = Shopware()->Session()->isSearchPage;
+        $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
+        $isSearchPage = Shopware()->Session()->offsetGet('isSearchPage');
 
         $this->assertFalse($isSearchPage);
         $this->assertTrue($isCategoryPage);

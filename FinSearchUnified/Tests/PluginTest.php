@@ -9,8 +9,10 @@ use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use FinSearchUnified\finSearchUnified as Plugin;
 use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\Helper\Utility;
+use Shopware\Components\ShopwareReleaseStruct;
 use Shopware\Models\Shop\Shop;
 use Shopware\Components\Logger;
+use Shopware_Components_Config as Config;
 
 class PluginTest extends TestCase
 {
@@ -254,13 +256,32 @@ class PluginTest extends TestCase
         $assignedCategories = [8, 9, 10];
         Utility::createTestProduct('SOMENUMBER', true, $assignedCategories);
 
-        Shopware()->Config()->setShop($baseShop);
-        Shopware()->Config()->CrossSellingCategories = $baseCrossSellingCategories;
+        $categories = $subShop ? $subCrossSellingCategories : $baseCrossSellingCategories;
+        $configArray = [
+            ['FinSearchUnified', 'ActivateFindologic', null, true],
+            ['FinSearchUnified', 'ShopKey', null, 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
+            ['FinSearchUnified', 'ActivateFindologicForCategoryPages', null, false],
+            ['FinSearchUnified', 'CrossSellingCategories', null, $categories],
+        ];
 
-        if ($subShop) {
-            Shopware()->Config()->setShop($subShop);
-            Shopware()->Config()->CrossSellingCategories = $subCrossSellingCategories;
+        $swConfigArray = ['shop' => $subShop ?: $baseShop];
+        if (StaticHelper::isVersionGreaterOrEqual('5.4')) {
+            $swConfigArray['release'] = new ShopwareReleaseStruct('0.0.0', '0.0.0', 5);
         }
+        if (StaticHelper::isVersionLowerThan('5.6')) {
+            $swConfigArray['db'] = Shopware()->Db();
+        } else {
+            $swConfigArray['db'] = Shopware()->Container()->get('dbal_connection');
+        }
+
+        $mockConfig = $this->getMockBuilder(Config::class)
+            ->setMethods(['getByNamespace'])
+            ->setConstructorArgs([$swConfigArray])
+            ->getMock();
+        $mockConfig->method('getByNamespace')
+            ->willReturnMap($configArray);
+
+        Shopware()->Container()->set('config', $mockConfig);
 
         $exportedCount = Utility::runExportAndReturnCount();
         unset(Shopware()->Config()->CrossSellingCategories);

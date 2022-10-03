@@ -24,6 +24,7 @@ use Shopware\Bundle\SearchBundle\Sorting\SimpleSorting;
 use Shopware\Bundle\SearchBundle\SortingInterface;
 use Shopware\Bundle\StoreFrontBundle\Service\ContextServiceInterface;
 use Shopware\Bundle\StoreFrontBundle\Struct\ShopContextInterface;
+use Shopware_Components_Config as Config;
 
 class QueryBuilderFactoryTest extends TestCase
 {
@@ -49,7 +50,15 @@ class QueryBuilderFactoryTest extends TestCase
 
         // By default, the search page is true
         Shopware()->Session()->offsetSet('isSearchPage', true);
-        Shopware()->Config()->ShopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
+        $mockConfig = $this->getMockBuilder(Config::class)
+            ->setMethods(['getByNamespace', 'get'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig->expects($this->any())
+            ->method('getByNamespace')
+            ->with('FinSearchUnified', 'ShopKey', null)
+            ->willReturn('ABCDABCDABCDABCDABCDABCDABCDABCD');
+        Shopware()->Container()->set('config', $mockConfig);
 
         $this->factory = new QueryBuilderFactory(
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
@@ -81,7 +90,7 @@ class QueryBuilderFactoryTest extends TestCase
         $params = $query->getParameters();
 
         $hashed = StaticHelper::calculateUsergroupHash(
-            Shopware()->Config()->offsetGet('ShopKey'),
+            Shopware()->Config()->getByNamespace('FinSearchUnified', 'ShopKey'),
             'EK'
         );
 

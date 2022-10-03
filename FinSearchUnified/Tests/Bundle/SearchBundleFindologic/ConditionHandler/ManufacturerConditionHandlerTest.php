@@ -11,6 +11,7 @@ use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
 use Shopware\Bundle\SearchBundle\Condition\ManufacturerCondition;
 use Shopware\Bundle\StoreFrontBundle\Struct\ProductContextInterface;
+use Shopware_Components_Config as Config;
 
 class ManufacturerConditionHandlerTest extends TestCase
 {
@@ -38,7 +39,16 @@ class ManufacturerConditionHandlerTest extends TestCase
 
         // By default, the search page is true
         Shopware()->Session()->offsetSet('isSearchPage', true);
-        Shopware()->Config()->ShopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
+
+        $mockConfig = $this->getMockBuilder(Config::class)
+            ->setMethods(['getByNamespace', 'get'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig->expects($this->once())
+            ->method('getByNamespace')
+            ->with('FinSearchUnified', 'ShopKey', null)
+            ->willReturn('ABCDABCDABCDABCDABCDABCDABCDABCD');
+        Shopware()->Container()->set('config', $mockConfig);
 
         $this->querybuilder = new SearchQueryBuilder(
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),

@@ -36,7 +36,7 @@ class Shopware_Controllers_Backend_FindologicStaging extends Shopware_Controller
      */
     private function assertPluginIsActive()
     {
-        $isActive = Shopware()->Config()->offsetGet('ActivateFindologic');
+        $isActive = Shopware()->Config()->getByNamespace('FinSearchUnified', 'ActivateFindologic');
 
         if (!$isActive) {
             throw new StagingModeException('Please ensure the plugin is active!');

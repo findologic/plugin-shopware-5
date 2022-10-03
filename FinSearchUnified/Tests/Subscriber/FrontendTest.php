@@ -207,16 +207,16 @@ class FrontendTest extends SubscriberTestCase
         $args = $this->createMock(Enlight_Event_EventArgs::class);
         $args->method('get')->with('request')->willReturn($request);
 
-        Shopware()->Session()->isCategoryPage = $isCategory;
-        Shopware()->Session()->isSearchPage = $isSearch;
+        Shopware()->Session()->offsetSet('isCategoryPage', $isCategory);
+        Shopware()->Session()->offsetSet('isSearchPage', $isSearch);
 
         $frontend = Shopware()->Container()->get('fin_search_unified.subscriber.frontend');
         $frontend->onFrontendPreDispatch($args);
 
         // Check session values after FrontendPreDispatch Call
-        $isCategoryPage = Shopware()->Session()->isCategoryPage;
-        $isSearchPage = Shopware()->Session()->isSearchPage;
-        $isManufacturerPage = Shopware()->Session()->isManufacturerPage;
+        $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
+        $isSearchPage = Shopware()->Session()->offsetGet('isSearchPage');
+        $isManufacturerPage = Shopware()->Session()->offsetGet('isManufacturerPage');
 
         $this->assertEquals(
             $isSearch,
@@ -255,15 +255,15 @@ class FrontendTest extends SubscriberTestCase
 
         $args = new Enlight_Event_EventArgs(['subject' => $subject, 'request' => $request]);
 
-        Shopware()->Session()->isCategoryPage = $isCategory;
-        Shopware()->Session()->isSearchPage = $isSearch;
+        Shopware()->Session()->offsetSet('isCategoryPage', $isCategory);
+        Shopware()->Session()->offsetSet('isSearchPage', $isSearch);
 
         $frontend = Shopware()->Container()->get('fin_search_unified.subscriber.frontend');
         $frontend->onFrontendPreDispatch($args);
 
         // Check session values after FrontendPreDispatch Call
-        $isCategoryPage = Shopware()->Session()->isCategoryPage;
-        $isSearchPage = Shopware()->Session()->isSearchPage;
+        $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
+        $isSearchPage = Shopware()->Session()->offsetGet('isSearchPage');
 
         $this->assertEquals(
             $isCategory,
@@ -284,8 +284,8 @@ class FrontendTest extends SubscriberTestCase
      */
     public function testBeforeSearchIndexAction($vendor)
     {
-        Shopware()->Session()->isCategoryPage = null;
-        Shopware()->Session()->isSearchPage = true;
+        Shopware()->Session()->offsetSet('isCategoryPage', null);
+        Shopware()->Session()->offsetSet('isSearchPage', true);
 
         $attrib = [
             'vendor' => [$vendor]
@@ -374,8 +374,8 @@ class FrontendTest extends SubscriberTestCase
      */
     public function testMediaRequestDoesNotResetPageFlags()
     {
-        Shopware()->Session()->isSearchPage = true;
-        Shopware()->Session()->isCategoryPage = false;
+        Shopware()->Session()->offsetSet('isSearchPage', true);
+        Shopware()->Session()->offsetSet('isCategoryPage', false);
 
         // Create Request object to be passed in the mocked Subject
         $request = new RequestHttp();
@@ -391,8 +391,8 @@ class FrontendTest extends SubscriberTestCase
         $frontend->onFrontendPreDispatch($args);
 
         // Check session values after FrontendPreDispatch Call
-        $isCategoryPage = Shopware()->Session()->isCategoryPage;
-        $isSearchPage = Shopware()->Session()->isSearchPage;
+        $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage');
+        $isSearchPage = Shopware()->Session()->offsetGet('isSearchPage');
 
         $this->assertTrue($isSearchPage, "Expected isSearchPage to remain 'true' after media request");
         $this->assertFalse($isCategoryPage, "Expected isCategoryPage to remain 'false' after media request");

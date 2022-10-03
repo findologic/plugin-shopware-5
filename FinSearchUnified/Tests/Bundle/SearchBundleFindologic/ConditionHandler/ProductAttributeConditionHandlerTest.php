@@ -4,7 +4,8 @@ namespace FinSearchUnified\Tests\Bundle\SearchBundleFindologic\ConditionHandler;
 
 use Enlight_Controller_Request_RequestHttp;
 use Exception;
-use FINDOLOGIC\Api\Config;
+use FINDOLOGIC\Api\Config as ApiConfig;
+use Shopware_Components_Config as Config;
 use FinSearchUnified\Bundle\SearchBundle\Condition\Operator;
 use FinSearchUnified\Bundle\SearchBundle\Condition\ProductAttributeCondition;
 use FinSearchUnified\Bundle\SearchBundleFindologic\ConditionHandler\ProductAttributeConditionHandler;
@@ -42,7 +43,16 @@ class ProductAttributeConditionHandlerTest extends TestCase
 
         // By default, the search page is true
         Shopware()->Session()->offsetSet('isSearchPage', true);
-        Shopware()->Config()->ShopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
+
+        $mockConfig = $this->getMockBuilder(Config::class)
+            ->setMethods(['getByNamespace', 'get'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig->expects($this->once())
+            ->method('getByNamespace')
+            ->with('FinSearchUnified', 'ShopKey', null)
+            ->willReturn('ABCDABCDABCDABCDABCDABCDABCDABCD');
+        Shopware()->Container()->set('config', $mockConfig);
 
         $this->querybuilder = new SearchQueryBuilder(
             Shopware()->Container()->get('shopware_plugininstaller.plugin_manager'),
@@ -153,7 +163,7 @@ class ProductAttributeConditionHandlerTest extends TestCase
     {
         $filterName = 'blub';
         $filterValue = 'this +"a_;# *<, +';
-        $config = new Config();
+        $config = new ApiConfig();
         $config->setServiceId('ABCDABCDABCDABCDABCDABCDABCDABCD');
 
         $this->handler->generateCondition(

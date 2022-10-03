@@ -199,7 +199,7 @@ class Frontend implements SubscriberInterface
      */
     public function onFrontendPostDispatch(Enlight_Event_EventArgs $args)
     {
-        if (!(bool)Shopware()->Config()->get('ActivateFindologic')) {
+        if (!(bool)Shopware()->Config()->getByNamespace('FinSearchUnified', 'ActivateFindologic')) {
             return;
         }
 
@@ -208,8 +208,8 @@ class Frontend implements SubscriberInterface
         $groupKey = $context->getShopContext()->getCurrentCustomerGroup()->getKey();
         $hash = StaticHelper::calculateUsergroupHash($this->getShopKey(), $groupKey);
 
-        $searchResultContainer = Shopware()->Config()->get('SearchResultContainer');
-        $navigationContainer = Shopware()->Config()->get('NavigationContainer');
+        $searchResultContainer = Shopware()->Config()->getByNamespace('FinSearchUnified', 'SearchResultContainer');
+        $navigationContainer = Shopware()->Config()->getByNamespace('FinSearchUnified', 'NavigationContainer');
 
         try {
             /** @var Enlight_Controller_ActionEventArgs $args */
@@ -230,7 +230,7 @@ class Frontend implements SubscriberInterface
      */
     private function getShopKey()
     {
-        $shopKey = Shopware()->Config()->get('ShopKey');
+        $shopKey = Shopware()->Config()->getByNamespace('FinSearchUnified', 'ShopKey');
 
         if ($shopKey) {
             $this->shopKey = $shopKey;

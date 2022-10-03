@@ -13,7 +13,7 @@ use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
-use Shopware_Components_Config;
+use Shopware_Components_Config as Config;
 
 class SearchQueryBuilderTest extends TestCase
 {
@@ -22,19 +22,26 @@ class SearchQueryBuilderTest extends TestCase
      */
     private $installerService;
 
-    /**
-     * @var Shopware_Components_Config
-     */
-    private $config;
-
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->installerService = Shopware()->Container()->get('shopware.plugin_manager');
-        $this->config = Shopware()->Config();
-        $this->config->ShopKey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
-        $this->config->version = '5.7.7';
+        // Create mock object for Shopware Config and explicitly return the values
+        $mockConfig = $this->getMockBuilder(Config::class)
+            ->setMethods(['getByNamespace', 'get'])
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockConfig->expects($this->any())
+            ->method('getByNamespace')
+            ->with('FinSearchUnified', 'ShopKey', null)
+            ->willReturn('ABCDABCDABCDABCDABCDABCDABCDABCD');
+        $mockConfig->expects($this->any())
+            ->method('get')
+            ->with('version')
+            ->willReturn('5.7.7');
+
+        Shopware()->Container()->set('config', $mockConfig);
 
         // Set default values for test
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
@@ -58,7 +65,7 @@ class SearchQueryBuilderTest extends TestCase
         );
         $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             $apiClientMock,
             $searchNavigationRequest
         );
@@ -72,7 +79,7 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
@@ -89,7 +96,7 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
@@ -108,7 +115,7 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
@@ -127,7 +134,7 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
@@ -163,7 +170,7 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
@@ -181,7 +188,7 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new NavigationRequest();
         $queryBuilder = new NavigationQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
@@ -200,7 +207,7 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
@@ -218,7 +225,7 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new NavigationRequest();
         $queryBuilder = new NavigationQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
@@ -236,7 +243,7 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
@@ -253,7 +260,7 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
@@ -270,7 +277,7 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
@@ -287,7 +294,7 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
@@ -307,7 +314,7 @@ class SearchQueryBuilderTest extends TestCase
 
         $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
@@ -336,12 +343,15 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
 
-        $usergrouphash = StaticHelper::calculateUsergroupHash($this->config->offsetGet('ShopKey'), $userGroup);
+        $usergrouphash = StaticHelper::calculateUsergroupHash(
+            Shopware()->Config()->getByNamespace('FinSearchUnified', 'ShopKey'),
+            $userGroup
+        );
         $queryBuilder->addUserGroup($userGroup);
 
         $params = $searchNavigationRequest->getParams();
@@ -386,7 +396,7 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
@@ -404,7 +414,7 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         $queryBuilder = new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
@@ -423,7 +433,7 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
@@ -438,13 +448,13 @@ class SearchQueryBuilderTest extends TestCase
         $searchNavigationRequest = new SearchRequest();
         new SearchQueryBuilder(
             $this->installerService,
-            $this->config,
+            Shopware()->Config(),
             null,
             $searchNavigationRequest
         );
 
         $params = $searchNavigationRequest->getParams();
         $this->assertArrayHasKey('shopVersion', $params);
-        $this->assertSame('5.7.7', $params['shopVersion']);
+        $this->assertSame('5.7.7', Shopware()->Config()->get('version'));
     }
 }

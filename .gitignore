@@ -3,3 +3,4 @@ vendor
 # We are ignoring the config.xml from committing to git as we are generating it dynamically based on
 # the Shopware version.
 FinSearchUnified/Resources/config.xml
+FinSearchUnified/.phpunit.result.cache

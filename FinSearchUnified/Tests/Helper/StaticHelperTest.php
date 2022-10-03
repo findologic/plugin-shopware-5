@@ -110,8 +110,8 @@ class StaticHelperTest extends TestCase
         $expected
     ) {
         $configArray = [
-            ['ActivateFindologic', $activateFindologic],
-            ['ShopKey', $shopKey],
+            ['FinSearchUnified', 'ActivateFindologic', null, $activateFindologic],
+            ['FinSearchUnified', 'ShopKey', null, $shopKey],
         ];
 
         $request = new RequestHttp();
@@ -122,7 +122,7 @@ class StaticHelperTest extends TestCase
 
         // Create Mock object for Shopware Config
         $config = $this->createMock(Config::class);
-        $config->method('offsetGet')
+        $config->method('getByNamespace')
             ->willReturnMap($configArray);
 
         // Assign mocked config variable to application container
@@ -152,7 +152,7 @@ class StaticHelperTest extends TestCase
                 'activateFindologic' => false,
                 'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'activateFindologicForCategoryPages' => true,
-                'findologicDI' => false,
+                'integrationType'=> Constants::INTEGRATION_TYPE_API,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
                 'isManufacturerPage' => null,
@@ -163,7 +163,7 @@ class StaticHelperTest extends TestCase
                 'activateFindologic' => true,
                 'shopKey' => '',
                 'activateFindologicForCategoryPages' => true,
-                'findologicDI' => false,
+                'integrationType'=> Constants::INTEGRATION_TYPE_API,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
                 'isManufacturerPage' => null,
@@ -174,7 +174,7 @@ class StaticHelperTest extends TestCase
                 'activateFindologic' => true,
                 'shopKey' => 'Findologic Shopkey',
                 'activateFindologicForCategoryPages' => true,
-                'findologicDI' => false,
+                'integrationType'=> Constants::INTEGRATION_TYPE_API,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
                 'isManufacturerPage' => null,
@@ -185,7 +185,7 @@ class StaticHelperTest extends TestCase
                 'activateFindologic' => true,
                 'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'activateFindologicForCategoryPages' => true,
-                'findologicDI' => true,
+                'integrationType'=> Constants::INTEGRATION_TYPE_DI,
                 'isSearchPage' => null,
                 'isCategoryPage' => null,
                 'isManufacturerPage' => null,
@@ -196,7 +196,7 @@ class StaticHelperTest extends TestCase
                 'activateFindologic' => true,
                 'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'activateFindologicForCategoryPages' => true,
-                'findologicDI' => false,
+                'integrationType'=> Constants::INTEGRATION_TYPE_API,
                 'isSearchPage' => false,
                 'isCategoryPage' => false,
                 'isManufacturerPage' => false,
@@ -207,7 +207,7 @@ class StaticHelperTest extends TestCase
                 'activateFindologic' => true,
                 'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'activateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
+                'integrationType'=> Constants::INTEGRATION_TYPE_API,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
                 'isManufacturerPage' => false,
@@ -218,7 +218,7 @@ class StaticHelperTest extends TestCase
                 'activateFindologic' => true,
                 'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'activateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
+                'integrationType'=> Constants::INTEGRATION_TYPE_API,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
                 'isManufacturerPage' => false,
@@ -229,7 +229,7 @@ class StaticHelperTest extends TestCase
                 'activateFindologic' => true,
                 'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'activateFindologicForCategoryPages' => true,
-                'findologicDI' => false,
+                'integrationType'=> Constants::INTEGRATION_TYPE_API,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
                 'isManufacturerPage' => false,
@@ -240,7 +240,7 @@ class StaticHelperTest extends TestCase
                 'activateFindologic' => true,
                 'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'activateFindologicForCategoryPages' => true,
-                'findologicDI' => false,
+                'integrationType'=> Constants::INTEGRATION_TYPE_API,
                 'isSearchPage' => false,
                 'isCategoryPage' => true,
                 'isManufacturerPage' => true,
@@ -251,7 +251,7 @@ class StaticHelperTest extends TestCase
                 'activateFindologic' => true,
                 'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'activateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
+                'integrationType'=> Constants::INTEGRATION_TYPE_API,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
                 'isManufacturerPage' => false,
@@ -262,7 +262,7 @@ class StaticHelperTest extends TestCase
                 'activateFindologic' => true,
                 'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'activateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
+                'integrationType'=> Constants::INTEGRATION_TYPE_API,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
                 'isManufacturerPage' => false,
@@ -273,7 +273,7 @@ class StaticHelperTest extends TestCase
                 'activateFindologic' => true,
                 'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'activateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
+                'integrationType'=> Constants::INTEGRATION_TYPE_API,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
                 'isManufacturerPage' => false,
@@ -284,7 +284,7 @@ class StaticHelperTest extends TestCase
                 'activateFindologic' => true,
                 'shopKey' => 'ABCDABCDABCDABCDABCDABCDABCDABCD',
                 'activateFindologicForCategoryPages' => false,
-                'findologicDI' => false,
+                'integrationType'=> Constants::INTEGRATION_TYPE_API,
                 'isSearchPage' => true,
                 'isCategoryPage' => false,
                 'isManufacturerPage' => false,
@@ -429,7 +429,7 @@ class StaticHelperTest extends TestCase
      * @param bool $isActive
      * @param string $shopKey
      * @param bool $isActiveForCategory
-     * @param bool $checkIntegration
+     * @param string $integrationType
      * @param bool $isSearchPage
      * @param bool $isCategoryPage
      * @param bool $isManufacturerPage
@@ -442,7 +442,7 @@ class StaticHelperTest extends TestCase
         $isActive,
         $shopKey,
         $isActiveForCategory,
-        $checkIntegration,
+        $integrationType,
         $isSearchPage,
         $isCategoryPage,
         $isManufacturerPage,
@@ -450,10 +450,10 @@ class StaticHelperTest extends TestCase
         $expected
     ) {
         $configArray = [
-            ['ActivateFindologic', $isActive],
-            ['ShopKey', $shopKey],
-            ['ActivateFindologicForCategoryPages', $isActiveForCategory],
-            ['IntegrationType', $checkIntegration ? Constants::INTEGRATION_TYPE_DI : Constants::INTEGRATION_TYPE_API]
+            ['FinSearchUnified', 'ActivateFindologic', null, $isActive],
+            ['FinSearchUnified', 'ShopKey', null, $shopKey],
+            ['FinSearchUnified', 'ActivateFindologicForCategoryPages', null, $isActiveForCategory],
+            ['FinSearchUnified', 'IntegrationType', $integrationType]
         ];
         $request = new RequestHttp();
         $request->setModuleName('frontend');
@@ -467,7 +467,6 @@ class StaticHelperTest extends TestCase
                 ['isSearchPage', $isSearchPage],
                 ['isCategoryPage', $isCategoryPage],
                 ['isManufacturerPage', $isManufacturerPage],
-                ['findologicDI', $checkIntegration]
             ];
 
             // Create Mock object for Shopware Session
@@ -483,7 +482,7 @@ class StaticHelperTest extends TestCase
         // Create Mock object for Shopware Config
         $config = $this->createMock(Config::class);
         $config->expects($this->atLeastOnce())
-            ->method('offsetGet')
+            ->method('getByNamespace')
             ->willReturnMap($configArray);
         $config->method('offsetExists')
             ->willReturn(true);
@@ -500,9 +499,9 @@ class StaticHelperTest extends TestCase
     public function testDoNotUseShopSearchWhenCategoryPageAndSessionNotSet()
     {
         $configArray = [
-            ['ActivateFindologic', true],
-            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
-            ['ActivateFindologicForCategoryPages', true],
+            ['FinSearchUnified', 'ActivateFindologic', null, true],
+            ['FinSearchUnified', 'ShopKey', null, 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
+            ['FinSearchUnified', 'ActivateFindologicForCategoryPages', null, true],
             ['IntegrationType', Constants::INTEGRATION_TYPE_API]
         ];
         $request = new RequestHttp();
@@ -515,9 +514,9 @@ class StaticHelperTest extends TestCase
         // Create Mock object for Shopware Config
         $config = $this->createMock(Config::class);
         $config->expects($this->atLeastOnce())
-            ->method('offsetGet')
+            ->method('getByNamespace')
             ->willReturnMap($configArray);
-        $config->method('offsetExists')
+        $config->method('getByNamespace')
             ->willReturn(true);
 
         // Assign mocked config variable to application container
@@ -535,8 +534,6 @@ class StaticHelperTest extends TestCase
      */
     public function testUseShopSearchInEmotion()
     {
-        Shopware()->Session()->findologicDI = false;
-
         $request = new RequestHttp();
         $request->setModuleName('widgets')
             ->setControllerName('emotion')

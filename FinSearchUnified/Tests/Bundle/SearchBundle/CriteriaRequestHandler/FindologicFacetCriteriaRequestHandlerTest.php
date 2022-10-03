@@ -80,9 +80,9 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
         $expected
     ) {
         $configArray = [
-            ['ActivateFindologic', $activateFindologic],
-            ['ShopKey', $shopKey],
-            ['ActivateFindologicForCategoryPages', $isActiveForCategory],
+            ['FinSearchUnified', 'ActivateFindologic', null, $activateFindologic],
+            ['FinSearchUnified', 'ShopKey', null, $shopKey],
+            ['FinSearchUnified', 'ActivateFindologicForCategoryPages', null, $isActiveForCategory],
             ['IntegrationType', Constants::INTEGRATION_TYPE_API]
         ];
 
@@ -113,7 +113,6 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
             $sessionArray = [
                 ['isSearchPage', $isSearchPage],
                 ['isCategoryPage', $isCategoryPage],
-                ['findologicDI', false]
             ];
 
             // Create Mock object for Shopware Session
@@ -129,11 +128,11 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
         }
         // Create Mock object for Shopware Config
         $config = $this->getMockBuilder(Config::class)
-            ->setMethods(['offsetGet', 'offsetExists'])
+            ->setMethods(['getByNamespace', 'offsetExists'])
             ->disableOriginalConstructor()
             ->getMock();
         $config->expects($this->atLeastOnce())
-            ->method('offsetGet')
+            ->method('getByNamespace')
             ->willReturnMap($configArray);
         $config->method('offsetExists')
             ->willReturn(true);
@@ -230,9 +229,9 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
         $hasCondition
     ) {
         $configArray = [
-            ['ActivateFindologic', true],
-            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
-            ['ActivateFindologicForCategoryPages', false],
+            ['FinSearchUnified', 'ActivateFindologic', null, true],
+            ['FinSearchUnified', 'ShopKey', null, 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
+            ['FinSearchUnified', 'ActivateFindologicForCategoryPages', null, false],
             ['IntegrationType', Constants::INTEGRATION_TYPE_API]
         ];
         $criteria = new Criteria();
@@ -258,7 +257,6 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
 
         $sessionArray = [
             ['isSearchPage', true],
-            ['findologicDI', false]
         ];
         // Create Mock object for Shopware Session
         $session = $this->getMockBuilder(Session::class)->getMock();
@@ -270,11 +268,11 @@ class FindologicFacetCriteriaRequestHandlerTest extends TestCase
 
         // Create Mock object for Shopware Config
         $config = $this->getMockBuilder(Config::class)
-            ->setMethods(['offsetGet', 'offsetExists'])
+            ->setMethods(['getByNamespace', 'offsetExists'])
             ->disableOriginalConstructor()
             ->getMock();
         $config->expects($this->atLeastOnce())
-            ->method('offsetGet')
+            ->method('getByNamespace')
             ->willReturnMap($configArray);
         // Assign mocked config variable to application container
         Shopware()->Container()->set('config', $config);

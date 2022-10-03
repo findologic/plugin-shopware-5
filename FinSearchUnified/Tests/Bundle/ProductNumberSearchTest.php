@@ -55,16 +55,16 @@ class ProductNumberSearchTest extends TestCase
         parent::setUp();
 
         $configArray = [
-            ['ActivateFindologic', true],
-            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
-            ['ActivateFindologicForCategoryPages', false]
+            ['FinSearchUnified', 'ActivateFindologic', null, true],
+            ['FinSearchUnified', 'ShopKey', null, 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
+            ['FinSearchUnified', 'ActivateFindologicForCategoryPages', null, false]
         ];
         // Create mock object for Shopware Config and explicitly return the values
         $mockConfig = $this->getMockBuilder(Config::class)
-            ->setMethods(['offsetGet', 'get'])
+            ->setMethods(['getByNamespace', 'get'])
             ->disableOriginalConstructor()
             ->getMock();
-        $mockConfig->method('offsetGet')
+        $mockConfig->method('getByNamespace')
             ->willReturnMap($configArray);
         $mockConfig->expects($this->any())
             ->method('get')
@@ -133,8 +133,7 @@ class ProductNumberSearchTest extends TestCase
         $response = Utility::getDemoResponse();
         $criteria->setFetchCount($isFetchCount);
 
-        Shopware()->Session()->findologicDI = $isUseShopSearch;
-        Shopware()->Session()->isSearchPage = !$isUseShopSearch;
+        Shopware()->Session()->offsetSet('isSearchPage', !$isUseShopSearch);
 
         $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
             ->disableOriginalConstructor()
@@ -191,8 +190,7 @@ class ProductNumberSearchTest extends TestCase
             $criteria->setFetchCount(true);
         }
 
-        Shopware()->Session()->findologicDI = false;
-        Shopware()->Session()->isSearchPage = true;
+        Shopware()->Session()->offsetSet('isSearchPage', true);
 
         $mockedQuery = $this->getMockBuilder(QueryBuilder::class)
             ->disableOriginalConstructor()
@@ -642,9 +640,9 @@ class ProductNumberSearchTest extends TestCase
         $response = new Xml21Response($xmlResponse->asXML());
         $responseParser = ResponseParser::getInstance($response);
         $configArray = [
-            ['ActivateFindologic', true],
-            ['ShopKey', 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
-            ['ActivateFindologicForCategoryPages', false],
+            ['FinSearchUnified', 'ActivateFindologic', null, true],
+            ['FinSearchUnified', 'ShopKey', null, 'ABCDABCDABCDABCDABCDABCDABCDABCD'],
+            ['FinSearchUnified', 'ActivateFindologicForCategoryPages', null, false],
             ['listingMode', $config]
         ];
 

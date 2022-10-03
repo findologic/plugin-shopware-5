@@ -180,7 +180,8 @@ class StaticHelper
         $isEmotionPage = $request->getControllerName() === 'emotion';
         $isFindologicActive = static::isFindologicActive();
         $isDirectIntegration = static::checkDirectIntegration();
-        $isActiveOnCategoryPages = (bool)Shopware()->Config()->offsetGet('ActivateFindologicForCategoryPages');
+        $isActiveOnCategoryPages = (bool)Shopware()->Config()
+            ->getByNamespace('FinSearchUnified', 'ActivateFindologicForCategoryPages');
 
         $isCategoryPage = Shopware()->Session()->offsetGet('isCategoryPage') || static::isCategoryPage($request);
         $isManufacturerPage = Shopware()->Session()->offsetGet('isManufacturerPage') ||
@@ -239,10 +240,9 @@ class StaticHelper
         /** @var Environment $environment */
         $environment = Shopware()->Container()->get('fin_search_unified.environment');
 
-        $shopkey = trim(Shopware()->Config()->offsetGet('ShopKey'));
+        $shopkey = trim(Shopware()->Config()->getByNamespace('FinSearchUnified', 'ShopKey'));
         $isStagingMode = $environment->isStaging(Shopware()->Front()->Request());
-        $isActivateFindologic = (bool)Shopware()->Config()->offsetGet('ActivateFindologic');
-
+        $isActivateFindologic = (bool)Shopware()->Config()->getByNamespace('FinSearchUnified', 'ActivateFindologic');
         return !$isStagingMode && $isActivateFindologic && !empty($shopkey);
     }
 
@@ -255,7 +255,8 @@ class StaticHelper
         /** @var ConfigLoader $configLoader */
         $configLoader = Shopware()->Container()->get('fin_search_unified.config_loader');
 
-        $integrationType = Shopware()->Config()->offsetGet(Constants::CONFIG_KEY_INTEGRATION_TYPE);
+        $integrationType = Shopware()->Config()
+            ->getByNamespace('FinSearchUnified', Constants::CONFIG_KEY_INTEGRATION_TYPE);
         $isDirectIntegration = $configLoader->directIntegrationEnabled(
             $integrationType === Constants::INTEGRATION_TYPE_DI
         );
@@ -429,6 +430,18 @@ class StaticHelper
         $shopwareVersion = static::getShopwareVersion();
 
         return version_compare($shopwareVersion, $version, '<');
+    }
+
+    /**
+     * @param $version
+     *
+     * @return bool
+     */
+    public static function isVersionGreaterOrEqual($version)
+    {
+        $shopwareVersion = static::getShopwareVersion();
+
+        return version_compare($shopwareVersion, $version, '>=');
     }
 
     public static function getShopwareVersion()
