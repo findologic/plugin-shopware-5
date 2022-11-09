@@ -780,6 +780,7 @@ class FindologicArticleModel
         $allProperties[] = new Property('wishlistUrl', ['' => $wishListUrl]);
         $allProperties[] = new Property('compareUrl', ['' => $compareUrl]);
         $allProperties[] = new Property('addToCartUrl', ['' => $cartUrl]);
+        $allProperties[] = new Property('main_ordernumber', ['' => $this->baseVariant->getNumber()]);
 
         // Supplier
         /** @var Product\Manufacturer $supplier */
