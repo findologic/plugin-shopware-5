@@ -704,6 +704,7 @@ class FindologicArticleModelTest extends TestCase
 
         $detail->expects($this->once())->method('getAttribute')->willReturn($detailAttribute);
         $detail->method('getId')->willReturn(1);
+        $detail->method('getNumber')->willReturn('productNumber1234');
 
         $article->method('getMainDetail')->willReturn($detail);
 
