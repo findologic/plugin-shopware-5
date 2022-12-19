@@ -202,11 +202,7 @@ class FinSearchUnified_Tests_Controllers_Frontend_SearchTest extends Enlight_Com
 
 
         $criteria = new Criteria();
-
-        // Method may not exist for Shopware 5.2.x
-        if (method_exists($criteria, 'setFetchCount')) {
-            $criteria->setFetchCount(true);
-        }
+        $criteria->setFetchCount(true);
 
         $this->Request()->setParam('sSearch', 'blubbergurke');
 
