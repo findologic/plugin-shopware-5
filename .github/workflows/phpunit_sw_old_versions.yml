@@ -1,5 +1,5 @@
-# Shopware 5.2 - 5.5 run on PHP versions 5.6, 7.0 and 7.1.
-name: PHPUnit (SW 5.2 - 5.5)
+# Shopware 5.3 - 5.5 run on PHP versions 5.6, 7.0 and 7.1.
+name: PHPUnit (SW 5.3 - 5.5)
 
 on:
   push:
@@ -84,5 +84,3 @@ jobs:
         run: |
           cd shopware/custom/plugins/FinSearchUnified
           SHOPWARE_VERSION=${{ matrix.shopware-versions }} composer test
-        # Shopware v5.2.0 did not support >= PHP 7, therefore we can not test these versions.
-        if: ${{ !(( matrix.shopware-versions == 'v5.2.0' && matrix.php-versions == '7.0') || (matrix.shopware-versions == 'v5.2.0' && matrix.php-versions == '7.1')) }}

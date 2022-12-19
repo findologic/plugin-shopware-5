@@ -126,12 +126,9 @@ class ProductNumberSearchTest extends TestCase
     public function testProductNumberSearchImplementation($isFetchCount, $isUseShopSearch, $invokationCount)
     {
         $criteria = new Criteria();
-        if (!method_exists($criteria, 'setFetchCount')) {
-            $this->markTestSkipped('Ignoring this test for Shopware 5.2.x');
-        }
+        $criteria->setFetchCount($isFetchCount);
 
         $response = Utility::getDemoResponse();
-        $criteria->setFetchCount($isFetchCount);
 
         Shopware()->Session()->offsetSet('isSearchPage', !$isUseShopSearch);
 
