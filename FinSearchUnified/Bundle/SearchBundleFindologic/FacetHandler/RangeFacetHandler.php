@@ -56,25 +56,8 @@ class RangeFacetHandler implements PartialFacetHandlerInterface
             $minFieldName,
             $maxFieldName,
             [],
-            $this->getUnit($filter)
+            $filter->getUnit()
         );
-    }
-
-    /**
-     * Fetches the unit from the filter. May return the template path if Shopware version is >5.3.0.
-     *
-     * @param BaseFilter $filter
-     *
-     * @return string
-     */
-    private function getUnit(BaseFilter $filter)
-    {
-        if (StaticHelper::isVersionLowerThan('5.3')) {
-            // Shopware < 5.3.0 does not support units. In Shopware 5.2.x this argument is the template path.
-            return self::TEMPLATE_PATH;
-        }
-
-        return $filter->getUnit();
     }
 
     /**
