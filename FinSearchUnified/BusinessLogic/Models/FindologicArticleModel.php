@@ -222,6 +222,7 @@ class FindologicArticleModel
 
     protected function setVariantOrdernumbers()
     {
+        $orderNumbers = [];
         /** @var Detail $detail */
         foreach ($this->variantArticles as $detail) {
             if (!($detail instanceof Detail)) {
@@ -245,7 +246,7 @@ class FindologicArticleModel
             }
 
             if (!StaticHelper::isEmpty(($detail->getNumber()))) {
-                $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getNumber()));
+                array_push($orderNumbers, $detail->getNumber());
             }
 
             if (!StaticHelper::isEmpty($detail->getEan())) {
@@ -255,6 +256,15 @@ class FindologicArticleModel
             if (!StaticHelper::isEmpty($detail->getSupplierNumber())) {
                 $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getSupplierNumber()));
             }
+        }
+        foreach ($orderNumbers as $index => $orderNumber) {
+            if ($orderNumber == $this->baseVariant->getNumber()) {
+                unset($orderNumbers[$index]);
+            }
+        }
+        array_unshift($orderNumbers,$this->baseVariant->getNumber());
+        foreach ($orderNumbers as $orderNumber) {
+            $this->xmlArticle->addOrdernumber(new Ordernumber($orderNumber));
         }
     }
 
