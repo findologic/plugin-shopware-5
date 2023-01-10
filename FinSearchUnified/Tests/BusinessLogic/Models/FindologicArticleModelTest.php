@@ -1650,4 +1650,193 @@ class FindologicArticleModelTest extends TestCase
             }, $images)
         );
     }
+
+    public function mainVariantExportOrderProvider()
+    {
+        return [
+            'Main varinat is on the begin of the ordernumbers array' => [
+                'articleConfiguration' => [
+                    'name' => 'FindologicArticle 1',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => Utility::getDefaultImages(),
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC1',
+                        'active' => true,
+                        'inStock' => 7,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ]
+                    ],
+                    'variants' => [
+                        [
+                            'isMain' => true,
+                            'number' => 'FINDOLOGIC1.1',
+                            'inStock' => 2,
+                            'active' => true,
+                            'prices' => [
+                                [
+                                    'customerGroupKey' => 'EK',
+                                    'price' => 1,
+                                ],
+                            ]
+                        ],
+                        [
+                            'isMain' => false,
+                            'number' => 'FINDOLOGIC1.2',
+                            'inStock' => 5,
+                            'active' => true
+                        ],
+                        [
+                            'isMain' => false,
+                            'number' => 'FINDOLOGIC1.3',
+                            'inStock' => 7,
+                            'active' => true
+                        ]
+                    ]
+                ],
+                'expectedResult' => 'FINDOLOGIC1.1'
+            ],
+            'Main varinat is on the middle of the ordernumbers array' => [
+                'articleConfiguration' => [
+                    'name' => 'FindologicArticle 1',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => Utility::getDefaultImages(),
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC1',
+                        'active' => true,
+                        'inStock' => 7,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ]
+                    ],
+                    'variants' => [
+                        [
+                            'isMain' => false,
+                            'number' => 'FINDOLOGIC1.1',
+                            'inStock' => 2,
+                            'active' => true
+                        ],
+                        [
+                            'isMain' => true,
+                            'number' => 'FINDOLOGIC1.2',
+                            'inStock' => 5,
+                            'active' => true,
+                            'prices' => [
+                                [
+                                    'customerGroupKey' => 'EK',
+                                    'price' => 99.34,
+                                ],
+                            ]
+                        ],
+                        [
+                            'isMain' => false,
+                            'number' => 'FINDOLOGIC1.3',
+                            'inStock' => 7,
+                            'active' => true
+                        ]
+                    ]
+                ],
+                'expectedResult' => 'FINDOLOGIC1.2'
+            ],
+            'Main varinat is on the end  of the ordernumbers array' => [
+                'articleConfiguration' => [
+                    'name' => 'FindologicArticle 1',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5],
+                    ],
+                    'images' => Utility::getDefaultImages(),
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC1',
+                        'active' => true,
+                        'inStock' => 7,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ]
+                    ],
+                    'variants' => [
+                        [
+                            'isMain' => false,
+                            'number' => 'FINDOLOGIC1.1',
+                            'inStock' => 2,
+                            'active' => true
+                        ],
+                        [
+                            'isMain' => false,
+                            'number' => 'FINDOLOGIC1.2',
+                            'inStock' => 5,
+                            'active' => true
+                        ],
+                        [
+                            'isMain' => true,
+                            'number' => 'FINDOLOGIC1.3',
+                            'inStock' => 7,
+                            'active' => true,
+                            'prices' => [
+                                [
+                                    'customerGroupKey' => 'EK',
+                                    'price' => 99.34,
+                                ],
+                            ]
+                        ]
+                    ]
+                ],
+                'expectedResult' => 'FINDOLOGIC1.3'
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider mainVariantExportOrderProvider
+     *
+     * @param array $articleConfiguration
+     * @param string $expectedResult
+     *
+     * @throws Exception
+     * @throws ReflectionException
+     */
+    public function testMainVariantIsExportedAsFirstOrdernumber(array $articleConfiguration, string $expectedResult)
+    {
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $articleFromConfiguration->getCategories()->first()
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+        $reflector = new ReflectionClass(Item::class);
+
+        $xmlOrdernumbers = $reflector->getProperty('ordernumbers');
+        $xmlOrdernumbers->setAccessible(true);
+        $ordernumbers = array_pop($xmlOrdernumbers->getValue($xmlArticle)->getValues());
+
+        $this->assertEquals(current($ordernumbers)->getValue(), $expectedResult);
+    }
 }
