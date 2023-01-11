@@ -1681,11 +1681,10 @@ class FindologicArticleModelTest extends TestCase
                     ],
                     'variants' => [
                         [
-                            'isMain' => false,
+                            'isMain' => true,
                             'number' => 'FINDOLOGIC1.1',
-                            'inStock' => 7,
+                            'inStock' => 1,
                             'active' => true,
-                            'lastStock' => true,
                             'prices' => [
                                 [
                                     'customerGroupKey' => 'EK',
@@ -1693,10 +1692,174 @@ class FindologicArticleModelTest extends TestCase
                                 ]
                             ],
                             'configuratorOptions' => []
+                        ],
+                        [
+                            'isMain' => false,
+                            'number' => 'FINDOLOGIC1.2',
+                            'inStock' => 2,
+                            'active' => true,
+                            'prices' => [
+                                [
+                                    'customerGroupKey' => 'EK',
+                                    'price' => 2,
+                                ]
+                            ],
+                            'configuratorOptions' => []
+                        ],
+                        [
+                            'isMain' => false,
+                            'number' => 'FINDOLOGIC1.3',
+                            'inStock' => 3,
+                            'active' => true,
+                            'prices' => [
+                                [
+                                    'customerGroupKey' => 'EK',
+                                    'price' => 3,
+                                ]
+                            ],
+                            'configuratorOptions' => []
                         ]
                     ]
                 ],
                 'expectedResult' => 'FINDOLOGIC1.1'
+            ],
+            'Main varinat is on the middle of the ordernumbers array' => [
+                'articleConfiguration' => [
+                    'name' => 'FindologicArticle 1',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5]
+                    ],
+                    'images' => Utility::getDefaultImages(),
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC1',
+                        'active' => true,
+                        'inStock' => 7,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ]
+                    ],
+                    'configuratorSet' => [
+                        'groups' => []
+                    ],
+                    'variants' => [
+                        [
+                            'isMain' => false,
+                            'number' => 'FINDOLOGIC1.1',
+                            'inStock' => 1,
+                            'active' => true,
+                            'prices' => [
+                                [
+                                    'customerGroupKey' => 'EK',
+                                    'price' => 1,
+                                ]
+                            ],
+                            'configuratorOptions' => []
+                        ],
+                        [
+                            'isMain' => true,
+                            'number' => 'FINDOLOGIC1.2',
+                            'inStock' => 2,
+                            'active' => true,
+                            'prices' => [
+                                [
+                                    'customerGroupKey' => 'EK',
+                                    'price' => 2,
+                                ]
+                            ],
+                            'configuratorOptions' => []
+                        ],
+                        [
+                            'isMain' => false,
+                            'number' => 'FINDOLOGIC1.3',
+                            'inStock' => 3,
+                            'active' => true,
+                            'prices' => [
+                                [
+                                    'customerGroupKey' => 'EK',
+                                    'price' => 3,
+                                ]
+                            ],
+                            'configuratorOptions' => []
+                        ]
+                    ]
+                ],
+                'expectedResult' => 'FINDOLOGIC1.2'
+            ],
+            'Main varinat is on the end of the ordernumbers array' => [
+                'articleConfiguration' => [
+                    'name' => 'FindologicArticle 1',
+                    'active' => true,
+                    'tax' => 19,
+                    'supplier' => 'Findologic',
+                    'categories' => [
+                        ['id' => 3],
+                        ['id' => 5]
+                    ],
+                    'images' => Utility::getDefaultImages(),
+                    'mainDetail' => [
+                        'number' => 'FINDOLOGIC1',
+                        'active' => true,
+                        'inStock' => 7,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 99.34,
+                            ],
+                        ]
+                    ],
+                    'configuratorSet' => [
+                        'groups' => []
+                    ],
+                    'variants' => [
+                        [
+                            'isMain' => false,
+                            'number' => 'FINDOLOGIC1.1',
+                            'inStock' => 1,
+                            'active' => true,
+                            'prices' => [
+                                [
+                                    'customerGroupKey' => 'EK',
+                                    'price' => 1,
+                                ]
+                            ],
+                            'configuratorOptions' => []
+                        ],
+                        [
+                            'isMain' => false,
+                            'number' => 'FINDOLOGIC1.2',
+                            'inStock' => 2,
+                            'active' => true,
+                            'prices' => [
+                                [
+                                    'customerGroupKey' => 'EK',
+                                    'price' => 2,
+                                ]
+                            ],
+                            'configuratorOptions' => []
+                        ],
+                        [
+                            'isMain' => true,
+                            'number' => 'FINDOLOGIC1.3',
+                            'inStock' => 3,
+                            'active' => true,
+                            'prices' => [
+                                [
+                                    'customerGroupKey' => 'EK',
+                                    'price' => 3,
+                                ]
+                            ],
+                            'configuratorOptions' => []
+                        ]
+                    ]
+                ],
+                'expectedResult' => 'FINDOLOGIC1.3'
             ]
         ];
     }
