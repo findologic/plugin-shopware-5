@@ -1676,18 +1676,23 @@ class FindologicArticleModelTest extends TestCase
                             ],
                         ]
                     ],
+                    'configuratorSet' => [
+                        'groups' => []
+                    ],
                     'variants' => [
                         [
                             'isMain' => false,
                             'number' => 'FINDOLOGIC1.1',
                             'inStock' => 7,
                             'active' => true,
+                            'lastStock' => true,
                             'prices' => [
                                 [
                                     'customerGroupKey' => 'EK',
                                     'price' => 1,
                                 ]
-                            ]
+                            ],
+                            'configuratorOptions' => []
                         ]
                     ]
                 ],
