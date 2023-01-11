@@ -62,7 +62,6 @@ class FindologicArticleModelTest extends TestCase
 
             return $resource->create($testProductConfiguration);
         } catch (Exception $e) {
-            dd($e->getMessage());
             echo sprintf('Exception: %s', $e->getMessage());
         }
 
@@ -1679,7 +1678,7 @@ class FindologicArticleModelTest extends TestCase
                     ],
                     'variants' => [
                         [
-                            'isMain' => true,
+                            'isMain' => false,
                             'number' => 'FINDOLOGIC1.1',
                             'inStock' => 7,
                             'active' => true,
@@ -1709,7 +1708,6 @@ class FindologicArticleModelTest extends TestCase
     public function testMainVariantIsExportedAsFirstOrdernumber(array $articleConfiguration, string $expectedResult)
     {
         $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
-//        dd($articleFromConfiguration);
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
             'ABCD0815',
