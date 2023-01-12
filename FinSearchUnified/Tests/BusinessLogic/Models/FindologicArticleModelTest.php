@@ -1659,7 +1659,7 @@ class FindologicArticleModelTest extends TestCase
             $category = $resource->getRepository()->find(9265);
 
             /** @var Category $category */
-            if(!$category) {
+            if (!$category) {
                 $category = $resource->create([
                     'id' => 9265,
                     'name' => 'ProductSteamCategory',
