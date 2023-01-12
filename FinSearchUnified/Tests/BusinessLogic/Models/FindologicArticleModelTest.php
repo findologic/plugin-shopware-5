@@ -19,6 +19,7 @@ use Shopware\Models\Article\Article;
 use Shopware\Models\Article\Detail;
 use Shopware\Models\Attribute\Article as ArticleAttribute;
 use Shopware\Models\Category\Category;
+use Shopware\Models\ProductStream\ProductStream;
 use Shopware_Components_Config as Config;
 
 class FindologicArticleModelTest extends TestCase
@@ -1648,5 +1649,54 @@ class FindologicArticleModelTest extends TestCase
                 return $image->getUrl();
             }, $images)
         );
+    }
+
+    public function testCategoryWithProductStreamIsIgnored()
+    {
+        try {
+            /** @var ArticleResource $resource */
+            $resource = Manager::getResource('Category');
+            $category = $resource->getRepository()->find(9265);
+
+            /** @var Category $category */
+            if(!$category) {
+                $category = $resource->create([
+                    'id' => 9265,
+                    'name' => 'ProductSteamCategory',
+                    'parent' => 5
+                ]);
+            }
+        } catch (Exception $e) {
+            echo sprintf('Exception: %s', $e->getMessage());
+        }
+
+        $articleFromConfiguration = Utility::createTestProduct('1', true, [5, 9265]);
+
+        $baseCategory = new Category();
+        $baseCategory->setId(1);
+
+        $productStream = new ProductStream();
+        $category->setParent($baseCategory);
+        $category->setStream($productStream);
+        $articleFromConfiguration->addCategory($category);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $baseCategory
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+        $reflector = new ReflectionClass(Item::class);
+
+        $attributes = $reflector->getProperty('attributes');
+        $attributes->setAccessible(true);
+        $values = $attributes->getValue($xmlArticle);
+        $categories = $values['cat']->getValues();
+
+        $this->assertContains('Genusswelten', $categories);
+        $this->assertNotContains('Genusswelten_ProductSteamCategory', $categories);
     }
 }
