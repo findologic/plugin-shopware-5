@@ -246,7 +246,7 @@ class FindologicArticleModel
             }
 
             if (!StaticHelper::isEmpty(($detail->getNumber()))) {
-                array_push($orderNumbers, $detail->getNumber());
+                $orderNumbers[] = $detail->getNumber();
             }
 
             if (!StaticHelper::isEmpty($detail->getEan())) {

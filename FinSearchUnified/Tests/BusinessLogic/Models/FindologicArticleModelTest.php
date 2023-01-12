@@ -1653,7 +1653,7 @@ class FindologicArticleModelTest extends TestCase
 
     public function mainVariantExportOrderProvider()
     {
-        $mainVariantOnTheBeginArticleConf = [
+        $baseConfiguration = [
             'name' => 'FindologicArticle 1',
             'active' => true,
             'tax' => 19,
@@ -1676,195 +1676,160 @@ class FindologicArticleModelTest extends TestCase
             ],
             'configuratorSet' => [
                 'groups' => []
-            ],
-            'variants' => [
-                [
-                    'isMain' => true,
-                    'number' => 'FINDOLOGIC1.1',
-                    'inStock' => 1,
-                    'active' => true,
-                    'prices' => [
-                        [
-                            'customerGroupKey' => 'EK',
-                            'price' => 1,
-                        ]
-                    ],
-                    'configuratorOptions' => []
-                ],
-                [
-                    'isMain' => false,
-                    'number' => 'FINDOLOGIC1.2',
-                    'inStock' => 2,
-                    'active' => true,
-                    'prices' => [
-                        [
-                            'customerGroupKey' => 'EK',
-                            'price' => 2,
-                        ]
-                    ],
-                    'configuratorOptions' => []
-                ],
-                [
-                    'isMain' => false,
-                    'number' => 'FINDOLOGIC1.3',
-                    'inStock' => 3,
-                    'active' => true,
-                    'prices' => [
-                        [
-                            'customerGroupKey' => 'EK',
-                            'price' => 3,
-                        ]
-                    ],
-                    'configuratorOptions' => []
-                ]
             ]
         ];
 
-        $mainVariantOnTheMiddleArticleConf = [
-            'name' => 'FindologicArticle 1',
-            'active' => true,
-            'tax' => 19,
-            'supplier' => 'Findologic',
-            'categories' => [
-                ['id' => 3],
-                ['id' => 5]
-            ],
-            'images' => Utility::getDefaultImages(),
-            'mainDetail' => [
-                'number' => 'FINDOLOGIC1',
-                'active' => true,
-                'inStock' => 7,
-                'prices' => [
+        $mainVariantOnTheBeginArticleConf = array_merge(
+            $baseConfiguration,
+            [
+                'variants' => [
                     [
-                        'customerGroupKey' => 'EK',
-                        'price' => 99.34,
+                        'isMain' => true,
+                        'number' => 'FINDOLOGIC1.1',
+                        'inStock' => 1,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 1,
+                            ]
+                        ],
+                        'configuratorOptions' => []
                     ],
-                ]
-            ],
-            'configuratorSet' => [
-                'groups' => []
-            ],
-            'variants' => [
-                [
-                    'isMain' => false,
-                    'number' => 'FINDOLOGIC1.1',
-                    'inStock' => 1,
-                    'active' => true,
-                    'prices' => [
-                        [
-                            'customerGroupKey' => 'EK',
-                            'price' => 1,
-                        ]
-                    ],
-                    'configuratorOptions' => []
-                ],
-                [
-                    'isMain' => true,
-                    'number' => 'FINDOLOGIC1.2',
-                    'inStock' => 2,
-                    'active' => true,
-                    'prices' => [
-                        [
-                            'customerGroupKey' => 'EK',
-                            'price' => 2,
-                        ]
-                    ],
-                    'configuratorOptions' => []
-                ],
-                [
-                    'isMain' => false,
-                    'number' => 'FINDOLOGIC1.3',
-                    'inStock' => 3,
-                    'active' => true,
-                    'prices' => [
-                        [
-                            'customerGroupKey' => 'EK',
-                            'price' => 3,
-                        ]
-                    ],
-                    'configuratorOptions' => []
-                ]
-            ]
-        ];
-
-        $mainVariantOnTheEndArticleConf = [
-            'name' => 'FindologicArticle 1',
-            'active' => true,
-            'tax' => 19,
-            'supplier' => 'Findologic',
-            'categories' => [
-                ['id' => 3],
-                ['id' => 5]
-            ],
-            'images' => Utility::getDefaultImages(),
-            'mainDetail' => [
-                'number' => 'FINDOLOGIC1',
-                'active' => true,
-                'inStock' => 7,
-                'prices' => [
                     [
-                        'customerGroupKey' => 'EK',
-                        'price' => 99.34,
+                        'isMain' => false,
+                        'number' => 'FINDOLOGIC1.2',
+                        'inStock' => 2,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 2,
+                            ]
+                        ],
+                        'configuratorOptions' => []
                     ],
-                ]
-            ],
-            'configuratorSet' => [
-                'groups' => []
-            ],
-            'variants' => [
-                [
-                    'isMain' => false,
-                    'number' => 'FINDOLOGIC1.1',
-                    'inStock' => 1,
-                    'active' => true,
-                    'prices' => [
-                        [
-                            'customerGroupKey' => 'EK',
-                            'price' => 1,
-                        ]
-                    ],
-                    'configuratorOptions' => []
-                ],
-                [
-                    'isMain' => false,
-                    'number' => 'FINDOLOGIC1.2',
-                    'inStock' => 2,
-                    'active' => true,
-                    'prices' => [
-                        [
-                            'customerGroupKey' => 'EK',
-                            'price' => 2,
-                        ]
-                    ],
-                    'configuratorOptions' => []
-                ],
-                [
-                    'isMain' => true,
-                    'number' => 'FINDOLOGIC1.3',
-                    'inStock' => 3,
-                    'active' => true,
-                    'prices' => [
-                        [
-                            'customerGroupKey' => 'EK',
-                            'price' => 3,
-                        ]
-                    ],
-                    'configuratorOptions' => []
+                    [
+                        'isMain' => false,
+                        'number' => 'FINDOLOGIC1.3',
+                        'inStock' => 3,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 3,
+                            ]
+                        ],
+                        'configuratorOptions' => []
+                    ]
                 ]
             ]
+        );
 
-        ];
+        $mainVariantOnTheMiddleArticleConf = array_merge(
+            $baseConfiguration,
+            [
+                'variants' => [
+                    [
+                        'isMain' => false,
+                        'number' => 'FINDOLOGIC1.1',
+                        'inStock' => 1,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 1,
+                            ]
+                        ],
+                        'configuratorOptions' => []
+                    ],
+                    [
+                        'isMain' => true,
+                        'number' => 'FINDOLOGIC1.2',
+                        'inStock' => 2,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 2,
+                            ]
+                        ],
+                        'configuratorOptions' => []
+                    ],
+                    [
+                        'isMain' => false,
+                        'number' => 'FINDOLOGIC1.3',
+                        'inStock' => 3,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 3,
+                            ]
+                        ],
+                        'configuratorOptions' => []
+                    ]
+                ]
+            ]
+        );
+
+        $mainVariantOnTheEndArticleConf = array_merge(
+            $baseConfiguration,
+            [
+                'variants' => [
+                    [
+                        'isMain' => false,
+                        'number' => 'FINDOLOGIC1.1',
+                        'inStock' => 1,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 1,
+                            ]
+                        ],
+                        'configuratorOptions' => []
+                    ],
+                    [
+                        'isMain' => false,
+                        'number' => 'FINDOLOGIC1.2',
+                        'inStock' => 2,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 2,
+                            ]
+                        ],
+                        'configuratorOptions' => []
+                    ],
+                    [
+                        'isMain' => true,
+                        'number' => 'FINDOLOGIC1.3',
+                        'inStock' => 3,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 3,
+                            ]
+                        ],
+                        'configuratorOptions' => []
+                    ]
+                ]
+            ]
+        );
 
         return [
-            'Main varinat is on the begin of the ordernumbers array' => [
+            'Main variant is on the begin of the ordernumbers array' => [
                 'articleConfiguration' => $mainVariantOnTheBeginArticleConf,
                 'expectedResult' => 'FINDOLOGIC1.1'
             ],
-            'Main varinat is on the middle of the ordernumbers array' => [
+            'Main variant is on the middle of the ordernumbers array' => [
                 'articleConfiguration' => $mainVariantOnTheMiddleArticleConf,
                 'expectedResult' => 'FINDOLOGIC1.2'
             ],
-            'Main varinat is on the end of the ordernumbers array' => [
+            'Main variant is on the end of the ordernumbers array' => [
                 'articleConfiguration' => $mainVariantOnTheEndArticleConf,
                 'expectedResult' => 'FINDOLOGIC1.3'
             ]
@@ -1898,6 +1863,6 @@ class FindologicArticleModelTest extends TestCase
         $xmlOrdernumbers->setAccessible(true);
         $ordernumbers = array_pop($xmlOrdernumbers->getValue($xmlArticle)->getValues());
 
-        $this->assertEquals(current($ordernumbers)->getValue(), $expectedResult);
+        $this->assertEquals($expectedResult, current($ordernumbers)->getValue());
     }
 }
