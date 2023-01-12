@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Tests;
 
+use Doctrine\DBAL\Connection;
 use Exception;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 
@@ -60,11 +61,23 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         }
     }
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        /** @var Connection $connection */
+        $connection = Shopware()->Container()->get(Connection::class);
+        $connection->beginTransaction();
+    }
+
     protected function tearDown(): void
     {
         parent::tearDown();
 
         Shopware()->Container()->reset('config');
+        /** @var Connection $connection */
+        $connection = Shopware()->Container()->get(Connection::class);
+        $connection->rollBack();
     }
 
     /**

@@ -2,12 +2,10 @@
 
 namespace FinSearchUnified\Tests\BusinessLogic\Models;
 
-use Doctrine\ORM\EntityManager;
 use Exception;
 use FINDOLOGIC\Export\Data\Item;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use FinSearchUnified\BusinessLogic\Models\FindologicArticleModel;
-use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
 use ReflectionClass;
@@ -1656,16 +1654,13 @@ class FindologicArticleModelTest extends TestCase
         try {
             /** @var ArticleResource $resource */
             $resource = Manager::getResource('Category');
-            $category = $resource->getRepository()->find(9265);
 
             /** @var Category $category */
-            if (!$category) {
-                $category = $resource->create([
-                    'id' => 9265,
-                    'name' => 'ProductSteamCategory',
-                    'parent' => 5
-                ]);
-            }
+            $category = $resource->create([
+                'id' => 9265,
+                'name' => 'ProductSteamCategory',
+                'parent' => 5
+            ]);
         } catch (Exception $e) {
             echo sprintf('Exception: %s', $e->getMessage());
         }
@@ -1696,7 +1691,7 @@ class FindologicArticleModelTest extends TestCase
         $values = $attributes->getValue($xmlArticle);
         $categories = $values['cat']->getValues();
 
-        $this->assertContains('Genusswelten', $categories);
-        $this->assertNotContains('Genusswelten_ProductSteamCategory', $categories);
+        $this->assertContains('Deutsch_Genusswelten', $categories);
+        $this->assertNotContains('Deutsch_Genusswelten_ProductSteamCategory', $categories);
     }
 }
