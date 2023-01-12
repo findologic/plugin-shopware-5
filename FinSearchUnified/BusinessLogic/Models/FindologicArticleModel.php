@@ -258,7 +258,10 @@ class FindologicArticleModel
             }
         }
 
-        array_unshift($orderNumbers, $this->baseVariant->getNumber());
+        $mainVariantNumber = $this->baseVariant->getNumber();
+        if (in_array($mainVariantNumber, $orderNumbers)) {
+            array_unshift($orderNumbers, $mainVariantNumber);
+        }
         foreach (array_unique($orderNumbers) as $orderNumber) {
             $this->xmlArticle->addOrdernumber(new Ordernumber($orderNumber));
         }
