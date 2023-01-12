@@ -1651,36 +1651,20 @@ class FindologicArticleModelTest extends TestCase
 
     public function testCategoryWithProductStreamIsIgnored()
     {
-        try {
-            /** @var ArticleResource $resource */
-            $resource = Manager::getResource('Category');
-
-            /** @var Category $category */
-            $category = $resource->create([
-                'id' => 9265,
-                'name' => 'ProductSteamCategory',
-                'parent' => 5
-            ]);
-        } catch (Exception $e) {
-            echo sprintf('Exception: %s', $e->getMessage());
-        }
-
-        $articleFromConfiguration = Utility::createTestProduct('1', true, [5, 9265]);
+        $articleFromConfiguration = Utility::createTestProduct('1', true, [1, 5, 11]);
 
         $baseCategory = new Category();
         $baseCategory->setId(1);
 
         $productStream = new ProductStream();
-        $category->setParent($baseCategory);
-        $category->setStream($productStream);
-        $articleFromConfiguration->addCategory($category);
+        $articleFromConfiguration->getCategories()->last()->setStream($productStream);
 
         $findologicArticle = $this->articleFactory->create(
             $articleFromConfiguration,
             'ABCD0815',
             [],
             [],
-            $baseCategory
+            $articleFromConfiguration->getCategories()->first()
         );
 
         $xmlArticle = $findologicArticle->getXmlRepresentation();
@@ -1691,7 +1675,8 @@ class FindologicArticleModelTest extends TestCase
         $values = $attributes->getValue($xmlArticle);
         $categories = $values['cat']->getValues();
 
-        $this->assertContains('Deutsch_Genusswelten', $categories);
-        $this->assertNotContains('Deutsch_Genusswelten_ProductSteamCategory', $categories);
+        $this->assertContains('Genusswelten', $categories);
+        $this->assertEquals('Tees und Zubehör', $articleFromConfiguration->getCategories()->last()->getName());
+        $this->assertNotContains('Genusswelten_Tees und Zubehör', $categories);
     }
 }
