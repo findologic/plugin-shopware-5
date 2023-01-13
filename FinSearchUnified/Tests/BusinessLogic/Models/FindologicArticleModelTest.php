@@ -703,6 +703,7 @@ class FindologicArticleModelTest extends TestCase
 
         $detail->expects($this->once())->method('getAttribute')->willReturn($detailAttribute);
         $detail->method('getId')->willReturn(1);
+        $detail->method('getNumber')->willReturn('productNumber1234');
 
         $article->method('getMainDetail')->willReturn($detail);
 
@@ -1647,6 +1648,221 @@ class FindologicArticleModelTest extends TestCase
                 return $image->getUrl();
             }, $images)
         );
+    }
+
+    public function mainVariantExportOrderProvider()
+    {
+        $baseConfiguration = [
+            'name' => 'FindologicArticle 1',
+            'active' => true,
+            'tax' => 19,
+            'supplier' => 'Findologic',
+            'categories' => [
+                ['id' => 3],
+                ['id' => 5]
+            ],
+            'images' => Utility::getDefaultImages(),
+            'mainDetail' => [
+                'number' => 'FINDOLOGIC1',
+                'active' => true,
+                'inStock' => 7,
+                'prices' => [
+                    [
+                        'customerGroupKey' => 'EK',
+                        'price' => 99.34,
+                    ],
+                ]
+            ],
+            'configuratorSet' => [
+                'groups' => []
+            ]
+        ];
+
+        $mainVariantOnTheBeginArticleConf = array_merge(
+            $baseConfiguration,
+            [
+                'variants' => [
+                    [
+                        'isMain' => true,
+                        'number' => 'FINDOLOGIC1.1',
+                        'inStock' => 1,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 1,
+                            ]
+                        ],
+                        'configuratorOptions' => []
+                    ],
+                    [
+                        'isMain' => false,
+                        'number' => 'FINDOLOGIC1.2',
+                        'inStock' => 2,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 2,
+                            ]
+                        ],
+                        'configuratorOptions' => []
+                    ],
+                    [
+                        'isMain' => false,
+                        'number' => 'FINDOLOGIC1.3',
+                        'inStock' => 3,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 3,
+                            ]
+                        ],
+                        'configuratorOptions' => []
+                    ]
+                ]
+            ]
+        );
+
+        $mainVariantOnTheMiddleArticleConf = array_merge(
+            $baseConfiguration,
+            [
+                'variants' => [
+                    [
+                        'isMain' => false,
+                        'number' => 'FINDOLOGIC1.1',
+                        'inStock' => 1,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 1,
+                            ]
+                        ],
+                        'configuratorOptions' => []
+                    ],
+                    [
+                        'isMain' => true,
+                        'number' => 'FINDOLOGIC1.2',
+                        'inStock' => 2,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 2,
+                            ]
+                        ],
+                        'configuratorOptions' => []
+                    ],
+                    [
+                        'isMain' => false,
+                        'number' => 'FINDOLOGIC1.3',
+                        'inStock' => 3,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 3,
+                            ]
+                        ],
+                        'configuratorOptions' => []
+                    ]
+                ]
+            ]
+        );
+
+        $mainVariantOnTheEndArticleConf = array_merge(
+            $baseConfiguration,
+            [
+                'variants' => [
+                    [
+                        'isMain' => false,
+                        'number' => 'FINDOLOGIC1.1',
+                        'inStock' => 1,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 1,
+                            ]
+                        ],
+                        'configuratorOptions' => []
+                    ],
+                    [
+                        'isMain' => false,
+                        'number' => 'FINDOLOGIC1.2',
+                        'inStock' => 2,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 2,
+                            ]
+                        ],
+                        'configuratorOptions' => []
+                    ],
+                    [
+                        'isMain' => true,
+                        'number' => 'FINDOLOGIC1.3',
+                        'inStock' => 3,
+                        'active' => true,
+                        'prices' => [
+                            [
+                                'customerGroupKey' => 'EK',
+                                'price' => 3,
+                            ]
+                        ],
+                        'configuratorOptions' => []
+                    ]
+                ]
+            ]
+        );
+
+        return [
+            'Main variant is on the begin of the ordernumbers array' => [
+                'articleConfiguration' => $mainVariantOnTheBeginArticleConf,
+                'expectedResult' => 'FINDOLOGIC1.1'
+            ],
+            'Main variant is on the middle of the ordernumbers array' => [
+                'articleConfiguration' => $mainVariantOnTheMiddleArticleConf,
+                'expectedResult' => 'FINDOLOGIC1.2'
+            ],
+            'Main variant is on the end of the ordernumbers array' => [
+                'articleConfiguration' => $mainVariantOnTheEndArticleConf,
+                'expectedResult' => 'FINDOLOGIC1.3'
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider mainVariantExportOrderProvider
+     *
+     * @param array $articleConfiguration
+     * @param string $expectedResult
+     *
+     * @throws Exception
+     * @throws ReflectionException
+     */
+    public function testMainVariantIsExportedAsFirstOrdernumber(array $articleConfiguration, string $expectedResult)
+    {
+        $articleFromConfiguration = $this->createTestProduct($articleConfiguration);
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $articleFromConfiguration->getCategories()->first()
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+        $reflector = new ReflectionClass(Item::class);
+
+        $xmlOrdernumbers = $reflector->getProperty('ordernumbers');
+        $xmlOrdernumbers->setAccessible(true);
+        $ordernumbers = array_pop($xmlOrdernumbers->getValue($xmlArticle)->getValues());
+
+        $this->assertEquals($expectedResult, current($ordernumbers)->getValue());
     }
 
     public function testCategoryWithProductStreamIsIgnored()

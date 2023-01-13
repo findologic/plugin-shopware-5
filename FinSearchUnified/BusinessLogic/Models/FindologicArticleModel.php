@@ -222,6 +222,7 @@ class FindologicArticleModel
 
     protected function setVariantOrdernumbers()
     {
+        $orderNumbers = [];
         /** @var Detail $detail */
         foreach ($this->variantArticles as $detail) {
             if (!($detail instanceof Detail)) {
@@ -245,16 +246,24 @@ class FindologicArticleModel
             }
 
             if (!StaticHelper::isEmpty(($detail->getNumber()))) {
-                $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getNumber()));
+                $orderNumbers[] = $detail->getNumber();
             }
 
             if (!StaticHelper::isEmpty($detail->getEan())) {
-                $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getEan()));
+                $orderNumbers[] = $detail->getEan();
             }
 
             if (!StaticHelper::isEmpty($detail->getSupplierNumber())) {
-                $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getSupplierNumber()));
+                $orderNumbers[] = $detail->getSupplierNumber();
             }
+        }
+
+        $mainVariantNumber = $this->baseVariant->getNumber();
+        if (in_array($mainVariantNumber, $orderNumbers)) {
+            array_unshift($orderNumbers, $mainVariantNumber);
+        }
+        foreach (array_unique($orderNumbers) as $orderNumber) {
+            $this->xmlArticle->addOrdernumber(new Ordernumber($orderNumber));
         }
     }
 
@@ -782,6 +791,7 @@ class FindologicArticleModel
         $allProperties[] = new Property('wishlistUrl', ['' => $wishListUrl]);
         $allProperties[] = new Property('compareUrl', ['' => $compareUrl]);
         $allProperties[] = new Property('addToCartUrl', ['' => $cartUrl]);
+        $allProperties[] = new Property('main_number', ['' => $this->baseVariant->getNumber()]);
 
         // Supplier
         /** @var Product\Manufacturer $supplier */
