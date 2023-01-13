@@ -2,12 +2,10 @@
 
 namespace FinSearchUnified\Tests\BusinessLogic\Models;
 
-use Doctrine\ORM\EntityManager;
 use Exception;
 use FINDOLOGIC\Export\Data\Item;
 use FinSearchUnified\BusinessLogic\FindologicArticleFactory;
 use FinSearchUnified\BusinessLogic\Models\FindologicArticleModel;
-use FinSearchUnified\Helper\StaticHelper;
 use FinSearchUnified\Tests\Helper\Utility;
 use FinSearchUnified\Tests\TestCase;
 use ReflectionClass;
@@ -19,6 +17,7 @@ use Shopware\Models\Article\Article;
 use Shopware\Models\Article\Detail;
 use Shopware\Models\Attribute\Article as ArticleAttribute;
 use Shopware\Models\Category\Category;
+use Shopware\Models\ProductStream\ProductStream;
 use Shopware_Components_Config as Config;
 
 class FindologicArticleModelTest extends TestCase
@@ -1648,5 +1647,36 @@ class FindologicArticleModelTest extends TestCase
                 return $image->getUrl();
             }, $images)
         );
+    }
+
+    public function testCategoryWithProductStreamIsIgnored()
+    {
+        $articleFromConfiguration = Utility::createTestProduct('1', true, [1, 5, 11]);
+
+        $baseCategory = new Category();
+        $baseCategory->setId(1);
+
+        $productStream = new ProductStream();
+        $articleFromConfiguration->getCategories()->last()->setStream($productStream);
+
+        $findologicArticle = $this->articleFactory->create(
+            $articleFromConfiguration,
+            'ABCD0815',
+            [],
+            [],
+            $articleFromConfiguration->getCategories()->first()
+        );
+
+        $xmlArticle = $findologicArticle->getXmlRepresentation();
+        $reflector = new ReflectionClass(Item::class);
+
+        $attributes = $reflector->getProperty('attributes');
+        $attributes->setAccessible(true);
+        $values = $attributes->getValue($xmlArticle);
+        $categories = $values['cat']->getValues();
+
+        $this->assertContains('Genusswelten', $categories);
+        $this->assertEquals('Tees und Zubehör', $articleFromConfiguration->getCategories()->last()->getName());
+        $this->assertNotContains('Genusswelten_Tees und Zubehör', $categories);
     }
 }
