@@ -67,7 +67,7 @@ Before starting the deployment make sure that a release is already created.
 1. Go to https://account.shopware.com and login. Go to
  `Manufacturer area > Plugins > FINDOLOGIC Search & Navigation` and select *Versions*. Click
  on *Upload new version* and fill out all necessary fields. In the second step mark the plugin as compatible
- for Shopware 5.2 and newer. Last but not least upload the plugins' zip file and mark all
+ for Shopware 5.3 and newer. Last but not least upload the plugins' zip file and mark all
  required checkboxes.
 1. Once the release is available require an *automatic code review*.
 1. Notify everyone in Slack #releases.

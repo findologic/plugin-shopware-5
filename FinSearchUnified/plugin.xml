@@ -4,7 +4,7 @@
     <label lang="de">Findologic - Search &amp; Navigation Platform</label>
     <label lang="en">Findologic - Search &amp; Navigation Platform</label>
 
-    <version>11.7.0</version>
+    <version>11.8.0</version>
     <link>https://www.findologic.com/</link>
     <author>FINDOLOGIC GmbH</author>
     <support>https://www.findologic.com/</support>
@@ -59,6 +59,22 @@
         ]]>
     </description>
     <compatibility minVersion="5.3.0" />
+    <changelog version="11.8.0">
+        <changes lang="de">
+            SW-781 - Support für Shopware 5.2 eingestellt.;
+            SW-738 - Die Artikelnummer der Hauptvariante wird nun als Property "main_number" exportiert.;
+            SW-738 - Ein Fehler wurde behoben, wodurch die Artikelnummer der Hauptvariante nicht als Haupt-Artikelnummer exportiert wurde.;
+            SW-782 - Ein Fehler wurde behoben, wodurch es zu einem Fehler mit neueren Versionen und Elasticsearch kam.;
+            SW-787 - Ein Fehler wurde behoben, wodurch manuell zugewiesene Produkte bei Kategorien mit Product Stream zusätzlich angezeigt wurden.;
+        </changes>
+        <changes lang="en">
+            SW-781 - Dropped support for Shopware 5.2.;
+            SW-738 - The article number of the main variant is now exported within the property "main_number".;
+            SW-738 - Fixed a bug that did not export the article number of the main variant as main ordernumber.;
+            SW-782 - Fixed a bug that lead to an exception for newer Shopware versions with ElasticSearch.;
+            SW-787 - Fixed a bug that lead to manually assigned products for categories were shown additionally to any configured product streams.;
+        </changes>
+    </changelog>
     <changelog version="11.7.0">
         <changes lang="de">
             SW-679 - Support für Herstellerseiten hinzugefügt.;
