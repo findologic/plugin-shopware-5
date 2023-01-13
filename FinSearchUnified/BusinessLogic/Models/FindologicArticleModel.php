@@ -250,11 +250,11 @@ class FindologicArticleModel
             }
 
             if (!StaticHelper::isEmpty($detail->getEan())) {
-                $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getEan()));
+                $orderNumbers[] = $detail->getEan();
             }
 
             if (!StaticHelper::isEmpty($detail->getSupplierNumber())) {
-                $this->xmlArticle->addOrdernumber(new Ordernumber($detail->getSupplierNumber()));
+                $orderNumbers[] = $detail->getSupplierNumber();
             }
         }
 
