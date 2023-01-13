@@ -2,6 +2,7 @@
 
 namespace FinSearchUnified\Tests;
 
+use Doctrine\DBAL\Connection;
 use Exception;
 use Shopware\Bundle\PluginInstallerBundle\Service\InstallerService;
 

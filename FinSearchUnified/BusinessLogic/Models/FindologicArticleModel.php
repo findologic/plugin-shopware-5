@@ -518,7 +518,9 @@ class FindologicArticleModel
 
         if ($this->baseArticle->getCategories() !== null) {
             /** @var Category[] $categories */
-            $categories = $this->baseArticle->getCategories()->toArray();
+            $categories = $this->baseArticle->getCategories()->filter(function (Category $category) {
+                return is_null($category->getStream());
+            })->toArray();
         }
 
         $id = sprintf('%s_%s', Constants::CACHE_ID_PRODUCT_STREAMS, $this->shopKey);
