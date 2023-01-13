@@ -1865,7 +1865,6 @@ class FindologicArticleModelTest extends TestCase
         $this->assertEquals($expectedResult, current($ordernumbers)->getValue());
     }
 
-
     public function testCategoryWithProductStreamIsIgnored()
     {
         $articleFromConfiguration = Utility::createTestProduct('1', true, [1, 5, 11]);
