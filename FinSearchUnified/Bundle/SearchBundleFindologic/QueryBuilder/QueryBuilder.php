@@ -231,12 +231,8 @@ abstract class QueryBuilder
         $this->searchNavigationRequest->setUserIp($this->getClientIp());
         $this->searchNavigationRequest->setRevision(rtrim($plugin->getVersion()));
         $this->searchNavigationRequest->setOutputAdapter(OutputAdapter::XML_21);
-        $this->searchNavigationRequest->addIndividualParam('shopType', 'Shopware5', Request::ADD_VALUE);
-        $this->searchNavigationRequest->addIndividualParam(
-            'shopVersion',
-            Shopware()->Config()->offsetGet('version'),
-            Request::ADD_VALUE
-        );
+        $this->searchNavigationRequest->setShopType('Shopware5');
+        $this->searchNavigationRequest->setShopVersion(Shopware()->Config()->offsetGet('version'));
     }
 
     /**
